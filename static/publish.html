@@ -57,12 +57,12 @@
     }
 
     /* 新建字段组 */
-    .new-skill-fields {
-      transition: var(--transition);
-    }
-
-    .new-skill-fields.hidden {
-      display: none;
+    /* 包内元信息只读展示 */
+    .skill-meta-readonly input[readonly],
+    .skill-meta-readonly textarea[readonly] {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      cursor: default;
     }
 
     /* 拖拽上传区域增强 */
@@ -329,7 +329,7 @@
               <div class="drop-zone-icon">📁</div>
               <div class="drop-zone-text">拖拽 Skill 文件夹或 zip 到此处</div>
               <div class="drop-zone-subtitle">或点击选择文件夹</div>
-              <div class="drop-zone-hint">将读取包内 SKILL.md 填写名称与描述；Skill ID 优先使用文件夹名或 zip 文件名</div>
+              <div class="drop-zone-hint">Skill ID、名称、描述均从包内读取（文件夹名 / zip 文件名 + SKILL.md），不可手改</div>
             </div>
 
             <div class="divider">
@@ -365,42 +365,44 @@
                 <!-- 由 JS 动态填充已有 Skill -->
               </select>
             </div>
-            <p class="form-hint">选择已有 Skill 进行更新，或创建新的 Skill</p>
+            <p class="form-hint">更新已有 Skill 时请选择与包内 Skill ID 一致的一项；新建则保持「创建新 Skill」</p>
           </div>
 
-          <!-- Skill ID（新建时手动输入，更新时自动填充；拖入文件夹/zip 时会尝试从名称填入） -->
-          <div class="form-group">
-            <label for="skill-id" class="form-label required">Skill ID</label>
-            <input 
-              type="text" 
-              id="skill-id" 
-              placeholder="例如：my-awesome-skill（拖入包后可自动填入）"
-              pattern="[a-z0-9\-_]+"
-            >
-            <p class="form-hint">唯一标识符，只能包含小写字母、数字、下划线和连字符；无法从文件夹或 zip 文件名推断时请手动填写</p>
-          </div>
+          <div class="skill-meta-readonly">
+            <!-- Skill ID：来自文件夹名 / zip 文件名 -->
+            <div class="form-group">
+              <label for="skill-id" class="form-label required">Skill ID</label>
+              <input
+                type="text"
+                id="skill-id"
+                readonly
+                placeholder="上传文件夹或 zip 后自动填入"
+                pattern="[a-z0-9\-_]+"
+              >
+              <p class="form-hint">由文件夹名或 zip 文件名推导（小写字母、数字、连字符、下划线）</p>
+            </div>
 
-          <!-- 新建 Skill 时的额外字段 -->
-          <div id="new-skill-fields" class="new-skill-fields">
             <div class="form-group">
               <label for="skill-name" class="form-label required">Skill 名称</label>
-              <input 
-                type="text" 
-                id="skill-name" 
-                placeholder="例如：我的技能包"
+              <input
+                type="text"
+                id="skill-name"
+                readonly
+                placeholder="上传后从 SKILL.md 读取"
               >
-              <p class="form-hint">显示名称，便于识别</p>
+              <p class="form-hint">来自 SKILL.md（frontmatter 或首行标题）</p>
             </div>
 
             <div class="form-group">
               <label for="skill-description" class="form-label required">描述</label>
-              <textarea 
-                id="skill-description" 
+              <textarea
+                id="skill-description"
                 rows="3"
+                readonly
                 maxlength="500"
-                placeholder="从 SKILL.md 的 description 自动填充；Skill 必填，不超过 500 字"
+                placeholder="上传后从 SKILL.md 读取"
               ></textarea>
-              <p class="form-hint"><span id="skill-description-count">0</span> / 500 字</p>
+              <p class="form-hint"><span id="skill-description-count">0</span> / 500 字（与包内一致，截断至 500 字）</p>
             </div>
           </div>
 

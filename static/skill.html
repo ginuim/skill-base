@@ -89,10 +89,10 @@
       min-width: 200px;
     }
 
-    /* 左右分栏布局 */
+    /* 左右分栏布局（minmax(0,1fr) 防止右侧被长内容撑开整页） */
     .skill-content {
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 280px minmax(0, 1fr);
       gap: var(--spacing-lg);
       margin-bottom: var(--spacing-lg);
     }
@@ -122,6 +122,7 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       min-height: 400px;
+      min-width: 0;
       display: flex;
       flex-direction: column;
     }
@@ -132,18 +133,58 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
     }
 
     .file-preview-path {
+      flex: 1;
+      min-width: 0;
       font-family: 'SF Mono', Monaco, 'Courier New', monospace;
       font-size: 0.875rem;
       color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-preview-md-actions {
+      flex-shrink: 0;
+    }
+
+    .md-view-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .md-view-btn {
+      padding: 0.25rem 0.625rem;
+      font-size: 0.8125rem;
+      border: none;
+      background: var(--bg-color);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .md-view-btn + .md-view-btn {
+      border-left: 1px solid var(--border-color);
+    }
+
+    .md-view-btn.is-active {
+      background: var(--white);
+      color: var(--text-color);
+      font-weight: 500;
     }
 
     .file-preview-content {
       flex: 1;
+      min-width: 0;
       padding: var(--spacing-lg);
       overflow: auto;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
 
     .file-preview-content pre {
@@ -151,7 +192,10 @@
       padding: var(--spacing-md);
       background-color: var(--bg-color);
       border-radius: var(--radius);
-      overflow-x: auto;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .file-preview-content code {
@@ -160,9 +204,44 @@
       line-height: 1.6;
     }
 
+    .file-preview-content > pre code,
+    .file-preview-content pre code {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
     /* Markdown 预览样式 */
     .markdown-body {
       line-height: 1.8;
+      max-width: 100%;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .markdown-body pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+
+    .markdown-body pre code {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    /* 宽表格在面板内横向滚动，不撑开栅格 */
+    .markdown-body .md-table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .markdown-body .md-table-wrap table {
+      width: max-content;
+      max-width: none;
     }
 
     .markdown-body h1,
@@ -428,6 +507,12 @@
         <div class="file-preview-panel">
           <div class="file-preview-header">
             <span id="file-preview-path" class="file-preview-path">选择文件以预览</span>
+            <div id="file-preview-md-actions" class="file-preview-md-actions" hidden>
+              <div class="md-view-toggle" role="group" aria-label="Markdown 显示方式">
+                <button type="button" id="md-view-render" class="md-view-btn is-active">HTML 预览</button>
+                <button type="button" id="md-view-source" class="md-view-btn">Markdown 源码</button>
+              </div>
+            </div>
           </div>
           <div id="file-content" class="file-preview-content">
             <div class="empty-preview">

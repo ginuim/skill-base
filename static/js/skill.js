@@ -8,6 +8,9 @@ let currentVersion = null;
 let currentZip = null;  // 缓存已下载的 JSZip 实例
 let versions = [];      // 版本列表
 
+/** 当前打开的 Markdown 预览状态（用于 HTML / 源码切换） */
+let markdownPreviewState = null;
+
 // 文本文件扩展名列表（参考设计文档 5.3 节）
 const TEXT_EXTS = new Set([
   '.md', '.py', '.sh', '.bash', '.zsh',
@@ -28,6 +31,8 @@ const TEXT_FILENAMES = new Set([
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', async () => {
+  initMarkdownPreviewToggle();
+
   // 1. 从 URL 参数获取 skill_id
   const params = new URLSearchParams(window.location.search);
   const skillId = params.get('id');
@@ -56,6 +61,85 @@ document.addEventListener('DOMContentLoaded', async () => {
     await switchVersion(currentSkill.latest_version);
   }
 });
+
+function initMarkdownPreviewToggle() {
+  const renderBtn = document.getElementById('md-view-render');
+  const sourceBtn = document.getElementById('md-view-source');
+  if (!renderBtn || !sourceBtn) return;
+  renderBtn.addEventListener('click', () => setMarkdownPreviewMode('render'));
+  sourceBtn.addEventListener('click', () => setMarkdownPreviewMode('source'));
+}
+
+function hideMarkdownPreviewActions() {
+  markdownPreviewState = null;
+  const wrap = document.getElementById('file-preview-md-actions');
+  if (wrap) wrap.hidden = true;
+}
+
+function showMarkdownPreviewActions(content) {
+  markdownPreviewState = { content, mode: 'render' };
+  const wrap = document.getElementById('file-preview-md-actions');
+  const renderBtn = document.getElementById('md-view-render');
+  const sourceBtn = document.getElementById('md-view-source');
+  if (wrap) wrap.hidden = false;
+  renderBtn?.classList.add('is-active');
+  sourceBtn?.classList.remove('is-active');
+}
+
+/**
+ * 将 Markdown 渲染为 HTML，并做表格包裹（避免撑破布局）
+ * @param {string} content
+ * @returns {HTMLElement}
+ */
+function buildMarkdownBodyElement(content) {
+  const html = marked.parse(content);
+  const wrapper = document.createElement('div');
+  wrapper.className = 'markdown-body';
+  wrapper.innerHTML = html;
+  wrapper.querySelectorAll('table').forEach((table) => {
+    if (table.closest('.md-table-wrap')) return;
+    const outer = document.createElement('div');
+    outer.className = 'md-table-wrap';
+    table.parentNode.insertBefore(outer, table);
+    outer.appendChild(table);
+  });
+  const hl = typeof hljs !== 'undefined' ? hljs : null;
+  wrapper.querySelectorAll('pre code').forEach((block) => {
+    if (hl && typeof hl.highlightElement === 'function') {
+      hl.highlightElement(block);
+    }
+  });
+  return wrapper;
+}
+
+/**
+ * @param {'render'|'source'} mode
+ */
+function setMarkdownPreviewMode(mode) {
+  if (!markdownPreviewState) return;
+  markdownPreviewState.mode = mode;
+  const container = document.getElementById('file-content');
+  if (!container) return;
+  const renderBtn = document.getElementById('md-view-render');
+  const sourceBtn = document.getElementById('md-view-source');
+  renderBtn?.classList.toggle('is-active', mode === 'render');
+  sourceBtn?.classList.toggle('is-active', mode === 'source');
+  renderMarkdownPreview(container, markdownPreviewState.content, mode);
+}
+
+/**
+ * @param {HTMLElement} container
+ * @param {string} content
+ * @param {'render'|'source'} mode
+ */
+function renderMarkdownPreview(container, content, mode) {
+  if (mode === 'source') {
+    container.innerHTML = `<pre class="md-source-pre"><code>${escapeHtml(content)}</code></pre>`;
+    return;
+  }
+  container.innerHTML = '';
+  container.appendChild(buildMarkdownBodyElement(content));
+}
 
 /**
  * 加载 Skill 详情
@@ -274,6 +358,7 @@ async function switchVersion(version) {
     renderFileTree(fileTree, fileTreeContainer);
 
     // 重置文件预览区域
+    hideMarkdownPreviewActions();
     document.getElementById('file-preview-path').textContent = '选择文件以预览';
     fileContentContainer.innerHTML = `
       <div class="empty-preview">
@@ -493,6 +578,8 @@ async function previewFile(filePath) {
     return;
   }
 
+  hideMarkdownPreviewActions();
+
   const container = document.getElementById('file-content');
   const pathDisplay = document.getElementById('file-preview-path');
 
@@ -539,16 +626,8 @@ async function previewFile(filePath) {
 
     // 根据扩展名决定渲染方式
     if (ext === '.md') {
-      // Markdown 渲染
-      const html = marked.parse(content);
-      container.innerHTML = `<div class="markdown-body">${html}</div>`;
-      // 对 Markdown 中的代码块进行高亮（CDN 未加载时跳过）
-      const hl = typeof hljs !== 'undefined' ? hljs : null;
-      container.querySelectorAll('pre code').forEach((block) => {
-        if (hl && typeof hl.highlightElement === 'function') {
-          hl.highlightElement(block);
-        }
-      });
+      showMarkdownPreviewActions(content);
+      renderMarkdownPreview(container, content, 'render');
     } else if (isCodeFile(ext)) {
       // 代码高亮
       const language = getLanguageFromExt(ext);

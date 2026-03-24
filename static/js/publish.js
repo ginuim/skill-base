@@ -36,7 +36,6 @@ function setupDescriptionCounter() {
   const sync = () => {
     countEl.textContent = String(ta.value.length);
   };
-  ta.addEventListener('input', sync);
   sync();
 }
 
@@ -140,13 +139,12 @@ function parseSkillMd(full) {
 }
 
 /**
- * 新建 Skill 时根据 SKILL.md 与包名自动填表
+ * 根据 SKILL.md 与包名填表（Skill ID / 名称 / 描述只读，仅来自上传包）
  */
 function applyAutofillFromSkill(slugFromPackage, parsed) {
-  if (!isNewSkill) return;
   const idInput = document.getElementById('skill-id');
-  if (!idInput.readOnly && slugFromPackage) idInput.value = slugFromPackage;
-  if (parsed.name) document.getElementById('skill-name').value = parsed.name;
+  if (slugFromPackage) idInput.value = slugFromPackage;
+  document.getElementById('skill-name').value = (parsed.name || '').trim();
   const descEl = document.getElementById('skill-description');
   descEl.value = (parsed.description || '').slice(0, DESC_MAX);
   const countEl = document.getElementById('skill-description-count');
@@ -190,37 +188,17 @@ async function loadExistingSkills() {
  */
 function setupSkillSelect() {
   const select = document.getElementById('skill-select');
-  const skillIdInput = document.getElementById('skill-id');
-  
+
   select.addEventListener('change', () => {
-    const selectedValue = select.value;
-    
-    if (selectedValue === '') {
-      // 创建新 Skill
-      toggleMode(true);
-      skillIdInput.value = '';
-      skillIdInput.readOnly = false;
-    } else {
-      // 更新已有 Skill
-      toggleMode(false);
-      skillIdInput.value = selectedValue;
-      skillIdInput.readOnly = true;
-    }
+    toggleMode(select.value === '');
   });
 }
 
 /**
- * 切换新建/更新模式
+ * 切换新建/更新模式（元信息始终只读，来自上传包）
  */
 function toggleMode(isNew) {
   isNewSkill = isNew;
-  const newSkillFields = document.getElementById('new-skill-fields');
-  
-  if (isNew) {
-    newSkillFields.classList.remove('hidden');
-  } else {
-    newSkillFields.classList.add('hidden');
-  }
 }
 
 // ========================================
@@ -547,14 +525,20 @@ function setupClearFiles() {
 function clearSelectedFiles() {
   selectedZipBlob = null;
   selectedFileName = '';
-  
+
+  document.getElementById('skill-id').value = '';
+  document.getElementById('skill-name').value = '';
+  const descEl = document.getElementById('skill-description');
+  descEl.value = '';
+  const countEl = document.getElementById('skill-description-count');
+  if (countEl) countEl.textContent = '0';
+
   const preview = document.getElementById('file-preview');
   preview.classList.remove('visible');
-  
-  // 清空 zip 文件输入
+
   const zipInput = document.getElementById('zip-file-input');
   zipInput.value = '';
-  
+
   showToast('已清除选择', 'info');
 }
 
@@ -586,7 +570,7 @@ async function publish() {
 
   const skillId = document.getElementById('skill-id').value.trim();
   if (!skillId) {
-    showToast('请输入 Skill ID', 'error');
+    showToast('无法从上传包得到 Skill ID，请使用合法文件夹名或 zip 文件名（小写字母、数字、连字符、下划线）', 'error');
     return;
   }
 
@@ -596,15 +580,22 @@ async function publish() {
     return;
   }
 
+  const skillSelect = document.getElementById('skill-select');
+  const selectedExistingId = skillSelect.value.trim();
+  if (selectedExistingId && selectedExistingId !== skillId) {
+    showToast('上传包的 Skill ID 与下拉框所选已有 Skill 不一致，请重新选择或更换压缩包', 'error');
+    return;
+  }
+
   if (isNewSkill) {
     const name = document.getElementById('skill-name').value.trim();
     if (!name) {
-      showToast('新建 Skill 需要填写名称', 'error');
+      showToast('SKILL.md 中缺少可用的 Skill 名称（name 或首行标题）', 'error');
       return;
     }
     const desc = (document.getElementById('skill-description')?.value || '').trim();
     if (!desc) {
-      showToast('请填写描述（Skill 必填，对应 SKILL.md 的 description）', 'error');
+      showToast('SKILL.md 中缺少描述（description 或首段正文）', 'error');
       return;
     }
     if (desc.length > DESC_MAX) {
