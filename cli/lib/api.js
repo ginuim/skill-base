@@ -53,18 +53,12 @@ export function createClient() {
     },
 
     async postForm(path, formData) {
-      const headers = {
-        ...getAuthHeaders()
-      };
-      
-      // form-data 库需要显式提取 headers（包含 Content-Type 和 boundary）
-      if (typeof formData.getHeaders === 'function') {
-        Object.assign(headers, formData.getHeaders());
-      }
-      
+      // 使用原生 FormData，让 fetch 自动设置 Content-Type（含 boundary）
       const response = await fetch(`${apiUrl}${path}`, {
         method: 'POST',
-        headers,
+        headers: {
+          ...getAuthHeaders()
+        },
         body: formData
       });
       return handleResponse(response);

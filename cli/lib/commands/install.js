@@ -67,13 +67,14 @@ export default async function install(target, options) {
   }
 
   // 目标目录：选项指定或当前目录
+  // 由于 zip 包内已包含 skillId 文件夹，我们解压到当前目录即可
   const targetDir = options?.dir || process.cwd();
 
   const spinner = ora(`正在下载 ${skillId}${version !== 'latest' ? '@' + version : ''}...`).start();
 
   try {
     const result = await downloadAndExtract(skillId, version, targetDir);
-    spinner.succeed(chalk.green(`已安装 ${result.skillId} ${result.version} 到 ${result.targetDir}`));
+    spinner.succeed(chalk.green(`已安装 ${result.skillId} ${result.version} 到 ${path.join(result.targetDir, skillId)}`));
   } catch (err) {
     spinner.fail(chalk.red(`安装失败：${err.message}`));
     process.exit(1);

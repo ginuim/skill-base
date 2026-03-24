@@ -4,7 +4,6 @@ import os from 'node:os';
 import { randomBytes } from 'node:crypto';
 import chalk from 'chalk';
 import ora from 'ora';
-import FormData from 'form-data';
 import archiver from 'archiver';
 import { loadCredentials } from '../auth.js';
 import { createClient } from '../api.js';
@@ -111,12 +110,18 @@ export default async function publish(directory, options) {
 
     // 7. 上传
     const client = createClient();
+    
+    // 读取 zip 文件内容
+    const zipBuffer = fs.readFileSync(tmpZipPath);
+    const zipBlob = new Blob([zipBuffer], { type: 'application/zip' });
+    
+    // 使用原生 FormData
     const formData = new FormData();
-    formData.append('zip_file', fs.createReadStream(tmpZipPath));
+    formData.append('zip_file', zipBlob, 'skill.zip');
     formData.append('skill_id', skillId);
     formData.append('name', name);
     formData.append('description', description);
-    formData.append('changelog', changelog);
+    formData.append('changelog', changelog || '');
 
     const result = await client.postForm('/skills/publish', formData);
 
