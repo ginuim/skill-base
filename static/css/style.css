@@ -2,6 +2,8 @@
    Skill Base - 全局样式
    ======================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 /* CSS Reset */
 *,
 *::before,
@@ -96,6 +98,220 @@ button, input, textarea, select {
   
   /* 过渡 */
   --transition: all 0.2s ease;
+}
+
+/* ========================================
+   应用壳：Developer Tools 深色主题
+   （在 body 上添加 class="app-devtools"；登录页用 .login-body 不加此类）
+   ======================================== */
+body.app-devtools {
+  --primary-color: #22c55e;
+  --primary-hover: #16a34a;
+  --primary-light: rgba(34, 197, 94, 0.2);
+  --success-color: #4ade80;
+  --success-light: rgba(74, 222, 128, 0.14);
+  --warning-color: #fb923c;
+  --warning-light: rgba(251, 146, 60, 0.16);
+  --error-color: #f87171;
+  --error-light: rgba(248, 113, 113, 0.16);
+  --info-color: #38bdf8;
+  --info-light: rgba(56, 189, 248, 0.14);
+  --bg-color: #0f172a;
+  --text-color: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #334155;
+  --white: #1e293b;
+  --black: #020617;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+
+body.app-devtools .page-content {
+  background-image:
+    linear-gradient(rgba(51, 65, 85, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+body.app-devtools .navbar {
+  background-color: #0c1222;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+body.app-devtools .navbar-nav a:hover,
+body.app-devtools .navbar-nav a.active {
+  color: #7dd3fc;
+}
+
+body.app-devtools .btn-secondary {
+  background-color: #252f42;
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+body.app-devtools .btn-secondary:hover:not(:disabled) {
+  background-color: #2d3b52;
+  border-color: #475569;
+}
+
+body.app-devtools input[type="text"],
+body.app-devtools input[type="email"],
+body.app-devtools input[type="password"],
+body.app-devtools input[type="search"],
+body.app-devtools input[type="number"],
+body.app-devtools input[type="url"],
+body.app-devtools textarea,
+body.app-devtools select {
+  background-color: #0f172a;
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+body.app-devtools input:focus,
+body.app-devtools textarea:focus,
+body.app-devtools select:focus {
+  border-color: #7dd3fc;
+  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.18);
+}
+
+body.app-devtools input::placeholder,
+body.app-devtools textarea::placeholder {
+  color: #64748b;
+}
+
+body.app-devtools .file-tree {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+body.app-devtools .skill-card {
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  background-color: var(--white);
+}
+
+body.app-devtools .skill-card:hover {
+  border-color: #475569;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+body.app-devtools .skeleton-card {
+  border: 1px solid var(--border-color);
+}
+
+body.app-devtools .markdown-body th {
+  background-color: #0f172a;
+}
+
+body.app-devtools .file-preview-content pre,
+body.app-devtools .file-content-body pre,
+body.app-devtools .markdown-body pre {
+  background-color: #0f172a;
+  border: 1px solid var(--border-color);
+}
+
+body.app-devtools .markdown-body code {
+  background-color: #0f172a;
+}
+
+body.app-devtools .loading-overlay::before {
+  background-color: rgba(15, 23, 42, 0.88);
+}
+
+body.app-devtools .loading-overlay::after {
+  border-color: var(--border-color);
+  border-top-color: #7dd3fc;
+}
+
+body.app-devtools .diff-line.context {
+  background-color: #1e293b;
+}
+
+body.app-devtools .diff-line.added .diff-line-num {
+  background-color: rgba(34, 197, 94, 0.22);
+}
+
+body.app-devtools .diff-line.removed .diff-line-num {
+  background-color: rgba(248, 113, 113, 0.22);
+}
+
+body.app-devtools .d2h-wrapper,
+body.app-devtools .d2h-file-wrapper {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+body.app-devtools .d2h-file-header {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: var(--border-color) !important;
+}
+
+body.app-devtools .d2h-code-line,
+body.app-devtools .d2h-code-line-prefix,
+body.app-devtools .d2h-code-line-ctn {
+  border-color: var(--border-color) !important;
+}
+
+body.app-devtools .d2h-file-side-diff {
+  background: #1e293b !important;
+}
+
+body.app-devtools .d2h-code-side-line-prefix {
+  background: #0f172a !important;
+  color: #64748b !important;
+}
+
+body.app-devtools .d2h-ins {
+  background-color: rgba(34, 197, 94, 0.18) !important;
+}
+
+body.app-devtools .d2h-del {
+  background-color: rgba(248, 113, 113, 0.18) !important;
+}
+
+body.app-devtools .d2h-info {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+}
+
+body.app-devtools .navbar-brand-icon {
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+/* 主色按钮上的文字：不用 remapped 的 --white（已用作面板底） */
+body.app-devtools .btn-primary,
+body.app-devtools .btn-group .btn.active {
+  color: #052e16;
+}
+
+body.app-devtools .btn-primary:hover:not(:disabled),
+body.app-devtools .btn-group .btn.active:hover:not(:disabled) {
+  color: #022c14;
+}
+
+body.app-devtools .fab {
+  color: #052e16;
+}
+
+body.app-devtools .btn-danger,
+body.app-devtools .btn-danger:hover:not(:disabled) {
+  color: #fff;
+}
+
+body.app-devtools .file-preview-path,
+body.app-devtools .file-content-path,
+body.app-devtools .diff-file-path,
+body.app-devtools .changed-file-path,
+body.app-devtools .file-preview-list {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 /* ========================================
@@ -844,55 +1060,258 @@ textarea {
 .gap-3 { gap: var(--spacing-lg); }
 
 /* ========================================
-   登录页特殊样式
+   登录页：Developer Tools 风格
+   （配色与字体参考 ui-ux-pro-max：深色底、JetBrains Mono、CTA 绿）
    ======================================== */
+body.login-body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
 .login-page {
+  --login-bg-deep: #0f172a;
+  --login-panel: #1e293b;
+  --login-chrome: #0c1222;
+  --login-border: #334155;
+  --login-text: #f8fafc;
+  --login-muted: #94a3b8;
+  --login-accent: #7dd3fc;
+  --login-string: #86efac;
+  --login-cta: #22c55e;
+  --login-cta-hover: #16a34a;
+  --login-error-bg: rgba(220, 38, 38, 0.15);
+  --login-error-fg: #fca5a5;
+
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-md);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: var(--login-bg-deep);
+  background-image:
+    linear-gradient(rgba(51, 65, 85, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+.login-devtools {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid var(--login-border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 24px 48px -12px rgba(0, 0, 0, 0.55);
+}
+
+.devtools-chrome {
+  background: var(--login-chrome);
+  border-bottom: 1px solid var(--login-border);
+}
+
+.devtools-titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 10px 12px;
+  min-height: 40px;
+}
+
+.devtools-traffic {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.devtools-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: block;
+}
+
+.devtools-dot--close {
+  background: #ff5f57;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.devtools-dot--min {
+  background: #febc2e;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.devtools-dot--max {
+  background: #28c840;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.devtools-titlebar-title {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--login-muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .login-card {
   width: 100%;
-  max-width: 400px;
-  background-color: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: var(--spacing-xl);
+  background-color: var(--login-panel);
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.login-panel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--login-border);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: var(--login-muted);
+}
+
+.login-panel-sep {
+  opacity: 0.6;
+}
+
+.login-panel-breadcrumb--accent {
+  color: var(--login-accent);
 }
 
 .login-header {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
+  text-align: left;
+  margin-bottom: var(--spacing-lg);
 }
 
 .login-title {
-  font-size: 1.75rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--login-text);
   margin-bottom: var(--spacing-xs);
+  letter-spacing: -0.02em;
+}
+
+.login-title-prompt {
+  color: var(--login-cta);
+  margin-right: 0.25em;
+  user-select: none;
 }
 
 .login-subtitle {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--login-muted);
+}
+
+.login-prop {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--login-accent);
+}
+
+.login-page .form-label {
+  color: var(--login-muted);
+}
+
+.login-page .login-input,
+body.login-body .login-page input[type="text"],
+body.login-body .login-page input[type="password"] {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--login-string);
+  background-color: #0f172a;
+  border: 1px solid var(--login-border);
+  border-radius: 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-page .login-input::placeholder,
+body.login-body .login-page input::placeholder {
+  color: #64748b;
+}
+
+.login-page .login-input:focus,
+body.login-body .login-page input:focus {
+  outline: none;
+  border-color: var(--login-accent);
+  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.2);
+}
+
+.login-actions {
+  margin-bottom: 0;
+  margin-top: var(--spacing-lg);
+}
+
+.btn-devtools {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 600;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  background-color: var(--login-cta);
+  color: #052e16;
+  border: 1px solid #15803d;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-devtools:hover:not(:disabled) {
+  background-color: var(--login-cta-hover);
+  border-color: #166534;
+  color: #022c14;
+}
+
+.btn-devtools:focus-visible {
+  outline: 2px solid var(--login-accent);
+  outline-offset: 2px;
+}
+
+.btn-devtools-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.login-page .btn-devtools .spinner {
+  border-color: rgba(5, 46, 22, 0.35);
+  border-top-color: #052e16;
+  flex-shrink: 0;
 }
 
 .login-error {
-  background-color: var(--error-light);
-  color: var(--error-color);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  background-color: var(--login-error-bg);
+  color: var(--login-error-fg);
   padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius);
-  font-size: 0.875rem;
+  border-radius: 4px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
   margin-bottom: var(--spacing-md);
   display: none;
 }
 
 .login-error.visible {
   display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page .login-input,
+  .login-page .btn-devtools {
+    transition: none;
+  }
 }
 
 /* ========================================
