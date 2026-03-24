@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <!-- 登录头部 -->
+      <div class="login-header">
+        <h1 class="login-title">Skill Base</h1>
+        <p class="login-subtitle">内网 Skill 管理平台</p>
+      </div>
+      
+      <!-- 错误提示 -->
+      <div id="loginError" class="login-error"></div>
+      
+      <!-- 登录表单 -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username" class="form-label">用户名</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            placeholder="请输入用户名"
+            autocomplete="username"
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="password" class="form-label">密码</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="请输入密码"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <button type="submit" id="loginButton" class="btn btn-primary btn-block btn-lg">
+            登录
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- 引入 JS -->
+  <script src="/js/app.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

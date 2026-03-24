@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件预览 - Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- highlight.js 样式 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+  <style>
+    /* 面包屑导航 */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-lg);
+      flex-wrap: wrap;
+    }
+
+    .breadcrumb a {
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb a:hover {
+      color: var(--primary-color);
+    }
+
+    .breadcrumb-separator {
+      color: var(--text-muted);
+    }
+
+    .breadcrumb-current {
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    /* 版本信息栏 */
+    .version-bar {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--spacing-md) var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
+
+    .version-info {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .version-info .version-tag {
+      font-size: 0.875rem;
+    }
+
+    /* 左右分栏布局 */
+    .file-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* 文件树面板 */
+    .file-tree-panel {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--spacing-md);
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+    }
+
+    .file-tree-panel-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    /* 文件内容面板 */
+    .file-content-panel {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-height: 500px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .file-content-header {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+    }
+
+    .file-content-path {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      word-break: break-all;
+    }
+
+    .file-content-body {
+      flex: 1;
+      padding: var(--spacing-lg);
+      overflow: auto;
+    }
+
+    .file-content-body pre {
+      margin: 0;
+      padding: var(--spacing-md);
+      background-color: var(--bg-color);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+
+    .file-content-body code {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+
+    /* 代码行号 */
+    .code-with-lines {
+      display: table;
+      width: 100%;
+    }
+
+    .code-line {
+      display: table-row;
+    }
+
+    .code-line-number {
+      display: table-cell;
+      width: 50px;
+      padding-right: var(--spacing-md);
+      text-align: right;
+      color: var(--text-muted);
+      user-select: none;
+      border-right: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+
+    .code-line-content {
+      display: table-cell;
+      padding-left: var(--spacing-md);
+      white-space: pre;
+    }
+
+    /* Markdown 预览样式 */
+    .markdown-body {
+      line-height: 1.8;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4 {
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      font-weight: 600;
+    }
+
+    .markdown-body h1 { font-size: 1.5rem; }
+    .markdown-body h2 { font-size: 1.25rem; }
+    .markdown-body h3 { font-size: 1.125rem; }
+
+    .markdown-body p {
+      margin-bottom: 1em;
+    }
+
+    .markdown-body ul,
+    .markdown-body ol {
+      padding-left: 2em;
+      margin-bottom: 1em;
+    }
+
+    .markdown-body li {
+      list-style: disc;
+      margin-bottom: 0.25em;
+    }
+
+    .markdown-body ol li {
+      list-style: decimal;
+    }
+
+    .markdown-body code {
+      background-color: var(--bg-color);
+      padding: 0.125em 0.375em;
+      border-radius: var(--radius-sm);
+      font-size: 0.875em;
+    }
+
+    .markdown-body pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .markdown-body blockquote {
+      border-left: 4px solid var(--border-color);
+      padding-left: 1em;
+      color: var(--text-secondary);
+      margin: 1em 0;
+    }
+
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid var(--border-color);
+      padding: 0.5em 1em;
+      text-align: left;
+    }
+
+    .markdown-body th {
+      background-color: var(--bg-color);
+    }
+
+    /* 底部操作栏 */
+    .action-bar {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--spacing-md) var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
+
+    .action-bar-left,
+    .action-bar-right {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    /* 空状态 */
+    .empty-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 300px;
+      color: var(--text-muted);
+    }
+
+    .empty-preview-icon {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+
+    /* 二进制文件提示 */
+    .binary-notice {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-secondary);
+    }
+
+    .binary-notice-icon {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-md);
+    }
+
+    /* 大文件警告 */
+    .large-file-warning {
+      background-color: var(--warning-light);
+      color: var(--warning-color);
+      padding: var(--spacing-md);
+      border-radius: var(--radius);
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    /* Loading */
+    .loading-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+    }
+
+    @media (max-width: 768px) {
+      .file-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .file-tree-panel {
+        max-height: 300px;
+      }
+
+      .version-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .action-bar-left,
+      .action-bar-right {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <span>📦</span>
+        <span>Skill Base</span>
+      </a>
+      <div class="navbar-nav">
+        <a href="/">首页</a>
+        <a href="/publish.html" class="hide-mobile">发布</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 页面内容 -->
+  <main class="page-content">
+    <div class="container">
+      <!-- 面包屑导航 -->
+      <nav class="breadcrumb">
+        <a href="/">首页</a>
+        <span class="breadcrumb-separator">›</span>
+        <a href="#" id="breadcrumb-skill">加载中...</a>
+        <span class="breadcrumb-separator">›</span>
+        <span id="breadcrumb-file" class="breadcrumb-current">文件</span>
+      </nav>
+
+      <!-- 版本信息栏 -->
+      <div class="version-bar">
+        <div class="version-info">
+          <span>当前版本:</span>
+          <span id="current-version" class="version-tag current">-</span>
+        </div>
+        <div class="version-info">
+          <span id="file-size" class="text-muted">-</span>
+        </div>
+      </div>
+
+      <!-- 左右分栏：目录树 + 文件内容 -->
+      <section class="file-layout">
+        <!-- 文件树面板 -->
+        <div class="file-tree-panel">
+          <div class="file-tree-panel-title">文件目录</div>
+          <div id="file-tree" class="file-tree">
+            <div class="loading-content">
+              <div class="spinner spinner-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 文件内容面板 -->
+        <div class="file-content-panel">
+          <div class="file-content-header">
+            <span id="file-path" class="file-content-path">选择文件以预览</span>
+          </div>
+          <div id="file-content" class="file-content-body">
+            <div class="empty-preview">
+              <div class="empty-preview-icon">📄</div>
+              <p>点击左侧文件查看内容</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 底部操作栏 -->
+      <div class="action-bar">
+        <div class="action-bar-left">
+          <button class="btn btn-primary" onclick="downloadCurrentVersion()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            下载当前版本
+          </button>
+          <select id="version-select" class="version-select" onchange="onVersionChange(this.value)" style="min-width: 150px;">
+            <option value="">选择其他版本...</option>
+          </select>
+        </div>
+        <div class="action-bar-right">
+          <button class="btn btn-secondary" onclick="goToDiff()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            对比版本
+          </button>
+          <button class="btn btn-secondary" onclick="goToSkillDetail()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"/>
+              <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            返回详情页
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- CDN 库 -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+
+  <!-- 引入 JS -->
+  <script src="/js/app.js"></script>
+  <script src="/js/file.js"></script>
+</body>
+</html>

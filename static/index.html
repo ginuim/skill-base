@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* 页面标题区域 */
+    .page-header {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-md);
+    }
+
+    /* 搜索栏 */
+    .search-container {
+      max-width: 500px;
+    }
+
+    /* Skill 卡片网格 */
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    .skill-card {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--spacing-lg);
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .skill-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+
+    .skill-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .skill-card-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin: 0;
+    }
+
+    .skill-card-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: var(--spacing-md);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .skill-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .skill-card-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .skill-card-owner {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-xl) var(--spacing-md);
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 1rem;
+      margin-bottom: var(--spacing-md);
+    }
+
+    /* 浮动按钮 */
+    .fab {
+      position: fixed;
+      bottom: var(--spacing-xl);
+      right: var(--spacing-xl);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: var(--white);
+      border: none;
+      box-shadow: var(--shadow-lg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      text-decoration: none;
+      font-size: 1.5rem;
+    }
+
+    .fab:hover {
+      background-color: var(--primary-hover);
+      transform: scale(1.1);
+      text-decoration: none;
+    }
+
+    /* Loading 骨架屏 */
+    .skeleton-card {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--spacing-lg);
+    }
+
+    .skeleton-title {
+      height: 24px;
+      width: 60%;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .skeleton-desc {
+      height: 16px;
+      width: 100%;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .skeleton-desc-short {
+      height: 16px;
+      width: 75%;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .skeleton-footer {
+      height: 14px;
+      width: 50%;
+    }
+
+    @media (max-width: 768px) {
+      .skill-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .fab {
+        bottom: var(--spacing-lg);
+        right: var(--spacing-lg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <span>📦</span>
+        <span>Skill Base</span>
+      </a>
+      <div class="navbar-nav">
+        <a href="/" class="active">首页</a>
+        <a href="/publish.html" class="hide-mobile">发布</a>
+      </div>
+      <!-- 用户区域由 JS 动态渲染 -->
+    </div>
+  </nav>
+
+  <!-- 页面内容 -->
+  <main class="page-content">
+    <div class="container">
+      <!-- 页面标题 + 搜索 -->
+      <div class="page-header">
+        <h1 class="page-title">Skill Base</h1>
+        <div class="search-container">
+          <div class="search-bar">
+            <input 
+              type="search" 
+              id="searchInput" 
+              placeholder="搜索 Skill..."
+              autocomplete="off"
+            >
+            <span class="search-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <button type="button" class="clear-btn" id="clearSearch">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill 列表 -->
+      <div id="skill-list" class="skill-grid">
+        <!-- 由 JS 动态渲染 -->
+      </div>
+    </div>
+  </main>
+
+  <!-- 浮动发布按钮 -->
+  <a href="/publish.html" class="fab" title="发布新版本">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </a>
+
+  <!-- 引入 JS -->
+  <script src="/js/app.js"></script>
+  <script src="/js/index.js"></script>
+</body>
+</html>

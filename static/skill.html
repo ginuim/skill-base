@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill 详情 - Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- highlight.js 样式 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+  <style>
+    /* 面包屑导航 */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .breadcrumb a {
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb a:hover {
+      color: var(--primary-color);
+    }
+
+    .breadcrumb-separator {
+      color: var(--text-muted);
+    }
+
+    /* Skill 信息区域 */
+    .skill-info {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .skill-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .skill-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin: 0;
+    }
+
+    .skill-desc {
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-md);
+      line-height: 1.6;
+    }
+
+    .skill-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-lg);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .skill-meta-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    /* 版本选择器和操作按钮 */
+    .skill-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .version-select {
+      min-width: 200px;
+    }
+
+    /* 左右分栏布局 */
+    .skill-content {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* 文件树面板 */
+    .file-tree-panel {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--spacing-md);
+      max-height: calc(100vh - 300px);
+      overflow-y: auto;
+    }
+
+    .file-tree-panel-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    /* 文件预览面板 */
+    .file-preview-panel {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .file-preview-header {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .file-preview-path {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .file-preview-content {
+      flex: 1;
+      padding: var(--spacing-lg);
+      overflow: auto;
+    }
+
+    .file-preview-content pre {
+      margin: 0;
+      padding: var(--spacing-md);
+      background-color: var(--bg-color);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+
+    .file-preview-content code {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+
+    /* Markdown 预览样式 */
+    .markdown-body {
+      line-height: 1.8;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4 {
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      font-weight: 600;
+    }
+
+    .markdown-body h1 { font-size: 1.5rem; }
+    .markdown-body h2 { font-size: 1.25rem; }
+    .markdown-body h3 { font-size: 1.125rem; }
+
+    .markdown-body p {
+      margin-bottom: 1em;
+    }
+
+    .markdown-body ul,
+    .markdown-body ol {
+      padding-left: 2em;
+      margin-bottom: 1em;
+    }
+
+    .markdown-body li {
+      list-style: disc;
+      margin-bottom: 0.25em;
+    }
+
+    .markdown-body ol li {
+      list-style: decimal;
+    }
+
+    .markdown-body code {
+      background-color: var(--bg-color);
+      padding: 0.125em 0.375em;
+      border-radius: var(--radius-sm);
+      font-size: 0.875em;
+    }
+
+    .markdown-body pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .markdown-body blockquote {
+      border-left: 4px solid var(--border-color);
+      padding-left: 1em;
+      color: var(--text-secondary);
+      margin: 1em 0;
+    }
+
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid var(--border-color);
+      padding: 0.5em 1em;
+      text-align: left;
+    }
+
+    .markdown-body th {
+      background-color: var(--bg-color);
+    }
+
+    /* 版本历史 */
+    .version-history {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .version-history-header {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .version-history-header:hover {
+      background-color: var(--bg-color);
+    }
+
+    .version-history-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .version-history-toggle {
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .version-history.collapsed .version-history-toggle {
+      transform: rotate(-90deg);
+    }
+
+    .version-history-list {
+      padding: 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .version-history.collapsed .version-history-list {
+      display: none;
+    }
+
+    .version-item {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-md);
+    }
+
+    .version-item:last-child {
+      border-bottom: none;
+    }
+
+    .version-item:hover {
+      background-color: var(--bg-color);
+    }
+
+    .version-item-tag {
+      flex-shrink: 0;
+    }
+
+    .version-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .version-item-changelog {
+      font-size: 0.875rem;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .version-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: var(--spacing-md);
+    }
+
+    /* 空状态 */
+    .empty-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 300px;
+      color: var(--text-muted);
+    }
+
+    .empty-preview-icon {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+
+    /* Loading */
+    .loading-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+    }
+
+    /* 二进制文件提示 */
+    .binary-notice {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-secondary);
+    }
+
+    .binary-notice-icon {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-md);
+    }
+
+    @media (max-width: 768px) {
+      .skill-content {
+        grid-template-columns: 1fr;
+      }
+
+      .file-tree-panel {
+        max-height: 300px;
+      }
+
+      .skill-header {
+        flex-direction: column;
+      }
+
+      .skill-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .version-select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <span>📦</span>
+        <span>Skill Base</span>
+      </a>
+      <div class="navbar-nav">
+        <a href="/">首页</a>
+        <a href="/publish.html" class="hide-mobile">发布</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 页面内容 -->
+  <main class="page-content">
+    <div class="container">
+      <!-- 面包屑导航 -->
+      <nav class="breadcrumb">
+        <a href="/">首页</a>
+        <span class="breadcrumb-separator">›</span>
+        <span id="breadcrumb-name">加载中...</span>
+      </nav>
+
+      <!-- Skill 基本信息 -->
+      <section class="skill-info" id="skill-info">
+        <div class="loading-content">
+          <div class="spinner"></div>
+        </div>
+      </section>
+
+      <!-- 左右分栏：目录树 + 文件预览 -->
+      <section class="skill-content">
+        <!-- 文件树面板 -->
+        <div class="file-tree-panel">
+          <div class="file-tree-panel-title">文件目录</div>
+          <div id="file-tree" class="file-tree">
+            <div class="loading-content">
+              <div class="spinner spinner-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 文件预览面板 -->
+        <div class="file-preview-panel">
+          <div class="file-preview-header">
+            <span id="file-preview-path" class="file-preview-path">选择文件以预览</span>
+          </div>
+          <div id="file-content" class="file-preview-content">
+            <div class="empty-preview">
+              <div class="empty-preview-icon">📄</div>
+              <p>点击左侧文件查看内容</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 版本历史 -->
+      <section class="version-history" id="version-history">
+        <div class="version-history-header" onclick="toggleVersionHistory()">
+          <h3 class="version-history-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            版本历史
+          </h3>
+          <span class="version-history-toggle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </span>
+        </div>
+        <div class="version-history-list" id="version-list">
+          <div class="loading-content">
+            <div class="spinner spinner-sm"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- CDN 库 -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+
+  <!-- 引入 JS -->
+  <script src="/js/app.js"></script>
+  <script src="/js/skill.js"></script>
+</body>
+</html>
