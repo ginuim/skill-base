@@ -41,8 +41,11 @@ function parseSkillMd(content) {
 
 /**
  * 将文件夹打包为 zip
+ * @param {string} dirPath - 要打包的目录路径
+ * @param {string} outputPath - 输出的 zip 文件路径
+ * @param {string} dirName - zip 包内的目录名称（顶层文件夹）
  */
-function zipDirectory(dirPath, outputPath) {
+function zipDirectory(dirPath, outputPath, dirName) {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(outputPath);
     const archive = archiver('zip', { zlib: { level: 9 } });
@@ -51,7 +54,8 @@ function zipDirectory(dirPath, outputPath) {
     archive.on('error', reject);
 
     archive.pipe(output);
-    archive.directory(dirPath, false);
+    // 使用 dirName 作为 zip 包内的顶层文件夹名称
+    archive.directory(dirPath, dirName);
     archive.finalize();
   });
 }
@@ -105,7 +109,7 @@ export default async function publish(directory, options) {
   const tmpZipPath = path.join(os.tmpdir(), `skb-${randomBytes(8).toString('hex')}.zip`);
 
   try {
-    const size = await zipDirectory(resolvedDir, tmpZipPath);
+    const size = await zipDirectory(resolvedDir, tmpZipPath, skillId);
     spinner.text = `打包完成 (${(size / 1024).toFixed(1)} KB)，正在上传...`;
 
     // 7. 上传
