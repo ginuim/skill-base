@@ -2,6 +2,8 @@
  * Skill Base - 发布页逻辑
  */
 
+const DESC_MAX = 500;
+
 let selectedZipBlob = null;  // 最终要上传的 zip blob
 let selectedFileName = '';
 let isNewSkill = true;
@@ -21,7 +23,143 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSkillSelect();
   setupFormSubmit();
   setupClearFiles();
+  setupDescriptionCounter();
 });
+
+/**
+ * 描述字数统计（与 maxlength 一致）
+ */
+function setupDescriptionCounter() {
+  const ta = document.getElementById('skill-description');
+  const countEl = document.getElementById('skill-description-count');
+  if (!ta || !countEl) return;
+  const sync = () => {
+    countEl.textContent = String(ta.value.length);
+  };
+  ta.addEventListener('input', sync);
+  sync();
+}
+
+/**
+ * 从文件夹名 / zip 文件名得到合法 Skill ID，无法得到则返回 ''
+ */
+function slugToSkillId(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  let s = raw.trim().replace(/\.zip$/i, '');
+  s = s
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9\-]+/g, '');
+  s = s.replace(/-+/g, '-').replace(/^-|-$/g, '');
+  if (!s || !/^[a-z0-9\-_]+$/.test(s)) return '';
+  return s;
+}
+
+function pickSkillMdPath(paths) {
+  const matches = paths.filter((p) => /(^|\/)SKILL\.md$/i.test(p));
+  if (!matches.length) return null;
+  return matches.slice().sort((a, b) => a.length - b.length)[0];
+}
+
+/**
+ * 解析 SKILL.md 简单 YAML frontmatter（name / description）
+ */
+function parseYamlFrontmatterBlock(yaml) {
+  const out = {};
+  const lines = yaml.split(/\r?\n/);
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const m = line.match(/^([\w-]+):\s*(.*)$/);
+    if (!m) {
+      i += 1;
+      continue;
+    }
+    const key = m[1];
+    let rest = m[2].trimEnd();
+    const blockStarter =
+      rest === '>' ||
+      rest === '|' ||
+      rest === '>-' ||
+      rest === '>+' ||
+      rest === '|-' ||
+      rest === '|+';
+    if (blockStarter) {
+      i += 1;
+      const buf = [];
+      while (i < lines.length) {
+        const L = lines[i];
+        const nextKey = L.match(/^([\w-]+):\s/);
+        if (nextKey && !L.startsWith('  ') && buf.length) break;
+        if (L.startsWith('  ') || (L === '' && buf.length)) {
+          buf.push(L.startsWith('  ') ? L.slice(2) : '');
+        } else if (buf.length) break;
+        else if (L === '') {
+          i += 1;
+          continue;
+        } else break;
+        i += 1;
+      }
+      out[key] = buf.join('\n').trim();
+      continue;
+    }
+    out[key] = rest.replace(/^["'](.+)["']$/, '$1').trim();
+    i += 1;
+  }
+  return out;
+}
+
+/**
+ * 从 SKILL.md 全文解析 name、description（frontmatter 优先，正文兜底）
+ */
+function parseSkillMd(full) {
+  let rest = full;
+  let name = '';
+  let description = '';
+  const fmMatch = full.match(/^---\r?\n([\s\S]*?)\r?\n---\s*\r?\n?/);
+  if (fmMatch) {
+    const y = parseYamlFrontmatterBlock(fmMatch[1]);
+    name = (y.name || '').trim();
+    description = (y.description || '').trim();
+    rest = full.slice(fmMatch[0].length);
+  }
+  if (!name) {
+    const h1 = rest.match(/^#\s+(.+)$/m);
+    if (h1) name = h1[1].trim();
+  }
+  if (!description) {
+    const afterH1 = rest.replace(/^#\s+.+$/m, '').trim();
+    const para = afterH1.split(/\n\n+/).find((p) => {
+      const t = p.trim();
+      return t && !t.startsWith('#') && !t.startsWith('```');
+    });
+    if (para) description = para.replace(/\s*\n\s*/g, ' ').trim();
+  }
+  if (description.length > DESC_MAX) description = description.slice(0, DESC_MAX);
+  return { name, description };
+}
+
+/**
+ * 新建 Skill 时根据 SKILL.md 与包名自动填表
+ */
+function applyAutofillFromSkill(slugFromPackage, parsed) {
+  if (!isNewSkill) return;
+  const idInput = document.getElementById('skill-id');
+  if (!idInput.readOnly && slugFromPackage) idInput.value = slugFromPackage;
+  if (parsed.name) document.getElementById('skill-name').value = parsed.name;
+  const descEl = document.getElementById('skill-description');
+  descEl.value = (parsed.description || '').slice(0, DESC_MAX);
+  const countEl = document.getElementById('skill-description-count');
+  if (countEl) countEl.textContent = String(descEl.value.length);
+}
+
+async function readSkillMdFromZipInstance(zip, fileList) {
+  const skillPath = pickSkillMdPath(fileList);
+  if (!skillPath) return null;
+  const f = zip.file(skillPath);
+  if (!f) return null;
+  return f.async('string');
+}
 
 /**
  * 加载已有 Skill 列表
@@ -126,14 +264,68 @@ function setupDropZone() {
 }
 
 /**
- * 处理拖拽的目录
+ * 拖拽的 zip 文件（FileSystemFileEntry）
+ */
+async function handleDroppedZipFile(fileEntry) {
+  const file = await new Promise((resolve, reject) => {
+    fileEntry.file(resolve, reject);
+  });
+  const slug = slugToSkillId(file.name);
+  showToast('正在读取 zip...', 'info');
+  try {
+    const zip = await JSZip.loadAsync(file);
+    const paths = [];
+    zip.forEach((relPath, zf) => {
+      if (!zf.dir) paths.push(relPath);
+    });
+    if (!pickSkillMdPath(paths)) {
+      showToast('zip 中未找到 SKILL.md', 'error');
+      return;
+    }
+    const text = await readSkillMdFromZipInstance(zip, paths);
+    const parsed = parseSkillMd(text);
+    selectedZipBlob = file;
+    selectedFileName = file.name;
+    renderFilePreview(paths, file.size);
+    applyAutofillFromSkill(slug, parsed);
+    showToast(`已选择 zip，共 ${paths.length} 个文件`, 'success');
+  } catch (error) {
+    console.error('读取 zip 失败:', error);
+    showToast('读取 zip 失败: ' + error.message, 'error');
+  }
+}
+
+/**
+ * 处理拖拽的目录或 zip
  */
 async function handleDrop(event) {
   const items = event.dataTransfer.items;
-  
+
   if (!items || items.length === 0) {
     showToast('未检测到拖拽的文件', 'error');
     return;
+  }
+
+  const first = items[0];
+  if (first.kind !== 'file') {
+    showToast('请拖拽文件夹或 zip 文件', 'error');
+    return;
+  }
+
+  const topEntry = first.webkitGetAsEntry();
+  if (!topEntry) {
+    showToast('无法读取拖拽项', 'error');
+    return;
+  }
+
+  if (topEntry.isFile && topEntry.name.toLowerCase().endsWith('.zip')) {
+    await handleDroppedZipFile(topEntry);
+    return;
+  }
+
+  let rootSlug = '';
+  if (topEntry.isDirectory) {
+    rootSlug = slugToSkillId(topEntry.name);
   }
 
   const zip = new JSZip();
@@ -154,19 +346,20 @@ async function handleDrop(event) {
       }
     }
 
-    // 验证包含 SKILL.md
-    if (!fileList.some(f => f.endsWith('/SKILL.md') || f === 'SKILL.md')) {
+    if (!pickSkillMdPath(fileList)) {
       showToast('上传的目录中未找到 SKILL.md 文件', 'error');
       return;
     }
 
-    // 生成 zip blob
+    const skillText = await readSkillMdFromZipInstance(zip, fileList);
+    const parsed = skillText != null ? parseSkillMd(skillText) : { name: '', description: '' };
+
     showToast('正在打包文件...', 'info');
     selectedZipBlob = await zip.generateAsync({ type: 'blob' });
     selectedFileName = 'skill-package.zip';
 
-    // 显示文件预览
     renderFilePreview(fileList, totalSize);
+    applyAutofillFromSkill(rootSlug, parsed);
     showToast(`已选择 ${fileList.length} 个文件`, 'success');
   } catch (error) {
     console.error('处理拖拽文件失败:', error);
@@ -233,17 +426,21 @@ async function handleDirectorySelect(files) {
       totalSize += file.size;
     }
 
-    // 验证 SKILL.md
-    if (!fileList.some(f => f.includes('SKILL.md'))) {
+    if (!pickSkillMdPath(fileList)) {
       showToast('上传的目录中未找到 SKILL.md 文件', 'error');
       return;
     }
 
+    const skillText = await readSkillMdFromZipInstance(zip, fileList);
+    const parsed = skillText != null ? parseSkillMd(skillText) : { name: '', description: '' };
+    const rootSlug = slugToSkillId(files[0].webkitRelativePath.split('/')[0] || '');
+
     showToast('正在打包文件...', 'info');
     selectedZipBlob = await zip.generateAsync({ type: 'blob' });
     selectedFileName = 'skill-package.zip';
-    
+
     renderFilePreview(fileList, totalSize);
+    applyAutofillFromSkill(rootSlug, parsed);
     showToast(`已选择 ${fileList.length} 个文件`, 'success');
   } catch (error) {
     console.error('处理目录选择失败:', error);
@@ -260,19 +457,38 @@ async function handleDirectorySelect(files) {
  */
 function setupZipFileInput() {
   const input = document.getElementById('zip-file-input');
-  
-  input.addEventListener('change', (e) => {
+
+  input.addEventListener('change', async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (!file.name.endsWith('.zip')) {
-        showToast('请选择 .zip 文件', 'error');
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      showToast('请选择 .zip 文件', 'error');
+      return;
+    }
+    const slug = slugToSkillId(file.name);
+    showToast('正在读取 zip...', 'info');
+    try {
+      const zip = await JSZip.loadAsync(file);
+      const paths = [];
+      zip.forEach((relPath, zf) => {
+        if (!zf.dir) paths.push(relPath);
+      });
+      if (!pickSkillMdPath(paths)) {
+        showToast('zip 中未找到 SKILL.md', 'error');
+        input.value = '';
         return;
       }
-      
+      const text = await readSkillMdFromZipInstance(zip, paths);
+      const parsed = parseSkillMd(text);
       selectedZipBlob = file;
       selectedFileName = file.name;
-      renderFilePreview([file.name], file.size);
+      renderFilePreview(paths, file.size);
+      applyAutofillFromSkill(slug, parsed);
       showToast('已选择 zip 文件', 'success');
+    } catch (err) {
+      console.error('读取 zip 失败:', err);
+      showToast('读取 zip 失败: ' + err.message, 'error');
+      input.value = '';
     }
   });
 }
@@ -386,6 +602,15 @@ async function publish() {
       showToast('新建 Skill 需要填写名称', 'error');
       return;
     }
+    const desc = (document.getElementById('skill-description')?.value || '').trim();
+    if (!desc) {
+      showToast('请填写描述（Skill 必填，对应 SKILL.md 的 description）', 'error');
+      return;
+    }
+    if (desc.length > DESC_MAX) {
+      showToast(`描述不能超过 ${DESC_MAX} 字`, 'error');
+      return;
+    }
   }
 
   // 构建 FormData
@@ -395,10 +620,7 @@ async function publish() {
   
   if (isNewSkill) {
     formData.append('name', document.getElementById('skill-name').value.trim());
-    const desc = document.getElementById('skill-description')?.value.trim();
-    if (desc) {
-      formData.append('description', desc);
-    }
+    formData.append('description', document.getElementById('skill-description').value.trim());
   }
   
   const changelog = document.getElementById('changelog').value.trim();

@@ -1,7 +1,8 @@
 node_modules/
-data/*.db
-data/*/
+data
 !data/.gitkeep
 .env
 *.log
 .DS_Store
+.qoder/
+.cursor/

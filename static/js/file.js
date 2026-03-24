@@ -460,17 +460,24 @@ async function previewFile(filePath) {
       // Markdown 渲染
       const html = marked.parse(content);
       container.innerHTML = `${warningHtml}<div class="markdown-body">${html}</div>`;
-      // 对 Markdown 中的代码块进行高亮
+      const hl = typeof hljs !== 'undefined' ? hljs : null;
       container.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block);
+        if (hl && typeof hl.highlightElement === 'function') {
+          hl.highlightElement(block);
+        }
       });
     } else {
       // 代码高亮 + 行号
       const language = getLanguage(ext);
       let highlighted;
-      try {
-        highlighted = hljs.highlight(content, { language }).value;
-      } catch {
+      const hl = typeof hljs !== 'undefined' ? hljs : null;
+      if (hl && typeof hl.highlight === 'function') {
+        try {
+          highlighted = hl.highlight(content, { language }).value;
+        } catch {
+          highlighted = escapeHtml(content);
+        }
+      } else {
         highlighted = escapeHtml(content);
       }
 
