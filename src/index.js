@@ -42,10 +42,31 @@ async function start() {
     await fastify.register(require('./routes/skills'), { prefix: '/api/v1/skills' });
     await fastify.register(require('./routes/publish'), { prefix: '/api/v1/skills' });
 
-    // 4. 确保数据库已初始化
+    // 4. 页面路由 fallback（SPA 风格路由支持）
+    fastify.setNotFoundHandler(async (request, reply) => {
+      // API 路由返回 JSON 404
+      if (request.url.startsWith('/api/')) {
+        return reply.code(404).send({ detail: 'Not found' });
+      }
+
+      // 页面路由映射到对应 HTML 文件
+      const url = request.url.split('?')[0]; // 去掉 query string
+
+      if (url === '/login') return reply.sendFile('login.html');
+      if (url === '/publish') return reply.sendFile('publish.html');
+      if (url === '/cli-code') return reply.sendFile('cli-code.html');
+      if (url.match(/^\/skill\/[^/]+\/file\//)) return reply.sendFile('file.html');
+      if (url.match(/^\/skill\/[^/]+\/diff/)) return reply.sendFile('diff.html');
+      if (url.match(/^\/skill\/[^/]+$/)) return reply.sendFile('skill.html');
+
+      // 其他未匹配路由返回首页
+      return reply.sendFile('index.html');
+    });
+
+    // 5. 确保数据库已初始化
     require('./database');
 
-    // 5. 启动服务
+    // 6. 启动服务
     const PORT = process.env.PORT || 8000;
     const HOST = process.env.HOST || '0.0.0.0';
 

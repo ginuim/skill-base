@@ -16,10 +16,8 @@ async function errorHandler(fastify, options) {
     });
   });
 
-  // 404 处理
-  fastify.setNotFoundHandler(function (request, reply) {
-    reply.code(404).send({ detail: 'Not found' });
-  });
+  // 注意: 404 处理统一在 index.js 中的 setNotFoundHandler 设置
+  // 包含 API 路由返回 JSON 404 和页面路由返回对应 HTML 的逻辑
 }
 
 module.exports = errorHandler;

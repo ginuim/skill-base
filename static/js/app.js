@@ -350,6 +350,33 @@ function renderNavbar(user) {
     navbar.querySelector('.container').appendChild(userArea);
   }
   
+  // 处理 CLI 验证码导航链接（仅登录后显示）
+  const navbarNav = navbar.querySelector('.navbar-nav');
+  if (navbarNav) {
+    let cliCodeLink = navbarNav.querySelector('a[href="/cli-code"]');
+    if (user) {
+      // 已登录：确保链接存在
+      if (!cliCodeLink) {
+        cliCodeLink = document.createElement('a');
+        cliCodeLink.href = '/cli-code';
+        cliCodeLink.className = 'hide-mobile';
+        cliCodeLink.textContent = 'CLI 验证码';
+        // 插入到"发布"链接后面
+        const publishLink = navbarNav.querySelector('a[href="/publish.html"]');
+        if (publishLink && publishLink.nextSibling) {
+          navbarNav.insertBefore(cliCodeLink, publishLink.nextSibling);
+        } else {
+          navbarNav.appendChild(cliCodeLink);
+        }
+      }
+    } else {
+      // 未登录：移除链接
+      if (cliCodeLink) {
+        cliCodeLink.remove();
+      }
+    }
+  }
+  
   if (user) {
     userArea.innerHTML = `
       <span class="username">${escapeHtml(user.username)}</span>

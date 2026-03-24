@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI 验证码 - Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .cli-code-card {
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .cli-code-header {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .cli-code-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .cli-code-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .cli-code-display {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .cli-code-value {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #22c55e;
+      letter-spacing: 0.1em;
+      user-select: all;
+    }
+
+    .cli-code-timer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-md);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .cli-code-timer.expiring {
+      color: var(--warning-color);
+    }
+
+    .cli-code-timer.expired {
+      color: var(--error-color);
+    }
+
+    .cli-code-timer-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .cli-code-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+    }
+
+    .cli-code-actions .btn {
+      min-width: 120px;
+    }
+
+    .cli-code-hint {
+      margin-top: var(--spacing-lg);
+      padding: var(--spacing-md);
+      background-color: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      text-align: left;
+    }
+
+    .cli-code-hint code {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+      color: #7dd3fc;
+    }
+
+    .cli-code-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: var(--spacing-xl);
+    }
+
+    .cli-code-loading-text {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 480px) {
+      .cli-code-value {
+        font-size: 1.75rem;
+      }
+
+      .cli-code-actions {
+        flex-direction: column;
+      }
+
+      .cli-code-actions .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="app-devtools">
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <svg class="navbar-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span>Skill Base</span>
+      </a>
+      <div class="navbar-nav">
+        <a href="/">首页</a>
+        <a href="/publish.html" class="hide-mobile">发布</a>
+      </div>
+      <!-- 用户区域由 JS 动态渲染 -->
+    </div>
+  </nav>
+
+  <!-- 页面内容 -->
+  <main class="page-content">
+    <div class="container">
+      <div class="card cli-code-card">
+        <div class="cli-code-header">
+          <h1 class="cli-code-title">CLI 验证码</h1>
+          <p class="cli-code-subtitle">在命令行工具中输入此验证码完成登录</p>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="loadingState" class="cli-code-loading">
+          <div class="spinner"></div>
+          <div class="cli-code-loading-text">正在生成验证码...</div>
+        </div>
+
+        <!-- 验证码显示区域 -->
+        <div id="codeDisplay" class="hidden">
+          <div class="cli-code-display">
+            <div id="codeValue" class="cli-code-value">----</div>
+            <div id="codeTimer" class="cli-code-timer">
+              <svg class="cli-code-timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span id="timerText">5:00 后过期</span>
+            </div>
+          </div>
+
+          <div class="cli-code-actions">
+            <button id="copyBtn" class="btn btn-primary" onclick="copyCode()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              复制验证码
+            </button>
+            <button id="regenerateBtn" class="btn btn-secondary" onclick="regenerateCode()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+              重新生成
+            </button>
+          </div>
+        </div>
+
+        <div class="cli-code-hint">
+          <strong>使用方法：</strong><br>
+          在终端运行 <code>skb login</code>，然后输入上方验证码即可完成 CLI 登录。
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 引入 JS -->
+  <script src="/js/app.js"></script>
+  <script src="/js/cli-code.js"></script>
+</body>
+</html>

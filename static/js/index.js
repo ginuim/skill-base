@@ -2,6 +2,9 @@
  * Skill Base - 列表页逻辑
  */
 
+/** 递增以丢弃过期的列表请求结果，避免乱序响应把界面刷回旧数据 */
+let skillsListLoadGen = 0;
+
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', async () => {
   // 1. 检查登录状态
@@ -49,13 +52,19 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadSkills(query = '') {
   const container = document.getElementById('skill-list');
+  const gen = ++skillsListLoadGen;
 
-  // 显示 Loading 状态
-  container.innerHTML = renderSkeletonCards(6);
+  // 仅首屏容器为空时用骨架屏；搜索/刷新时保留当前列表，等数据到了再一次性替换，避免整块闪烁
+  if (container.children.length === 0) {
+    container.innerHTML = renderSkeletonCards(6);
+  }
 
   try {
     const url = '/skills' + (query ? '?q=' + encodeURIComponent(query) : '');
     const data = await apiGet(url);
+
+    if (gen !== skillsListLoadGen) return;
+
     const skills = data.skills || [];
 
     if (skills.length === 0) {
@@ -63,10 +72,9 @@ async function loadSkills(query = '') {
       return;
     }
 
-    // 渲染 Skill 卡片列表
     container.innerHTML = skills.map(skill => renderSkillCard(skill)).join('');
-
   } catch (error) {
+    if (gen !== skillsListLoadGen) return;
     console.error('加载 Skill 列表失败:', error);
     showToast('加载失败: ' + error.message, 'error');
     container.innerHTML = renderEmptyState();
