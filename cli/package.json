@@ -17,9 +17,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/ginuim/skill-base.git"
   },
-  "homepage": "",
+  "homepage": "https://github.com/ginuim/skill-base#readme",
   "files": [
     "bin",
     "lib"
