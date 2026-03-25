@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   currentVersionB = params.get('version_b') || null;
 
   if (!skillId) {
-    showToast('缺少 Skill ID 参数', 'error');
+    showToast(t('diff.missingId'), 'error');
     setTimeout(() => window.location.href = '/', 1500);
     return;
   }
@@ -72,7 +72,7 @@ async function loadSkillInfo() {
     currentSkill = skill;
 
     // 更新页面标题
-    document.title = `版本对比 - ${skill.name} - Skill Base`;
+    document.title = `${t('diff.pageTitle')}${skill.name} - Skill Base`;
 
     // 更新面包屑
     const breadcrumbSkill = document.getElementById('breadcrumb-skill');
@@ -80,8 +80,8 @@ async function loadSkillInfo() {
     breadcrumbSkill.href = `/skill.html?id=${encodeURIComponent(skillId)}`;
 
   } catch (error) {
-    console.error('加载 Skill 信息失败:', error);
-    showToast('加载 Skill 信息失败', 'error');
+    console.error('Failed to load Skill info:', error);
+    showToast(t('diff.loadInfoFailed'), 'error');
   }
 }
 
@@ -98,20 +98,20 @@ async function loadVersions() {
     const selectB = document.getElementById('version-b');
 
     const optionsHtml = versions.map((v, index) => {
-      const label = index === 0 ? `${v.version} (最新)` : v.version;
-      return `<option value="${escapeHtml(v.version)}">${escapeHtml(label)}</option>`;
-    }).join('');
+      const label = index === 0 ? `${v.version} (${t('skill.latestTag').replace(/[()]/g,'')})` : v.version;
+    return `<option value="${escapeHtml(v.version)}">${escapeHtml(label)}</option>`;
+  }).join('');
 
-    selectA.innerHTML = '<option value="">选择版本...</option>' + optionsHtml;
-    selectB.innerHTML = '<option value="">选择版本...</option>' + optionsHtml;
+    selectA.innerHTML = `<option value="">${t('diff.selectVersion')}</option>` + optionsHtml;
+    selectB.innerHTML = `<option value="">${t('diff.selectVersion')}</option>` + optionsHtml;
 
     // 恢复选中状态
     if (currentVersionA) selectA.value = currentVersionA;
     if (currentVersionB) selectB.value = currentVersionB;
 
   } catch (error) {
-    console.error('加载版本列表失败:', error);
-    showToast('加载版本列表失败', 'error');
+    console.error('Failed to load version list:', error);
+    showToast(t('diff.loadVersionsFailed'), 'error');
   }
 }
 
@@ -155,7 +155,7 @@ function updateFilePathDisplay() {
   if (currentFilePath) {
     pathDisplay.textContent = currentFilePath;
   } else {
-    pathDisplay.textContent = '全部文件';
+    pathDisplay.textContent = t('diff.allFiles');
   }
 }
 
@@ -164,12 +164,12 @@ function updateFilePathDisplay() {
  */
 async function performDiff() {
   if (!currentVersionA || !currentVersionB) {
-    showToast('请选择两个版本进行对比', 'warning');
+    showToast(t('diff.selectBoth'), 'warning');
     return;
   }
 
   if (currentVersionA === currentVersionB) {
-    showToast('请选择两个不同的版本', 'warning');
+    showToast(t('diff.selectBoth'), 'warning');
     return;
   }
 
@@ -180,7 +180,7 @@ async function performDiff() {
   outputDiv.innerHTML = `
     <div class="loading-content">
       <div class="spinner"></div>
-      <p style="margin-top: var(--spacing-md); color: var(--text-secondary);">正在下载并比较版本...</p>
+      <p style="margin-top: var(--spacing-md); color: var(--text-secondary);">${t('diff.computing')}</p>
     </div>
   `;
 
@@ -188,11 +188,11 @@ async function performDiff() {
     // 1. 并发下载两个版本的 zip
     const [bufA, bufB] = await Promise.all([
       fetch(`${API_BASE}/skills/${skillId}/versions/${currentVersionA}/download`, { credentials: 'same-origin' }).then(r => {
-        if (!r.ok) throw new Error(`下载版本 ${currentVersionA} 失败`);
+        if (!r.ok) throw new Error(`Failed to download version ${currentVersionA}`);
         return r.arrayBuffer();
       }),
       fetch(`${API_BASE}/skills/${skillId}/versions/${currentVersionB}/download`, { credentials: 'same-origin' }).then(r => {
-        if (!r.ok) throw new Error(`下载版本 ${currentVersionB} 失败`);
+        if (!r.ok) throw new Error(`Failed to download version ${currentVersionB}`);
         return r.arrayBuffer();
       })
     ]);
@@ -213,12 +213,12 @@ async function performDiff() {
     }
 
   } catch (error) {
-    console.error('Diff 失败:', error);
-    showToast('对比失败: ' + error.message, 'error');
+    console.error('Diff failed:', error);
+    showToast(t('diff.computeFailed') + ': ' + error.message, 'error');
     outputDiv.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">❌</div>
-        <p>对比失败: ${escapeHtml(error.message)}</p>
+        <p>${t('diff.computeFailed')}: ${escapeHtml(error.message)}</p>
       </div>
     `;
   }
@@ -237,7 +237,7 @@ async function diffSingleFile(filePath) {
     outputDiv.innerHTML = `
       <div class="binary-diff-notice">
         <div class="empty-state-icon">📦</div>
-        <p>二进制文件，无法显示差异</p>
+        <p>${t('diff.binaryDiff')}</p>
         <p class="text-muted mt-1">${escapeHtml(filePath)}</p>
       </div>
     `;
@@ -257,7 +257,7 @@ async function diffSingleFile(filePath) {
       outputDiv.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">✅</div>
-          <p>文件内容相同，无差异</p>
+          <p>Files are identical, no differences</p>
         </div>
       `;
       statsDiv.style.display = 'none';
@@ -269,8 +269,8 @@ async function diffSingleFile(filePath) {
       filePath,
       contentA,
       contentB,
-      `版本 ${currentVersionA}`,
-      `版本 ${currentVersionB}`
+      `Version ${currentVersionA}`,
+      `Version ${currentVersionB}`
     );
 
     // 使用 diff2html 渲染
@@ -353,7 +353,7 @@ async function diffAllFiles() {
     outputDiv.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">✅</div>
-        <p>两个版本完全相同，无差异</p>
+        <p>The two versions are identical, no differences</p>
       </div>
     `;
     statsDiv.style.display = 'none';
@@ -381,8 +381,8 @@ async function diffAllFiles() {
       change.file,
       contentA,
       contentB,
-      `版本 ${currentVersionA}`,
-      `版本 ${currentVersionB}`
+      `Version ${currentVersionA}`,
+      `Version ${currentVersionB}`
     );
     combinedPatch += patch;
   }
@@ -403,9 +403,9 @@ function renderChangedFileList(changes) {
   const listDiv = document.getElementById('changed-files-list');
 
   const statusLabels = {
-    added: '新增',
-    deleted: '删除',
-    modified: '修改'
+    added: t('diff.added'),
+    deleted: t('diff.deleted'),
+    modified: t('diff.modified')
   };
 
   listDiv.innerHTML = changes.map((change, index) => `
@@ -472,9 +472,9 @@ function updateDiffStats(patch, fileCount) {
     }
   });
 
-  document.getElementById('stats-added').textContent = `+${added} 行`;
-  document.getElementById('stats-removed').textContent = `-${removed} 行`;
-  document.getElementById('stats-files').textContent = `${fileCount} 个文件变更`;
+  document.getElementById('stats-added').textContent = `+${added} lines`;
+  document.getElementById('stats-removed').textContent = `-${removed} lines`;
+  document.getElementById('stats-files').textContent = `${fileCount} ${t('diff.filesChanged')}`;
 }
 
 /**

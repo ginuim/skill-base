@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>发布新版本 - Skill Base</title>
+  <title data-i18n="publish.title">发布新版本 - Skill Base</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
@@ -300,8 +300,8 @@
         <span>Skill Base</span>
       </a>
       <div class="navbar-nav">
-        <a href="/">首页</a>
-        <a href="/publish.html" class="active hide-mobile">发布</a>
+        <a href="/" data-i18n="nav.home">首页</a>
+        <a href="/publish.html" class="active hide-mobile" data-i18n="nav.publish">发布</a>
       </div>
       <!-- 用户区域由 JS 动态渲染 -->
     </div>
@@ -312,42 +312,42 @@
     <div class="container">
       <!-- 面包屑导航 -->
       <nav class="breadcrumb">
-        <a href="/">首页</a>
+        <a href="/" data-i18n="skill.breadcrumbHome">首页</a>
         <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current">发布新版本</span>
+        <span class="breadcrumb-current" data-i18n="publish.breadcrumbCurrent">发布新版本</span>
       </nav>
 
       <!-- 发布表单卡片 -->
       <div class="card publish-card">
-        <h1 class="card-title">发布新版本</h1>
+        <h1 class="card-title" data-i18n="publish.heading">发布新版本</h1>
 
         <form id="publishForm">
           <!-- 上传优先：进入页面即可拖文件夹 / zip，并自动填 SKILL.md 信息 -->
           <div class="form-group">
-            <label class="form-label required">上传文件</label>
+            <label class="form-label required" data-i18n="publish.uploadLabel">上传文件</label>
             <div id="drop-zone" class="drop-zone">
               <div class="drop-zone-icon">📁</div>
-              <div class="drop-zone-text">拖拽 Skill 文件夹或 zip 到此处</div>
-              <div class="drop-zone-subtitle">或点击选择文件夹</div>
-              <div class="drop-zone-hint">Skill ID、名称、描述均从包内读取（文件夹名 / zip 文件名 + SKILL.md），不可手改</div>
+              <div class="drop-zone-text" data-i18n="publish.dropText">拖拽 Skill 文件夹或 zip 到此处</div>
+              <div class="drop-zone-subtitle" data-i18n="publish.dropSubtitle">或点击选择文件夹</div>
+              <div class="drop-zone-hint" data-i18n="publish.dropHint">Skill ID、名称、描述均从包内读取（文件夹名 / zip 文件名 + SKILL.md），不可手改</div>
             </div>
 
             <div class="divider">
-              <span>或</span>
+              <span data-i18n="publish.or">或</span>
             </div>
 
             <div>
               <label class="btn btn-secondary zip-select-btn">
                 <span>📎</span>
-                <span>选择 zip 文件...</span>
+                <span data-i18n="publish.selectZip">选择 zip 文件...</span>
                 <input type="file" id="zip-file-input" class="zip-file-input" accept=".zip">
               </label>
             </div>
 
             <div id="file-preview" class="file-preview">
               <div class="file-preview-header">
-                <span>已选择文件</span>
-                <button type="button" class="file-preview-clear" id="clear-files">清除</button>
+                <span data-i18n="publish.selectedFiles">已选择文件</span>
+                <button type="button" class="file-preview-clear" id="clear-files" data-i18n="publish.clearFiles">清除</button>
               </div>
               <div id="file-preview-list" class="file-preview-list">
                 <!-- 由 JS 动态填充 -->
@@ -358,48 +358,51 @@
 
           <!-- Skill 选择 -->
           <div class="form-group">
-            <label for="skill-select" class="form-label">选择 Skill</label>
+            <label for="skill-select" class="form-label" data-i18n="publish.selectSkill">选择 Skill</label>
             <div class="skill-select-group">
               <select id="skill-select">
-                <option value="">-- 创建新 Skill --</option>
+                <option value="" data-i18n="publish.createNew">-- 创建新 Skill --</option>
                 <!-- 由 JS 动态填充已有 Skill -->
               </select>
             </div>
-            <p class="form-hint">更新已有 Skill 时请选择与包内 Skill ID 一致的一项；新建则保持「创建新 Skill」</p>
+            <p class="form-hint" data-i18n="publish.skillSelectHint">更新已有 Skill 时请选择与包内 Skill ID 一致的一项；新建则保持「创建新 Skill」</p>
           </div>
 
           <div class="skill-meta-readonly">
             <!-- Skill ID：来自文件夹名 / zip 文件名 -->
             <div class="form-group">
-              <label for="skill-id" class="form-label required">Skill ID</label>
+              <label for="skill-id" class="form-label required" data-i18n="publish.idLabel">Skill ID</label>
               <input
                 type="text"
                 id="skill-id"
                 readonly
+                data-i18n-placeholder="publish.idPlaceholder"
                 placeholder="上传文件夹或 zip 后自动填入"
                 pattern="[a-z0-9\-_]+"
               >
-              <p class="form-hint">由文件夹名或 zip 文件名推导（小写字母、数字、连字符、下划线）</p>
+              <p class="form-hint" data-i18n="publish.idHint">由文件夹名或 zip 文件名推导（小写字母、数字、连字符、下划线）</p>
             </div>
 
             <div class="form-group">
-              <label for="skill-name" class="form-label required">Skill 名称</label>
+              <label for="skill-name" class="form-label required" data-i18n="publish.nameLabel">Skill 名称</label>
               <input
                 type="text"
                 id="skill-name"
                 readonly
+                data-i18n-placeholder="publish.namePlaceholder"
                 placeholder="上传后从 SKILL.md 读取"
               >
-              <p class="form-hint">来自 SKILL.md（frontmatter 或首行标题）</p>
+              <p class="form-hint" data-i18n="publish.nameHint">来自 SKILL.md（frontmatter 或首行标题）</p>
             </div>
 
             <div class="form-group">
-              <label for="skill-description" class="form-label required">描述</label>
+              <label for="skill-description" class="form-label required" data-i18n="publish.descLabel">描述</label>
               <textarea
                 id="skill-description"
                 rows="3"
                 readonly
                 maxlength="500"
+                data-i18n-placeholder="publish.descPlaceholder"
                 placeholder="上传后从 SKILL.md 读取"
               ></textarea>
               <p class="form-hint"><span id="skill-description-count">0</span> / 500 字（与包内一致，截断至 500 字）</p>
@@ -408,18 +411,19 @@
 
           <!-- 更新说明 -->
           <div class="form-group">
-            <label for="changelog" class="form-label">更新说明</label>
+            <label for="changelog" class="form-label" data-i18n="publish.changelogLabel">更新说明</label>
             <textarea 
               id="changelog" 
               rows="4"
+              data-i18n-placeholder="publish.changelogPlaceholder"
               placeholder="描述本次更新的内容...&#10;&#10;例如：&#10;- 新增 xxx 功能&#10;- 修复 xxx 问题"
             ></textarea>
           </div>
 
           <!-- 按钮栏 -->
           <div class="form-actions">
-            <a href="/" class="btn btn-secondary">取消</a>
-            <button type="submit" id="submit-btn" class="btn btn-primary">
+            <a href="/" class="btn btn-secondary" data-i18n="publish.cancelBtn">取消</a>
+            <button type="submit" id="submit-btn" class="btn btn-primary" data-i18n="publish.submitBtn">
               发布新版本
             </button>
           </div>
@@ -436,11 +440,11 @@
         <!-- 成功提示 -->
         <div id="success-container" class="success-container">
           <div class="success-icon">✅</div>
-          <div class="success-title">发布成功！</div>
+          <div class="success-title" data-i18n="publish.successTitle">发布成功！</div>
           <div id="success-message" class="success-message"></div>
           <div class="success-actions">
-            <a id="view-skill-link" href="#" class="btn btn-primary">查看详情</a>
-            <a href="/publish.html" class="btn btn-secondary">继续发布</a>
+            <a id="view-skill-link" href="#" class="btn btn-primary" data-i18n="publish.viewDetail">查看详情</a>
+            <a href="/publish.html" class="btn btn-secondary" data-i18n="publish.publishAnother">继续发布</a>
           </div>
         </div>
       </div>
@@ -448,6 +452,7 @@
   </main>
 
   <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/publish.js"></script>
 </body>

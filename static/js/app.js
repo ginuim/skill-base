@@ -36,7 +36,7 @@ async function api(path, options = {}) {
     if (!window.location.pathname.includes('/login')) {
       window.location.href = '/login.html';
     }
-    throw new Error('未授权，请重新登录');
+    throw new Error(typeof t === 'function' ? t('login.unauthorized') : 'Unauthorized, please sign in again');
   }
   
   // 处理 204 No Content
@@ -56,7 +56,7 @@ async function api(path, options = {}) {
   
   // 处理错误响应
   if (!response.ok) {
-    const errorMessage = data?.error || data?.message || `请求失败 (${response.status})`;
+    const errorMessage = data?.detail || data?.error || data?.message || `Request failed (${response.status})`;
     throw new Error(errorMessage);
   }
   
@@ -259,27 +259,29 @@ function formatDate(dateStr) {
   const now = new Date();
   const diff = now - date;
   
+  const _t = typeof t === 'function' ? t : (k) => k;
+
   // 1分钟内
   if (diff < 60 * 1000) {
-    return '刚刚';
+    return _t('time.justNow');
   }
   
   // 1小时内
   if (diff < 60 * 60 * 1000) {
     const minutes = Math.floor(diff / (60 * 1000));
-    return `${minutes}分钟前`;
+    return window.I18N_LANG === 'zh' ? `${minutes}${_t('time.minutesAgo')}` : `${minutes}${_t('time.minutesAgo')}`;
   }
   
   // 24小时内
   if (diff < 24 * 60 * 60 * 1000) {
     const hours = Math.floor(diff / (60 * 60 * 1000));
-    return `${hours}小时前`;
+    return window.I18N_LANG === 'zh' ? `${hours}${_t('time.hoursAgo')}` : `${hours}${_t('time.hoursAgo')}`;
   }
   
   // 7天内
   if (diff < 7 * 24 * 60 * 60 * 1000) {
     const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-    return `${days}天前`;
+    return window.I18N_LANG === 'zh' ? `${days}${_t('time.daysAgo')}` : `${days}${_t('time.daysAgo')}`;
   }
   
   // 超过7天，显示具体日期
@@ -350,9 +352,33 @@ function renderNavbar(user) {
     navbar.querySelector('.container').appendChild(userArea);
   }
   
+  const _t = typeof t === 'function' ? t : (k) => k;
+  const _lang = window.I18N_LANG || 'en';
+  const _langLabel = _lang === 'zh' ? '中文' : 'English';
+  const _langBtnHtml = `
+    <div class="lang-switcher">
+      <button class="lang-switcher-trigger">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span>${_langLabel}</span>
+        <svg class="lang-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="lang-switcher-menu">
+        <button class="lang-switcher-option${_lang === 'zh' ? ' active' : ''}" onclick="setLang('zh')">中文</button>
+        <button class="lang-switcher-option${_lang === 'en' ? ' active' : ''}" onclick="setLang('en')">English</button>
+      </div>
+    </div>
+  `;
+
   if (user) {
     // 已登录：显示用户名和下拉菜单
     userArea.innerHTML = `
+      ${_langBtnHtml}
       <div class="navbar-user-dropdown">
         <button class="navbar-user-btn">
           <span class="username">${escapeHtml(user.username)}</span>
@@ -366,7 +392,7 @@ function renderNavbar(user) {
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
-            账户设置
+            ${_t('nav.settings')}
           </a>
           ${user.role === 'admin' ? `
           <a href="/admin/users" class="navbar-user-menu-item">
@@ -376,7 +402,7 @@ function renderNavbar(user) {
               <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
               <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
-            用户管理
+            ${_t('nav.admin')}
           </a>
           ` : ''}
           <div class="navbar-user-menu-divider"></div>
@@ -386,7 +412,7 @@ function renderNavbar(user) {
               <polyline points="16 17 21 12 16 7"/>
               <line x1="21" y1="12" x2="9" y2="12"/>
             </svg>
-            登出
+            ${_t('nav.logout')}
           </button>
         </div>
       </div>
@@ -399,16 +425,41 @@ function renderNavbar(user) {
       e.stopPropagation();
       dropdown.classList.toggle('active');
     });
-    
-    // 点击其他地方关闭菜单
+
+    // 绑定语言切换下拉
+    const langSwitcher = userArea.querySelector('.lang-switcher');
+    const langTrigger = userArea.querySelector('.lang-switcher-trigger');
+    if (langTrigger) {
+      langTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        langSwitcher.classList.toggle('active');
+      });
+    }
+
+    // 点击其他地方关闭所有菜单
     document.addEventListener('click', () => {
       dropdown.classList.remove('active');
+      if (langSwitcher) langSwitcher.classList.remove('active');
     });
   } else {
     // 未登录：显示登录按钮
     userArea.innerHTML = `
-      <a href="/login.html" class="btn btn-primary btn-sm">登录</a>
+      ${_langBtnHtml}
+      <a href="/login.html" class="btn btn-primary btn-sm">${_t('nav.login')}</a>
     `;
+
+    // 绑定语言切换下拉
+    const langSwitcher = userArea.querySelector('.lang-switcher');
+    const langTrigger = userArea.querySelector('.lang-switcher-trigger');
+    if (langTrigger) {
+      langTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        langSwitcher.classList.toggle('active');
+      });
+      document.addEventListener('click', () => {
+        langSwitcher.classList.remove('active');
+      });
+    }
   }
 }
 

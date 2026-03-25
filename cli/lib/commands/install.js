@@ -23,7 +23,7 @@ export async function downloadAndExtract(skillId, version, targetDir) {
   const actualVersion = version === 'latest' ? skillInfo.latest_version : version;
 
   if (!actualVersion) {
-    throw new Error(`Skill ${skillId} 没有可用版本`);
+    throw new Error(`Skill ${skillId} has no available version`);
   }
 
   // 下载 zip
@@ -70,13 +70,13 @@ export default async function install(target, options) {
   // 由于 zip 包内已包含 skillId 文件夹，我们解压到当前目录即可
   const targetDir = options?.dir || process.cwd();
 
-  const spinner = ora(`正在下载 ${skillId}${version !== 'latest' ? '@' + version : ''}...`).start();
+  const spinner = ora(`Downloading ${skillId}${version !== 'latest' ? '@' + version : ''}...`).start();
 
   try {
     const result = await downloadAndExtract(skillId, version, targetDir);
-    spinner.succeed(chalk.green(`已安装 ${result.skillId} ${result.version} 到 ${path.join(result.targetDir, skillId)}`));
+    spinner.succeed(chalk.green(`Installed ${result.skillId} ${result.version} to ${path.join(result.targetDir, skillId)}`));
   } catch (err) {
-    spinner.fail(chalk.red(`安装失败：${err.message}`));
+    spinner.fail(chalk.red(`Install failed: ${err.message}`));
     process.exit(1);
   }
 }

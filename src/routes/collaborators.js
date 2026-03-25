@@ -11,7 +11,7 @@ async function collaboratorsRoutes(fastify, options) {
     // 检查 Skill 是否存在
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill 不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
     const collaborators = db.prepare(`
@@ -51,12 +51,12 @@ async function collaboratorsRoutes(fastify, options) {
     // 检查 Skill 是否存在
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill 不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
     // 权限检查
     if (!canManageSkill(request.user, skill_id)) {
-      return reply.code(403).send({ ok: false, error: 'forbidden', detail: '需要所有者或管理员权限' });
+      return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
     
     // 查找目标用户
@@ -68,7 +68,7 @@ async function collaboratorsRoutes(fastify, options) {
     }
     
     if (!targetUser) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: '用户不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
     // 检查是否已是协作者
@@ -77,7 +77,7 @@ async function collaboratorsRoutes(fastify, options) {
     ).get(skill_id, targetUser.id);
     
     if (existing) {
-      return reply.code(400).send({ ok: false, error: 'already_collaborator', detail: '用户已是协作者' });
+      return reply.code(400).send({ ok: false, error: 'already_collaborator', detail: 'User is already a collaborator' });
     }
     
     // 添加协作者
@@ -105,12 +105,12 @@ async function collaboratorsRoutes(fastify, options) {
     // 检查 Skill 是否存在
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill 不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
     // 权限检查
     if (!canManageSkill(request.user, skill_id)) {
-      return reply.code(403).send({ ok: false, error: 'forbidden', detail: '需要所有者或管理员权限' });
+      return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
     
     // 检查协作者记录
@@ -119,18 +119,18 @@ async function collaboratorsRoutes(fastify, options) {
     ).get(skill_id, parseInt(user_id));
     
     if (!collaborator) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: '协作者不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Collaborator not found' });
     }
     
     // 不能移除所有者
     if (collaborator.role === 'owner') {
-      return reply.code(400).send({ ok: false, error: 'cannot_remove_owner', detail: '不能移除所有者' });
+      return reply.code(400).send({ ok: false, error: 'cannot_remove_owner', detail: 'Cannot remove the owner' });
     }
     
     db.prepare('DELETE FROM skill_collaborators WHERE skill_id = ? AND user_id = ?')
       .run(skill_id, parseInt(user_id));
     
-    return reply.send({ ok: true, message: '协作者已移除' });
+    return reply.send({ ok: true, message: 'Collaborator removed' });
   });
 
   // POST /:skill_id/transfer-ownership - 转移所有权（owner/admin，事务）
@@ -141,30 +141,30 @@ async function collaboratorsRoutes(fastify, options) {
     const { new_owner_id } = request.body || {};
     
     if (!new_owner_id) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '请指定新所有者' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'New owner must be specified' });
     }
     
     // 检查 Skill 并获取当前所有者
     const skill = db.prepare('SELECT id, owner_id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill 不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
     // 权限检查
     if (!canManageSkill(request.user, skill_id)) {
-      return reply.code(403).send({ ok: false, error: 'forbidden', detail: '需要所有者或管理员权限' });
+      return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
     
     const newOwnerId = parseInt(new_owner_id);
     
     if (skill.owner_id === newOwnerId) {
-      return reply.code(400).send({ ok: false, error: 'same_owner', detail: '新所有者与当前所有者相同' });
+      return reply.code(400).send({ ok: false, error: 'same_owner', detail: 'New owner is the same as current owner' });
     }
     
     // 检查新所有者是否存在
     const newOwner = UserModel.findById(newOwnerId);
     if (!newOwner) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: '用户不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
     // 事务操作
@@ -195,7 +195,7 @@ async function collaboratorsRoutes(fastify, options) {
     
     return reply.send({
       ok: true,
-      message: '所有权已转移',
+      message: 'Ownership transferred',
       new_owner: { id: newOwner.id, username: newOwner.username }
     });
   });
@@ -212,19 +212,19 @@ async function collaboratorsRoutes(fastify, options) {
       return reply.code(400).send({
         ok: false,
         error: 'confirm_required',
-        detail: '请传入 confirm 参数确认删除，值必须等于 Skill ID'
+        detail: 'Confirm parameter is required and must equal the Skill ID'
       });
     }
     
     // 检查 Skill 是否存在
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill 不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
     // 权限检查
     if (!canManageSkill(request.user, skill_id)) {
-      return reply.code(403).send({ ok: false, error: 'forbidden', detail: '需要所有者或管理员权限' });
+      return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
     
     // 获取版本数量（用于响应）
@@ -251,7 +251,7 @@ async function collaboratorsRoutes(fastify, options) {
     
     return reply.send({
       ok: true,
-      message: 'Skill 已删除',
+      message: 'Skill deleted',
       deleted: { skill_id, versions_count: versionsCount }
     });
   });

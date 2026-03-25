@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -190,8 +190,8 @@
         <span>Skill Base</span>
       </a>
       <div class="navbar-nav">
-        <a href="/" class="active">首页</a>
-        <a href="/publish.html" class="hide-mobile">发布</a>
+        <a href="/" class="active" data-i18n="nav.home">首页</a>
+        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
       </div>
       <!-- 用户区域由 JS 动态渲染 -->
     </div>
@@ -208,6 +208,7 @@
             <input 
               type="search" 
               id="searchInput" 
+              data-i18n-placeholder="index.searchPlaceholder"
               placeholder="搜索 Skill..."
               autocomplete="off"
             >
@@ -235,7 +236,7 @@
   </main>
 
   <!-- 浮动发布按钮 -->
-  <a href="/publish.html" class="fab" title="发布新版本">
+  <a href="/publish.html" class="fab" data-i18n-title="index.fabTitle" title="发布新版本">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="12" y1="5" x2="12" y2="19"/>
       <line x1="5" y1="12" x2="19" y2="12"/>
@@ -243,6 +244,7 @@
   </a>
 
   <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/index.js"></script>
 </body>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>用户管理 - Skill Base</title>
+  <title data-i18n="admin.title">用户管理 - Skill Base</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
     /* 页面标题区域 */
@@ -378,8 +378,8 @@
         <span>Skill Base</span>
       </a>
       <div class="navbar-nav">
-        <a href="/">首页</a>
-        <a href="/publish.html" class="hide-mobile">发布</a>
+        <a href="/" data-i18n="nav.home">首页</a>
+        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
       </div>
       <!-- 用户区域由 JS 动态渲染 -->
     </div>
@@ -390,13 +390,13 @@
     <div class="container">
       <!-- 页面标题 -->
       <div class="page-header">
-        <h1 class="page-title">用户管理</h1>
+        <h1 class="page-title" data-i18n="admin.heading">用户管理</h1>
         <button class="btn btn-primary" onclick="showAddUserModal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          添加用户
+          <span data-i18n="admin.addUser">添加用户</span>
         </button>
       </div>
 
@@ -407,6 +407,7 @@
             <input 
               type="search" 
               id="searchInput" 
+              data-i18n-placeholder="admin.searchPlaceholder"
               placeholder="搜索用户名..."
               autocomplete="off"
             >
@@ -425,9 +426,9 @@
           </div>
         </div>
         <select id="statusFilter">
-          <option value="">全部状态</option>
-          <option value="active">启用</option>
-          <option value="disabled">禁用</option>
+          <option value="" data-i18n="admin.allStatus">全部状态</option>
+          <option value="active" data-i18n="admin.active">启用</option>
+          <option value="disabled" data-i18n="admin.disabled">禁用</option>
         </select>
       </div>
 
@@ -436,12 +437,12 @@
         <table class="users-table">
           <thead>
             <tr>
-              <th>用户名</th>
-              <th>姓名</th>
-              <th>角色</th>
-              <th>状态</th>
-              <th>创建时间</th>
-              <th>操作</th>
+              <th data-i18n="admin.thUsername">用户名</th>
+              <th data-i18n="admin.thName">姓名</th>
+              <th data-i18n="admin.thRole">角色</th>
+              <th data-i18n="admin.thStatus">状态</th>
+              <th data-i18n="admin.thCreatedAt">创建时间</th>
+              <th data-i18n="admin.thActions">操作</th>
             </tr>
           </thead>
           <tbody id="usersTableBody">
@@ -449,9 +450,9 @@
           </tbody>
         </table>
         <div id="pagination" class="pagination hidden">
-          <button class="btn btn-secondary btn-sm" id="prevPage" disabled>上一页</button>
+          <button class="btn btn-secondary btn-sm" id="prevPage" disabled data-i18n="admin.prevPage">上一页</button>
           <span class="pagination-info" id="pageInfo">1 / 1</span>
-          <button class="btn btn-secondary btn-sm" id="nextPage" disabled>下一页</button>
+          <button class="btn btn-secondary btn-sm" id="nextPage" disabled data-i18n="admin.nextPage">下一页</button>
         </div>
       </div>
     </div>
@@ -461,7 +462,7 @@
   <div class="modal-overlay" id="addUserModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">添加用户</h3>
+        <h3 class="modal-title" data-i18n="admin.addModal">添加用户</h3>
         <button class="modal-close" onclick="closeModal()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -471,30 +472,30 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label required">用户名</label>
-          <input type="text" id="addUsername" placeholder="请输入用户名">
+          <label class="form-label required" data-i18n="admin.addUsernameLabel">用户名</label>
+          <input type="text" id="addUsername" data-i18n-placeholder="admin.addUsernamePlaceholder" placeholder="请输入用户名">
         </div>
         <div class="form-group">
-          <label class="form-label required">初始密码</label>
-          <input type="password" id="addPassword" placeholder="请输入初始密码">
+          <label class="form-label required" data-i18n="admin.addPasswordLabel">初始密码</label>
+          <input type="password" id="addPassword" data-i18n-placeholder="admin.addPasswordPlaceholder" placeholder="请输入初始密码">
         </div>
         <div class="form-group">
-          <label class="form-label required">角色</label>
+          <label class="form-label required" data-i18n="admin.addRoleLabel">角色</label>
           <div class="radio-group">
             <label class="radio-label">
               <input type="radio" name="addRole" value="developer" checked>
-              开发者
+              <span data-i18n="admin.roleDeveloperLabel">开发者</span>
             </label>
             <label class="radio-label">
               <input type="radio" name="addRole" value="admin">
-              管理员
+              <span data-i18n="admin.roleAdminLabel">管理员</span>
             </label>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-        <button class="btn btn-primary" id="submitAddUser" onclick="submitAddUser()">添加</button>
+        <button class="btn btn-secondary" onclick="closeModal()" data-i18n="btn.cancel">取消</button>
+        <button class="btn btn-primary" id="submitAddUser" onclick="submitAddUser()" data-i18n="btn.add">添加</button>
       </div>
     </div>
   </div>
@@ -503,7 +504,7 @@
   <div class="modal-overlay" id="editUserModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">编辑用户</h3>
+        <h3 class="modal-title" data-i18n="admin.editModal">编辑用户</h3>
         <button class="modal-close" onclick="closeModal()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -514,28 +515,28 @@
       <div class="modal-body">
         <input type="hidden" id="editUserId">
         <div class="form-group">
-          <label class="form-label">用户名</label>
+          <label class="form-label" data-i18n="admin.editUsernameLabel">用户名</label>
           <input type="text" id="editUsername" disabled>
         </div>
         <div class="form-group">
-          <label class="form-label">姓名</label>
-          <input type="text" id="editName" placeholder="请输入姓名">
+          <label class="form-label" data-i18n="admin.editNameLabel">姓名</label>
+          <input type="text" id="editName" data-i18n-placeholder="admin.editNamePlaceholder" placeholder="请输入姓名">
         </div>
         <div class="form-group">
-          <label class="form-label">角色</label>
+          <label class="form-label" data-i18n="admin.editRoleLabel">角色</label>
           <div class="radio-group">
             <label class="radio-label">
               <input type="radio" name="editRole" value="developer">
-              开发者
+              <span data-i18n="admin.roleDeveloperLabel">开发者</span>
             </label>
             <label class="radio-label">
               <input type="radio" name="editRole" value="admin">
-              管理员
+              <span data-i18n="admin.roleAdminLabel">管理员</span>
             </label>
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">状态</label>
+          <label class="form-label" data-i18n="admin.editStatusLabel">状态</label>
           <div class="toggle-group">
             <label class="toggle-switch">
               <input type="checkbox" id="editStatus">
@@ -546,13 +547,13 @@
         </div>
         <div class="divider"></div>
         <div class="reset-password-section">
-          <span class="section-label">重置用户密码</span>
-          <button class="btn btn-secondary btn-sm" id="resetPasswordBtn">重置密码</button>
+          <span class="section-label" data-i18n="admin.resetPasswordSection">重置用户密码</span>
+          <button class="btn btn-secondary btn-sm" id="resetPasswordBtn" data-i18n="admin.resetPasswordBtn">重置密码</button>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-        <button class="btn btn-primary" id="submitEditUser" onclick="submitEditUser()">保存</button>
+        <button class="btn btn-secondary" onclick="closeModal()" data-i18n="btn.cancel">取消</button>
+        <button class="btn btn-primary" id="submitEditUser" onclick="submitEditUser()" data-i18n="btn.save">保存</button>
       </div>
     </div>
   </div>
@@ -561,7 +562,7 @@
   <div class="modal-overlay" id="resetPasswordModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">重置密码</h3>
+        <h3 class="modal-title" data-i18n="admin.resetModal">重置密码</h3>
         <button class="modal-close" onclick="closeModal()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -571,20 +572,21 @@
       </div>
       <div class="modal-body">
         <input type="hidden" id="resetPasswordUserId">
-        <p class="text-secondary mb-2">为用户 <strong id="resetPasswordUsername"></strong> 设置新密码：</p>
+        <p class="text-secondary mb-2"><span data-i18n="admin.resetDesc">为用户 </span><strong id="resetPasswordUsername"></strong><span data-i18n="admin.resetDescEnd"> 设置新密码：</span></p>
         <div class="form-group">
-          <label class="form-label required">新密码</label>
-          <input type="password" id="newPassword" placeholder="请输入新密码">
+          <label class="form-label required" data-i18n="admin.resetPasswordLabel">新密码</label>
+          <input type="password" id="newPassword" data-i18n-placeholder="admin.resetPasswordPlaceholder" placeholder="请输入新密码">
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-        <button class="btn btn-primary" id="submitResetPassword" onclick="submitResetPassword()">确认重置</button>
+        <button class="btn btn-secondary" onclick="closeModal()" data-i18n="btn.cancel">取消</button>
+        <button class="btn btn-primary" id="submitResetPassword" onclick="submitResetPassword()" data-i18n="btn.reset">确认重置</button>
       </div>
     </div>
   </div>
 
   <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/admin/users.js"></script>
 </body>

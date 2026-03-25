@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>版本对比 - Skill Base</title>
+  <title data-i18n="diff.title">版本对比 - Skill Base</title>
   <link rel="stylesheet" href="/css/style.css">
   <!-- diff2html 样式 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html@3.4.47/bundles/css/diff2html.min.css">
@@ -346,8 +346,8 @@
         <span>Skill Base</span>
       </a>
       <div class="navbar-nav">
-        <a href="/">首页</a>
-        <a href="/publish.html" class="hide-mobile">发布</a>
+        <a href="/" data-i18n="nav.home">首页</a>
+        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
       </div>
     </div>
   </nav>
@@ -357,29 +357,29 @@
     <div class="container">
       <!-- 面包屑导航 -->
       <nav class="breadcrumb">
-        <a href="/">首页</a>
+        <a href="/" data-i18n="skill.breadcrumbHome">首页</a>
         <span class="breadcrumb-separator">›</span>
-        <a href="#" id="breadcrumb-skill">加载中...</a>
+        <a href="#" id="breadcrumb-skill" data-i18n="state.loading">加载中...</a>
         <span class="breadcrumb-separator">›</span>
-        <span class="breadcrumb-current">版本对比</span>
+        <span class="breadcrumb-current" data-i18n="diff.breadcrumbCurrent">版本对比</span>
       </nav>
 
       <!-- 顶部控制栏 -->
       <div class="diff-controls">
         <div class="diff-controls-row">
           <div class="diff-control-group">
-            <span class="diff-control-label">版本 A (旧):</span>
+            <span class="diff-control-label" data-i18n="diff.versionA">版本 A (旧):</span>
             <select id="version-a" onchange="onVersionChange()">
-              <option value="">选择版本...</option>
+              <option value="" data-i18n="diff.selectVersion">选择版本...</option>
             </select>
           </div>
 
           <span class="diff-arrow">→</span>
 
           <div class="diff-control-group">
-            <span class="diff-control-label">版本 B (新):</span>
+            <span class="diff-control-label" data-i18n="diff.versionB">版本 B (新):</span>
             <select id="version-b" onchange="onVersionChange()">
-              <option value="">选择版本...</option>
+              <option value="" data-i18n="diff.selectVersion">选择版本...</option>
             </select>
           </div>
 
@@ -388,21 +388,21 @@
               <polyline points="23 4 23 10 17 10"/>
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
             </svg>
-            重新计算
+            <span data-i18n="diff.recalculate">重新计算</span>
           </button>
         </div>
 
         <div class="diff-controls-row">
           <div class="diff-control-group">
-            <span class="diff-control-label">文件:</span>
-            <span id="current-file-path" class="diff-file-path">全部文件</span>
+            <span class="diff-control-label" data-i18n="diff.file">文件:</span>
+            <span id="current-file-path" class="diff-file-path" data-i18n="diff.allFiles">全部文件</span>
           </div>
 
           <div class="btn-group" style="margin-left: auto;">
-            <button class="btn btn-secondary active" id="btn-side-by-side" onclick="toggleOutputFormat('side-by-side')">
+            <button class="btn btn-secondary active" id="btn-side-by-side" onclick="toggleOutputFormat('side-by-side')" data-i18n="diff.sideBySide">
               左右对比
             </button>
-            <button class="btn btn-secondary" id="btn-line-by-line" onclick="toggleOutputFormat('line-by-line')">
+            <button class="btn btn-secondary" id="btn-line-by-line" onclick="toggleOutputFormat('line-by-line')" data-i18n="diff.unified">
               统一视图
             </button>
           </div>
@@ -423,7 +423,7 @@
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
           </svg>
-          变更文件列表
+          <span data-i18n="diff.changedFiles">变更文件列表</span>
         </div>
         <div class="changed-files-list" id="changed-files-list">
           <!-- 动态渲染 -->
@@ -435,7 +435,7 @@
         <div id="diff-output">
           <div class="empty-state">
             <div class="empty-state-icon">📊</div>
-            <p>选择两个版本后点击"重新计算"查看差异</p>
+            <p data-i18n="diff.empty">选择两个版本后点击"重新计算"查看差异</p>
           </div>
         </div>
       </div>
@@ -447,7 +447,7 @@
             <line x1="19" y1="12" x2="5" y2="12"/>
             <polyline points="12 19 5 12 12 5"/>
           </svg>
-          返回详情页
+          <span data-i18n="diff.back">返回详情页</span>
         </button>
       </div>
     </div>
@@ -459,6 +459,7 @@
   <script src="https://cdn.jsdelivr.net/npm/diff2html@3.4.47/bundles/js/diff2html-ui.min.js"></script>
 
   <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/diff.js"></script>
 </body>

@@ -11,7 +11,7 @@ async function usersRoutes(fastify, options) {
     const { q } = request.query;
     
     if (!q || q.trim().length < 1) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '搜索关键词至少 1 个字符' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Search keyword must be at least 1 character' });
     }
     
     const pattern = `%${q.trim()}%`;
@@ -46,19 +46,19 @@ async function usersRoutes(fastify, options) {
     const { username, password, role = 'developer', name } = request.body || {};
     
     if (!username || !password) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '用户名和密码不能为空' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Username and password are required' });
     }
     if (password.length < 6) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '密码长度至少 6 位' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Password must be at least 6 characters' });
     }
     if (!['admin', 'developer'].includes(role)) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '角色必须为 admin 或 developer' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Role must be admin or developer' });
     }
     
-    // 检查用户名是否已存在
+    // Check if username already exists
     const existing = UserModel.findByUsername(username.trim());
     if (existing) {
-      return reply.code(400).send({ ok: false, error: 'username_exists', detail: '用户名已存在' });
+      return reply.code(400).send({ ok: false, error: 'username_exists', detail: 'Username already exists' });
     }
     
     const passwordHash = await hashPassword(password);
@@ -77,10 +77,10 @@ async function usersRoutes(fastify, options) {
     const user = UserModel.findByIdWithCreator(parseInt(user_id));
     
     if (!user) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: '用户不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
-    // 格式化 created_by
+    // Format created_by
     const result = {
       id: user.id,
       username: user.username,
@@ -104,30 +104,30 @@ async function usersRoutes(fastify, options) {
     
     const user = UserModel.findById(userId);
     if (!user) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: '用户不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
-    // 管理员自我保护
+    // Self-protection for admins
     if (userId === request.user.id) {
       if (status === 'disabled') {
-        return reply.code(400).send({ ok: false, error: 'self_protection', detail: '不能禁用自己的账号' });
+        return reply.code(400).send({ ok: false, error: 'self_protection', detail: 'Cannot disable your own account' });
       }
       if (role === 'developer') {
-        return reply.code(400).send({ ok: false, error: 'self_protection', detail: '不能降级自己的角色' });
+        return reply.code(400).send({ ok: false, error: 'self_protection', detail: 'Cannot downgrade your own role' });
       }
     }
     
-    // 验证字段值
+    // Validate field values
     const fields = {};
     if (role !== undefined) {
       if (!['admin', 'developer'].includes(role)) {
-        return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '角色必须为 admin 或 developer' });
+        return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Role must be admin or developer' });
       }
       fields.role = role;
     }
     if (status !== undefined) {
       if (!['active', 'disabled'].includes(status)) {
-        return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '状态必须为 active 或 disabled' });
+        return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Status must be active or disabled' });
       }
       fields.status = status;
     }
@@ -136,7 +136,7 @@ async function usersRoutes(fastify, options) {
     }
     
     if (Object.keys(fields).length === 0) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '没有需要更新的字段' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'No fields to update' });
     }
     
     UserModel.update(userId, fields);
@@ -150,18 +150,18 @@ async function usersRoutes(fastify, options) {
     const { new_password } = request.body || {};
     
     if (!new_password || new_password.length < 6) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '新密码长度至少 6 位' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'New password must be at least 6 characters' });
     }
     
     const user = UserModel.findById(userId);
     if (!user) {
-      return reply.code(404).send({ ok: false, error: 'not_found', detail: '用户不存在' });
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
     const passwordHash = await hashPassword(new_password);
     UserModel.resetPassword(userId, passwordHash);
     
-    return reply.send({ ok: true, message: '密码已重置' });
+    return reply.send({ ok: true, message: 'Password has been reset' });
   });
   });
 }

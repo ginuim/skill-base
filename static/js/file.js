@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filePath = params.get('path');
 
   if (!skillId) {
-    showToast('缺少 Skill ID 参数', 'error');
+    showToast(t('file.missingId'), 'error');
     setTimeout(() => window.location.href = '/', 1500);
     return;
   }
@@ -94,7 +94,7 @@ async function loadSkillInfo(skillId) {
     currentSkill = skill;
 
     // 更新页面标题
-    document.title = `文件预览 - ${skill.name} - Skill Base`;
+    document.title = `${t('file.title').replace(/ - Skill Base$/, '')} - ${skill.name} - Skill Base`;
 
     // 更新面包屑
     const breadcrumbSkill = document.getElementById('breadcrumb-skill');
@@ -102,8 +102,8 @@ async function loadSkillInfo(skillId) {
     breadcrumbSkill.href = `/skill.html?id=${encodeURIComponent(skillId)}`;
 
   } catch (error) {
-    console.error('加载 Skill 信息失败:', error);
-    showToast('加载 Skill 信息失败', 'error');
+    console.error('Failed to load Skill info:', error);
+    showToast(t('skill.loadInfoFailed'), 'error');
   }
 }
 
@@ -119,14 +119,14 @@ async function loadVersions(skillId) {
     // 渲染版本下拉框
     const select = document.getElementById('version-select');
     if (select) {
-      select.innerHTML = '<option value="">选择其他版本...</option>' +
+      select.innerHTML = `<option value="">${t('file.selectOtherVersion')}</option>` +
         versions.map((v, index) => {
-          const label = index === 0 ? `${v.version} (最新)` : v.version;
+          const label = index === 0 ? `${v.version} ${t('skill.latestTag')}` : v.version;
           return `<option value="${escapeHtml(v.version)}">${escapeHtml(label)}</option>`;
         }).join('');
     }
   } catch (error) {
-    console.error('加载版本列表失败:', error);
+    console.error('Failed to load versions:', error);
   }
 }
 
@@ -150,7 +150,7 @@ async function loadZipAndTree(version) {
     const response = await fetch(downloadUrl, { credentials: 'same-origin' });
 
     if (!response.ok) {
-      throw new Error('下载 zip 失败');
+      throw new Error('Failed to download zip');
     }
 
     const zipData = await response.arrayBuffer();
@@ -174,11 +174,11 @@ async function loadZipAndTree(version) {
     renderFileTree(fileTree, fileTreeContainer, currentFilePath);
 
   } catch (error) {
-    console.error('加载 ZIP 失败:', error);
-    showToast('加载版本失败: ' + error.message, 'error');
+    console.error('Failed to load ZIP:', error);
+    showToast(t('skill.versionFailed') + error.message, 'error');
     fileTreeContainer.innerHTML = `
       <div class="empty-preview">
-        <p class="text-error">加载失败</p>
+        <p class="text-error">${t('file.loadFailed')}</p>
       </div>
     `;
   }
@@ -250,9 +250,9 @@ function sortTree(nodes) {
  */
 function renderFileTree(nodes, container, currentPath = null) {
   if (!nodes || nodes.length === 0) {
-    container.innerHTML = `
+      container.innerHTML = `
       <div class="empty-preview">
-        <p class="text-muted">空目录</p>
+        <p class="text-muted">${t('state.empty')}</p>
       </div>
     `;
     return;
@@ -391,7 +391,7 @@ function isBinaryFile(filePath, contentBytes) {
  */
 async function previewFile(filePath) {
   if (!currentZip) {
-    showToast('请先选择版本', 'warning');
+    showToast(t('skill.selectVersionFirst'), 'warning');
     return;
   }
 
@@ -415,7 +415,7 @@ async function previewFile(filePath) {
       container.innerHTML = `
         <div class="empty-preview">
           <div class="empty-preview-icon">❓</div>
-          <p>文件不存在</p>
+          <p>${t('skill.fileNotFound')}</p>
         </div>
       `;
       fileSizeDisplay.textContent = '-';
@@ -436,7 +436,7 @@ async function previewFile(filePath) {
             <line x1="12" y1="9" x2="12" y2="13"/>
             <line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
-          <span>文件较大 (${formatFileSize(fileSize)})，加载可能较慢</span>
+          <span>${(window.I18N_LANG || 'en').startsWith('zh') ? `文件较大 (${formatFileSize(fileSize)})，加载可能较慢` : `Large file (${formatFileSize(fileSize)}), loading may be slow`}</span>
         </div>
       `;
     }
@@ -446,8 +446,8 @@ async function previewFile(filePath) {
         ${warningHtml}
         <div class="binary-notice">
           <div class="binary-notice-icon">📦</div>
-          <p>二进制文件，无法预览</p>
-          <p class="text-muted mt-1">请下载 zip 包后在本地查看</p>
+          <p>${t('file.binaryFile')}</p>
+          <p class="text-muted mt-1">${t('file.binaryHint')}</p>
         </div>
       `;
       return;
@@ -497,11 +497,11 @@ async function previewFile(filePath) {
     }
 
   } catch (error) {
-    console.error('预览文件失败:', error);
+    console.error('Failed to preview file:', error);
     container.innerHTML = `
       <div class="empty-preview">
         <div class="empty-preview-icon">❌</div>
-        <p>预览失败: ${escapeHtml(error.message)}</p>
+        <p>${t('skill.previewFailed')}${escapeHtml(error.message)}</p>
       </div>
     `;
   }
@@ -575,7 +575,7 @@ async function onVersionChange(version) {
  */
 function downloadCurrentVersion() {
   if (!currentSkill || !currentVersion) {
-    showToast('请先选择版本', 'warning');
+    showToast(t('skill.selectVersionFirst'), 'warning');
     return;
   }
 
@@ -588,12 +588,12 @@ function downloadCurrentVersion() {
  */
 function goToDiff() {
   if (!currentSkill) {
-    showToast('Skill 信息加载中', 'warning');
+    showToast(t('skill.infoLoading'), 'warning');
     return;
   }
 
   if (versions.length < 2) {
-    showToast('至少需要两个版本才能对比', 'warning');
+    showToast(t('skill.needTwoVersions'), 'warning');
     return;
   }
 

@@ -8,30 +8,30 @@ async function authRoutes(fastify, options) {
     const { username, password } = request.body || {};
 
     if (!username || !password) {
-      return reply.code(400).send({ detail: '用户名和密码不能为空' });
+      return reply.code(400).send({ detail: 'Username and password are required' });
     }
 
     // 查找用户
     const user = UserModel.findByUsername(username);
     if (!user) {
-      return reply.code(401).send({ detail: '用户名或密码错误' });
+      return reply.code(401).send({ detail: 'Invalid username or password' });
     }
 
-    // 检查账号状态
+    // Check account status
     if (user.status === 'disabled') {
       return reply.code(401).send({
         ok: false,
         error: 'account_disabled',
-        detail: '账号已被禁用'
+        detail: 'Account is disabled'
       });
     }
 
-    // 验证密码
+    // Verify password
     if (!verifyPassword(password, user.password_hash)) {
-      return reply.code(401).send({ detail: '用户名或密码错误' });
+      return reply.code(401).send({ detail: 'Invalid username or password' });
     }
 
-    // 创建 session 并设置 cookie
+    // Create session and set cookie
     const sessionId = fastify.createSession(user.id);
     reply.setCookie('session_id', sessionId, { path: '/', httpOnly: true });
 
@@ -69,7 +69,7 @@ async function authRoutes(fastify, options) {
     const { code } = request.body || {};
 
     if (!code) {
-      return reply.code(400).send({ detail: '验证码不能为空' });
+      return reply.code(400).send({ detail: 'Code is required' });
     }
 
     // 查找验证码：未使用且未过期
@@ -79,7 +79,7 @@ async function authRoutes(fastify, options) {
     `).get(code);
 
     if (!codeRecord) {
-      return reply.code(401).send({ detail: '验证码无效或已过期' });
+      return reply.code(401).send({ detail: 'Invalid or expired code' });
     }
 
     // 标记为已使用
@@ -117,19 +117,19 @@ async function authRoutes(fastify, options) {
 
     // 至少需要提供一个字段
     if (username === undefined && name === undefined) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '请提供要更新的字段' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'At least one field must be provided' });
     }
 
     // 验证用户名
     if (username !== undefined) {
       if (typeof username !== 'string' || username.trim().length === 0) {
-        return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '用户名不能为空' });
+        return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Username cannot be empty' });
       }
       const trimmed = username.trim();
       // 检查用户名是否已存在（排除自己）
       const existing = UserModel.findByUsername(trimmed);
       if (existing && existing.id !== request.user.id) {
-        return reply.code(400).send({ ok: false, error: 'username_exists', detail: '用户名已存在' });
+        return reply.code(400).send({ ok: false, error: 'username_exists', detail: 'Username already exists' });
       }
     }
 
@@ -149,24 +149,24 @@ async function authRoutes(fastify, options) {
     const { old_password, new_password } = request.body || {};
 
     if (!old_password || !new_password) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '请提供旧密码和新密码' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Old password and new password are required' });
     }
 
     if (new_password.length < 6) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '新密码长度至少 6 位' });
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'New password must be at least 6 characters' });
     }
 
     // 验证旧密码 - 需要获取含密码的用户信息
     const user = UserModel.findByUsername(request.user.username);
 
     if (!verifyPassword(old_password, user.password_hash)) {
-      return reply.code(401).send({ ok: false, error: 'wrong_password', detail: '旧密码错误' });
+      return reply.code(401).send({ ok: false, error: 'wrong_password', detail: 'Incorrect old password' });
     }
 
     const newHash = hashPassword(new_password);
     UserModel.updatePassword(request.user.id, newHash);
 
-    return reply.send({ ok: true, message: '密码修改成功' });
+    return reply.send({ ok: true, message: 'Password changed successfully' });
   });
 }
 

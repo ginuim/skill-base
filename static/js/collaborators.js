@@ -55,7 +55,7 @@ async function loadCollaborators() {
     const data = await apiGet(`/skills/${currentSkill.id}/collaborators`);
     renderCollaborators(data.collaborators);
   } catch (error) {
-    console.error('加载协作者列表失败:', error);
+    console.error('Failed to load collaborators:', error);
   }
 }
 
@@ -71,13 +71,13 @@ function renderCollaborators(collaborators) {
   const canManage = isOwner || isAdmin;
   
   container.innerHTML = collaborators.map(c => {
-    const roleLabel = c.role === 'owner' ? '所有者' : '协作者';
+    const roleLabel = c.role === 'owner' ? t('collab.owner') : t('collab.collaborator');
     const roleClass = c.role === 'owner' ? 'owner' : '';
-    const statusLabel = c.user.status === 'disabled' ? ' (已禁用)' : '';
+    const statusLabel = c.user.status === 'disabled' ? t('collab.disabled') : '';
     
     let removeBtn = '';
     if (canManage && c.role !== 'owner') {
-      removeBtn = `<button class="btn btn-secondary btn-sm" onclick="removeCollaborator(${c.user.id})">移除</button>`;
+      removeBtn = `<button class="btn btn-secondary btn-sm" onclick="removeCollaborator(${c.user.id})">${t('btn.remove')}</button>`;
     }
     
     // 显示 name（如果有）或 username
@@ -144,7 +144,7 @@ async function searchUsers(query) {
     const data = await apiGet(`/users/search?q=${encodeURIComponent(query)}`);
     renderSuggestions(data.users || []);
   } catch (error) {
-    console.error('搜索用户失败:', error);
+    console.error('Failed to search users:', error);
     hideSuggestions();
   }
 }
@@ -155,7 +155,7 @@ function renderSuggestions(users) {
   if (!suggestionsEl) return;
   
   if (users.length === 0) {
-    suggestionsEl.innerHTML = '<div class="suggestion-empty">未找到用户</div>';
+    suggestionsEl.innerHTML = `<div class="suggestion-empty">${t('collab.noUsers')}</div>`;
     suggestionsEl.classList.add('is-open');
     return;
   }
@@ -212,7 +212,7 @@ function closeCollaboratorModal() {
 async function submitAddCollaborator() {
   const inputValue = document.getElementById('collaborator-username').value.trim();
   if (!inputValue) {
-    showToast('请输入用户名', 'warning');
+    showToast(t('collab.enterUsername'), 'warning');
     return;
   }
   
@@ -223,24 +223,24 @@ async function submitAddCollaborator() {
       : { username: inputValue };
     
     await apiPost(`/skills/${currentSkill.id}/collaborators`, payload);
-    showToast('协作者添加成功', 'success');
+    showToast(t('collab.addSuccess'), 'success');
     closeCollaboratorModal();
     await loadCollaborators();
   } catch (error) {
-    showToast(error.message || '添加失败', 'error');
+    showToast(error.message || t('collab.addFailed'), 'error');
   }
 }
 
 // 移除协作者
 async function removeCollaborator(userId) {
-  if (!confirm('确定要移除该协作者吗？')) return;
+  if (!confirm(t('collab.removeConfirm'))) return;
   
   try {
     await apiDelete(`/skills/${currentSkill.id}/collaborators/${userId}`);
-    showToast('协作者已移除', 'success');
+    showToast(t('collab.removeSuccess'), 'success');
     await loadCollaborators();
   } catch (error) {
-    showToast(error.message || '移除失败', 'error');
+    showToast(error.message || t('collab.removeFailed'), 'error');
   }
 }
 
@@ -267,17 +267,17 @@ if (document.readyState === 'loading') {
 async function submitDeleteSkill() {
   const confirmValue = document.getElementById('delete-confirm-input').value.trim();
   if (confirmValue !== currentSkill.id) {
-    showToast('请输入正确的 Skill ID 确认删除', 'warning');
+    showToast(t('collab.deleteWrongId'), 'warning');
     return;
   }
   
   try {
     await apiDelete(`/skills/${currentSkill.id}?confirm=${encodeURIComponent(currentSkill.id)}`);
-    showToast('Skill 已删除', 'success');
+    showToast(t('collab.deleteSuccess'), 'success');
     setTimeout(() => {
       window.location.href = '/';
     }, 1000);
   } catch (error) {
-    showToast(error.message || '删除失败', 'error');
+    showToast(error.message || t('collab.deleteFailed'), 'error');
   }
 }

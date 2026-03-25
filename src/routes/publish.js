@@ -49,7 +49,7 @@ async function publishRoutes(fastify, options) {
       return reply.code(403).send({
         ok: false,
         error: 'permission_denied',
-        detail: '您没有该 Skill 的发布权限'
+        detail: 'You do not have publish permission for this Skill'
       });
     }
 

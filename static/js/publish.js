@@ -249,7 +249,7 @@ async function handleDroppedZipFile(fileEntry) {
     fileEntry.file(resolve, reject);
   });
   const slug = slugToSkillId(file.name);
-  showToast('正在读取 zip...', 'info');
+    showToast('正在读取 zip...', 'info');
   try {
     const zip = await JSZip.loadAsync(file);
     const paths = [];
@@ -268,7 +268,7 @@ async function handleDroppedZipFile(fileEntry) {
     applyAutofillFromSkill(slug, parsed);
     showToast(`已选择 zip，共 ${paths.length} 个文件`, 'success');
   } catch (error) {
-    console.error('读取 zip 失败:', error);
+    console.error('Failed to read zip:', error);
     showToast('读取 zip 失败: ' + error.message, 'error');
   }
 }
@@ -310,7 +310,7 @@ async function handleDrop(event) {
   const fileList = [];
   let totalSize = 0;
 
-  showToast('正在读取文件...', 'info');
+    showToast('正在读取文件...', 'info');
 
   try {
     for (const item of items) {
@@ -340,7 +340,7 @@ async function handleDrop(event) {
     applyAutofillFromSkill(rootSlug, parsed);
     showToast(`已选择 ${fileList.length} 个文件`, 'success');
   } catch (error) {
-    console.error('处理拖拽文件失败:', error);
+    console.error('Failed to process dropped files:', error);
     showToast('处理文件失败: ' + error.message, 'error');
   }
 }
@@ -394,7 +394,7 @@ async function handleDirectorySelect(files) {
   const fileList = [];
   let totalSize = 0;
 
-  showToast('正在读取文件...', 'info');
+    showToast('正在读取文件...', 'info');
 
   try {
     for (const file of files) {
@@ -421,7 +421,7 @@ async function handleDirectorySelect(files) {
     applyAutofillFromSkill(rootSlug, parsed);
     showToast(`已选择 ${fileList.length} 个文件`, 'success');
   } catch (error) {
-    console.error('处理目录选择失败:', error);
+    console.error('Failed to process directory selection:', error);
     showToast('处理文件失败: ' + error.message, 'error');
   }
 }
@@ -464,7 +464,7 @@ function setupZipFileInput() {
       applyAutofillFromSkill(slug, parsed);
       showToast('已选择 zip 文件', 'success');
     } catch (err) {
-      console.error('读取 zip 失败:', err);
+      console.error('Failed to read zip:', err);
       showToast('读取 zip 失败: ' + err.message, 'error');
       input.value = '';
     }
@@ -497,12 +497,12 @@ function renderFilePreview(fileList, totalSize) {
   if (fileList.length > maxDisplay) {
     const more = document.createElement('div');
     more.className = 'file-preview-more';
-    more.textContent = `...及其他 ${fileList.length - maxDisplay} 个文件`;
+    more.textContent = `...and ${fileList.length - maxDisplay} more files`;
     listContainer.appendChild(more);
   }
   
   // 显示总结
-  summary.textContent = `共 ${fileList.length} 个文件，总大小: ${formatFileSize(totalSize || selectedZipBlob?.size || 0)}`;
+  summary.textContent = `${fileList.length} files, total size: ${formatFileSize(totalSize || selectedZipBlob?.size || 0)}`;
   
   // 显示预览区域
   preview.classList.add('visible');
@@ -659,7 +659,7 @@ function showProgress() {
       clearInterval(interval);
     }
     bar.style.width = progress + '%';
-    text.textContent = `正在上传... ${Math.round(progress)}%`;
+    text.textContent = `Uploading... ${Math.round(progress)}%`;
   }, 200);
   
   // 保存 interval 以便后续清除
@@ -697,7 +697,7 @@ function showSuccess(result) {
   }
   
   bar.style.width = '100%';
-  text.textContent = '上传完成！';
+  text.textContent = 'Upload complete!';
   
   // 隐藏表单
   const form = document.getElementById('publishForm');
@@ -711,7 +711,7 @@ function showSuccess(result) {
   const version = result.version || result.version_number || 'v1.0.0';
   const skillId = result.skill_id || document.getElementById('skill-id').value.trim();
   
-  successMessage.textContent = `版本 ${version} 已成功发布`;
+  successMessage.textContent = `Version ${version} published successfully`;
   viewLink.href = `/skill.html?id=${encodeURIComponent(skillId)}`;
   
   successContainer.classList.add('visible');

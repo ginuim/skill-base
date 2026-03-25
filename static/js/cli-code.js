@@ -24,7 +24,7 @@ async function init() {
 
   // 如果是从 CLI 登录过来的，显示提示信息
   if (fromCli) {
-    showToast('请登录成功后，在下方输入验证码', 'info', 5000);
+    showToast(t('cliCode.fromCli'), 'info', 5000);
   }
 
   // 生成验证码
@@ -51,15 +51,15 @@ async function generateCode() {
       // 启动倒计时
       startTimer();
     } else {
-      throw new Error(result.error || '生成验证码失败');
+      throw new Error(result.error || t('cliCode.generateFailed'));
     }
   } catch (error) {
     showLoading(false);
-    showToast(error.message || '生成验证码失败', 'error');
+    showToast(error.message || t('cliCode.generateFailed'), 'error');
     
     // 显示错误状态
     document.getElementById('codeValue').textContent = '----';
-    document.getElementById('timerText').textContent = '生成失败';
+    document.getElementById('timerText').textContent = t('cliCode.genFailed');
   }
 }
 
@@ -103,7 +103,7 @@ function updateTimer() {
   
   if (remaining <= 0) {
     // 已过期
-    timerTextEl.textContent = '已过期';
+    timerTextEl.textContent = t('cliCode.expired');
     timerEl.classList.remove('expiring');
     timerEl.classList.add('expired');
     clearInterval(timerInterval);
@@ -113,7 +113,7 @@ function updateTimer() {
   const minutes = Math.floor(remaining / 60000);
   const seconds = Math.floor((remaining % 60000) / 1000);
   const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`;
-  timerTextEl.textContent = `${formattedTime} 后过期`;
+  timerTextEl.textContent = formattedTime + t('cliCode.expires');
   
   // 最后一分钟变为警告色
   if (remaining <= 60000) {
@@ -130,13 +130,13 @@ function updateTimer() {
  */
 async function copyCode() {
   if (!currentCode) {
-    showToast('没有可复制的验证码', 'warning');
+    showToast(t('cliCode.noCopy'), 'warning');
     return;
   }
   
   try {
     await navigator.clipboard.writeText(currentCode);
-    showToast('验证码已复制到剪贴板', 'success');
+    showToast(t('cliCode.copiedToast'), 'success');
     
     // 按钮反馈
     const btn = document.getElementById('copyBtn');
@@ -145,7 +145,7 @@ async function copyCode() {
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
-      已复制
+      ${t('cliCode.copied')}
     `;
     btn.disabled = true;
     
@@ -161,7 +161,7 @@ async function copyCode() {
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-    showToast('请按 Ctrl+C 复制验证码', 'info');
+    showToast(t('cliCode.pressCopy'), 'info');
   }
 }
 
@@ -174,7 +174,7 @@ async function regenerateCode() {
   
   try {
     await generateCode();
-    showToast('新验证码已生成', 'success');
+    showToast(t('cliCode.newGenerated'), 'success');
   } finally {
     btn.disabled = false;
   }

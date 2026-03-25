@@ -36,7 +36,7 @@ async function loadUserProfile() {
       document.getElementById('name').value = user.name || '';
     }
   } catch (error) {
-    showToast(error.message || '加载用户信息失败', 'error');
+    showToast(error.message || t('settings.loadFailed'), 'error');
   }
 }
 
@@ -48,13 +48,13 @@ async function handleProfileUpdate(e) {
   const name = document.getElementById('name').value.trim();
   
   if (!username || username.length < 1 || username.length > 50) {
-    showToast('用户名长度必须在 1-50 个字符之间', 'warning');
+    showToast(t('settings.usernameLenError'), 'warning');
     return;
   }
   
   const submitBtn = document.getElementById('saveProfileBtn');
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<span class="spinner spinner-sm"></span> 保存中...';
+  submitBtn.innerHTML = '<span class="spinner spinner-sm"></span> ' + t('settings.saving');
   
   try {
     const result = await api('/auth/me', {
@@ -63,15 +63,15 @@ async function handleProfileUpdate(e) {
     });
     
     if (result.ok) {
-      showToast('个人信息已更新', 'success');
+      showToast(t('settings.updateSuccess'), 'success');
       // 刷新当前用户缓存
       await getCurrentUser(true);
     }
   } catch (error) {
-    showToast(error.message || '更新失败', 'error');
+    showToast(error.message || t('settings.updateFailed'), 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = '保存修改';
+    submitBtn.textContent = t('settings.saveBtn');
   }
 }
 
@@ -84,23 +84,23 @@ async function handlePasswordChange(e) {
   const confirmPassword = document.getElementById('confirmPassword').value;
   
   if (!oldPassword) {
-    showToast('请输入当前密码', 'warning');
+    showToast(t('settings.noOldPassword'), 'warning');
     return;
   }
   
   if (newPassword.length < 6) {
-    showToast('新密码长度至少 6 位', 'warning');
+    showToast(t('settings.newPassTooShort'), 'warning');
     return;
   }
   
   if (newPassword !== confirmPassword) {
-    showToast('两次输入的新密码不一致', 'warning');
+    showToast(t('settings.passMismatch'), 'warning');
     return;
   }
   
   const submitBtn = document.getElementById('changePasswordBtn');
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<span class="spinner spinner-sm"></span> 修改中...';
+  submitBtn.innerHTML = '<span class="spinner spinner-sm"></span> ' + t('settings.changing');
   
   try {
     const result = await apiPost('/auth/me/change-password', {
@@ -109,16 +109,16 @@ async function handlePasswordChange(e) {
     });
     
     if (result.ok) {
-      showToast('密码修改成功', 'success');
+      showToast(t('settings.changeSuccess'), 'success');
       // 清空密码表单
       document.getElementById('oldPassword').value = '';
       document.getElementById('newPassword').value = '';
       document.getElementById('confirmPassword').value = '';
     }
   } catch (error) {
-    showToast(error.message || '修改失败', 'error');
+    showToast(error.message || t('settings.changeFailed'), 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = '修改密码';
+    submitBtn.textContent = t('settings.changePasswordBtn');
   }
 }

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CLI 验证码 - Skill Base</title>
+  <title data-i18n="cliCode.title">CLI 验证码 - Skill Base</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
     .cli-code-card {
@@ -134,8 +134,8 @@
         <span>Skill Base</span>
       </a>
       <div class="navbar-nav">
-        <a href="/">首页</a>
-        <a href="/publish.html" class="hide-mobile">发布</a>
+        <a href="/" data-i18n="nav.home">首页</a>
+        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
       </div>
       <!-- 用户区域由 JS 动态渲染 -->
     </div>
@@ -146,14 +146,14 @@
     <div class="container">
       <div class="card cli-code-card">
         <div class="cli-code-header">
-          <h1 class="cli-code-title">CLI 验证码</h1>
-          <p class="cli-code-subtitle">在命令行工具中输入此验证码完成登录</p>
+          <h1 class="cli-code-title" data-i18n="cliCode.heading">CLI 验证码</h1>
+          <p class="cli-code-subtitle" data-i18n="cliCode.subtitle">在命令行工具中输入此验证码完成登录</p>
         </div>
 
         <!-- 加载状态 -->
         <div id="loadingState" class="cli-code-loading">
           <div class="spinner"></div>
-          <div class="cli-code-loading-text">正在生成验证码...</div>
+          <div class="cli-code-loading-text" data-i18n="cliCode.generating">正在生成验证码...</div>
         </div>
 
         <!-- 验证码显示区域 -->
@@ -175,27 +175,28 @@
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
               </svg>
-              复制验证码
+              <span data-i18n="cliCode.copyBtn">复制验证码</span>
             </button>
             <button id="regenerateBtn" class="btn btn-secondary" onclick="regenerateCode()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="23 4 23 10 17 10"/>
                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
               </svg>
-              重新生成
+              <span data-i18n="cliCode.regenerate">重新生成</span>
             </button>
           </div>
         </div>
 
         <div class="cli-code-hint">
-          <strong>使用方法：</strong><br>
-          在终端运行 <code>skb login</code>，然后输入上方验证码即可完成 CLI 登录。
+          <strong data-i18n="cliCode.hintTitle">使用方法：</strong><br>
+          <span data-i18n-html="cliCode.hintText">在终端运行 <code>skb login</code>，然后输入上方验证码即可完成 CLI 登录。</span>
         </div>
       </div>
     </div>
   </main>
 
   <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/cli-code.js"></script>
 </body>

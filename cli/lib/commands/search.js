@@ -4,14 +4,14 @@ import { createClient } from '../api.js';
 
 export default async function search(keyword) {
   const client = createClient();
-  const spinner = ora('正在搜索...').start();
+  const spinner = ora('Searching...').start();
 
   try {
     const result = await client.get(`/skills?q=${encodeURIComponent(keyword)}`);
     spinner.stop();
 
     if (!result.skills || result.skills.length === 0) {
-      console.log(chalk.yellow('未找到匹配的 Skill'));
+      console.log(chalk.yellow('No matching skills found'));
       return;
     }
 
@@ -27,14 +27,14 @@ export default async function search(keyword) {
     // 表头
     const header = [
       'ID'.padEnd(idWidth),
-      '名称'.padEnd(nameWidth),
-      '最新版本'.padEnd(versionWidth),
-      '描述'
+      'Name'.padEnd(nameWidth),
+      'Version'.padEnd(versionWidth),
+      'Description'
     ].join('  ');
 
     const separator = '-'.repeat(idWidth + nameWidth + versionWidth + descWidth + 6);
 
-    console.log(chalk.cyan(`\n找到 ${result.total || skills.length} 个 Skill:\n`));
+    console.log(chalk.cyan(`\nFound ${result.total || skills.length} skill(s):\n`));
     console.log(chalk.bold(header));
     console.log(separator);
 
@@ -57,7 +57,7 @@ export default async function search(keyword) {
 
     console.log('');
   } catch (err) {
-    spinner.fail(chalk.red(`搜索失败：${err.message}`));
+    spinner.fail(chalk.red(`Search failed: ${err.message}`));
     process.exit(1);
   }
 }

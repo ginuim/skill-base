@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Skill 详情 - Skill Base</title>
+  <title data-i18n="skill.title">Skill 详情 - Skill Base</title>
   <link rel="stylesheet" href="/css/style.css">
   <!-- highlight.js 样式 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
@@ -316,6 +316,7 @@
 
     /* 版本历史 */
     .version-history {
+      margin-top: 2em;
       background-color: var(--white);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -698,8 +699,8 @@
         <span>Skill Base</span>
       </a>
       <div class="navbar-nav">
-        <a href="/">首页</a>
-        <a href="/publish.html" class="hide-mobile">发布</a>
+        <a href="/" data-i18n="nav.home">首页</a>
+        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
       </div>
     </div>
   </nav>
@@ -709,9 +710,9 @@
     <div class="container">
       <!-- 面包屑导航 -->
       <nav class="breadcrumb">
-        <a href="/">首页</a>
+        <a href="/" data-i18n="skill.breadcrumbHome">首页</a>
         <span class="breadcrumb-separator">›</span>
-        <span id="breadcrumb-name">加载中...</span>
+        <span id="breadcrumb-name" data-i18n="state.loading">加载中...</span>
       </nav>
 
       <!-- Skill 基本信息 -->
@@ -725,7 +726,7 @@
       <section class="skill-content">
         <!-- 文件树面板 -->
         <div class="file-tree-panel">
-          <div class="file-tree-panel-title">文件目录</div>
+          <div class="file-tree-panel-title" data-i18n="skill.fileDir">文件目录</div>
           <div id="file-tree" class="file-tree">
             <div class="loading-content">
               <div class="spinner spinner-sm"></div>
@@ -736,18 +737,18 @@
         <!-- 文件预览面板 -->
         <div class="file-preview-panel">
           <div class="file-preview-header">
-            <span id="file-preview-path" class="file-preview-path">选择文件以预览</span>
+            <span id="file-preview-path" class="file-preview-path" data-i18n="skill.selectFile">选择文件以预览</span>
             <div id="file-preview-md-actions" class="file-preview-md-actions" hidden>
               <div class="md-view-toggle" role="group" aria-label="Markdown 显示方式">
-                <button type="button" id="md-view-render" class="md-view-btn is-active">HTML 预览</button>
-                <button type="button" id="md-view-source" class="md-view-btn">Markdown 源码</button>
+                <button type="button" id="md-view-render" class="md-view-btn is-active" data-i18n="skill.htmlPreview">HTML 预览</button>
+                <button type="button" id="md-view-source" class="md-view-btn" data-i18n="skill.mdSource">Markdown 源码</button>
               </div>
             </div>
           </div>
           <div id="file-content" class="file-preview-content">
             <div class="empty-preview">
               <div class="empty-preview-icon">📄</div>
-              <p>点击左侧文件查看内容</p>
+              <p data-i18n="skill.clickFile">点击左侧文件查看内容</p>
             </div>
           </div>
         </div>
@@ -756,14 +757,14 @@
       <!-- 协作者管理 -->
       <div id="collaborators-panel" class="collaborators-panel" style="display:none;">
         <div class="panel-header">
-          <h3>管理团队</h3>
-          <button id="add-collaborator-btn" class="btn btn-primary btn-sm" style="display:none;">+ 添加协作者</button>
+          <h3 data-i18n="skill.team">管理团队</h3>
+          <button id="add-collaborator-btn" class="btn btn-primary btn-sm" style="display:none;" data-i18n="skill.addCollaborator">+ 添加协作者</button>
         </div>
         <div id="collaborators-list" class="collaborators-list">
           <!-- 由 JS 动态渲染 -->
         </div>
         <div id="skill-danger-zone" class="danger-zone" style="display:none;">
-          <button id="delete-skill-btn" class="btn btn-danger btn-sm">删除 Skill</button>
+          <button id="delete-skill-btn" class="btn btn-danger btn-sm" data-i18n="skill.deleteSkill">删除 Skill</button>
         </div>
       </div>
 
@@ -775,7 +776,7 @@
               <circle cx="12" cy="12" r="10"/>
               <polyline points="12 6 12 12 16 14"/>
             </svg>
-            版本历史
+            <span data-i18n="skill.versionHistory">版本历史</span>
           </h3>
           <span class="version-history-toggle">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -797,19 +798,19 @@
     <div class="modal-overlay"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3>添加协作者</h3>
+        <h3 data-i18n="collab.modal">添加协作者</h3>
         <button class="modal-close" onclick="closeCollaboratorModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group suggestions-container">
-          <label>用户名</label>
-          <input type="text" id="collaborator-username" placeholder="输入用户名" class="form-input" autocomplete="off">
+          <label data-i18n="collab.usernameLabel">用户名</label>
+          <input type="text" id="collaborator-username" data-i18n-placeholder="collab.usernamePlaceholder" placeholder="输入用户名" class="form-input" autocomplete="off">
           <div id="user-suggestions" class="suggestions-dropdown"></div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeCollaboratorModal()">取消</button>
-        <button class="btn btn-primary" onclick="submitAddCollaborator()">添加</button>
+        <button class="btn btn-secondary" onclick="closeCollaboratorModal()" data-i18n="btn.cancel">取消</button>
+        <button class="btn btn-primary" onclick="submitAddCollaborator()" data-i18n="btn.add">添加</button>
       </div>
     </div>
   </div>
@@ -819,19 +820,19 @@
     <div class="modal-overlay"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3>确认删除</h3>
+        <h3 data-i18n="collab.deleteModal">确认删除</h3>
         <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="warning-text">⚠️ 此操作不可恢复！将删除该 Skill 的所有版本和数据。</p>
+        <p class="warning-text" data-i18n="collab.deleteWarning">⚠️ 此操作不可恢复！将删除该 Skill 的所有版本和数据。</p>
         <div class="form-group">
-          <label>请输入 Skill ID 确认删除：</label>
+          <label data-i18n="collab.deleteLabel">请输入 Skill ID 确认删除：</label>
           <input type="text" id="delete-confirm-input" placeholder="" class="form-input">
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeDeleteModal()">取消</button>
-        <button class="btn btn-danger" onclick="submitDeleteSkill()">确认删除</button>
+        <button class="btn btn-secondary" onclick="closeDeleteModal()" data-i18n="btn.cancel">取消</button>
+        <button class="btn btn-danger" onclick="submitDeleteSkill()" data-i18n="collab.deleteConfirmBtn">确认删除</button>
       </div>
     </div>
   </div>
@@ -842,6 +843,7 @@
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
 
   <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/skill.js"></script>
   <script src="/js/collaborators.js"></script>

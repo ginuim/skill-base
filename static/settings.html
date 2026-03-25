@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>账户设置 - Skill Base</title>
+  <title data-i18n="settings.title">账户设置 - Skill Base</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
     .settings-card {
@@ -78,8 +78,8 @@
         <span>Skill Base</span>
       </a>
       <div class="navbar-nav">
-        <a href="/">首页</a>
-        <a href="/publish.html" class="hide-mobile">发布</a>
+        <a href="/" data-i18n="nav.home">首页</a>
+        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
       </div>
       <!-- 用户区域由 JS 动态渲染 -->
     </div>
@@ -90,25 +90,25 @@
     <div class="container">
       <div class="card settings-card">
         <div class="settings-header">
-          <h1 class="settings-title">账户设置</h1>
-          <p class="settings-subtitle">管理您的个人信息和凭证</p>
+          <h1 class="settings-title" data-i18n="settings.heading">账户设置</h1>
+          <p class="settings-subtitle" data-i18n="settings.subtitle">管理您的个人信息和凭证</p>
         </div>
 
         <!-- 基本信息 -->
         <div class="settings-section">
-          <h2 class="settings-section-title">基本信息</h2>
+          <h2 class="settings-section-title" data-i18n="settings.basicInfo">基本信息</h2>
           <form id="profileForm">
             <div class="form-group">
-              <label class="form-label">用户名</label>
+              <label class="form-label" data-i18n="settings.usernameLabel">用户名</label>
               <input type="text" id="username" required>
-              <p class="form-hint">至少 1 个字符，最多 50 个字符</p>
+              <p class="form-hint" data-i18n="settings.usernameHint">至少 1 个字符，最多 50 个字符</p>
             </div>
             <div class="form-group">
-              <label class="form-label">姓名</label>
-              <input type="text" id="name" placeholder="请输入您的姓名">
-              <p class="form-hint">可选，用于显示在技能作者信息中</p>
+              <label class="form-label" data-i18n="settings.nameLabel">姓名</label>
+              <input type="text" id="name" data-i18n-placeholder="settings.namePlaceholder" placeholder="请输入您的姓名">
+              <p class="form-hint" data-i18n="settings.nameHint">可选，用于显示在技能作者信息中</p>
             </div>
-            <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+            <button type="submit" class="btn btn-primary" id="saveProfileBtn" data-i18n="settings.saveBtn">
               保存修改
             </button>
           </form>
@@ -116,8 +116,8 @@
 
         <!-- CLI 验证码 -->
         <div class="settings-section">
-          <h2 class="settings-section-title">CLI 访问凭证</h2>
-          <p class="text-secondary mb-2">
+          <h2 class="settings-section-title" data-i18n="settings.cliSection">CLI 访问凭证</h2>
+          <p class="text-secondary mb-2" data-i18n-html="settings.cliDesc">
             在本地终端使用 <code>skb</code> 命令行工具时，需要获取验证码进行登录。
           </p>
           <a href="/cli-code.html" class="cli-code-link">
@@ -125,28 +125,28 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            获取 CLI 验证码
+            <span data-i18n="settings.cliLink">获取 CLI 验证码</span>
           </a>
         </div>
 
         <!-- 修改密码 -->
         <div class="settings-section">
-          <h2 class="settings-section-title">修改密码</h2>
+          <h2 class="settings-section-title" data-i18n="settings.passwordSection">修改密码</h2>
           <form id="passwordForm">
             <div class="form-group">
-              <label class="form-label required">当前密码</label>
+              <label class="form-label required" data-i18n="settings.oldPassword">当前密码</label>
               <input type="password" id="oldPassword" required>
             </div>
             <div class="form-group">
-              <label class="form-label required">新密码</label>
+              <label class="form-label required" data-i18n="settings.newPassword">新密码</label>
               <input type="password" id="newPassword" required>
-              <p class="form-hint">至少 6 个字符</p>
+              <p class="form-hint" data-i18n="settings.newPasswordHint">至少 6 个字符</p>
             </div>
             <div class="form-group">
-              <label class="form-label required">确认新密码</label>
+              <label class="form-label required" data-i18n="settings.confirmPassword">确认新密码</label>
               <input type="password" id="confirmPassword" required>
             </div>
-            <button type="submit" class="btn btn-secondary" id="changePasswordBtn">
+            <button type="submit" class="btn btn-secondary" id="changePasswordBtn" data-i18n="settings.changePasswordBtn">
               修改密码
             </button>
           </form>
@@ -156,6 +156,7 @@
   </main>
 
   <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/settings.js"></script>
 </body>

@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const skillId = params.get('id');
 
   if (!skillId) {
-    showToast('缺少 Skill ID 参数', 'error');
+    showToast(t('skill.missingId'), 'error');
     setTimeout(() => window.location.href = '/', 1500);
     return;
   }
@@ -161,13 +161,13 @@ async function loadSkillDetail(skillId) {
     renderSkillInfo(skill);
 
   } catch (error) {
-    console.error('加载 Skill 详情失败:', error);
-    showToast('加载失败: ' + error.message, 'error');
+    console.error('Failed to load Skill detail:', error);
+    showToast(t('skill.loadFailed') + ': ' + error.message, 'error');
     document.getElementById('skill-info').innerHTML = `
       <div class="empty-preview">
         <div class="empty-preview-icon">❌</div>
-        <p>加载 Skill 详情失败</p>
-        <a href="/" class="btn btn-primary mt-2">返回首页</a>
+        <p>${t('skill.loadFailed')}</p>
+        <a href="/" class="btn btn-primary mt-2">${t('nav.home')}</a>
       </div>
     `;
   }
@@ -179,14 +179,14 @@ async function loadSkillDetail(skillId) {
  */
 function renderSkillInfo(skill) {
   const container = document.getElementById('skill-info');
-  const ownerName = skill.owner?.name || skill.owner?.username || '未知';
+  const ownerName = skill.owner?.name || skill.owner?.username || t('state.unknown');
   const createdTime = formatDate(skill.created_at);
 
   container.innerHTML = `
     <div class="skill-header">
       <div>
         <h1 class="skill-title">${escapeHtml(skill.name)}</h1>
-        <p class="skill-desc">${escapeHtml(skill.description || '暂无描述')}</p>
+        <p class="skill-desc">${escapeHtml(skill.description || t('state.noDesc'))}</p>
       </div>
     </div>
     <div class="skill-meta">
@@ -195,7 +195,7 @@ function renderSkillInfo(skill) {
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
-        <span>负责人: ${escapeHtml(ownerName)}</span>
+        <span>${t('skill.owner')}${escapeHtml(ownerName)}</span>
       </div>
       <div class="skill-meta-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -204,12 +204,12 @@ function renderSkillInfo(skill) {
           <line x1="8" y1="2" x2="8" y2="6"/>
           <line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
-        <span>创建时间: ${createdTime}</span>
+        <span>${t('skill.createdAt')}${createdTime}</span>
       </div>
     </div>
     <div class="skill-actions">
       <select id="version-select" class="version-select" onchange="onVersionChange(this.value)">
-        <option value="">选择版本...</option>
+        <option value="">${t('skill.selectVersion')}</option>
       </select>
       <button class="btn btn-primary" onclick="downloadCurrentVersion()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -217,7 +217,7 @@ function renderSkillInfo(skill) {
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        下载当前版本
+        ${t('skill.download')}
       </button>
       <button class="btn btn-secondary" onclick="goToDiff()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -225,7 +225,7 @@ function renderSkillInfo(skill) {
           <line x1="12" y1="20" x2="12" y2="4"/>
           <line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
-        对比版本
+        ${t('skill.compare')}
       </button>
     </div>
   `;
@@ -247,8 +247,8 @@ async function loadVersions(skillId) {
     renderVersionHistory(versions);
 
   } catch (error) {
-    console.error('加载版本列表失败:', error);
-    showToast('加载版本列表失败', 'error');
+    console.error('Failed to load version list:', error);
+    showToast(t('skill.loadVersionsFailed'), 'error');
   }
 }
 
@@ -261,7 +261,7 @@ function renderVersionSelect(versions) {
   if (!select) return;
 
   select.innerHTML = versions.map((v, index) => {
-    const label = index === 0 ? `${v.version} (最新)` : v.version;
+    const label = index === 0 ? `${v.version} ${t('skill.latestTag')}` : v.version;
     return `<option value="${escapeHtml(v.version)}">${escapeHtml(label)}</option>`;
   }).join('');
 
@@ -281,14 +281,14 @@ function renderVersionHistory(versions) {
   if (versions.length === 0) {
     container.innerHTML = `
       <div class="empty-preview" style="padding: var(--spacing-lg);">
-        <p class="text-muted">暂无版本记录</p>
+        <p class="text-muted">${t('skill.noVersions')}</p>
       </div>
     `;
     return;
   }
 
   container.innerHTML = versions.map((v, index) => {
-    const uploaderName = v.uploader?.name || v.uploader?.username || '未知';
+    const uploaderName = v.uploader?.name || v.uploader?.username || t('state.unknown');
     const createdTime = formatDate(v.created_at);
     const tagClass = index === 0 ? 'version-tag latest' : 'version-tag';
 
@@ -296,9 +296,9 @@ function renderVersionHistory(versions) {
       <div class="version-item">
         <span class="${tagClass}">${escapeHtml(v.version)}</span>
         <div class="version-item-info">
-          <div class="version-item-changelog">${escapeHtml(v.changelog || '无更新说明')}</div>
+          <div class="version-item-changelog">${escapeHtml(v.changelog || t('skill.noChangelog'))}</div>
           <div class="version-item-meta">
-            <span>上传者: ${escapeHtml(uploaderName)}</span>
+            <span>${t('skill.uploadedBy')}${escapeHtml(uploaderName)}</span>
             <span>${createdTime}</span>
           </div>
         </div>
@@ -340,7 +340,7 @@ async function switchVersion(version) {
     const response = await fetch(downloadUrl, { credentials: 'same-origin' });
 
     if (!response.ok) {
-      throw new Error('下载 zip 失败');
+      throw new Error(t('skill.zipFailed'));
     }
 
     const zipData = await response.arrayBuffer();
@@ -362,20 +362,20 @@ async function switchVersion(version) {
 
     // 重置文件预览区域
     hideMarkdownPreviewActions();
-    document.getElementById('file-preview-path').textContent = '选择文件以预览';
+    document.getElementById('file-preview-path').textContent = t('skill.selectFile');
     fileContentContainer.innerHTML = `
       <div class="empty-preview">
         <div class="empty-preview-icon">📄</div>
-        <p>点击左侧文件查看内容</p>
+        <p>${t('skill.clickFile')}</p>
       </div>
     `;
 
   } catch (error) {
-    console.error('切换版本失败:', error);
-    showToast('加载版本失败: ' + error.message, 'error');
+    console.error('Failed to switch version:', error);
+    showToast(t('skill.versionFailed') + error.message, 'error');
     fileTreeContainer.innerHTML = `
       <div class="empty-preview">
-        <p class="text-error">加载失败</p>
+        <p class="text-error">${t('file.loadFailed')}</p>
       </div>
     `;
   }
@@ -450,7 +450,7 @@ function renderFileTree(nodes, container, level = 0) {
   if (!nodes || nodes.length === 0) {
     container.innerHTML = `
       <div class="empty-preview">
-        <p class="text-muted">空目录</p>
+        <p class="text-muted">${t('state.empty')}</p>
       </div>
     `;
     return;
@@ -577,7 +577,7 @@ function renderFileTreeChildren(nodes, container) {
  */
 async function previewFile(filePath) {
   if (!currentZip) {
-    showToast('请先选择版本', 'warning');
+    showToast(t('skill.selectVersionFirst'), 'warning');
     return;
   }
 
@@ -602,7 +602,7 @@ async function previewFile(filePath) {
       container.innerHTML = `
         <div class="empty-preview">
           <div class="empty-preview-icon">❓</div>
-          <p>文件不存在</p>
+          <p>${t('skill.fileNotFound')}</p>
         </div>
       `;
       return;
@@ -616,8 +616,8 @@ async function previewFile(filePath) {
       container.innerHTML = `
         <div class="binary-notice">
           <div class="binary-notice-icon">📦</div>
-          <p>二进制文件，无法预览</p>
-          <p class="text-muted mt-1">请下载 zip 包后在本地查看</p>
+          <p>${t('skill.binaryFile')}</p>
+          <p class="text-muted mt-1">${t('skill.binaryHint')}</p>
         </div>
       `;
       return;
@@ -652,11 +652,11 @@ async function previewFile(filePath) {
     }
 
   } catch (error) {
-    console.error('预览文件失败:', error);
+    console.error('Failed to preview file:', error);
     container.innerHTML = `
       <div class="empty-preview">
         <div class="empty-preview-icon">❌</div>
-        <p>预览失败: ${escapeHtml(error.message)}</p>
+        <p>${t('skill.previewFailed')}${escapeHtml(error.message)}</p>
       </div>
     `;
   }
@@ -771,7 +771,7 @@ function getLanguageFromExt(ext) {
  */
 function downloadCurrentVersion() {
   if (!currentSkill || !currentVersion) {
-    showToast('请先选择版本', 'warning');
+    showToast(t('skill.selectVersionFirst'), 'warning');
     return;
   }
 
@@ -784,12 +784,12 @@ function downloadCurrentVersion() {
  */
 function goToDiff() {
   if (!currentSkill) {
-    showToast('Skill 信息加载中', 'warning');
+    showToast(t('skill.infoLoading'), 'warning');
     return;
   }
 
   if (versions.length < 2) {
-    showToast('至少需要两个版本才能对比', 'warning');
+    showToast(t('skill.needTwoVersions'), 'warning');
     return;
   }
 

@@ -69,7 +69,7 @@ function bindEvents() {
   // 编辑用户状态切换
   const editStatus = document.getElementById('editStatus');
   editStatus.addEventListener('change', () => {
-    document.getElementById('editStatusLabel').textContent = editStatus.checked ? '启用' : '禁用';
+    document.getElementById('editStatusLabel').textContent = editStatus.checked ? t('admin.active') : t('admin.disabled');
   });
 
   // 重置密码按钮
@@ -131,7 +131,7 @@ async function loadUsers() {
           <td colspan="5">
             <div class="empty-state">
               <div class="empty-state-icon">👤</div>
-              <div class="empty-state-text">暂无用户</div>
+              <div class="empty-state-text">${t('admin.noUsers')}</div>
             </div>
           </td>
         </tr>
@@ -139,13 +139,13 @@ async function loadUsers() {
       document.getElementById('pagination').classList.add('hidden');
     }
   } catch (error) {
-    showToast(error.message || '加载用户列表失败', 'error');
+    showToast(error.message || t('admin.loadUsersFailed'), 'error');
     tbody.innerHTML = `
       <tr>
         <td colspan="5">
           <div class="empty-state">
             <div class="empty-state-icon">❌</div>
-            <div class="empty-state-text">加载失败，请刷新重试</div>
+            <div class="empty-state-text">${t('admin.loadFailed')}</div>
           </div>
         </td>
       </tr>
@@ -159,9 +159,9 @@ function renderUsersTable(users) {
   const tbody = document.getElementById('usersTableBody');
   
   tbody.innerHTML = users.map(user => {
-    const roleLabel = user.role === 'admin' ? '管理员' : '开发者';
+    const roleLabel = user.role === 'admin' ? t('admin.roleAdmin') : t('admin.roleDeveloper');
     const roleClass = user.role === 'admin' ? 'admin' : 'developer';
-    const statusLabel = user.status === 'active' ? '✅ 启用' : '⛔ 禁用';
+    const statusLabel = user.status === 'active' ? t('admin.statusActive') : t('admin.statusDisabled');
     const statusClass = user.status === 'active' ? 'active' : 'disabled';
     const nameDisplay = user.name ? escapeHtml(user.name) : '<span style="color: var(--text-muted);">-</span>';
     
@@ -174,7 +174,7 @@ function renderUsersTable(users) {
         <td>${formatDate(user.created_at)}</td>
         <td>
           <button class="btn btn-secondary btn-sm" onclick="showEditUserModal(${user.id})">
-            编辑
+            ${t('admin.editBtn')}
           </button>
         </td>
       </tr>
@@ -221,29 +221,29 @@ async function submitAddUser() {
   const role = document.querySelector('input[name="addRole"]:checked').value;
 
   if (!username) {
-    showToast('请输入用户名', 'warning');
+    showToast(t('admin.enterUsername'), 'warning');
     return;
   }
 
   if (!password) {
-    showToast('请输入初始密码', 'warning');
+    showToast(t('admin.enterPassword'), 'warning');
     return;
   }
 
   const submitBtn = document.getElementById('submitAddUser');
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<div class="spinner spinner-sm"></div> 添加中...';
+  submitBtn.innerHTML = `<div class="spinner spinner-sm"></div> ${t('admin.adding')}`;
 
   try {
     await apiPost('/users', { username, password, role });
-    showToast('用户添加成功', 'success');
+    showToast(t('admin.addSuccess'), 'success');
     closeModal();
     loadUsers();
   } catch (error) {
-    showToast(error.message || '添加用户失败', 'error');
+    showToast(error.message || t('admin.addFailed'), 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = '添加';
+    submitBtn.textContent = t('btn.add');
   }
 }
 
@@ -265,11 +265,11 @@ async function showEditUserModal(userId) {
     // 设置状态
     const isActive = user.status === 'active';
     document.getElementById('editStatus').checked = isActive;
-    document.getElementById('editStatusLabel').textContent = isActive ? '启用' : '禁用';
+    document.getElementById('editStatusLabel').textContent = isActive ? t('admin.active') : t('admin.disabled');
     
     document.getElementById('editUserModal').classList.add('visible');
   } catch (error) {
-    showToast(error.message || '获取用户信息失败', 'error');
+    showToast(error.message || t('admin.getUserFailed'), 'error');
   }
 }
 
@@ -282,7 +282,7 @@ async function submitEditUser() {
 
   const submitBtn = document.getElementById('submitEditUser');
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<div class="spinner spinner-sm"></div> 保存中...';
+  submitBtn.innerHTML = `<div class="spinner spinner-sm"></div> ${t('admin.saving')}`;
 
   try {
     // 使用 api 函数发送 PATCH 请求
@@ -290,14 +290,14 @@ async function submitEditUser() {
       method: 'PATCH',
       body: JSON.stringify({ role, status, name })
     });
-    showToast('用户信息已更新', 'success');
+    showToast(t('admin.saveSuccess'), 'success');
     closeModal();
     loadUsers();
   } catch (error) {
-    showToast(error.message || '更新用户失败', 'error');
+    showToast(error.message || t('admin.saveFailed'), 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = '保存';
+    submitBtn.textContent = t('btn.save');
   }
 }
 
@@ -317,23 +317,23 @@ async function submitResetPassword() {
   const newPassword = document.getElementById('newPassword').value;
 
   if (!newPassword) {
-    showToast('请输入新密码', 'warning');
+    showToast(t('admin.enterNewPassword'), 'warning');
     return;
   }
 
   const submitBtn = document.getElementById('submitResetPassword');
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<div class="spinner spinner-sm"></div> 重置中...';
+  submitBtn.innerHTML = `<div class="spinner spinner-sm"></div> ${t('admin.resetting')}`;
 
   try {
     await apiPost(`/users/${userId}/reset-password`, { new_password: newPassword });
-    showToast('密码重置成功', 'success');
+    showToast(t('admin.resetSuccess'), 'success');
     closeModal();
   } catch (error) {
-    showToast(error.message || '重置密码失败', 'error');
+    showToast(error.message || t('admin.resetFailed'), 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = '确认重置';
+    submitBtn.textContent = t('btn.reset');
   }
 }
 
