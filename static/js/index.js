@@ -93,8 +93,8 @@ function renderSkillCard(skill) {
     description = description.substring(0, 100) + '...';
   }
 
-  // 获取负责人名称
-  const ownerName = skill.owner?.username || '未知';
+  // 获取负责人名称（优先显示 name，没有则显示 username）
+  const ownerName = skill.owner?.name || skill.owner?.username || '未知';
 
   // 格式化更新时间
   const updatedTime = formatDate(skill.updated_at);

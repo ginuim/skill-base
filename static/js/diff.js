@@ -441,13 +441,17 @@ async function selectChangedFile(filePath, index) {
 function renderDiff(patch) {
   const outputDiv = document.getElementById('diff-output');
 
-  const diffHtml = Diff2Html.html(patch, {
+  // 使用 Diff2HtmlUI API
+  const targetElement = document.getElementById('diff-output');
+  const configuration = {
     drawFileList: false,
     matching: 'lines',
-    outputFormat: outputFormat // 'side-by-side' 或 'line-by-line'
-  });
-
-  outputDiv.innerHTML = diffHtml;
+    outputFormat: outputFormat, // 'side-by-side' 或 'line-by-line'
+    renderNothingWhenEmpty: false
+  };
+  
+  const diff2htmlUi = new Diff2HtmlUI(targetElement, patch, configuration);
+  diff2htmlUi.draw();
 }
 
 /**

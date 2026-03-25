@@ -33,7 +33,8 @@ function formatVersion(version) {
     zip_path: version.zip_path,
     uploader: {
       id: version.uploader_id,
-      username: version.uploader_username
+      username: version.uploader_username,
+      name: version.uploader_name
     },
     created_at: version.created_at
   };

@@ -13,7 +13,7 @@ const VersionModel = {
   // 根据 ID 查询版本
   findById(id) {
     return db.prepare(`
-      SELECT sv.*, u.username as uploader_username
+      SELECT sv.*, u.username as uploader_username, u.name as uploader_name
       FROM skill_versions sv
       LEFT JOIN users u ON sv.uploader_id = u.id
       WHERE sv.id = ?
@@ -23,7 +23,7 @@ const VersionModel = {
   // 根据 skill_id 和 version 查询
   findByVersion(skillId, version) {
     return db.prepare(`
-      SELECT sv.*, u.username as uploader_username
+      SELECT sv.*, u.username as uploader_username, u.name as uploader_name
       FROM skill_versions sv
       LEFT JOIN users u ON sv.uploader_id = u.id
       WHERE sv.skill_id = ? AND sv.version = ?
@@ -33,7 +33,7 @@ const VersionModel = {
   // 列出某 Skill 的所有版本（按创建时间倒序）
   listBySkillId(skillId) {
     return db.prepare(`
-      SELECT sv.*, u.username as uploader_username
+      SELECT sv.*, u.username as uploader_username, u.name as uploader_name
       FROM skill_versions sv
       LEFT JOIN users u ON sv.uploader_id = u.id
       WHERE sv.skill_id = ?
@@ -44,7 +44,7 @@ const VersionModel = {
   // 获取某 Skill 的最新版本
   getLatest(skillId) {
     return db.prepare(`
-      SELECT sv.*, u.username as uploader_username
+      SELECT sv.*, u.username as uploader_username, u.name as uploader_name
       FROM skill_versions sv
       LEFT JOIN users u ON sv.uploader_id = u.id
       WHERE sv.skill_id = ?
