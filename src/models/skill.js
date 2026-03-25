@@ -4,7 +4,7 @@ const SkillModel = {
   // 根据 ID 查询 Skill（附带 owner 信息）
   findById(id) {
     return db.prepare(`
-      SELECT s.*, u.username as owner_username
+      SELECT s.*, u.username as owner_username, u.name as owner_name
       FROM skills s
       LEFT JOIN users u ON s.owner_id = u.id
       WHERE s.id = ?
@@ -16,7 +16,7 @@ const SkillModel = {
     if (query) {
       const pattern = `%${query}%`;
       return db.prepare(`
-        SELECT s.*, u.username as owner_username
+        SELECT s.*, u.username as owner_username, u.name as owner_name
         FROM skills s
         LEFT JOIN users u ON s.owner_id = u.id
         WHERE s.name LIKE ? OR s.description LIKE ?
@@ -24,7 +24,7 @@ const SkillModel = {
       `).all(pattern, pattern);
     }
     return db.prepare(`
-      SELECT s.*, u.username as owner_username
+      SELECT s.*, u.username as owner_username, u.name as owner_name
       FROM skills s
       LEFT JOIN users u ON s.owner_id = u.id
       ORDER BY s.updated_at DESC

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* 页面标题区域 */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-lg);
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin: 0;
+    }
+
+    /* 搜索和筛选栏 */
+    .filter-bar {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      flex-wrap: wrap;
+    }
+
+    .filter-bar .search-container {
+      flex: 1;
+      min-width: 200px;
+      max-width: 400px;
+    }
+
+    .filter-bar select {
+      min-width: 140px;
+    }
+
+    /* 用户表格 */
+    .users-table-container {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .users-table th,
+    .users-table td {
+      padding: var(--spacing-md);
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .users-table th {
+      background-color: var(--bg-color);
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .users-table td {
+      font-size: 0.875rem;
+      color: var(--text-color);
+    }
+
+    .users-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .users-table tr:hover td {
+      background-color: rgba(125, 211, 252, 0.05);
+    }
+
+    /* 角色和状态标签 */
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: 0.125rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: var(--radius-full);
+    }
+
+    .role-badge.admin {
+      background-color: var(--primary-light);
+      color: var(--primary-color);
+    }
+
+    .role-badge.developer {
+      background-color: var(--info-light);
+      color: var(--info-color);
+    }
+
+    .status-badge {
+      font-size: 0.875rem;
+    }
+
+    .status-badge.active {
+      color: var(--success-color);
+    }
+
+    .status-badge.disabled {
+      color: var(--error-color);
+    }
+
+    /* 分页控件 */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-md);
+      padding: var(--spacing-lg);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .pagination-info {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-xl) var(--spacing-md);
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 1rem;
+      margin-bottom: var(--spacing-md);
+    }
+
+    /* Modal 弹窗 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .modal-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background-color: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+      border: 1px solid var(--border-color);
+    }
+
+    .modal-overlay.visible .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-lg);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: var(--spacing-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+
+    .modal-close:hover {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    .modal-body {
+      padding: var(--spacing-lg);
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--spacing-md);
+      padding: var(--spacing-lg);
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* 单选按钮组 */
+    .radio-group {
+      display: flex;
+      gap: var(--spacing-lg);
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: var(--text-color);
+    }
+
+    .radio-label input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-color);
+      cursor: pointer;
+    }
+
+    /* 切换开关 */
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--border-color);
+      transition: 0.3s;
+      border-radius: var(--radius-full);
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-color);
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--success-color);
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+      background-color: #fff;
+    }
+
+    .toggle-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* 分隔线 */
+    .divider {
+      height: 1px;
+      background-color: var(--border-color);
+      margin: var(--spacing-lg) 0;
+    }
+
+    /* 重置密码区域 */
+    .reset-password-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .reset-password-section .section-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* Loading 状态 */
+    .table-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-xl);
+    }
+
+    @media (max-width: 768px) {
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .filter-bar {
+        flex-direction: column;
+      }
+
+      .filter-bar .search-container {
+        max-width: none;
+      }
+
+      .users-table-container {
+        overflow-x: auto;
+      }
+
+      .users-table {
+        min-width: 600px;
+      }
+
+      .modal {
+        margin: var(--spacing-md);
+        max-width: calc(100% - var(--spacing-lg));
+      }
+    }
+  </style>
+</head>
+<body class="app-devtools">
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <svg class="navbar-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span>Skill Base</span>
+      </a>
+      <div class="navbar-nav">
+        <a href="/">首页</a>
+        <a href="/publish.html" class="hide-mobile">发布</a>
+      </div>
+      <!-- 用户区域由 JS 动态渲染 -->
+    </div>
+  </nav>
+
+  <!-- 页面内容 -->
+  <main class="page-content">
+    <div class="container">
+      <!-- 页面标题 -->
+      <div class="page-header">
+        <h1 class="page-title">用户管理</h1>
+        <button class="btn btn-primary" onclick="showAddUserModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          添加用户
+        </button>
+      </div>
+
+      <!-- 搜索和筛选 -->
+      <div class="filter-bar">
+        <div class="search-container">
+          <div class="search-bar">
+            <input 
+              type="search" 
+              id="searchInput" 
+              placeholder="搜索用户名..."
+              autocomplete="off"
+            >
+            <span class="search-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <button type="button" class="clear-btn" id="clearSearch">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <select id="statusFilter">
+          <option value="">全部状态</option>
+          <option value="active">启用</option>
+          <option value="disabled">禁用</option>
+        </select>
+      </div>
+
+      <!-- 用户列表 -->
+      <div class="users-table-container">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>用户名</th>
+              <th>角色</th>
+              <th>状态</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <!-- 由 JS 动态渲染 -->
+          </tbody>
+        </table>
+        <div id="pagination" class="pagination hidden">
+          <button class="btn btn-secondary btn-sm" id="prevPage" disabled>上一页</button>
+          <span class="pagination-info" id="pageInfo">1 / 1</span>
+          <button class="btn btn-secondary btn-sm" id="nextPage" disabled>下一页</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 添加用户弹窗 -->
+  <div class="modal-overlay" id="addUserModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">添加用户</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label required">用户名</label>
+          <input type="text" id="addUsername" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+          <label class="form-label required">初始密码</label>
+          <input type="password" id="addPassword" placeholder="请输入初始密码">
+        </div>
+        <div class="form-group">
+          <label class="form-label required">角色</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="addRole" value="developer" checked>
+              开发者
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="addRole" value="admin">
+              管理员
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" id="submitAddUser" onclick="submitAddUser()">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑用户弹窗 -->
+  <div class="modal-overlay" id="editUserModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">编辑用户</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editUserId">
+        <div class="form-group">
+          <label class="form-label">用户名</label>
+          <input type="text" id="editUsername" disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">角色</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="editRole" value="developer">
+              开发者
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="editRole" value="admin">
+              管理员
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">状态</label>
+          <div class="toggle-group">
+            <label class="toggle-switch">
+              <input type="checkbox" id="editStatus">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" id="editStatusLabel">启用</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="reset-password-section">
+          <span class="section-label">重置用户密码</span>
+          <button class="btn btn-secondary btn-sm" id="resetPasswordBtn">重置密码</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" id="submitEditUser" onclick="submitEditUser()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 重置密码弹窗 -->
+  <div class="modal-overlay" id="resetPasswordModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">重置密码</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="resetPasswordUserId">
+        <p class="text-secondary mb-2">为用户 <strong id="resetPasswordUsername"></strong> 设置新密码：</p>
+        <div class="form-group">
+          <label class="form-label required">新密码</label>
+          <input type="password" id="newPassword" placeholder="请输入新密码">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" id="submitResetPassword" onclick="submitResetPassword()">确认重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入 JS -->
+  <script src="/js/app.js"></script>
+  <script src="/js/admin/users.js"></script>
+</body>
+</html>

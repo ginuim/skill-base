@@ -53,10 +53,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 4. 加载 Skill 详情
   await loadSkillDetail(skillId);
 
-  // 5. 加载版本列表
+  // 5. 初始化协作者面板
+  await initCollaboratorsPanel();
+
+  // 6. 加载版本列表
   await loadVersions(skillId);
 
-  // 6. 默认加载最新版本的 zip 并生成目录树
+  // 7. 默认加载最新版本的 zip 并生成目录树
   if (currentSkill && currentSkill.latest_version) {
     await switchVersion(currentSkill.latest_version);
   }
@@ -176,7 +179,7 @@ async function loadSkillDetail(skillId) {
  */
 function renderSkillInfo(skill) {
   const container = document.getElementById('skill-info');
-  const ownerName = skill.owner?.username || '未知';
+  const ownerName = skill.owner?.name || skill.owner?.username || '未知';
   const createdTime = formatDate(skill.created_at);
 
   container.innerHTML = `
@@ -285,7 +288,7 @@ function renderVersionHistory(versions) {
   }
 
   container.innerHTML = versions.map((v, index) => {
-    const uploaderName = v.uploader?.username || '未知';
+    const uploaderName = v.uploader?.name || v.uploader?.username || '未知';
     const createdTime = formatDate(v.created_at);
     const tagClass = index === 0 ? 'version-tag latest' : 'version-tag';
 

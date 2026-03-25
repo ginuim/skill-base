@@ -36,11 +36,15 @@ async function start() {
     await fastify.register(require('./middleware/error'));
     // 认证（注册 authenticate、createSession 等装饰器）
     await fastify.register(require('./middleware/auth'));
+    // 管理员权限（注册 requireAdmin 装饰器）
+    await fastify.register(require('./middleware/admin'));
 
     // 3. 注册 API 路由（前缀 /api/v1）
     await fastify.register(require('./routes/auth'), { prefix: '/api/v1/auth' });
     await fastify.register(require('./routes/skills'), { prefix: '/api/v1/skills' });
     await fastify.register(require('./routes/publish'), { prefix: '/api/v1/skills' });
+    await fastify.register(require('./routes/collaborators'), { prefix: '/api/v1/skills' });
+    await fastify.register(require('./routes/users'), { prefix: '/api/v1/users' });
 
     // 4. 页面路由 fallback（SPA 风格路由支持）
     fastify.setNotFoundHandler(async (request, reply) => {
@@ -55,6 +59,7 @@ async function start() {
       if (url === '/login') return reply.sendFile('login.html');
       if (url === '/publish') return reply.sendFile('publish.html');
       if (url === '/cli-code') return reply.sendFile('cli-code.html');
+      if (url === '/admin/users') return reply.sendFile('admin/users.html');
       if (url.match(/^\/skill\/[^/]+\/file\//)) return reply.sendFile('file.html');
       if (url.match(/^\/skill\/[^/]+\/diff/)) return reply.sendFile('diff.html');
       if (url.match(/^\/skill\/[^/]+$/)) return reply.sendFile('skill.html');

@@ -435,6 +435,234 @@
       margin-bottom: var(--spacing-md);
     }
 
+    /* 协作者面板 */
+    .collaborators-panel {
+      margin-top: var(--spacing-lg);
+      padding: var(--spacing-lg);
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .collaborators-panel .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .collaborators-panel .panel-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .collaborators-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .collaborator-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background-color: var(--bg-color);
+      border-radius: var(--radius-sm, 4px);
+    }
+
+    .collaborator-info {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .collaborator-role {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background-color: var(--primary-color);
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    .collaborator-role.owner {
+      background-color: #f59e0b;
+    }
+
+    .danger-zone {
+      margin-top: var(--spacing-lg);
+      padding-top: var(--spacing-lg);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .btn-danger {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 16px;
+      border-radius: var(--radius-sm, 4px);
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+
+    /* 弹窗样式 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      position: relative;
+      background-color: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 420px;
+      padding: var(--spacing-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.125rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+
+    .modal-body {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-sm);
+    }
+
+    .form-group {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: var(--spacing-xs);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm, 4px);
+      font-size: 0.875rem;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      box-sizing: border-box;
+    }
+
+    .warning-text {
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-bottom: var(--spacing-md);
+    }
+
+    /* 协作者 username 小字 */
+    .collaborator-username {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      margin-left: 4px;
+    }
+
+    /* 联想搜索下拉 */
+    .suggestions-container {
+      position: relative;
+    }
+
+    .suggestions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--border-color);
+      border-top: none;
+      border-radius: 0 0 var(--radius-sm, 4px) var(--radius-sm, 4px);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+
+    .suggestions-dropdown.is-open {
+      display: block;
+    }
+
+    .suggestion-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .suggestion-item:hover,
+    .suggestion-item.is-active {
+      background-color: var(--bg-color);
+    }
+
+    .suggestion-item-name {
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .suggestion-item-username {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+    }
+
+    .suggestion-empty {
+      padding: 8px 12px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
     @media (max-width: 768px) {
       .skill-content {
         grid-template-columns: 1fr;
@@ -523,6 +751,20 @@
         </div>
       </section>
 
+      <!-- 协作者管理 -->
+      <div id="collaborators-panel" class="collaborators-panel" style="display:none;">
+        <div class="panel-header">
+          <h3>管理团队</h3>
+          <button id="add-collaborator-btn" class="btn btn-primary btn-sm" style="display:none;">+ 添加协作者</button>
+        </div>
+        <div id="collaborators-list" class="collaborators-list">
+          <!-- 由 JS 动态渲染 -->
+        </div>
+        <div id="skill-danger-zone" class="danger-zone" style="display:none;">
+          <button id="delete-skill-btn" class="btn btn-danger btn-sm">删除 Skill</button>
+        </div>
+      </div>
+
       <!-- 版本历史 -->
       <section class="version-history" id="version-history">
         <div class="version-history-header" onclick="toggleVersionHistory()">
@@ -548,6 +790,50 @@
     </div>
   </main>
 
+  <!-- 添加协作者弹窗 -->
+  <div id="add-collaborator-modal" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>添加协作者</h3>
+        <button class="modal-close" onclick="closeCollaboratorModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group suggestions-container">
+          <label>用户名</label>
+          <input type="text" id="collaborator-username" placeholder="输入用户名" class="form-input" autocomplete="off">
+          <div id="user-suggestions" class="suggestions-dropdown"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCollaboratorModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitAddCollaborator()">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除 Skill 确认弹窗 -->
+  <div id="delete-skill-modal" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>确认删除</h3>
+        <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="warning-text">⚠️ 此操作不可恢复！将删除该 Skill 的所有版本和数据。</p>
+        <div class="form-group">
+          <label>请输入 Skill ID 确认删除：</label>
+          <input type="text" id="delete-confirm-input" placeholder="" class="form-input">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">取消</button>
+        <button class="btn btn-danger" onclick="submitDeleteSkill()">确认删除</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CDN 库 -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
@@ -556,5 +842,6 @@
   <!-- 引入 JS -->
   <script src="/js/app.js"></script>
   <script src="/js/skill.js"></script>
+  <script src="/js/collaborators.js"></script>
 </body>
 </html>

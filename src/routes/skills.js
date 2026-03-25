@@ -14,7 +14,8 @@ function formatSkill(skill) {
     latest_version: skill.latest_version,
     owner: {
       id: skill.owner_id,
-      username: skill.owner_username
+      username: skill.owner_username,
+      name: skill.owner_name
     },
     created_at: skill.created_at,
     updated_at: skill.updated_at

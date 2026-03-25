@@ -31,11 +31,16 @@ async function authPlugin(fastify, options) {
     const sessionId = request.cookies?.session_id;
     if (sessionId && sessions.has(sessionId)) {
       const session = sessions.get(sessionId);
-      const user = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(session.userId);
-      if (user) {
-        request.user = user;
-        return;
+      const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(session.userId);
+      if (!user || user.status === 'disabled') {
+        return reply.code(401).send({
+          ok: false,
+          error: 'account_disabled',
+          detail: '账号已被禁用'
+        });
       }
+      request.user = user;
+      return;
     }
 
     // 2. 再尝试 Bearer Token（PAT）
@@ -44,13 +49,18 @@ async function authPlugin(fastify, options) {
       const token = authHeader.slice(7);
       const pat = db.prepare('SELECT user_id FROM personal_access_tokens WHERE token = ?').get(token);
       if (pat) {
-        const user = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(pat.user_id);
-        if (user) {
-          // 更新 last_used_at
-          db.prepare('UPDATE personal_access_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE token = ?').run(token);
-          request.user = user;
-          return;
+        const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(pat.user_id);
+        if (!user || user.status === 'disabled') {
+          return reply.code(401).send({
+            ok: false,
+            error: 'account_disabled',
+            detail: '账号已被禁用'
+          });
         }
+        // 更新 last_used_at
+        db.prepare('UPDATE personal_access_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE token = ?').run(token);
+        request.user = user;
+        return;
       }
     }
 
@@ -65,20 +75,22 @@ async function authPlugin(fastify, options) {
       const sessionId = request.cookies?.session_id;
       if (sessionId && sessions.has(sessionId)) {
         const session = sessions.get(sessionId);
-        const user = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(session.userId);
-        if (user) { request.user = user; return; }
+        const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(session.userId);
+        if (user && user.status !== 'disabled') { request.user = user; return; }
       }
       const authHeader = request.headers.authorization;
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.slice(7);
         const pat = db.prepare('SELECT user_id FROM personal_access_tokens WHERE token = ?').get(token);
         if (pat) {
-          const user = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(pat.user_id);
-          if (user) { request.user = user; return; }
+          const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(pat.user_id);
+          if (user && user.status !== 'disabled') { request.user = user; return; }
         }
       }
     } catch (e) { /* ignore */ }
   });
 }
 
-module.exports = fp(authPlugin);
+module.exports = fp(authPlugin, {
+  name: 'auth-plugin'
+});

@@ -1,7 +1,9 @@
 const fs = require('fs');
+const db = require('../database');
 const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
 const { ensureSkillDir, generateVersionNumber, getZipPath, getZipRelativePath } = require('../utils/zip');
+const { canPublishSkill } = require('../utils/permission');
 
 async function publishRoutes(fastify, options) {
   // POST /publish - 发布新版本
@@ -42,6 +44,15 @@ async function publishRoutes(fastify, options) {
       return reply.code(400).send({ detail: 'skill_id is required' });
     }
 
+    // 检查发布权限
+    if (!canPublishSkill(request.user, skill_id)) {
+      return reply.code(403).send({
+        ok: false,
+        error: 'permission_denied',
+        detail: '您没有该 Skill 的发布权限'
+      });
+    }
+
     // 检查 skill 是否存在
     const skillExists = SkillModel.exists(skill_id);
 
@@ -50,8 +61,14 @@ async function publishRoutes(fastify, options) {
       if (!name) {
         return reply.code(400).send({ detail: 'name is required for new skill' });
       }
-      // 创建新 skill
-      SkillModel.create(skill_id, name, description || '', request.user.id);
+      // 使用事务创建新 skill 和添加 owner 协作者记录
+      const createSkillTx = db.transaction(() => {
+        SkillModel.create(skill_id, name, description || '', request.user.id);
+        db.prepare(
+          'INSERT INTO skill_collaborators (skill_id, user_id, role, created_by) VALUES (?, ?, ?, ?)'
+        ).run(skill_id, request.user.id, 'owner', request.user.id);
+      });
+      createSkillTx();
     }
 
     // 生成版本号

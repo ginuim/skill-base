@@ -1,6 +1,6 @@
 const db = require('../database');
 const UserModel = require('../models/user');
-const { verifyPassword, generateCliCode, generatePAT } = require('../utils/crypto');
+const { verifyPassword, hashPassword, generateCliCode, generatePAT } = require('../utils/crypto');
 
 async function authRoutes(fastify, options) {
   // POST /login - 用户登录
@@ -17,6 +17,15 @@ async function authRoutes(fastify, options) {
       return reply.code(401).send({ detail: '用户名或密码错误' });
     }
 
+    // 检查账号状态
+    if (user.status === 'disabled') {
+      return reply.code(401).send({
+        ok: false,
+        error: 'account_disabled',
+        detail: '账号已被禁用'
+      });
+    }
+
     // 验证密码
     if (!verifyPassword(password, user.password_hash)) {
       return reply.code(401).send({ detail: '用户名或密码错误' });
@@ -26,7 +35,7 @@ async function authRoutes(fastify, options) {
     const sessionId = fastify.createSession(user.id);
     reply.setCookie('session_id', sessionId, { path: '/', httpOnly: true });
 
-    return { ok: true, user: { id: user.id, username: user.username, role: user.role } };
+    return { ok: true, user: { id: user.id, username: user.username, name: user.name || null, role: user.role } };
   });
 
   // POST /logout - 用户登出
@@ -89,7 +98,7 @@ async function authRoutes(fastify, options) {
     return {
       ok: true,
       token,
-      user: { id: user.id, username: user.username }
+      user: { id: user.id, username: user.username, name: user.name || null }
     };
   });
 
@@ -98,6 +107,66 @@ async function authRoutes(fastify, options) {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     return request.user;
+  });
+
+  // PATCH /me - 更新个人信息（用户名和姓名）
+  fastify.patch('/me', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const { username, name } = request.body || {};
+
+    // 至少需要提供一个字段
+    if (username === undefined && name === undefined) {
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '请提供要更新的字段' });
+    }
+
+    // 验证用户名
+    if (username !== undefined) {
+      if (typeof username !== 'string' || username.trim().length === 0) {
+        return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '用户名不能为空' });
+      }
+      const trimmed = username.trim();
+      // 检查用户名是否已存在（排除自己）
+      const existing = UserModel.findByUsername(trimmed);
+      if (existing && existing.id !== request.user.id) {
+        return reply.code(400).send({ ok: false, error: 'username_exists', detail: '用户名已存在' });
+      }
+    }
+
+    UserModel.updateProfile(request.user.id, {
+      username: username ? username.trim() : undefined,
+      name: name !== undefined ? name : undefined
+    });
+    const updated = UserModel.findById(request.user.id);
+
+    return reply.send({ ok: true, user: updated });
+  });
+
+  // POST /me/change-password - 修改密码
+  fastify.post('/me/change-password', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const { old_password, new_password } = request.body || {};
+
+    if (!old_password || !new_password) {
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '请提供旧密码和新密码' });
+    }
+
+    if (new_password.length < 6) {
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: '新密码长度至少 6 位' });
+    }
+
+    // 验证旧密码 - 需要获取含密码的用户信息
+    const user = UserModel.findByUsername(request.user.username);
+
+    if (!verifyPassword(old_password, user.password_hash)) {
+      return reply.code(401).send({ ok: false, error: 'wrong_password', detail: '旧密码错误' });
+    }
+
+    const newHash = hashPassword(new_password);
+    UserModel.updatePassword(request.user.id, newHash);
+
+    return reply.send({ ok: true, message: '密码修改成功' });
   });
 }
 

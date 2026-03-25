@@ -369,11 +369,25 @@ function renderNavbar(user) {
           navbarNav.appendChild(cliCodeLink);
         }
       }
+      
+      // 管理员：添加用户管理链接
+      if (user.role === 'admin') {
+        let adminLink = navbarNav.querySelector('a[href="/admin/users"]');
+        if (!adminLink) {
+          adminLink = document.createElement('a');
+          adminLink.href = '/admin/users';
+          adminLink.className = 'hide-mobile';
+          adminLink.textContent = '用户管理';
+          navbarNav.appendChild(adminLink);
+        }
+      }
     } else {
       // 未登录：移除链接
       if (cliCodeLink) {
         cliCodeLink.remove();
       }
+      const adminLink = navbarNav.querySelector('a[href="/admin/users"]');
+      if (adminLink) adminLink.remove();
     }
   }
   
