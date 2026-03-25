@@ -1,11 +1,29 @@
 {
   "name": "skill-base-cli",
   "version": "1.0.0",
-  "description": "Skill Base CLI - 命令行管理工具",
+  "description": "Skill Base CLI - 命令行工具，用于搜索、安装、更新和发布 AI Agent Skills",
   "type": "module",
   "bin": {
     "skb": "./bin/skb.js"
   },
+  "keywords": [
+    "skill",
+    "agent",
+    "ai",
+    "cli",
+    "skill-base"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "homepage": "",
+  "files": [
+    "bin",
+    "lib"
+  ],
   "dependencies": {
     "archiver": "^7.0.0",
     "commander": "^12.1.0",
