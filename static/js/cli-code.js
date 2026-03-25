@@ -11,11 +11,20 @@ let timerInterval = null;
  * 页面初始化
  */
 async function init() {
+  // 检查是否来自 CLI login 的标记
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromCli = urlParams.get('from') === 'cli';
+  
   // 检查登录状态
   const user = await initPage();
   if (!user) {
     // 未登录，initPage 已处理跳转
     return;
+  }
+
+  // 如果是从 CLI 登录过来的，显示提示信息
+  if (fromCli) {
+    showToast('请登录成功后，在下方输入验证码', 'info', 5000);
   }
 
   // 生成验证码

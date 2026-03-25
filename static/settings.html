@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>账户设置 - Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .settings-card {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .settings-header {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .settings-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .settings-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .settings-section {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .settings-section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-hint {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: var(--spacing-xs);
+    }
+
+    .cli-code-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md);
+      background-color: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: var(--radius);
+      color: var(--info-color);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .cli-code-link:hover {
+      background-color: rgba(56, 189, 248, 0.15);
+    }
+
+    .cli-code-link svg {
+      width: 18px;
+      height: 18px;
+    }
+  </style>
+</head>
+<body class="app-devtools">
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <svg class="navbar-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span>Skill Base</span>
+      </a>
+      <div class="navbar-nav">
+        <a href="/">首页</a>
+        <a href="/publish.html" class="hide-mobile">发布</a>
+      </div>
+      <!-- 用户区域由 JS 动态渲染 -->
+    </div>
+  </nav>
+
+  <!-- 页面内容 -->
+  <main class="page-content">
+    <div class="container">
+      <div class="card settings-card">
+        <div class="settings-header">
+          <h1 class="settings-title">账户设置</h1>
+          <p class="settings-subtitle">管理您的个人信息和凭证</p>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="settings-section">
+          <h2 class="settings-section-title">基本信息</h2>
+          <form id="profileForm">
+            <div class="form-group">
+              <label class="form-label">用户名</label>
+              <input type="text" id="username" required>
+              <p class="form-hint">至少 1 个字符，最多 50 个字符</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">姓名</label>
+              <input type="text" id="name" placeholder="请输入您的姓名">
+              <p class="form-hint">可选，用于显示在技能作者信息中</p>
+            </div>
+            <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+              保存修改
+            </button>
+          </form>
+        </div>
+
+        <!-- CLI 验证码 -->
+        <div class="settings-section">
+          <h2 class="settings-section-title">CLI 访问凭证</h2>
+          <p class="text-secondary mb-2">
+            在本地终端使用 <code>skb</code> 命令行工具时，需要获取验证码进行登录。
+          </p>
+          <a href="/cli-code.html" class="cli-code-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            获取 CLI 验证码
+          </a>
+        </div>
+
+        <!-- 修改密码 -->
+        <div class="settings-section">
+          <h2 class="settings-section-title">修改密码</h2>
+          <form id="passwordForm">
+            <div class="form-group">
+              <label class="form-label required">当前密码</label>
+              <input type="password" id="oldPassword" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label required">新密码</label>
+              <input type="password" id="newPassword" required>
+              <p class="form-hint">至少 6 个字符</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label required">确认新密码</label>
+              <input type="password" id="confirmPassword" required>
+            </div>
+            <button type="submit" class="btn btn-secondary" id="changePasswordBtn">
+              修改密码
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 引入 JS -->
+  <script src="/js/app.js"></script>
+  <script src="/js/settings.js"></script>
+</body>
+</html>

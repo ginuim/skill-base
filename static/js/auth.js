@@ -85,8 +85,17 @@
         password,
       });
       
-      // 登录成功，跳转到首页
-      window.location.href = '/';
+      // 登录成功，检查是否来自 CLI
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromCli = urlParams.get('from') === 'cli';
+      
+      if (fromCli) {
+        // 跳转到 CLI 验证码页面
+        window.location.href = '/cli-code.html?from=cli';
+      } else {
+        // 跳转到首页
+        window.location.href = '/';
+      }
       
     } catch (error) {
       // 显示错误信息

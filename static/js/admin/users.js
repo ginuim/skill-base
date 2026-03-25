@@ -163,10 +163,12 @@ function renderUsersTable(users) {
     const roleClass = user.role === 'admin' ? 'admin' : 'developer';
     const statusLabel = user.status === 'active' ? '✅ 启用' : '⛔ 禁用';
     const statusClass = user.status === 'active' ? 'active' : 'disabled';
+    const nameDisplay = user.name ? escapeHtml(user.name) : '<span style="color: var(--text-muted);">-</span>';
     
     return `
       <tr>
         <td><strong>${escapeHtml(user.username)}</strong></td>
+        <td>${nameDisplay}</td>
         <td><span class="role-badge ${roleClass}">${roleLabel}</span></td>
         <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
         <td>${formatDate(user.created_at)}</td>
@@ -254,6 +256,7 @@ async function showEditUserModal(userId) {
     
     document.getElementById('editUserId').value = user.id;
     document.getElementById('editUsername').value = user.username;
+    document.getElementById('editName').value = user.name || '';
     
     // 设置角色
     const roleRadio = document.querySelector(`input[name="editRole"][value="${user.role}"]`);
@@ -275,6 +278,7 @@ async function submitEditUser() {
   const userId = document.getElementById('editUserId').value;
   const role = document.querySelector('input[name="editRole"]:checked').value;
   const status = document.getElementById('editStatus').checked ? 'active' : 'disabled';
+  const name = document.getElementById('editName').value.trim();
 
   const submitBtn = document.getElementById('submitEditUser');
   submitBtn.disabled = true;
@@ -284,7 +288,7 @@ async function submitEditUser() {
     // 使用 api 函数发送 PATCH 请求
     await api(`/users/${userId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ role, status })
+      body: JSON.stringify({ role, status, name })
     });
     showToast('用户信息已更新', 'success');
     closeModal();

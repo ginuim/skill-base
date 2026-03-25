@@ -350,53 +350,62 @@ function renderNavbar(user) {
     navbar.querySelector('.container').appendChild(userArea);
   }
   
-  // 处理 CLI 验证码导航链接（仅登录后显示）
-  const navbarNav = navbar.querySelector('.navbar-nav');
-  if (navbarNav) {
-    let cliCodeLink = navbarNav.querySelector('a[href="/cli-code"]');
-    if (user) {
-      // 已登录：确保链接存在
-      if (!cliCodeLink) {
-        cliCodeLink = document.createElement('a');
-        cliCodeLink.href = '/cli-code';
-        cliCodeLink.className = 'hide-mobile';
-        cliCodeLink.textContent = 'CLI 验证码';
-        // 插入到"发布"链接后面
-        const publishLink = navbarNav.querySelector('a[href="/publish.html"]');
-        if (publishLink && publishLink.nextSibling) {
-          navbarNav.insertBefore(cliCodeLink, publishLink.nextSibling);
-        } else {
-          navbarNav.appendChild(cliCodeLink);
-        }
-      }
-      
-      // 管理员：添加用户管理链接
-      if (user.role === 'admin') {
-        let adminLink = navbarNav.querySelector('a[href="/admin/users"]');
-        if (!adminLink) {
-          adminLink = document.createElement('a');
-          adminLink.href = '/admin/users';
-          adminLink.className = 'hide-mobile';
-          adminLink.textContent = '用户管理';
-          navbarNav.appendChild(adminLink);
-        }
-      }
-    } else {
-      // 未登录：移除链接
-      if (cliCodeLink) {
-        cliCodeLink.remove();
-      }
-      const adminLink = navbarNav.querySelector('a[href="/admin/users"]');
-      if (adminLink) adminLink.remove();
-    }
-  }
-  
   if (user) {
+    // 已登录：显示用户名和下拉菜单
     userArea.innerHTML = `
-      <span class="username">${escapeHtml(user.username)}</span>
-      <button class="btn btn-secondary btn-sm" onclick="logout()">登出</button>
+      <div class="navbar-user-dropdown">
+        <button class="navbar-user-btn">
+          <span class="username">${escapeHtml(user.username)}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="navbar-user-menu">
+          <a href="/settings.html" class="navbar-user-menu-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            账户设置
+          </a>
+          ${user.role === 'admin' ? `
+          <a href="/admin/users" class="navbar-user-menu-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            用户管理
+          </a>
+          ` : ''}
+          <div class="navbar-user-menu-divider"></div>
+          <button onclick="logout()" class="navbar-user-menu-item navbar-user-logout">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            登出
+          </button>
+        </div>
+      </div>
     `;
+    
+    // 绑定下拉菜单的点击事件
+    const dropdown = userArea.querySelector('.navbar-user-dropdown');
+    const button = dropdown.querySelector('.navbar-user-btn');
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('active');
+    });
+    
+    // 点击其他地方关闭菜单
+    document.addEventListener('click', () => {
+      dropdown.classList.remove('active');
+    });
   } else {
+    // 未登录：显示登录按钮
     userArea.innerHTML = `
       <a href="/login.html" class="btn btn-primary btn-sm">登录</a>
     `;

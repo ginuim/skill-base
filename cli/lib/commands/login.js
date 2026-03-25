@@ -10,7 +10,7 @@ export default async function login() {
   const client = createClient();
 
   console.log(chalk.cyan('\n📋 登录指引：'));
-  console.log(`   1. 在浏览器中打开 ${chalk.underline(baseUrl + '/login')}`);
+  console.log(`   1. 在浏览器中打开 ${chalk.underline(baseUrl + '/login?from=cli')}`);
   console.log('   2. 登录后获取 CLI 验证码');
   console.log('   3. 在下方输入验证码\n');
 
