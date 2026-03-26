@@ -68,8 +68,8 @@ export default async function publish(directory, options) {
     process.exit(1);
   }
 
-  // 2. 验证目录存在
-  const resolvedDir = path.resolve(directory);
+  // 2. 验证目录存在（默认使用当前目录）
+  const resolvedDir = path.resolve(directory || process.cwd());
   if (!fs.existsSync(resolvedDir)) {
     console.log(chalk.red(`❌ Directory not found: ${resolvedDir}`));
     process.exit(1);

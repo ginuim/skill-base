@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import init from '../lib/commands/init.js';
 import login from '../lib/commands/login.js';
 import logout from '../lib/commands/logout.js';
 import search from '../lib/commands/search.js';
@@ -12,44 +13,50 @@ const program = new Command();
 
 program
   .name('skb')
-  .description('Skill Base CLI - 命令行管理工具')
+  .description('Skill Base CLI - Command line management tool')
   .version('1.0.0');
 
 program
+  .command('init')
+  .description('Initialize CLI configuration (set server URL)')
+  .option('-s, --server <url>', 'Server URL (e.g., https://skill.example.com)')
+  .action(init);
+
+program
   .command('login')
-  .description('登录获取访问令牌')
+  .description('Login to get access token')
   .action(login);
 
 program
   .command('logout')
-  .description('登出并清除本地凭证')
+  .description('Logout and clear local credentials')
   .action(logout);
 
 program
   .command('search <keyword>')
-  .description('搜索 Skill')
+  .description('Search for Skills')
   .action(search);
 
 program
   .command('install <target>')
-  .description('安装 Skill（支持 name@version 格式）')
-  .option('-d, --dir <directory>', '指定解压目标目录')
-  .option('-i, --ide <ide>', '目标 IDE（cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode）')
-  .option('-g, --global', '安装到全局 IDE 配置目录', false)
+  .description('Install a Skill (supports name@version format)')
+  .option('-d, --dir <directory>', 'Target directory for extraction')
+  .option('-i, --ide <ide>', 'Target IDE (cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode)')
+  .option('-g, --global', 'Install to global IDE config directory', false)
   .action(install);
 
 program
   .command('update <skill_id>')
-  .description('更新 Skill 到最新版本')
-  .option('-d, --dir <directory>', '指定解压目标目录', process.cwd())
+  .description('Update a Skill to the latest version')
+  .option('-d, --dir <directory>', 'Target directory for extraction', process.cwd())
   .action(update);
 
 program
-  .command('publish <directory>')
-  .description('发布新版本（指定 Skill 文件夹）')
-  .option('--name <name>', 'Skill 名称（默认从 SKILL.md 提取）')
-  .option('--description <desc>', 'Skill 描述（默认从 SKILL.md 提取）')
-  .option('--changelog <log>', '版本变更日志', '更新版本')
+  .command('publish [directory]')
+  .description('Publish a new version (defaults to current directory, or specify a Skill folder)')
+  .option('--name <name>', 'Skill name (defaults to extracting from SKILL.md)')
+  .option('--description <desc>', 'Skill description (defaults to extracting from SKILL.md)')
+  .option('--changelog <log>', 'Version changelog', 'Update version')
   .action(publish);
 
 program.parse();

@@ -94,9 +94,8 @@ npm install -g skill-base-cli
 
 **2. 配置你的私有服务地址:**
 ```bash
-export SKB_BASE_URL=http://your-team-server
+skb init -s http://your-team-server
 ```
-
 
 **3. 像用 npm 一样管理你的 AI Skills:**
 ```bash
