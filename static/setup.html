@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="setup.title">初始化 - Skill Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body">
+  <div class="login-page">
+    <div class="login-devtools" aria-label="初始化设置">
+      <header class="devtools-chrome">
+        <div class="devtools-titlebar">
+          <div class="devtools-traffic" aria-hidden="true">
+            <span class="devtools-dot devtools-dot--close"></span>
+            <span class="devtools-dot devtools-dot--min"></span>
+            <span class="devtools-dot devtools-dot--max"></span>
+          </div>
+          <span class="devtools-titlebar-title">DevTools — Skill Base · Initial Setup</span>
+        </div>
+      </header>
+
+      <div class="login-card">
+        <div class="login-panel-toolbar">
+          <span class="login-panel-breadcrumb">System</span>
+          <span class="login-panel-sep">›</span>
+          <span class="login-panel-breadcrumb login-panel-breadcrumb--accent">Initialize</span>
+        </div>
+
+        <div class="login-header">
+          <h1 class="login-title"><span class="login-title-prompt">$</span> Skill Base</h1>
+          <p class="login-subtitle" data-i18n="setup.subtitle">// 首次启动 · 请设置管理员账号</p>
+        </div>
+
+        <div id="setupError" class="login-error" role="alert"></div>
+        <div id="setupSuccess" class="login-success" role="status" style="display:none"></div>
+
+        <form id="setupForm">
+          <div class="form-group">
+            <label for="username" class="form-label"><span class="login-prop">admin_username</span></label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="&quot;admin&quot;"
+              autocomplete="username"
+              required
+              minlength="3"
+              maxlength="50"
+              class="login-input"
+            >
+            <p class="form-hint" data-i18n="setup.usernameHint">3-50 个字符</p>
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label"><span class="login-prop">password</span></label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              autocomplete="new-password"
+              required
+              minlength="6"
+              class="login-input"
+            >
+            <p class="form-hint" data-i18n="setup.passwordHint">至少 6 个字符</p>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label"><span class="login-prop">confirm_password</span></label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="••••••••"
+              autocomplete="new-password"
+              required
+              minlength="6"
+              class="login-input"
+            >
+          </div>
+
+          <div class="form-group login-actions">
+            <button type="submit" id="setupButton" class="btn btn-devtools btn-block btn-lg">
+              <svg class="btn-devtools-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span data-i18n="setup.submit">创建管理员账号</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 引入 JS -->
+  <script src="/js/i18n.js"></script>
+  <script src="/js/setup.js"></script>
+</body>
+</html>

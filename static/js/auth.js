@@ -114,7 +114,15 @@
   /**
    * 初始化登录页面
    */
-  function init() {
+  async function init() {
+    // 先检查系统是否已初始化
+    if (typeof checkSystemInit === 'function') {
+      const initialized = await checkSystemInit();
+      if (!initialized) {
+        return; // 已跳转到 setup 页面
+      }
+    }
+    
     // 监听表单提交
     if (loginForm) {
       loginForm.addEventListener('submit', handleLogin);

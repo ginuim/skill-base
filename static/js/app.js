@@ -64,6 +64,32 @@ async function api(path, options = {}) {
 }
 
 /**
+ * 检查系统是否已初始化，未初始化则跳转到 setup 页面
+ * @returns {Promise<boolean>} - 是否已初始化
+ */
+async function checkSystemInit() {
+  // setup 页面不需要检查
+  if (window.location.pathname === '/setup' || window.location.pathname === '/setup.html') {
+    return true;
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/init/status`);
+    const data = await res.json();
+    
+    if (!data.initialized) {
+      // 未初始化，跳转到 setup 页面
+      window.location.href = '/setup';
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Failed to check system init status:', err);
+    return true; // 出错时假定已初始化，避免循环
+  }
+}
+
+/**
  * GET 请求
  * @param {string} path - API 路径
  * @returns {Promise<any>}
@@ -464,10 +490,16 @@ function renderNavbar(user) {
 }
 
 /**
- * 初始化页面（检查登录状态并渲染导航栏）
+ * 初始化页面（检查系统初始化状态、登录状态并渲染导航栏）
  * 在需要登录的页面调用此函数
  */
 async function initPage() {
+  // 先检查系统是否已初始化
+  const initialized = await checkSystemInit();
+  if (!initialized) {
+    return null; // 已跳转到 setup 页面
+  }
+  
   const user = await checkAuth();
   if (user) {
     renderNavbar(user);

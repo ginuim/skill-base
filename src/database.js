@@ -116,14 +116,4 @@ for (const skill of existingSkills) {
   insertCollaborator.run(skill.id, skill.owner_id, skill.owner_id);
 }
 
-// 检查 users 表是否为空，如果为空则插入默认管理员账号
-const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
-if (userCount.count === 0) {
-    const passwordHash = bcrypt.hashSync('admin123', 10);
-    const insertAdmin = db.prepare(
-        'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)'
-    );
-    insertAdmin.run('admin', passwordHash, 'admin');
-}
-
 module.exports = db;

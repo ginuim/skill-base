@@ -40,6 +40,7 @@ async function start() {
     await fastify.register(require('./middleware/admin'));
 
     // 3. 注册 API 路由（前缀 /api/v1）
+    await fastify.register(require('./routes/init'), { prefix: '/api/v1/init' });
     await fastify.register(require('./routes/auth'), { prefix: '/api/v1/auth' });
     await fastify.register(require('./routes/skills'), { prefix: '/api/v1/skills' });
     await fastify.register(require('./routes/publish'), { prefix: '/api/v1/skills' });
@@ -56,6 +57,7 @@ async function start() {
       // 页面路由映射到对应 HTML 文件
       const url = request.url.split('?')[0]; // 去掉 query string
 
+      if (url === '/setup') return reply.sendFile('setup.html');
       if (url === '/login') return reply.sendFile('login.html');
       if (url === '/publish') return reply.sendFile('publish.html');
       if (url === '/cli-code') return reply.sendFile('cli-code.html');

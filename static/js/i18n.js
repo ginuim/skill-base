@@ -68,6 +68,21 @@
     'login.errFailed': '登录失败，请重试',
     'login.unauthorized': '未授权，请重新登录',
 
+    // Setup page (initial admin setup)
+    'setup.title': '初始化 - Skill Base',
+    'setup.subtitle': '// 首次启动 · 请设置管理员账号',
+    'setup.usernameHint': '3-50 个字符',
+    'setup.passwordHint': '至少 6 个字符',
+    'setup.submit': '创建管理员账号',
+    'setup.loading': '创建中...',
+    'setup.success': '管理员账号创建成功，即将跳转到登录页...',
+    'setup.errUsername': '请输入用户名',
+    'setup.errUsernameLength': '用户名需要 3-50 个字符',
+    'setup.errPassword': '请输入密码',
+    'setup.errPasswordLength': '密码至少需要 6 个字符',
+    'setup.errPasswordMismatch': '两次输入的密码不一致',
+    'setup.errFailed': '创建失败，请重试',
+
     // Index page
     'index.searchPlaceholder': '搜索 Skill...',
     'index.fabTitle': '发布新版本',
@@ -372,6 +387,21 @@
     'login.errPassword': 'Please enter your password',
     'login.errFailed': 'Login failed, please try again',
     'login.unauthorized': 'Unauthorized, please sign in again',
+
+    // Setup page (initial admin setup)
+    'setup.title': 'Initial Setup - Skill Base',
+    'setup.subtitle': '// First Launch · Create Admin Account',
+    'setup.usernameHint': '3-50 characters',
+    'setup.passwordHint': 'At least 6 characters',
+    'setup.submit': 'Create Admin Account',
+    'setup.loading': 'Creating...',
+    'setup.success': 'Admin account created successfully, redirecting to login...',
+    'setup.errUsername': 'Please enter a username',
+    'setup.errUsernameLength': 'Username must be 3-50 characters',
+    'setup.errPassword': 'Please enter a password',
+    'setup.errPasswordLength': 'Password must be at least 6 characters',
+    'setup.errPasswordMismatch': 'Passwords do not match',
+    'setup.errFailed': 'Setup failed, please try again',
 
     // Index page
     'index.searchPlaceholder': 'Search skills...',
