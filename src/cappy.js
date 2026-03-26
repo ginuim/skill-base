@@ -30,7 +30,7 @@ class CappyMascot {
         ],
         frames: [
           { color: 'warm', sprite: this.createSprite('o o', '___', 'paw') },
-          { color: 'orange', sprite: this.createSprite('o -', '___', 'paw') },
+          { color: 'orange', sprite: this.createSprite('- -', '___', 'paw') },
           { color: 'warm', sprite: this.createSprite('^ ^', '___', 'still') }
         ]
       },
@@ -40,9 +40,9 @@ class CappyMascot {
         loops: 4,
         messages: [
           `Cappy 正在看着 ${port} 号端口发呆。`,
-          '一切正常。复杂度暂时没有越狱。',
-          '技能仓库很安静，这才像个能维护的系统。',
-          '没有警报。Cappy 允许自己可爱一下。'
+          '一切正常。没有过度设计，就没有运行时焦虑。',
+          '技能仓库很安静，直白的代码才能带来这种安宁。',
+          '系统稳定。Cappy 鄙视无谓的复杂度。'
         ],
         frames: [
           { color: 'warm', sprite: this.createSprite('o o', '___', 'still') },
@@ -55,8 +55,8 @@ class CappyMascot {
         frameDelay: 180,
         loops: 2,
         messages: [
-          'Cappy 刚刚眨了下眼，顺手检查了一遍现场。',
-          '眨眼，不是摸鱼。是低成本巡检。'
+          '缓慢地眨了下眼。不是摸鱼，是在进行低成本巡检。',
+          '与其写一堆监控脚本，不如把代码写得简单点。'
         ],
         frames: [
           { color: 'warm', sprite: this.createSprite('o o', '___', 'still') },
@@ -64,18 +64,18 @@ class CappyMascot {
           { color: 'warm', sprite: this.createSprite('o o', '___', 'still') }
         ]
       },
-      orange: {
+      think: {
         weight: 1,
         frameDelay: 280,
         loops: 3,
         messages: [
-          '橘子平衡测试通过。Cappy 的稳定性可信。',
-          '顶着橘子值班，比写花活抽象层靠谱。'
+          '简单的架构才是最好的。真正的稳定性是不需要花哨设计的。',
+          '思考中。直接写代码，比写那些自作聪明的抽象层靠谱多了。'
         ],
         frames: [
-          { color: 'orange', sprite: this.createSprite('o o', '___', 'orange-left') },
-          { color: 'orange', sprite: this.createSprite('^ ^', '___', 'orange-mid') },
-          { color: 'orange', sprite: this.createSprite('o o', '___', 'orange-right') }
+          { color: 'cyan', sprite: this.createSprite('o o', '___', 'think-left') },
+          { color: 'cyan', sprite: this.createSprite('^ ^', '___', 'think-mid') },
+          { color: 'cyan', sprite: this.createSprite('o o', '___', 'think-right') }
         ]
       },
       soak: {
@@ -83,8 +83,8 @@ class CappyMascot {
         frameDelay: 340,
         loops: 3,
         messages: [
-          '温泉模式已开启。服务稳定，Cappy 也稳定。',
-          '有些问题不需要会，泡一下就想明白了。'
+          '数据结构对了，逻辑自然就像水一样顺畅。',
+          '泡一下就想明白了。别去猜未来的需求，YAGNI。'
         ],
         frames: [
           { color: 'pink', sprite: this.createSprite('^ ^', '~~~', 'steam-left') },
@@ -97,8 +97,8 @@ class CappyMascot {
         frameDelay: 220,
         loops: 4,
         messages: [
-          'Cappy 在短距离巡逻。没有多余步骤，只有必要移动。',
-          '散步中。顺便确认系统没有被聪明人搞复杂。'
+          '短距离散步。确认没有被哪个聪明人搞出过度设计。',
+          '没有多余步骤，只有必要移动。代码也该如此。'
         ],
         frames: [
           { color: 'cyan', sprite: this.createSprite('o o', '___', 'step-left') },
@@ -110,7 +110,7 @@ class CappyMascot {
         frameDelay: 180,
         loops: 6,
         messages: [
-          '收到任务，Cappy 正在飞快处理。'
+          '收到任务，Cappy 正在用最直接的方式处理。'
         ],
         frames: [
           { color: 'cyan', sprite: this.createSprite('> <', '===', 'spark-left') },
@@ -140,7 +140,7 @@ class CappyMascot {
     if (!this.isRunning || this.isStopped) return;
 
     this.playScene('work', {
-      message: message || '有新动作发生了，但系统依然很稳。',
+      message: message || '有新动作发生了，但卡皮巴拉依然很稳。',
       onDone: () => this.scheduleNextIdle(600)
     });
   }
