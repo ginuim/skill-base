@@ -82,6 +82,24 @@ async function start() {
     const cappy = new CappyMascot(PORT);
     fastify.decorate('cappy', cappy);
 
+    // 优雅解耦：通过 Fastify 的全局生命周期钩子来驱动 Cappy 动画，完全不污染业务路由
+    fastify.addHook('onResponse', (request, reply, done) => {
+      // 只有成功请求才触发，不理会报错
+      if (reply.statusCode >= 200 && reply.statusCode < 300) {
+        const method = request.method;
+        const url = request.url.split('?')[0];
+
+        if (method === 'POST' && url.match(/^\/api\/v1\/users\/?$/)) {
+          cappy.action('新用户被添加了。又多了一个打工人，系统依旧稳定。');
+        } else if (method === 'POST' && url.match(/^\/api\/v1\/skills\/publish\/?$/)) {
+          cappy.action('有新的 Skill/版本 发布了。希望它的代码没有过度设计。');
+        } else if (method === 'GET' && url.match(/^\/api\/v1\/skills\/[^/]+\/versions\/[^/]+\/download\/?$/)) {
+          cappy.action('有人拉取了 Skill。代码开始流通，Cappy 觉得很赞。');
+        }
+      }
+      done();
+    });
+
     await fastify.listen({ port: PORT, host: HOST });
     console.log(`\n📦 Skill Base Engine Initialized.\n`);
     
