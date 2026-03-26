@@ -22,7 +22,15 @@ npx skill-base -p 3000
 
 # 仅本地访问
 npx skill-base --host 127.0.0.1
+
+# 指定数据目录（推荐，方便管理数据）
+npx skill-base -d ./data
+
+# 数据存储到当前目录
+npx skill-base -d .
 ```
+
+> **提示**：使用 `-d` 指定数据目录后，数据库和 Skills 文件会存储在指定路径，而非 npm 缓存目录。这样更方便数据备份和管理。
 
 ### Web 端使用
 
@@ -115,6 +123,40 @@ skill-base/
 ├── static/       # Web 前端
 ├── data/         # 数据存储
 └── docs/         # 文档
+```
+
+## 数据存储
+
+### 数据目录结构
+
+```
+data/
+├── skills.db          # SQLite 数据库
+├── skills.db-wal      # WAL 日志
+├── skills.db-shm      # 共享内存文件
+└── <skill-id>/        # 每个 Skill 的 ZIP 文件
+    ├── v20260326.120000.zip
+    └── v20260326.150000.zip
+```
+
+### 删除数据
+
+**方法 1：指定数据目录后删除**
+
+```bash
+# 启动时指定数据目录
+npx skill-base -d ./my-data
+
+# 删除数据（停止服务后）
+rm -rf ./my-data
+```
+
+**方法 2：清理 npx 缓存（未指定 -d 时）**
+
+```bash
+npx clear-npx-cache
+# 或手动删除
+rm -rf ~/.npm/_npx/
 ```
 
 ## SKILL.md 规范
