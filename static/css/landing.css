@@ -92,6 +92,75 @@ body::after {
   background: var(--accent-green-dim);
 }
 
+/* ===== Navbar ===== */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+  height: 64px;
+}
+
+.navbar .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.nav-logo {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-green);
+  text-decoration: none;
+}
+
+.nav-logo:hover {
+  color: var(--accent-green);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-links a {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: var(--text-primary);
+}
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.nav-cta:hover {
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--accent-green);
+}
+
 /* ===== Typography ===== */
 h1, h2, h3, h4 {
   font-family: var(--font-mono);
@@ -195,7 +264,7 @@ section {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  padding-top: 60px;
+  padding-top: 124px;
   position: relative;
   overflow: hidden;
 }
@@ -542,8 +611,11 @@ section {
 }
 
 .key-point-icon {
-  font-size: 2.5rem;
   margin-bottom: 16px;
+  color: var(--accent-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .key-point h4 {
@@ -700,9 +772,11 @@ section {
 }
 
 .feature-icon {
-  font-size: 2.5rem;
   margin-bottom: 20px;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-green);
 }
 
 .feature-card h3 {
@@ -978,6 +1052,12 @@ section {
   color: #ff5858;
 }
 
+/* ===== Lucide SVG Icons ===== */
+.lucide-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 /* ===== Responsive Design ===== */
 @media (max-width: 1024px) {
   .hero-content {
@@ -1017,9 +1097,13 @@ section {
     --section-padding: 80px 0;
   }
   
+  .nav-links {
+    display: none;
+  }
+  
   .hero {
     min-height: auto;
-    padding: 100px 0 60px;
+    padding: 124px 0 60px;
   }
   
   .hero-cta {

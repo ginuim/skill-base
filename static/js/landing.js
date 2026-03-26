@@ -17,20 +17,14 @@ function initTypewriter() {
   const lines = [
     { type: 'command', prompt: '~', text: 'npx skill-base -p 8000', delay: 80 },
     { type: 'output', text: '', delay: 500 },
-    { type: 'output', class: 'info', text: '🚀 Starting Skill Base...', delay: 30 },
+    { type: 'output', class: 'info', text: 'Starting Skill Base...', delay: 30 },
     { type: 'output', text: '', delay: 300 },
-    { type: 'output', text: '   _____ __   _ ____   ____                ', delay: 5 },
-    { type: 'output', text: '  / ___// /__(_) / /  / __ )____ _________', delay: 5 },
-    { type: 'output', text: '  \\__ \\/ //_/ / / /  / __  / __ `/ ___/ _ \\', delay: 5 },
-    { type: 'output', text: ' ___/ / ,< / / / /  / /_/ / /_/ (__  )  __/', delay: 5 },
-    { type: 'output', text: '/____/_/|_/_/_/_/  /_____/\\__,_/____/\\___/ ', delay: 5 },
-    { type: 'output', text: '', delay: 200 },
     { type: 'output', class: 'success', text: '✓ Database initialized', delay: 30 },
     { type: 'output', class: 'success', text: '✓ Routes registered', delay: 30 },
     { type: 'output', class: 'success', text: '✓ Static files mounted', delay: 30 },
     { type: 'output', text: '', delay: 200 },
-    { type: 'output', class: 'warning', text: '⚡ Server running at http://localhost:8000', delay: 30 },
-    { type: 'output', class: 'info', text: '📦 Ready to manage your AI skills!', delay: 30 },
+    { type: 'output', class: 'warning', text: 'Server running at http://localhost:8000', delay: 30 },
+    { type: 'output', class: 'info', text: 'Ready to manage your AI skills!', delay: 30 },
   ];
 
   let lineIndex = 0;
