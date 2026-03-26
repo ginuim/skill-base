@@ -798,12 +798,11 @@ section {
 .tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 0;
+  margin-bottom: 16px;
   background: var(--bg-card);
   padding: 4px;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
-  border-bottom: none;
   width: fit-content;
 }
 
@@ -839,7 +838,7 @@ section {
 .code-block {
   background: var(--bg-terminal);
   border: 1px solid var(--border-color);
-  border-radius: 0 12px 12px 12px;
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
 }
@@ -890,6 +889,7 @@ section {
   font-family: var(--font-mono);
   font-size: 0.9rem;
   line-height: 1.8;
+  white-space: pre-wrap;
   overflow-x: auto;
   position: relative;
 }
