@@ -1,205 +1,186 @@
-# Skill Base
+# 📦 Skill Base
 
-轻量级 AI Agent Skill 管理平台，支持 Web 端和命令行工具。
+[![npm version](https://img.shields.io/npm/v/skill-base.svg)](https://www.npmjs.com/package/skill-base)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## 研发背景
+> **专为 200 人以下小团队打造的轻量级 AI Agent Skill 私有化管理平台。** 
+> 告别跨项目复制粘贴提示词，让你的 Cursor、OpenClaw、Cline 等 AI 助手瞬间掌握团队内部的最佳实践与业务规范。极简部署，开箱即用。
 
-在 AI 辅助开发日益普及的今天，我们发现一个普遍的痛点：**AI 生成的代码虽然能参考项目中已有的代码，但很多细节逻辑和团队约定往往会被遗漏。**
+---
 
-比如在管理后台项目中：
-- 查询页的查询条件默认应该折叠还是展开？
-- 机构下拉框的数据从哪个接口获取？
-- 常见的时间范围查询应该调用哪些接口、如何处理返回数据？
+## 🤔 什么是 Agent Skill？
 
-这些细节分散在各个文件中，AI 难以完整捕捉。团队需要一个地方来**沉淀、完善和持续更新**这些知识，形成可复用的 Skills 或 AGENTS.md 文档，让 AI 在生成代码时能够遵循团队的最佳实践。
+在 AI 辅助开发时代，AI 虽然懂通用代码，但**不懂你们公司的业务上下文**。
+如果让 AI 直接写一个“用户列表”，它可能会用原生的 `fetch` 和基础的 `table` 标签。但实际上，你们团队的规范可能是：
+1. 必须使用内部封装的 `@/utils/request.js` 发起请求。
+2. 必须使用团队魔改版的 `<ProTable>` 组件。
+3. 时间格式化必须调用内部的 `formatDate` 方法。
 
-**Skill Base 正是为此而生** —— 帮助小团队快速搭建内部的 Skill 管理平台，让团队知识不再流失。
+**Agent Skill（技能包）就是用来解决这个问题的。** 它是一份结构化的文档（包含提示词约束、上下文规范和代码示例），通过把这些规则交给 AI，让 AI 不再“瞎造轮子”，而是严格按照你们团队的规矩写代码。
 
-## 项目特点
+---
 
-- **开箱即用** - 只需 `npx skill-base -d ./data -p 3000` 一行命令即可启动服务
-- **零配置部署** - 使用 SQLite 数据库，无需额外安装数据库服务
-- **轻量级设计** - 专为小团队打造，部署简单、维护成本低
-- **知识沉淀** - 方便团队持续积累和更新开发规范、最佳实践
+## 💡 为什么需要 Skill Base？
 
-## 功能特性
+目前管理这些 AI 上下文，团队通常面临两大痛点，这也正是 Skill Base 诞生的原因：
 
-- **Skill 管理** - 搜索、安装、更新、发布 AI Agent Skills
-- **版本控制** - 每个 Skill 支持多版本管理
-- **协作者管理** - 支持多人协作维护 Skill
-- **双端支持** - Web 界面 + CLI 命令行工具
+### 1. 公共平台（如 Clawhub）不适合存放公司私有业务
+OpenClaw 等框架非常强大，Clawhub 上也有很多优秀的开源 Skill。但涉及**公司内部接口约定、私有 UI 组件库用法、核心业务逻辑**的 Skill，显然不能发布到公共网络。
+👉 **Skill Base 是 OpenClaw 等工具完美的“私有化伴侣”**，就像私有 npm 源（Verdaccio）一样，专门用于沉淀和分发团队内部的私有技能包。
 
-## 快速开始
+### 2. 告别四处复制粘贴 `.cursorrules`
+很多团队目前通过在每个代码仓库里放一个 `.cursorrules` 或共享文档来同步 AI 规范。一旦规范更新（比如组件库升级了），需要手动去几十个仓库里改，极难维护。
+👉 **Skill Base 引入了包管理的理念**。只需要 `skb install team-vue-rules`，就能将最新的规范同步到当前项目，支持版本控制与一键更新。
 
-### 使用 npx 一键启动
+### 3. 拒绝重型架构，专为小团队设计
+部署一套带 MySQL、Redis 的企业级知识库太重了。Skill Base 采用纯 Node.js + SQLite 架构，**一行 `npx` 命令即可启动**，没有任何运维心智负担。
+
+---
+
+## ✨ 核心特性
+
+- ⚡ **零配置启动**：一行 `npx skill-base` 即可运行，内置 SQLite，无需额外数据库服务。
+- 🔄 **如同 npm 般的体验**：提供 `skb` CLI 工具，`install / update / publish` 符合开发者直觉。
+- 🔒 **私有化安全**：所有团队规范、业务逻辑数据均保存在本地/私有服务器。
+- 📦 **版本控制**：支持 Skill 的多版本管理，规范迭代有迹可循。
+- 🌐 **双端支持**：可视化的 Web 管理后台 + 高效的 CLI 命令行。
+
+---
+
+## 💡 设计哲学：为“随时废弃”而构建 (Build to Delete)
+
+业界关于 AI 工程有一个著名的洞察：**车速越快，护栏越重要。**
+模型（引擎）越强大，团队越需要清晰的 Harness（架构约束、工具集）来防止 AI 跑偏。
+
+但我们深知，AI 进化的速度太快了。今天极度复杂的 Prompt 技巧，半年后可能就会被新一代模型原生的推理能力淘汰。
+
+因此，**Skill Base 坚决贯彻 "Start Simple. Build to Delete" 的理念：**
+1. **纯粹的搬运工**：我们不做重型的 Agent 编排框架，不与任何特定的大模型绑定。我们只是团队上下文的“高速快递网络”。
+2. **极轻量、模块化**：我们鼓励团队沉淀“微型技能包”（Micro-Skills），用完即弃，随时拆卸，绝不产生历史包袱。
+3. **零技术债**：无数据库依赖（内置 SQLite），无微服务。今天 `npx` 跑起来，明天删掉目录即无痕销毁。
+
+我们不预测 6 个月后的 AI 长什么样，但我们确保：**无论 AI 怎么变，Skill Base 永远是你团队同步最佳实践的最快通道。**
+
+---
+
+## 🚀 快速启动服务端
+
+要求 Node.js >= 18.0.0。最简单的启动方式是直接使用 `npx`：
 
 ```bash
-# 直接运行（默认端口 8000）
-npx skill-base
-
-# 指定端口
-npx skill-base -p 3000
-
-# 仅本地访问
-npx skill-base --host 127.0.0.1
-
-# 指定数据目录（推荐，方便管理数据）
-npx skill-base -d ./data
-
-# 数据存储到当前目录
-npx skill-base -d .
+# 推荐做法：指定数据目录启动（方便数据持久化和备份）
+npx skill-base -d ./skill-data -p 8000
 ```
 
-> **提示**：使用 `-d` 指定数据目录后，数据库和 Skills 文件会存储在指定路径，而非 npm 缓存目录。这样更方便数据备份和管理。
+**其他启动选项：**
+```bash
+npx skill-base                 # 默认启动 (端口 8000, 数据存放在 npm 缓存)
+npx skill-base --host 127.0.0.1 # 仅限本地访问，增强安全性
+```
 
-### Web 端使用
+> 🔐 **首次运行须知**：系统启动后，首次访问 Web 端将自动跳转至**初始化页面**，请根据提示设置系统管理员账号与密码。
 
-1. 访问平台首页，注册/登录账号
-2. 浏览或搜索需要的 Skill
-3. 点击 Skill 查看详情和历史版本
-4. 点击下载按钮获取 Skill 文件
-5. 拖入整个skill目录或者打包为zip包的skill即可完成发布/更新
-6. 服务器压力极小
+---
 
-**发布 Skill：**
-1. 登录后点击「发布」
-2. 选择包含 `SKILL.md` 的文件夹
-3. 填写版本说明后提交
+## 💻 客户端使用指南 (CLI & Web)
 
-### CLI 使用
+### ⌨️ CLI 命令行工具 (推荐极客使用)
 
-安装 CLI 工具：
-
+**1. 安装 CLI:**
 ```bash
 npm install -g skill-base-cli
 ```
 
-配置服务器地址（默认 localhost:8000）：
-
+**2. 配置你的私有服务地址:**
 ```bash
-export SKB_BASE_URL=https://your-server.com
+export SKB_BASE_URL=http://your-team-server
 ```
 
-常用命令：
 
+**3. 像用 npm 一样管理你的 AI Skills:**
 ```bash
-# 登录
+# 账号操作
 skb login
 
-# 搜索 Skill
-skb search vue
+# 搜索与安装
+skb search vue                                        # 搜索
+skb install vue-best-practices                        # 安装最新版
+skb install vue-best-practices@v20260115              # 安装指定版本
+skb install vue-best-practices -d ./.cursor/rules     # 安装到 Cursor 规则目录
 
-# 安装 Skill
-skb install vue-best-practices
-skb install vue-best-practices@v20260115.120000  # 指定版本
-skb install vue-best-practices -d ./my-skills    # 指定目录
-
-# 更新 Skill
-skb update vue-best-practices
-
-# 发布 Skill
-skb publish ./my-skill --changelog "初始版本"
-
-# 登出
-skb logout
+# 发布团队内部的新 Skill
+skb publish ./my-business-skill --changelog "新增了报表组件的使用规范"
 ```
 
-## 部署服务端
-
-### 环境要求
-
-- Node.js >= 18.0.0
-
-### 本地运行
-
+**🤖 深度集成各大主流 AI IDE**
+不用去记不同 AI 工具复杂的规则文件路径！`skb` 提供了智能的 IDE 适配，一键将团队规范直接注入你的工作流：
 ```bash
-# 安装依赖
-npm install
+# 交互式安装，根据提示选择即可
+skb install my-team-rules
 
-# 开发模式
-npm run dev
+# 或者使用快捷参数，直接注入当前项目的 AI 上下文
+skb install team-vue-rules --ide cursor     # 自动生成到 .cursor/rules/
+skb install team-vue-rules --ide copilot    # 自动生成到 .github/copilot-instructions.md
 
-# 生产模式
-npm start
+# 支持全局安装通用素养规则
+skb install git-commit-rules --ide cursor --global
 ```
 
-### 初始化管理员账号
+### 🌐 Web 端操作
+对于不习惯命令行的团队成员，可以直接访问浏览器：
+1. **浏览与检索**：可视化查看所有内部沉淀的 Skill 及其历史版本。
+2. **下载使用**：一键下载，直接拖入项目。
+3. **极简发布**：将包含 `SKILL.md` 的文件夹（或 zip 包）**直接拖拽**到网页上传区域，即可完成发布。
 
-首次启动时，如果系统中还没有管理员账号，访问任何页面会自动跳转到初始化设置页面，请按提示设置管理员用户名和密码。
+---
 
-> **安全提示**：请妥善保管管理员凭据，建议使用强密码。
+## 📝 如何编写一个好用的 Skill？
 
-### Docker 部署
-
-```bash
-docker build -t skill-base .
-docker run -p 8000:8000 -v ./data:/app/data skill-base
-```
-
-## 项目结构
-
-```
-skill-base/
-├── cli/          # CLI 命令行工具
-├── src/          # 服务端源码
-├── static/       # Web 前端
-├── data/         # 数据存储
-└── docs/         # 文档
-```
-
-## 数据存储
-
-### 数据目录结构
-
-```
-data/
-├── skills.db          # SQLite 数据库
-├── skills.db-wal      # WAL 日志
-├── skills.db-shm      # 共享内存文件
-└── <skill-id>/        # 每个 Skill 的 ZIP 文件
-    ├── v20260326.120000.zip
-    └── v20260326.150000.zip
-```
-
-### 删除数据
-
-**方法 1：指定数据目录后删除**
-
-```bash
-# 启动时指定数据目录
-npx skill-base -d ./my-data
-
-# 删除数据（停止服务后）
-rm -rf ./my-data
-```
-
-**方法 2：清理 npx 缓存（未指定 -d 时）**
-
-```bash
-npx clear-npx-cache
-# 或手动删除
-rm -rf ~/.npm/_npx/
-```
-
-## SKILL.md 规范
-
-每个 Skill 必须包含 `SKILL.md` 文件，平台会自动解析：
-
-- **name**: 第一个 `#` 标题
-- **description**: 标题后的第一段文本
-
-示例：
+在要发布的目录中创建一个 `SKILL.md`，Skill Base 会自动解析它。建议遵循以下结构：
 
 ```markdown
-# Vue Best Practices
+# 内部 Vue3 管理后台最佳实践
 
-Vue.js 开发最佳实践指南，包含组件设计、状态管理等内容。
+<!-- 第一段是简介，会被 Skill Base 自动抓取作为描述 -->
+这是研发一部针对中后台项目的标准 AI 提示词规范，包含组件库使用限制和接口请求标准。
 
-## 使用方法
+## 🎯 核心原则
+- 必须使用 TypeScript。
+- 所有的表单组件必须使用 `@/components/ProForm`，严禁使用原生 el-form。
 
-...
+## 📦 接口请求规范
+- 引入：`import { useRequest } from '@/utils/request'`
+- 示例：
+  ```javascript
+  const { data } = await useRequest('/api/v1/users', { method: 'GET' })
+  ```
+```
+*将上述文件夹通过 `skb publish` 发布后，你的团队成员就可以愉快地 `skb install` 并将它喂给 Cursor 或 OpenClaw 了！*
+
+---
+
+## 🛠 生产环境私有化部署
+
+### Docker 部署（推荐）
+对于企业内部服务器，使用 Docker 部署最为稳妥：
+```bash
+docker build -t skill-base .
+# 将本地的 ./data 目录挂载到容器内实现数据持久化
+docker run -d -p 8000:8000 -v $(pwd)/data:/app/data --name skill-base-server skill-base
 ```
 
-## License
+### 数据存储说明
+如果指定了 `-d ./data`，数据结构如下，非常便于直接打包备份：
+```text
+data/
+├── skills.db          # SQLite 核心数据库
+├── skills.db-wal      # WAL 日志缓存
+└── <skill-id>/        # 各个 Skill 的物理存储目录
+    ├── v20260326.120000.zip
+```
 
-MIT
+---
+
+## 🤝 参与贡献
+本项目基于 [MIT License](LICENSE) 开源，致力于打造最轻量、最好用的团队 AI 资产管理工具。欢迎提交 Issue 和 Pull Request 共建！
