@@ -85,12 +85,23 @@ CREATE TABLE IF NOT EXISTS skill_collaborators (
     UNIQUE(skill_id, user_id)
 );
 
+-- Session 表（可选，通过 SESSION_STORE=sqlite 启用）
+CREATE TABLE IF NOT EXISTS sessions (
+    session_id    TEXT PRIMARY KEY,
+    user_id       INTEGER NOT NULL,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at    DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- 索引
 CREATE INDEX IF NOT EXISTS idx_versions_skill_id ON skill_versions(skill_id);
 CREATE INDEX IF NOT EXISTS idx_cli_codes_user ON cli_auth_codes(user_id);
 CREATE INDEX IF NOT EXISTS idx_pat_tokens_user ON personal_access_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_collaborators_skill ON skill_collaborators(skill_id);
 CREATE INDEX IF NOT EXISTS idx_collaborators_user ON skill_collaborators(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
 `;
 
 // 执行建表语句
