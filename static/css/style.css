@@ -574,6 +574,30 @@ body.app-devtools .file-preview-list {
   background: var(--bg-color);
 }
 
+/* Setup 页面的内联语言切换器 */
+.lang-switcher--inline {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.lang-switcher--inline .lang-switcher-trigger {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.lang-switcher--inline .lang-switcher-trigger:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.lang-switcher--inline #currentLang {
+  font-weight: 500;
+}
+
 /* 页面内容偏移（为固定导航栏留出空间） */
 .page-content {
   padding-top: 80px;

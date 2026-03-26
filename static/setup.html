@@ -27,6 +27,25 @@
           <span class="login-panel-breadcrumb login-panel-breadcrumb--accent">Initialize</span>
         </div>
 
+        <!-- 语言切换器 -->
+        <div class="lang-switcher lang-switcher--inline">
+          <button class="lang-switcher-trigger" onclick="toggleLangSwitcher()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span id="currentLang">中文</span>
+            <svg class="lang-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="lang-switcher-menu">
+            <button class="lang-switcher-option active" onclick="setLang('zh')">中文</button>
+            <button class="lang-switcher-option" onclick="setLang('en')">English</button>
+          </div>
+        </div>
+
         <div class="login-header">
           <h1 class="login-title"><span class="login-title-prompt">$</span> Skill Base</h1>
           <p class="login-subtitle" data-i18n="setup.subtitle">// 首次启动 · 请设置管理员账号</p>
@@ -97,5 +116,53 @@
   <!-- 引入 JS -->
   <script src="/js/i18n.js"></script>
   <script src="/js/setup.js"></script>
+  <script>
+    // 初始化语言切换器状态
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentLang = localStorage.getItem('skill_base_lang') || 'zh';
+      updateLangDisplay(currentLang);
+    });
+
+    function toggleLangSwitcher() {
+      const switcher = document.querySelector('.lang-switcher');
+      switcher.classList.toggle('active');
+    }
+
+    function setLang(lang) {
+      localStorage.setItem('skill_base_lang', lang);
+      updateLangDisplay(lang);
+      
+      // 关闭菜单
+      document.querySelector('.lang-switcher').classList.remove('active');
+      
+      // 重新应用翻译
+      if (window.applyI18n) {
+        window.applyI18n();
+      }
+    }
+
+    function updateLangDisplay(lang) {
+      const display = document.getElementById('currentLang');
+      if (display) {
+        display.textContent = lang === 'zh' ? '中文' : 'English';
+      }
+      
+      // 更新选项激活状态
+      document.querySelectorAll('.lang-switcher-option').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent === (lang === 'zh' ? '中文' : 'English')) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    // 点击外部关闭菜单
+    document.addEventListener('click', function(e) {
+      const switcher = document.querySelector('.lang-switcher');
+      if (switcher && !switcher.contains(e.target)) {
+        switcher.classList.remove('active');
+      }
+    });
+  </script>
 </body>
 </html>
