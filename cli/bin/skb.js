@@ -33,7 +33,9 @@ program
 program
   .command('install <target>')
   .description('安装 Skill（支持 name@version 格式）')
-  .option('-d, --dir <directory>', '指定解压目标目录', process.cwd())
+  .option('-d, --dir <directory>', '指定解压目标目录')
+  .option('-i, --ide <ide>', '目标 IDE（cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode）')
+  .option('-g, --global', '安装到全局 IDE 配置目录', false)
   .action(install);
 
 program
