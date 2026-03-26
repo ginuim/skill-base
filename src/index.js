@@ -4,6 +4,7 @@ const fastify = require('fastify')({
   // 设置 body 大小限制为 100MB（支持大 zip 上传）
   bodyLimit: 100 * 1024 * 1024
 });
+const CappyMascot = require('./cappy');
 
 // 主启动函数
 async function start() {
@@ -76,9 +77,16 @@ async function start() {
     // 6. 启动服务
     const PORT = process.env.PORT || 8000;
     const HOST = process.env.HOST || '0.0.0.0';
+    
+    // 初始化 Cappy 水豚（必须在 listen 之前注册装饰器）
+    const cappy = new CappyMascot(PORT);
+    fastify.decorate('cappy', cappy);
 
     await fastify.listen({ port: PORT, host: HOST });
-    console.log(`Skill Base server running at http://${HOST}:${PORT}`);
+    console.log(`\n📦 Skill Base Engine Initialized.\n`);
+    
+    // 启动 Cappy 守护进程
+    cappy.start();
   } catch (err) {
     console.error(err);
     process.exit(1);
