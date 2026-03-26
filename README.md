@@ -121,7 +121,8 @@ skb install my-team-rules
 
 # 或者使用快捷参数，直接注入当前项目的 AI 上下文
 skb install team-vue-rules --ide cursor     # 自动生成到 .cursor/rules/
-skb install team-vue-rules --ide copilot    # 自动生成到 .github/copilot-instructions.md
+skb install team-vue-rules --ide qoder      # 自动生成到 .qoder/skills/
+skb install team-vue-rules --ide copilot    # 自动生成到 .github/instructions/
 
 # 支持全局安装通用素养规则
 skb install git-commit-rules --ide cursor --global
