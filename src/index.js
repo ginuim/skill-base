@@ -1,6 +1,6 @@
 const path = require('path');
 const fastify = require('fastify')({
-  logger: true,
+  logger: false,
   // 设置 body 大小限制为 100MB（支持大 zip 上传）
   bodyLimit: 100 * 1024 * 1024
 });
@@ -80,7 +80,7 @@ async function start() {
     await fastify.listen({ port: PORT, host: HOST });
     console.log(`Skill Base server running at http://${HOST}:${PORT}`);
   } catch (err) {
-    fastify.log.error(err);
+    console.error(err);
     process.exit(1);
   }
 }
