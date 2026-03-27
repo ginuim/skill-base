@@ -1,459 +1,255 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="zh" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="publish.title">发布新版本 - Skill Base</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <style>
-    /* 面包屑导航 */
-    .breadcrumb {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-lg);
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="publish.title">发布新版本 - Skill Base</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans:['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        base: { 950: '#09090b', 900: '#13141a', 800: '#27272a', 400: '#a1a1aa', 200: '#e4e4e7' },
+                        neon: { 400: '#00FFA3', 500: '#00E592' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <style>
+        body {
+            background-color: #09090b;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 64px 64px;
+        }
+        ::selection { background: rgba(0, 255, 163, 0.3); color: #fff; }
+        
+        body.app-devtools { background-color: transparent; background-image: none; }
+        body.app-devtools .page-content { background-image: none; padding-top: 2rem; min-height: calc(100vh - 64px); }
+        .navbar { position: sticky; top: 0; background-color: rgba(9, 9, 11, 0.8) !important; backdrop-filter: blur(12px); border-bottom: 1px solid #27272a !important; height: 64px; }
+        .navbar .container { height: 100%; }
+        
+        .card { background-color: #13141a; border: 1px solid #27272a; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border-radius: 0.75rem; }
 
-    .breadcrumb a {
-      color: var(--text-secondary);
-    }
+        /* 兼容 app.js 的组件样式 */
+        .navbar-user-btn { color: #fff !important; border-color: #27272a !important; font-family: 'JetBrains Mono', monospace;}
+        .navbar-user-btn:hover { border-color: #00E592 !important; color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
+        .navbar-user-menu { background-color: #13141a !important; border-color: #27272a !important; }
+        .navbar-user-menu-item { color: #e4e4e7 !important; }
+        .navbar-user-menu-item:hover { background-color: #27272a !important; color: #00FFA3 !important; }
+        .lang-switcher-trigger { border-color: #27272a !important; font-family: 'JetBrains Mono', monospace; }
+        .lang-switcher-trigger:hover, .lang-switcher.active .lang-switcher-trigger { border-color: #00E592 !important; color: #00FFA3 !important; }
+        .lang-switcher-menu { background-color: #13141a !important; border-color: #27272a !important; }
+        .lang-switcher-option:hover { background-color: #27272a !important; }
+        .lang-switcher-option.active { color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
 
-    .breadcrumb a:hover {
-      color: var(--primary-color);
-    }
+        .btn-primary { background-color: transparent !important; border: 1px solid #00E592 !important; color: #00FFA3 !important; box-shadow: 0 0 15px rgba(0,255,163,0.1) !important; font-family: 'JetBrains Mono', monospace; }
+        .btn-primary:hover { background-color: rgba(0,255,163,0.1) !important; box-shadow: 0 0 20px rgba(0,255,163,0.2) !important; color: #00FFA3 !important;}
+        .btn-secondary { background-color: transparent !important; border: 1px solid #27272a !important; color: #e4e4e7 !important; font-family: 'JetBrains Mono', monospace; }
+        .btn-secondary:hover { background-color: #27272a !important; color: #fff !important; }
 
-    .breadcrumb-separator {
-      color: var(--text-muted);
-    }
+        input[type="text"], textarea, select {
+            font-family: 'JetBrains Mono', monospace !important; background-color: #09090b !important; border-color: #27272a !important; color: #fff !important;
+        }
+        input:focus, textarea:focus, select:focus { border-color: #00FFA3 !important; box-shadow: 0 0 0 1px rgba(0,255,163,0.5) !important; }
+        input[readonly], textarea[readonly] { background-color: rgba(9, 9, 11, 0.5) !important; color: #a1a1aa !important; border-color: #27272a !important; }
 
-    .breadcrumb-current {
-      color: var(--text-color);
-      font-weight: 500;
-    }
+        /* Drop Zone */
+        .drop-zone {
+            border: 1px dashed #27272a; border-radius: 0.5rem; background-color: #09090b; min-height: 160px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .drop-zone:hover, .drop-zone.drag-over { border-color: #00FFA3; background-color: rgba(0,255,163,0.02); }
+        .drop-zone-icon { font-size: 2rem; color: #00FFA3; opacity: 0.5; margin-bottom: 0.5rem; }
+        .drop-zone-text { color: #fff; font-size: 0.875rem; margin-bottom: 0.25rem; }
+        .drop-zone-subtitle { color: #00FFA3; font-size: 0.75rem; cursor: pointer; opacity: 0.8; }
+        .drop-zone-subtitle:hover { opacity: 1; text-decoration: underline; }
+        .drop-zone-hint { font-size: 0.6875rem; color: #64748b; margin-top: 1rem; max-width: 80%; text-align: center;}
 
-    /* 发布表单卡片 */
-    .publish-card {
-      max-width: 720px;
-      margin: 0 auto;
-    }
+        .divider { display: flex; align-items: center; margin: 1.5rem 0; color: #27272a; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;}
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background-color: #27272a; }
+        .divider span { padding: 0 1rem; color: #64748b; }
 
-    .publish-card .card-title {
-      font-size: 1.25rem;
-      margin-bottom: var(--spacing-lg);
-    }
+        /* File preview */
+        .file-preview { background-color: #09090b; border: 1px solid #27272a; border-radius: 0.5rem; margin-top: 1rem; padding: 1rem; display: none; }
+        .file-preview.visible { display: block; }
+        .file-preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: #00FFA3; }
+        .file-preview-clear { color: #a1a1aa; background: none; border: none; font-size: 0.75rem; cursor: pointer; transition: color 0.2s; }
+        .file-preview-clear:hover { color: #ef4444; }
+        .file-preview-list { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #a1a1aa; max-height: 150px; overflow-y: auto; }
+        .file-preview-list .file-item { padding: 0.25rem 0; border-bottom: 1px dashed #27272a; }
+        .file-preview-list .file-item:last-child { border-bottom: none; }
+        .file-preview-summary { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #27272a; font-size: 0.75rem; color: #64748b; font-family: 'JetBrains Mono', monospace; }
 
-    /* Skill 选择区域 */
-    .skill-select-group {
-      display: flex;
-      gap: var(--spacing-md);
-      margin-bottom: var(--spacing-md);
-    }
+        /* Progress */
+        .progress-container { margin-top: 1.5rem; display: none; }
+        .progress-container.visible { display: block; }
+        .progress-bar-wrapper { height: 6px; background-color: #09090b; border-radius: 999px; overflow: hidden; border: 1px solid #27272a; }
+        .progress-bar { height: 100%; background-color: #00FFA3; width: 0%; transition: width 0.3s ease; box-shadow: 0 0 10px #00FFA3; }
+        .progress-text { margin-top: 0.5rem; font-size: 0.75rem; color: #00FFA3; text-align: center; font-family: 'JetBrains Mono', monospace; }
 
-    .skill-select-group select {
-      flex: 1;
-    }
+        /* Success */
+        .success-container { margin-top: 1.5rem; padding: 1.5rem; background-color: rgba(0,255,163,0.05); border: 1px solid rgba(0,255,163,0.2); border-radius: 0.5rem; text-align: center; display: none; }
+        .success-container.visible { display: block; }
+        .success-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .success-title { font-size: 1.125rem; font-weight: 600; color: #00FFA3; margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; }
+        .success-message { color: #a1a1aa; font-size: 0.875rem; margin-bottom: 1rem; font-family: 'JetBrains Mono', monospace; }
+        .success-actions { display: flex; gap: 1rem; justify-content: center; }
 
-    /* 新建字段组 */
-    /* 包内元信息只读展示 */
-    .skill-meta-readonly input[readonly],
-    .skill-meta-readonly textarea[readonly] {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      cursor: default;
-    }
-
-    /* 拖拽上传区域增强 */
-    .drop-zone {
-      min-height: 180px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .drop-zone.drag-over {
-      border-color: var(--primary-color);
-      background-color: var(--primary-light);
-    }
-
-    .drop-zone-subtitle {
-      font-size: 0.875rem;
-      color: var(--primary-color);
-      cursor: pointer;
-      margin-top: var(--spacing-xs);
-    }
-
-    .drop-zone-subtitle:hover {
-      text-decoration: underline;
-    }
-
-    /* 分隔线 */
-    .divider {
-      display: flex;
-      align-items: center;
-      margin: var(--spacing-lg) 0;
-      color: var(--text-muted);
-      font-size: 0.875rem;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background-color: var(--border-color);
-    }
-
-    .divider span {
-      padding: 0 var(--spacing-md);
-    }
-
-    /* zip 文件选择按钮 */
-    .zip-select-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-    }
-
-    .zip-file-input {
-      display: none;
-    }
-
-    /* 文件预览区域 */
-    .file-preview {
-      margin-top: var(--spacing-md);
-      padding: var(--spacing-md);
-      background-color: var(--bg-color);
-      border-radius: var(--radius);
-      display: none;
-    }
-
-    .file-preview.visible {
-      display: block;
-    }
-
-    .file-preview-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--spacing-sm);
-      font-weight: 500;
-      color: var(--text-color);
-    }
-
-    .file-preview-clear {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: var(--spacing-xs);
-      font-size: 0.75rem;
-    }
-
-    .file-preview-clear:hover {
-      color: var(--error-color);
-    }
-
-    .file-preview-list {
-      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      max-height: 200px;
-      overflow-y: auto;
-      line-height: 1.6;
-    }
-
-    .file-preview-list .file-item {
-      padding: var(--spacing-xs) 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .file-preview-list .file-item:last-child {
-      border-bottom: none;
-    }
-
-    .file-preview-more {
-      color: var(--text-muted);
-      font-style: italic;
-      padding-top: var(--spacing-sm);
-    }
-
-    .file-preview-summary {
-      margin-top: var(--spacing-sm);
-      padding-top: var(--spacing-sm);
-      border-top: 1px solid var(--border-color);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    /* 按钮栏 */
-    .form-actions {
-      display: flex;
-      gap: var(--spacing-md);
-      justify-content: flex-end;
-      margin-top: var(--spacing-xl);
-      padding-top: var(--spacing-lg);
-      border-top: 1px solid var(--border-color);
-    }
-
-    /* 进度条 */
-    .progress-container {
-      margin-top: var(--spacing-lg);
-      display: none;
-    }
-
-    .progress-container.visible {
-      display: block;
-    }
-
-    .progress-bar-wrapper {
-      height: 8px;
-      background-color: var(--bg-color);
-      border-radius: var(--radius-full);
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background-color: var(--primary-color);
-      border-radius: var(--radius-full);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .progress-text {
-      margin-top: var(--spacing-sm);
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      text-align: center;
-    }
-
-    /* 成功提示 */
-    .success-container {
-      margin-top: var(--spacing-lg);
-      padding: var(--spacing-lg);
-      background-color: var(--success-light);
-      border-radius: var(--radius);
-      text-align: center;
-      display: none;
-    }
-
-    .success-container.visible {
-      display: block;
-    }
-
-    .success-icon {
-      font-size: 3rem;
-      margin-bottom: var(--spacing-md);
-    }
-
-    .success-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--success-color);
-      margin-bottom: var(--spacing-sm);
-    }
-
-    .success-message {
-      color: var(--text-secondary);
-      margin-bottom: var(--spacing-md);
-    }
-
-    .success-actions {
-      display: flex;
-      gap: var(--spacing-md);
-      justify-content: center;
-    }
-
-    @media (max-width: 768px) {
-      .skill-select-group {
-        flex-direction: column;
-      }
-
-      .form-actions {
-        flex-direction: column-reverse;
-      }
-
-      .form-actions .btn {
-        width: 100%;
-      }
-
-      .success-actions {
-        flex-direction: column;
-      }
-
-      .success-actions .btn {
-        width: 100%;
-      }
-    }
-  </style>
+        .form-hint { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+    </style>
 </head>
-<body class="app-devtools">
-  <!-- 导航栏 -->
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="navbar-brand">
-        <svg class="navbar-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        <span>Skill Base</span>
-      </a>
-      <div class="navbar-nav">
-        <a href="/" data-i18n="nav.home">首页</a>
-        <a href="/publish.html" class="active hide-mobile" data-i18n="nav.publish">发布</a>
-      </div>
-      <!-- 用户区域由 JS 动态渲染 -->
-    </div>
-  </nav>
-
-  <!-- 页面内容 -->
-  <main class="page-content">
-    <div class="container">
-      <!-- 面包屑导航 -->
-      <nav class="breadcrumb">
-        <a href="/" data-i18n="skill.breadcrumbHome">首页</a>
-        <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current" data-i18n="publish.breadcrumbCurrent">发布新版本</span>
-      </nav>
-
-      <!-- 发布表单卡片 -->
-      <div class="card publish-card">
-        <h1 class="card-title" data-i18n="publish.heading">发布新版本</h1>
-
-        <form id="publishForm">
-          <!-- 上传优先：进入页面即可拖文件夹 / zip，并自动填 SKILL.md 信息 -->
-          <div class="form-group">
-            <label class="form-label required" data-i18n="publish.uploadLabel">上传文件</label>
-            <div id="drop-zone" class="drop-zone">
-              <div class="drop-zone-icon">📁</div>
-              <div class="drop-zone-text" data-i18n="publish.dropText">拖拽 Skill 文件夹或 zip 到此处</div>
-              <div class="drop-zone-subtitle" data-i18n="publish.dropSubtitle">或点击选择文件夹</div>
-              <div class="drop-zone-hint" data-i18n="publish.dropHint">Skill ID、名称、描述均从包内读取（文件夹名 / zip 文件名 + SKILL.md），不可手改</div>
+<body class="app-devtools text-base-200 font-sans min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="navbar z-50">
+        <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div class="flex items-center gap-8">
+                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none hover:opacity-80 transition-opacity">
+                    <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </span>
+                    <span class="text-white font-bold font-mono">Skill Base</span>
+                </a>
+                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium font-mono">
+                    <a href="/" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5" data-i18n="nav.home">首页</a>
+                    <a href="/publish.html" class="text-white flex items-center gap-1.5 hide-mobile" data-i18n="nav.publish"><span class="text-neon-400">./</span>发布</a>
+                </div>
             </div>
-
-            <div class="divider">
-              <span data-i18n="publish.or">或</span>
-            </div>
-
-            <div>
-              <label class="btn btn-secondary zip-select-btn">
-                <span>📎</span>
-                <span data-i18n="publish.selectZip">选择 zip 文件...</span>
-                <input type="file" id="zip-file-input" class="zip-file-input" accept=".zip">
-              </label>
-            </div>
-
-            <div id="file-preview" class="file-preview">
-              <div class="file-preview-header">
-                <span data-i18n="publish.selectedFiles">已选择文件</span>
-                <button type="button" class="file-preview-clear" id="clear-files" data-i18n="publish.clearFiles">清除</button>
-              </div>
-              <div id="file-preview-list" class="file-preview-list">
-                <!-- 由 JS 动态填充 -->
-              </div>
-              <div id="file-preview-summary" class="file-preview-summary"></div>
-            </div>
-          </div>
-
-          <!-- Skill 选择 -->
-          <div class="form-group">
-            <label for="skill-select" class="form-label" data-i18n="publish.selectSkill">选择 Skill</label>
-            <div class="skill-select-group">
-              <select id="skill-select">
-                <option value="" data-i18n="publish.createNew">-- 创建新 Skill --</option>
-                <!-- 由 JS 动态填充已有 Skill -->
-              </select>
-            </div>
-            <p class="form-hint" data-i18n="publish.skillSelectHint">更新已有 Skill 时请选择与包内 Skill ID 一致的一项；新建则保持「创建新 Skill」</p>
-          </div>
-
-          <div class="skill-meta-readonly">
-            <!-- Skill ID：来自文件夹名 / zip 文件名 -->
-            <div class="form-group">
-              <label for="skill-id" class="form-label required" data-i18n="publish.idLabel">Skill ID</label>
-              <input
-                type="text"
-                id="skill-id"
-                readonly
-                data-i18n-placeholder="publish.idPlaceholder"
-                placeholder="上传文件夹或 zip 后自动填入"
-                pattern="[a-z0-9\-_]+"
-              >
-              <p class="form-hint" data-i18n="publish.idHint">由文件夹名或 zip 文件名推导（小写字母、数字、连字符、下划线）</p>
-            </div>
-
-            <div class="form-group">
-              <label for="skill-name" class="form-label required" data-i18n="publish.nameLabel">Skill 名称</label>
-              <input
-                type="text"
-                id="skill-name"
-                readonly
-                data-i18n-placeholder="publish.namePlaceholder"
-                placeholder="上传后从 SKILL.md 读取"
-              >
-              <p class="form-hint" data-i18n="publish.nameHint">来自 SKILL.md（frontmatter 或首行标题）</p>
-            </div>
-
-            <div class="form-group">
-              <label for="skill-description" class="form-label required" data-i18n="publish.descLabel">描述</label>
-              <textarea
-                id="skill-description"
-                rows="3"
-                readonly
-                maxlength="500"
-                data-i18n-placeholder="publish.descPlaceholder"
-                placeholder="上传后从 SKILL.md 读取"
-              ></textarea>
-              <p class="form-hint"><span id="skill-description-count">0</span> / 500 字（与包内一致，截断至 500 字）</p>
-            </div>
-          </div>
-
-          <!-- 更新说明 -->
-          <div class="form-group">
-            <label for="changelog" class="form-label" data-i18n="publish.changelogLabel">更新说明</label>
-            <textarea 
-              id="changelog" 
-              rows="4"
-              data-i18n-placeholder="publish.changelogPlaceholder"
-              placeholder="描述本次更新的内容...&#10;&#10;例如：&#10;- 新增 xxx 功能&#10;- 修复 xxx 问题"
-            ></textarea>
-          </div>
-
-          <!-- 按钮栏 -->
-          <div class="form-actions">
-            <a href="/" class="btn btn-secondary" data-i18n="publish.cancelBtn">取消</a>
-            <button type="submit" id="submit-btn" class="btn btn-primary" data-i18n="publish.submitBtn">
-              发布新版本
-            </button>
-          </div>
-
-          <!-- 进度条 -->
-          <div id="progress-container" class="progress-container">
-            <div class="progress-bar-wrapper">
-              <div id="progress-bar" class="progress-bar"></div>
-            </div>
-            <div id="progress-text" class="progress-text">正在上传...</div>
-          </div>
-        </form>
-
-        <!-- 成功提示 -->
-        <div id="success-container" class="success-container">
-          <div class="success-icon">✅</div>
-          <div class="success-title" data-i18n="publish.successTitle">发布成功！</div>
-          <div id="success-message" class="success-message"></div>
-          <div class="success-actions">
-            <a id="view-skill-link" href="#" class="btn btn-primary" data-i18n="publish.viewDetail">查看详情</a>
-            <a href="/publish.html" class="btn btn-secondary" data-i18n="publish.publishAnother">继续发布</a>
-          </div>
         </div>
-      </div>
-    </div>
-  </main>
+    </nav>
 
-  <!-- 引入 JS -->
-  <script src="/js/i18n.js"></script>
-  <script src="/js/app.js"></script>
-  <script src="/js/publish.js"></script>
+    <main class="page-content">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-4 pb-16">
+            <!-- 面包屑 -->
+            <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
+                <span class="text-neon-400">~</span>
+                <span class="opacity-50">/</span>
+                <a href="/" class="hover:text-white transition-colors">home</a>
+                <span class="opacity-50">/</span>
+                <span class="text-white">publish</span>
+            </div>
+
+            <div class="card publish-card relative overflow-hidden" style="max-width: 720px; margin: 0 auto; padding: 2rem;">
+                <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CMD-PUB</div>
+                
+                <h1 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                    <span class="text-neon-400 font-mono font-normal opacity-70">></span>
+                    <span data-i18n="publish.heading">发布新版本</span>
+                </h1>
+
+                <form id="publishForm" class="space-y-6">
+                    <div class="form-group">
+                        <label class="form-label font-mono text-base-400 mb-2 block required" data-i18n="publish.uploadLabel">上传文件</label>
+                        <div id="drop-zone" class="drop-zone">
+                            <div class="drop-zone-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            </div>
+                            <div class="drop-zone-text" data-i18n="publish.dropText">拖拽 Skill 文件夹或 zip 到此处</div>
+                            <div class="drop-zone-subtitle" data-i18n="publish.dropSubtitle">或点击选择文件夹</div>
+                            <div class="drop-zone-hint" data-i18n="publish.dropHint">// Skill ID、名称、描述均从包内读取，不可手改</div>
+                        </div>
+
+                        <div class="divider">
+                            <span data-i18n="publish.or">OR</span>
+                        </div>
+
+                        <div class="text-center">
+                            <label class="btn btn-secondary zip-select-btn px-4 py-2 rounded-lg cursor-pointer">
+                                <span class="text-neon-400">📎</span>
+                                <span data-i18n="publish.selectZip">选择 zip 文件...</span>
+                                <input type="file" id="zip-file-input" class="hidden" accept=".zip">
+                            </label>
+                        </div>
+
+                        <div id="file-preview" class="file-preview">
+                            <div class="file-preview-header">
+                                <span data-i18n="publish.selectedFiles">已选择文件</span>
+                                <button type="button" class="file-preview-clear" id="clear-files" data-i18n="publish.clearFiles">[ clear ]</button>
+                            </div>
+                            <div id="file-preview-list" class="file-preview-list"></div>
+                            <div id="file-preview-summary" class="file-preview-summary"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="skill-select" class="form-label font-mono text-base-400 mb-2 block" data-i18n="publish.selectSkill">选择 Skill</label>
+                        <select id="skill-select" class="rounded-lg px-4 py-2.5 w-full">
+                            <option value="" data-i18n="publish.createNew">-- 创建新 Skill --</option>
+                        </select>
+                        <p class="form-hint" data-i18n="publish.skillSelectHint">// 更新已有 Skill 时请选择与包内 Skill ID 一致的一项；新建则保持「创建新 Skill」</p>
+                    </div>
+
+                    <div class="skill-meta-readonly space-y-4 pt-4 border-t border-base-800">
+                        <div class="form-group">
+                            <label for="skill-id" class="form-label font-mono text-base-400 mb-2 block required" data-i18n="publish.idLabel">Skill ID</label>
+                            <input type="text" id="skill-id" readonly data-i18n-placeholder="publish.idPlaceholder" placeholder="上传文件夹或 zip 后自动填入" pattern="[a-z0-9\-_]+" class="rounded-lg px-4 py-2.5 w-full">
+                            <p class="form-hint" data-i18n="publish.idHint">// 由文件夹名或 zip 文件名推导（小写字母、数字、连字符、下划线）</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="skill-name" class="form-label font-mono text-base-400 mb-2 block required" data-i18n="publish.nameLabel">Skill 名称</label>
+                            <input type="text" id="skill-name" readonly data-i18n-placeholder="publish.namePlaceholder" placeholder="上传后从 SKILL.md 读取" class="rounded-lg px-4 py-2.5 w-full">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="skill-description" class="form-label font-mono text-base-400 mb-2 block required" data-i18n="publish.descLabel">描述</label>
+                            <textarea id="skill-description" rows="3" readonly maxlength="500" data-i18n-placeholder="publish.descPlaceholder" placeholder="上传后从 SKILL.md 读取" class="rounded-lg px-4 py-2.5 w-full"></textarea>
+                            <p class="form-hint"><span id="skill-description-count" class="text-neon-400">0</span> / 500 字</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group pt-4 border-t border-base-800">
+                        <label for="changelog" class="form-label font-mono text-base-400 mb-2 block" data-i18n="publish.changelogLabel">更新说明</label>
+                        <textarea id="changelog" rows="4" data-i18n-placeholder="publish.changelogPlaceholder" placeholder="描述本次更新的内容...&#10;&#10;- feat: add new feature&#10;- fix: resolve issue" class="rounded-lg px-4 py-2.5 w-full"></textarea>
+                    </div>
+
+                    <div class="flex gap-4 justify-end pt-6 border-t border-base-800 mt-8">
+                        <a href="/" class="btn btn-secondary px-6 py-2.5 rounded-lg" data-i18n="publish.cancelBtn">取消</a>
+                        <button type="submit" id="submit-btn" class="btn btn-primary px-6 py-2.5 rounded-lg flex items-center gap-2" data-i18n="publish.submitBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            发布新版本
+                        </button>
+                    </div>
+
+                    <div id="progress-container" class="progress-container">
+                        <div class="progress-bar-wrapper">
+                            <div id="progress-bar" class="progress-bar"></div>
+                        </div>
+                        <div id="progress-text" class="progress-text">Uploading...</div>
+                    </div>
+                </form>
+
+                <div id="success-container" class="success-container">
+                    <div class="success-icon text-neon-400 mb-4">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="success-title" data-i18n="publish.successTitle">发布成功！</div>
+                    <div id="success-message" class="success-message"></div>
+                    <div class="success-actions mt-6">
+                        <a id="view-skill-link" href="#" class="btn btn-primary px-6 py-2 rounded-lg" data-i18n="publish.viewDetail">查看详情</a>
+                        <a href="/publish.html" class="btn btn-secondary px-6 py-2 rounded-lg" data-i18n="publish.publishAnother">继续发布</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/publish.js"></script>
 </body>
 </html>

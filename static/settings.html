@@ -1,163 +1,257 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="zh" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="settings.title">账户设置 - Skill Base</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <style>
-    .settings-card {
-      max-width: 640px;
-      margin: 0 auto;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="settings.title">账户设置 - Skill Base</title>
+    <!-- 引入 Inter 和 JetBrains Mono 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans:['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        base: { 950: '#09090b', 900: '#13141a', 800: '#27272a', 400: '#a1a1aa', 200: '#e4e4e7' },
+                        neon: { 400: '#00FFA3', 500: '#00E592' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            background-color: #09090b;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 64px 64px;
+        }
+        ::selection { background: rgba(0, 255, 163, 0.3); color: #fff; }
+        
+        body.app-devtools {
+            background-color: transparent;
+            background-image: none;
+        }
+        body.app-devtools .page-content {
+            background-image: none;
+            padding-top: 2rem;
+            min-height: calc(100vh - 64px);
+        }
+        .navbar {
+            position: sticky;
+            top: 0;
+            background-color: rgba(9, 9, 11, 0.8) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #27272a !important;
+            height: 64px;
+        }
+        .navbar .container {
+            height: 100%;
+        }
+        .card { 
+            background-color: #13141a; 
+            border: 1px solid #27272a; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            border-radius: 0.75rem;
+        }
 
-    .settings-header {
-      margin-bottom: var(--spacing-lg);
-    }
+        /* 覆盖表单和按钮 */
+        .settings-section-title {
+            color: #fff !important;
+            border-bottom-color: #27272a !important;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .btn-primary {
+            background-color: transparent !important;
+            border: 1px solid #00E592 !important;
+            color: #00FFA3 !important;
+            box-shadow: 0 0 15px rgba(0,255,163,0.1) !important;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .btn-primary:hover {
+            background-color: rgba(0,255,163,0.1) !important;
+            box-shadow: 0 0 20px rgba(0,255,163,0.2) !important;
+        }
+        .btn-secondary {
+            background-color: transparent !important;
+            border: 1px solid #27272a !important;
+            color: #e4e4e7 !important;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .btn-secondary:hover {
+            background-color: #27272a !important;
+            color: #fff !important;
+        }
+        .cli-code-link {
+            background-color: rgba(0,255,163,0.05) !important;
+            border-color: rgba(0,255,163,0.2) !important;
+            color: #00FFA3 !important;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .cli-code-link:hover {
+            background-color: rgba(0,255,163,0.1) !important;
+        }
 
-    .settings-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--text-color);
-      margin-bottom: var(--spacing-xs);
-    }
-
-    .settings-subtitle {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-
-    .settings-section {
-      margin-bottom: var(--spacing-xl);
-    }
-
-    .settings-section-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--text-color);
-      margin-bottom: var(--spacing-md);
-      padding-bottom: var(--spacing-sm);
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .form-hint {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-top: var(--spacing-xs);
-    }
-
-    .cli-code-link {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-md);
-      background-color: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: var(--radius);
-      color: var(--info-color);
-      text-decoration: none;
-      transition: var(--transition);
-    }
-
-    .cli-code-link:hover {
-      background-color: rgba(56, 189, 248, 0.15);
-    }
-
-    .cli-code-link svg {
-      width: 18px;
-      height: 18px;
-    }
-  </style>
+        /* 兼容 app.js 的组件样式 */
+        .navbar-user-btn { color: #fff !important; border-color: #27272a !important; }
+        .navbar-user-btn:hover { border-color: #00E592 !important; color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
+        .navbar-user-menu { background-color: #13141a !important; border-color: #27272a !important; }
+        .navbar-user-menu-item { color: #e4e4e7 !important; }
+        .navbar-user-menu-item:hover { background-color: #27272a !important; color: #00FFA3 !important; }
+        .lang-switcher-trigger { border-color: #27272a !important; }
+        .lang-switcher-trigger:hover, .lang-switcher.active .lang-switcher-trigger { border-color: #00E592 !important; color: #00FFA3 !important; }
+        .lang-switcher-menu { background-color: #13141a !important; border-color: #27272a !important; }
+        .lang-switcher-option:hover { background-color: #27272a !important; }
+        .lang-switcher-option.active { color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
+        
+        input[type="text"], input[type="password"] {
+            font-family: 'JetBrains Mono', monospace !important;
+            background-color: #09090b !important;
+            border-color: #27272a !important;
+            color: #fff !important;
+        }
+        input:focus {
+            border-color: #00FFA3 !important;
+            box-shadow: 0 0 0 2px rgba(0,255,163,0.2) !important;
+        }
+    </style>
 </head>
-<body class="app-devtools">
-  <!-- 导航栏 -->
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="navbar-brand">
-        <svg class="navbar-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        <span>Skill Base</span>
-      </a>
-      <div class="navbar-nav">
-        <a href="/" data-i18n="nav.home">首页</a>
-        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
-      </div>
-      <!-- 用户区域由 JS 动态渲染 -->
-    </div>
-  </nav>
-
-  <!-- 页面内容 -->
-  <main class="page-content">
-    <div class="container">
-      <div class="card settings-card">
-        <div class="settings-header">
-          <h1 class="settings-title" data-i18n="settings.heading">账户设置</h1>
-          <p class="settings-subtitle" data-i18n="settings.subtitle">管理您的个人信息和凭证</p>
+<body class="app-devtools text-base-200 font-sans min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="navbar z-50">
+        <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div class="flex items-center gap-8">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none hover:opacity-80 transition-opacity">
+                    <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </span>
+                    <span class="text-white font-bold font-mono">Skill Base</span>
+                </a>
+                <!-- Nav Links -->
+                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium font-mono">
+                    <a href="/" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5" data-i18n="nav.home">首页</a>
+                    <a href="/publish.html" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5 hide-mobile" data-i18n="nav.publish">发布</a>
+                </div>
+            </div>
+            <!-- app.js 的 user 区域 -->
         </div>
+    </nav>
 
-        <!-- 基本信息 -->
-        <div class="settings-section">
-          <h2 class="settings-section-title" data-i18n="settings.basicInfo">基本信息</h2>
-          <form id="profileForm">
-            <div class="form-group">
-              <label class="form-label" data-i18n="settings.usernameLabel">用户名</label>
-              <input type="text" id="username" required>
-              <p class="form-hint" data-i18n="settings.usernameHint">至少 1 个字符，最多 50 个字符</p>
+    <!-- 页面内容 -->
+    <main class="page-content">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-8 pb-16">
+            
+            <!-- 面包屑 -->
+            <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
+                <span class="text-neon-400">~</span>
+                <span class="opacity-50">/</span>
+                <a href="/" class="hover:text-white transition-colors">home</a>
+                <span class="opacity-50">/</span>
+                <span class="text-white">settings</span>
             </div>
-            <div class="form-group">
-              <label class="form-label" data-i18n="settings.nameLabel">姓名</label>
-              <input type="text" id="name" data-i18n-placeholder="settings.namePlaceholder" placeholder="请输入您的姓名">
-              <p class="form-hint" data-i18n="settings.nameHint">可选，用于显示在技能作者信息中</p>
+
+            <div class="card settings-card p-8 relative overflow-hidden" style="max-width: 680px; margin: 0 auto;">
+                <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CFG-USER</div>
+                
+                <div class="settings-header mb-8 border-b border-base-800 pb-6">
+                    <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                        <span class="text-neon-400 font-mono font-normal opacity-70">></span>
+                        <span data-i18n="settings.heading">账户设置</span>
+                    </h1>
+                    <p class="text-base-400 text-sm font-mono" data-i18n="settings.subtitle">// 管理您的个人信息和凭证</p>
+                </div>
+
+                <!-- 基本信息 -->
+                <div class="settings-section mb-10">
+                    <h2 class="settings-section-title flex items-center gap-2" data-i18n="settings.basicInfo">
+                        <span class="text-neon-400">#</span> 基本信息
+                    </h2>
+                    <form id="profileForm" class="space-y-5 mt-6">
+                        <div class="form-group mb-0">
+                            <label class="form-label font-mono text-base-400 mb-2 block">
+                                <span class="text-neon-400 opacity-70">let</span> <span class="text-white">username</span> <span class="text-neon-400 opacity-70">=</span>
+                            </label>
+                            <input type="text" id="username" required class="rounded-lg px-4 py-2.5 w-full">
+                            <p class="form-hint font-mono text-xs opacity-50" data-i18n="settings.usernameHint">// 至少 1 个字符，最多 50 个字符</p>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="form-label font-mono text-base-400 mb-2 block">
+                                <span class="text-neon-400 opacity-70">let</span> <span class="text-white">name</span> <span class="text-neon-400 opacity-70">=</span>
+                            </label>
+                            <input type="text" id="name" data-i18n-placeholder="settings.namePlaceholder" placeholder="请输入您的姓名" class="rounded-lg px-4 py-2.5 w-full">
+                            <p class="form-hint font-mono text-xs opacity-50" data-i18n="settings.nameHint">// 可选，用于显示在技能作者信息中</p>
+                        </div>
+                        <div class="pt-2">
+                            <button type="submit" class="btn btn-primary px-6 py-2.5 rounded-lg" id="saveProfileBtn" data-i18n="settings.saveBtn">
+                                保存修改
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- CLI 验证码 -->
+                <div class="settings-section mb-10">
+                    <h2 class="settings-section-title flex items-center gap-2" data-i18n="settings.cliSection">
+                        <span class="text-neon-400">#</span> CLI 访问凭证
+                    </h2>
+                    <div class="mt-6">
+                        <p class="text-base-400 text-sm font-mono mb-4" data-i18n-html="settings.cliDesc">
+                            // 在本地终端使用 <code>skb</code> 命令行工具时，需要获取验证码进行登录。
+                        </p>
+                        <a href="/cli-code.html" class="cli-code-link rounded-lg px-4 py-3">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span data-i18n="settings.cliLink">获取 CLI 验证码</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 修改密码 -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title flex items-center gap-2" data-i18n="settings.passwordSection">
+                        <span class="text-neon-400">#</span> 修改密码
+                    </h2>
+                    <form id="passwordForm" class="space-y-5 mt-6">
+                        <div class="form-group mb-0">
+                            <label class="form-label font-mono text-base-400 mb-2 block required" data-i18n="settings.oldPassword">当前密码</label>
+                            <input type="password" id="oldPassword" required class="rounded-lg px-4 py-2.5 w-full">
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="form-label font-mono text-base-400 mb-2 block required" data-i18n="settings.newPassword">新密码</label>
+                            <input type="password" id="newPassword" required class="rounded-lg px-4 py-2.5 w-full">
+                            <p class="form-hint font-mono text-xs opacity-50" data-i18n="settings.newPasswordHint">// 至少 6 个字符</p>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="form-label font-mono text-base-400 mb-2 block required" data-i18n="settings.confirmPassword">确认新密码</label>
+                            <input type="password" id="confirmPassword" required class="rounded-lg px-4 py-2.5 w-full">
+                        </div>
+                        <div class="pt-2">
+                            <button type="submit" class="btn btn-secondary px-6 py-2.5 rounded-lg" id="changePasswordBtn" data-i18n="settings.changePasswordBtn">
+                                修改密码
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary" id="saveProfileBtn" data-i18n="settings.saveBtn">
-              保存修改
-            </button>
-          </form>
         </div>
+    </main>
 
-        <!-- CLI 验证码 -->
-        <div class="settings-section">
-          <h2 class="settings-section-title" data-i18n="settings.cliSection">CLI 访问凭证</h2>
-          <p class="text-secondary mb-2" data-i18n-html="settings.cliDesc">
-            在本地终端使用 <code>skb</code> 命令行工具时，需要获取验证码进行登录。
-          </p>
-          <a href="/cli-code.html" class="cli-code-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <span data-i18n="settings.cliLink">获取 CLI 验证码</span>
-          </a>
-        </div>
-
-        <!-- 修改密码 -->
-        <div class="settings-section">
-          <h2 class="settings-section-title" data-i18n="settings.passwordSection">修改密码</h2>
-          <form id="passwordForm">
-            <div class="form-group">
-              <label class="form-label required" data-i18n="settings.oldPassword">当前密码</label>
-              <input type="password" id="oldPassword" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label required" data-i18n="settings.newPassword">新密码</label>
-              <input type="password" id="newPassword" required>
-              <p class="form-hint" data-i18n="settings.newPasswordHint">至少 6 个字符</p>
-            </div>
-            <div class="form-group">
-              <label class="form-label required" data-i18n="settings.confirmPassword">确认新密码</label>
-              <input type="password" id="confirmPassword" required>
-            </div>
-            <button type="submit" class="btn btn-secondary" id="changePasswordBtn" data-i18n="settings.changePasswordBtn">
-              修改密码
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- 引入 JS -->
-  <script src="/js/i18n.js"></script>
-  <script src="/js/app.js"></script>
-  <script src="/js/settings.js"></script>
+    <!-- 引入 JS -->
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/settings.js"></script>
 </body>
 </html>

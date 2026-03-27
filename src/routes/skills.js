@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
-const { getZipPath } = require('../utils/zip');
+const { getZipPath, resolveZipPath } = require('../utils/zip');
 
 // 格式化 skill，将 owner 转为对象
 function formatSkill(skill) {
@@ -99,20 +99,25 @@ async function skillsRoutes(fastify, options) {
       return reply.code(404).send({ detail: 'Version not found' });
     }
 
-    // 获取文件路径
-    const zipPath = getZipPath(skill_id, versionRecord.version);
+    // 优先使用数据库里的 zip_path，兼容历史数据；缺失时再回退到规则路径
+    const zipPath = resolveZipPath(versionRecord.zip_path, skill_id, versionRecord.version);
+    const fallbackZipPath = getZipPath(skill_id, versionRecord.version);
 
     // 检查文件是否存在
     if (!fs.existsSync(zipPath)) {
-      return reply.code(404).send({ detail: 'Version not found' });
+      if (!fs.existsSync(fallbackZipPath)) {
+        return reply.code(404).send({ detail: 'Version not found' });
+      }
     }
+
+    const finalZipPath = fs.existsSync(zipPath) ? zipPath : fallbackZipPath;
 
     // 设置响应头并返回文件流
     const fileName = `${skill_id}-${versionRecord.version}.zip`;
     reply.header('Content-Type', 'application/zip');
     reply.header('Content-Disposition', `attachment; filename="${fileName}"`);
 
-    return fs.createReadStream(zipPath);
+    return fs.createReadStream(finalZipPath);
   });
 }
 

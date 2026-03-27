@@ -1,203 +1,245 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="zh" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="cliCode.title">CLI 验证码 - Skill Base</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <style>
-    .cli-code-card {
-      max-width: 480px;
-      margin: 0 auto;
-      text-align: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="cliCode.title">CLI 验证码 - Skill Base</title>
+    <!-- 引入 Inter 和 JetBrains Mono 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans:['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        base: { 950: '#09090b', 900: '#13141a', 800: '#27272a', 400: '#a1a1aa', 200: '#e4e4e7' },
+                        neon: { 400: '#00FFA3', 500: '#00E592' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            background-color: #09090b;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 64px 64px;
+        }
+        ::selection { background: rgba(0, 255, 163, 0.3); color: #fff; }
+        
+        body.app-devtools {
+            background-color: transparent;
+            background-image: none;
+        }
+        body.app-devtools .page-content {
+            background-image: none;
+            padding-top: 2rem;
+            min-height: calc(100vh - 64px);
+        }
+        .navbar {
+            position: sticky;
+            top: 0;
+            background-color: rgba(9, 9, 11, 0.8) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #27272a !important;
+            height: 64px;
+        }
+        .navbar .container {
+            height: 100%;
+        }
+        .card { 
+            background-color: #13141a; 
+            border: 1px solid #27272a; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            border-radius: 0.75rem;
+        }
 
-    .cli-code-header {
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .cli-code-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--text-color);
-      margin-bottom: var(--spacing-xs);
-    }
-
-    .cli-code-subtitle {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-
-    .cli-code-display {
-      background-color: #0f172a;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: var(--spacing-xl);
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .cli-code-value {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #22c55e;
-      letter-spacing: 0.1em;
-      user-select: all;
-    }
-
-    .cli-code-timer {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--spacing-sm);
-      margin-top: var(--spacing-md);
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-
-    .cli-code-timer.expiring {
-      color: var(--warning-color);
-    }
-
-    .cli-code-timer.expired {
-      color: var(--error-color);
-    }
-
-    .cli-code-timer-icon {
-      width: 16px;
-      height: 16px;
-    }
-
-    .cli-code-actions {
-      display: flex;
-      gap: var(--spacing-md);
-      justify-content: center;
-    }
-
-    .cli-code-actions .btn {
-      min-width: 120px;
-    }
-
-    .cli-code-hint {
-      margin-top: var(--spacing-lg);
-      padding: var(--spacing-md);
-      background-color: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: var(--radius);
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      text-align: left;
-    }
-
-    .cli-code-hint code {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      background-color: rgba(0, 0, 0, 0.3);
-      padding: 0.125rem 0.375rem;
-      border-radius: 3px;
-      color: #7dd3fc;
-    }
-
-    .cli-code-loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--spacing-md);
-      padding: var(--spacing-xl);
-    }
-
-    .cli-code-loading-text {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-    }
-
-    @media (max-width: 480px) {
-      .cli-code-value {
-        font-size: 1.75rem;
-      }
-
-      .cli-code-actions {
-        flex-direction: column;
-      }
-
-      .cli-code-actions .btn {
-        width: 100%;
-      }
-    }
-  </style>
+        /* 隐藏原有组件不需要的部分 */
+        .cli-code-display {
+            background-color: #09090b !important;
+            border: 1px solid #27272a !important;
+        }
+        .cli-code-value {
+            color: #00FFA3 !important;
+            text-shadow: 0 0 15px rgba(0,255,163,0.3);
+        }
+        .cli-code-hint {
+            background-color: rgba(0,255,163,0.05) !important;
+            border: 1px solid rgba(0,255,163,0.2) !important;
+            color: #a1a1aa !important;
+        }
+        .cli-code-hint code {
+            background-color: #09090b !important;
+            color: #00FFA3 !important;
+            border: 1px solid #27272a;
+        }
+        .btn-primary {
+            background-color: transparent !important;
+            border: 1px solid #00E592 !important;
+            color: #00FFA3 !important;
+            box-shadow: 0 0 15px rgba(0,255,163,0.1) !important;
+        }
+        .btn-primary:hover {
+            background-color: rgba(0,255,163,0.1) !important;
+            box-shadow: 0 0 20px rgba(0,255,163,0.2) !important;
+        }
+        .btn-secondary {
+            background-color: transparent !important;
+            border: 1px solid #27272a !important;
+            color: #e4e4e7 !important;
+        }
+        .btn-secondary:hover {
+            background-color: #27272a !important;
+            color: #fff !important;
+        }
+        
+        /* 兼容 app.js 的组件样式 */
+        .navbar-user-btn {
+            color: #fff !important;
+            border-color: #27272a !important;
+        }
+        .navbar-user-btn:hover {
+            border-color: #00E592 !important;
+            color: #00FFA3 !important;
+            background-color: rgba(0,255,163,0.05) !important;
+        }
+        .navbar-user-menu {
+            background-color: #13141a !important;
+            border-color: #27272a !important;
+        }
+        .navbar-user-menu-item {
+            color: #e4e4e7 !important;
+        }
+        .navbar-user-menu-item:hover {
+            background-color: #27272a !important;
+            color: #00FFA3 !important;
+        }
+        .lang-switcher-trigger {
+            border-color: #27272a !important;
+        }
+        .lang-switcher-trigger:hover, .lang-switcher.active .lang-switcher-trigger {
+            border-color: #00E592 !important;
+            color: #00FFA3 !important;
+        }
+        .lang-switcher-menu {
+            background-color: #13141a !important;
+            border-color: #27272a !important;
+        }
+        .lang-switcher-option:hover {
+            background-color: #27272a !important;
+        }
+        .lang-switcher-option.active {
+            color: #00FFA3 !important;
+            background-color: rgba(0,255,163,0.05) !important;
+        }
+    </style>
 </head>
-<body class="app-devtools">
-  <!-- 导航栏 -->
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="navbar-brand">
-        <svg class="navbar-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        <span>Skill Base</span>
-      </a>
-      <div class="navbar-nav">
-        <a href="/" data-i18n="nav.home">首页</a>
-        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
-      </div>
-      <!-- 用户区域由 JS 动态渲染 -->
-    </div>
-  </nav>
-
-  <!-- 页面内容 -->
-  <main class="page-content">
-    <div class="container">
-      <div class="card cli-code-card">
-        <div class="cli-code-header">
-          <h1 class="cli-code-title" data-i18n="cliCode.heading">CLI 验证码</h1>
-          <p class="cli-code-subtitle" data-i18n="cliCode.subtitle">在命令行工具中输入此验证码完成登录</p>
-        </div>
-
-        <!-- 加载状态 -->
-        <div id="loadingState" class="cli-code-loading">
-          <div class="spinner"></div>
-          <div class="cli-code-loading-text" data-i18n="cliCode.generating">正在生成验证码...</div>
-        </div>
-
-        <!-- 验证码显示区域 -->
-        <div id="codeDisplay" class="hidden">
-          <div class="cli-code-display">
-            <div id="codeValue" class="cli-code-value">----</div>
-            <div id="codeTimer" class="cli-code-timer">
-              <svg class="cli-code-timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-              <span id="timerText">5:00 后过期</span>
+<body class="app-devtools text-base-200 font-sans min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="navbar z-50">
+        <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div class="flex items-center gap-8">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none hover:opacity-80 transition-opacity">
+                    <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </span>
+                    <span class="text-white font-bold font-mono">Skill Base</span>
+                </a>
+                <!-- Nav Links -->
+                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium font-mono">
+                    <a href="/" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5" data-i18n="nav.home"><span class="text-neon-400 opacity-0 group-hover:opacity-100 transition-opacity">./</span>首页</a>
+                    <a href="/publish.html" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5 hide-mobile" data-i18n="nav.publish"><span class="text-neon-400 opacity-0 group-hover:opacity-100 transition-opacity">./</span>发布</a>
+                </div>
             </div>
-          </div>
-
-          <div class="cli-code-actions">
-            <button id="copyBtn" class="btn btn-primary" onclick="copyCode()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-              <span data-i18n="cliCode.copyBtn">复制验证码</span>
-            </button>
-            <button id="regenerateBtn" class="btn btn-secondary" onclick="regenerateCode()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
-              <span data-i18n="cliCode.regenerate">重新生成</span>
-            </button>
-          </div>
+            <!-- app.js 的 user 区域会通过 .navbar .container append 到此处，刚好被 justify-between 推到右侧 -->
         </div>
+    </nav>
 
-        <div class="cli-code-hint">
-          <strong data-i18n="cliCode.hintTitle">使用方法：</strong><br>
-          <span data-i18n-html="cliCode.hintText">在终端运行 <code>skb login</code>，然后输入上方验证码即可完成 CLI 登录。</span>
+    <!-- 页面内容 -->
+    <main class="page-content">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-8 pb-16">
+            
+            <!-- 面包屑 -->
+            <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
+                <span class="text-neon-400">~</span>
+                <span class="opacity-50">/</span>
+                <a href="/" class="hover:text-white transition-colors">home</a>
+                <span class="opacity-50">/</span>
+                <span class="text-white">cli-code</span>
+            </div>
+
+            <div class="card cli-code-card mx-auto relative overflow-hidden p-8" style="max-width: 520px;">
+                <!-- 装饰性角标 -->
+                <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">AUTH-CLI</div>
+
+                <div class="cli-code-header mb-8 text-left">
+                    <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                        <span class="text-neon-400 font-mono font-normal opacity-70">></span>
+                        <span data-i18n="cliCode.heading">CLI 验证码</span>
+                    </h1>
+                    <p class="text-base-400 text-sm font-mono" data-i18n="cliCode.subtitle">// 在命令行工具中输入此验证码完成登录</p>
+                </div>
+
+                <!-- 加载状态 -->
+                <div id="loadingState" class="cli-code-loading py-8">
+                    <div class="spinner"></div>
+                    <div class="text-base-400 text-sm font-mono mt-4" data-i18n="cliCode.generating">Generating secure token...</div>
+                </div>
+
+                <!-- 验证码显示区域 -->
+                <div id="codeDisplay" class="hidden">
+                    <div class="cli-code-display rounded-xl p-8 mb-8 flex flex-col items-center">
+                        <div id="codeValue" class="cli-code-value text-4xl sm:text-5xl font-mono tracking-widest text-center select-all">----</div>
+                        <div id="codeTimer" class="cli-code-timer font-mono mt-6 flex items-center gap-2 text-base-400">
+                            <svg class="cli-code-timer-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span id="timerText">5:00 后过期</span>
+                        </div>
+                    </div>
+
+                    <div class="cli-code-actions flex flex-col sm:flex-row gap-4 justify-center">
+                        <button id="copyBtn" class="btn btn-primary flex-1 py-3 font-mono text-sm rounded-lg" onclick="copyCode()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            <span data-i18n="cliCode.copyBtn">复制验证码</span>
+                        </button>
+                        <button id="regenerateBtn" class="btn btn-secondary flex-1 py-3 font-mono text-sm rounded-lg" onclick="regenerateCode()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                            <span data-i18n="cliCode.regenerate">重新生成</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="cli-code-hint mt-8 p-4 rounded-lg text-left">
+                    <strong class="block mb-2 font-mono text-neon-400" data-i18n="cliCode.hintTitle"># Usage:</strong>
+                    <span class="font-mono text-sm" data-i18n-html="cliCode.hintText">在终端运行 <code>skb login</code>，然后输入上方验证码即可完成 CLI 登录。</span>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </main>
+    </main>
 
-  <!-- 引入 JS -->
-  <script src="/js/i18n.js"></script>
-  <script src="/js/app.js"></script>
-  <script src="/js/cli-code.js"></script>
+    <!-- 引入 JS -->
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/cli-code.js"></script>
 </body>
 </html>

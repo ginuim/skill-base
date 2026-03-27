@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 1. 从 URL 参数获取 skill_id
   const params = new URLSearchParams(window.location.search);
   const skillId = params.get('id');
+  const requestedVersion = params.get('version');
 
   if (!skillId) {
     showToast(t('skill.missingId'), 'error');
@@ -59,11 +60,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 6. 加载版本列表
   await loadVersions(skillId);
 
-  // 7. 默认加载最新版本的 zip 并生成目录树
-  if (currentSkill && currentSkill.latest_version) {
-    await switchVersion(currentSkill.latest_version);
+  // 7. 解析当前版本并加载 zip
+  const initialVersion = resolveInitialVersion(requestedVersion);
+  if (initialVersion) {
+    await switchVersion(initialVersion);
   }
 });
+
+/**
+ * 从请求参数、skill.latest_version 和版本列表中解析当前版本。
+ * 真实数据源是 versions，数据库里的 latest_version 只是候选值。
+ * @param {string | null} requestedVersion
+ * @returns {string}
+ */
+function resolveInitialVersion(requestedVersion) {
+  const versionSet = new Set(versions.map(v => v.version));
+
+  if (requestedVersion && versionSet.has(requestedVersion)) {
+    return requestedVersion;
+  }
+
+  if (currentSkill?.latest_version && versionSet.has(currentSkill.latest_version)) {
+    return currentSkill.latest_version;
+  }
+
+  return versions[0]?.version || '';
+}
+
+function syncVersionInUrl(version) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('version', version);
+  window.history.replaceState({}, '', url);
+}
 
 function initMarkdownPreviewToggle() {
   const renderBtn = document.getElementById('md-view-render');
@@ -157,17 +185,18 @@ async function loadSkillDetail(skillId) {
     document.title = `${skill.name} - Skill Base`;
     document.getElementById('breadcrumb-name').textContent = skill.name;
 
-    // 渲染基本信息
-    renderSkillInfo(skill);
+  // 渲染基本信息
+  const currentUserObj = currentUser; // 从 app.js 中拿到缓存的用户
+  renderSkillInfo(skill, currentUserObj);
 
   } catch (error) {
     console.error('Failed to load Skill detail:', error);
     showToast(t('skill.loadFailed') + ': ' + error.message, 'error');
     document.getElementById('skill-info').innerHTML = `
-      <div class="empty-preview">
-        <div class="empty-preview-icon">❌</div>
-        <p>${t('skill.loadFailed')}</p>
-        <a href="/" class="btn btn-primary mt-2">${t('nav.home')}</a>
+      <div class="empty-preview flex flex-col items-center justify-center py-10">
+        <div class="empty-preview-icon text-4xl mb-4 opacity-50">❌</div>
+        <p class="text-base-400 font-mono">${t('skill.loadFailed')}</p>
+        <a href="/" class="mt-4 px-4 py-2 border border-neon-500 text-neon-400 bg-[rgba(0,255,163,0.05)] rounded hover:bg-[rgba(0,255,163,0.1)] transition-colors font-mono text-sm">${t('nav.home')}</a>
       </div>
     `;
   }
@@ -177,56 +206,45 @@ async function loadSkillDetail(skillId) {
  * 渲染 Skill 基本信息
  * @param {object} skill - Skill 数据
  */
-function renderSkillInfo(skill) {
+function renderSkillInfo(skill, user) {
   const container = document.getElementById('skill-info');
   const ownerName = skill.owner?.name || skill.owner?.username || t('state.unknown');
   const createdTime = formatDate(skill.created_at);
 
+  const isOwner = user && skill.owner_id === user.id;
+  const isAdmin = user && user.role === 'admin';
+  const canManage = isOwner || isAdmin;
+  
+  // 生成头像字母 (取大写首字母)
+  const ownerInitial = (skill.owner?.username || '?').charAt(0).toUpperCase();
+
   container.innerHTML = `
-    <div class="skill-header">
-      <div>
-        <h1 class="skill-title">${escapeHtml(skill.name)}</h1>
-        <p class="skill-desc">${escapeHtml(skill.description || t('state.noDesc'))}</p>
+    <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ID: ${escapeHtml(skill.id.substring(0, 8))}</div>
+    <h1 class="text-3xl font-bold text-white mb-3 flex items-center gap-3">
+      <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
+      ${escapeHtml(skill.name)}
+    </h1>
+    <p class="text-base-400 text-sm leading-relaxed max-w-5xl mb-6">
+      ${escapeHtml(skill.description || t('state.noDesc'))}
+    </p>
+    
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800 mt-6">
+      <div class="relative w-full sm:flex-1 sm:max-w-md">
+        <select id="version-select" class="w-full appearance-none bg-base-950 border border-base-800 text-white font-mono text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors cursor-pointer" onchange="onVersionChange(this.value)">
+          <option value="">${t('skill.selectVersion')}</option>
+        </select>
+        <svg class="w-4 h-4 absolute right-4 top-3 pointer-events-none text-base-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
       </div>
-    </div>
-    <div class="skill-meta">
-      <div class="skill-meta-item">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-        <span>${t('skill.owner')}${escapeHtml(ownerName)}</span>
+      <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4 sm:mt-0 flex-shrink-0">
+        <button class="flex items-center justify-center gap-2 bg-transparent text-white border border-base-800 hover:bg-base-800 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto" onclick="goToDiff()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          ${t('skill.compare')}
+        </button>
+        <button class="flex items-center justify-center gap-2 bg-transparent border border-neon-500 text-neon-400 hover:bg-[rgba(0,255,163,0.1)] text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto shadow-[0_0_15px_rgba(0,255,163,0.1)] hover:shadow-[0_0_20px_rgba(0,255,163,0.2)]" onclick="downloadCurrentVersion()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          ${t('skill.download')}
+        </button>
       </div>
-      <div class="skill-meta-item">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-        <span>${t('skill.createdAt')}${createdTime}</span>
-      </div>
-    </div>
-    <div class="skill-actions">
-      <select id="version-select" class="version-select" onchange="onVersionChange(this.value)">
-        <option value="">${t('skill.selectVersion')}</option>
-      </select>
-      <button class="btn btn-primary" onclick="downloadCurrentVersion()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        ${t('skill.download')}
-      </button>
-      <button class="btn btn-secondary" onclick="goToDiff()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="20" x2="18" y2="10"/>
-          <line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-        </svg>
-        ${t('skill.compare')}
-      </button>
     </div>
   `;
 }
@@ -244,7 +262,7 @@ async function loadVersions(skillId) {
     renderVersionSelect(versions);
 
     // 渲染版本历史列表
-    renderVersionHistory(versions);
+    renderVersionHistory(versions, skillId);
 
   } catch (error) {
     console.error('Failed to load version list:', error);
@@ -274,14 +292,15 @@ function renderVersionSelect(versions) {
 /**
  * 渲染版本历史列表
  * @param {array} versions - 版本列表
+ * @param {string} skillId - Skill ID
  */
-function renderVersionHistory(versions) {
+function renderVersionHistory(versions, skillId) {
   const container = document.getElementById('version-list');
 
   if (versions.length === 0) {
     container.innerHTML = `
-      <div class="empty-preview" style="padding: var(--spacing-lg);">
-        <p class="text-muted">${t('skill.noVersions')}</p>
+      <div class="empty-preview flex flex-col items-center justify-center h-full min-h-[200px] p-8">
+        <p class="text-base-400 font-mono">${t('skill.noVersions')}</p>
       </div>
     `;
     return;
@@ -290,16 +309,26 @@ function renderVersionHistory(versions) {
   container.innerHTML = versions.map((v, index) => {
     const uploaderName = v.uploader?.name || v.uploader?.username || t('state.unknown');
     const createdTime = formatDate(v.created_at);
-    const tagClass = index === 0 ? 'version-tag latest' : 'version-tag';
 
     return `
-      <div class="version-item">
-        <span class="${tagClass}">${escapeHtml(v.version)}</span>
-        <div class="version-item-info">
-          <div class="version-item-changelog">${escapeHtml(v.changelog || t('skill.noChangelog'))}</div>
-          <div class="version-item-meta">
-            <span>${t('skill.uploadedBy')}${escapeHtml(uploaderName)}</span>
-            <span>${createdTime}</span>
+      <div class="relative pl-6 group/item mb-8">
+        <span class="absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full ${index === 0 ? 'bg-neon-400 ring-4 ring-base-900 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 ring-4 ring-base-900 group-hover/item:bg-neon-500 transition-colors'}"></span>
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+              <span class="${index === 0 ? 'text-neon-400 border border-neon-500/30 bg-[rgba(0,255,163,0.05)]' : 'text-base-400 border border-base-800 group-hover/item:border-neon-500/30 group-hover/item:text-neon-400'} transition-colors text-xs px-2 py-0.5 rounded font-mono">${escapeHtml(v.version)}</span>
+              ${index === 0 ? '<span class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>' : ''}
+            </div>
+            <p class="text-sm ${index === 0 ? 'text-white' : 'text-base-200'} font-medium mt-2">${escapeHtml(v.changelog || t('skill.noChangelog'))}</p>
+            <p class="text-xs text-base-400 mt-1 flex items-center gap-1.5 font-mono">
+              by @${escapeHtml(uploaderName)}
+            </p>
+          </div>
+          <div class="flex items-center gap-3 flex-shrink-0">
+            <span class="text-xs text-base-400 font-mono hidden sm:inline-block">${createdTime}</span>
+            <button title="Download Version" class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-[rgba(0,255,163,0.1)] hover:shadow-[0_0_10px_rgba(0,255,163,0.15)] transition-all group" onclick="event.stopPropagation(); window.open('/api/v1/skills/${skillId}/versions/${v.version}/download')">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -349,6 +378,7 @@ async function switchVersion(version) {
     const zip = await JSZip.loadAsync(zipData);
     currentZip = zip;
     currentVersion = version;
+    syncVersionInUrl(version);
 
     // 更新版本下拉框选中状态
     const select = document.getElementById('version-select');
@@ -364,9 +394,9 @@ async function switchVersion(version) {
     hideMarkdownPreviewActions();
     document.getElementById('file-preview-path').textContent = t('skill.selectFile');
     fileContentContainer.innerHTML = `
-      <div class="empty-preview">
-        <div class="empty-preview-icon">📄</div>
-        <p>${t('skill.clickFile')}</p>
+      <div class="empty-preview flex flex-col items-center justify-center py-10">
+        <div class="empty-preview-icon text-4xl mb-4 opacity-50">📄</div>
+        <p class="text-base-400 font-mono">${t('skill.clickFile')}</p>
       </div>
     `;
 
@@ -374,9 +404,9 @@ async function switchVersion(version) {
     console.error('Failed to switch version:', error);
     showToast(t('skill.versionFailed') + error.message, 'error');
     fileTreeContainer.innerHTML = `
-      <div class="empty-preview">
-        <p class="text-error">${t('file.loadFailed')}</p>
-      </div>
+        <div class="empty-preview flex flex-col items-center justify-center py-10">
+          <p class="text-red-500 font-mono">${t('file.loadFailed')}</p>
+        </div>
     `;
   }
 }
@@ -387,7 +417,7 @@ async function switchVersion(version) {
  * @returns {array} - 目录树结构
  */
 function generateFileTree(zip) {
-  const root = { type: 'directory', name: '', children: [] };
+  const root = { type: 'directory', name: '', children: [], path: '' };
 
   zip.forEach((relativePath, zipEntry) => {
     // 跳过空路径
@@ -448,11 +478,11 @@ function sortTree(nodes) {
  */
 function renderFileTree(nodes, container, level = 0) {
   if (!nodes || nodes.length === 0) {
-    container.innerHTML = `
-      <div class="empty-preview">
-        <p class="text-muted">${t('state.empty')}</p>
-      </div>
-    `;
+  container.innerHTML = `
+    <div class="empty-preview flex flex-col items-center justify-center py-10">
+      <p class="text-base-400 font-mono">${t('state.empty')}</p>
+    </div>
+  `;
     return;
   }
 
@@ -468,8 +498,8 @@ function renderFileTree(nodes, container, level = 0) {
       li.className = 'file-tree-folder open';
       li.innerHTML = `
         <div class="file-tree-item">
-          <span class="icon">📁</span>
-          <span class="name">${escapeHtml(node.name)}</span>
+          <svg class="w-4 h-4 opacity-70 flex-shrink-0 text-neon-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          <span class="name font-bold truncate">${escapeHtml(node.name)}</span>
         </div>
       `;
 
@@ -482,16 +512,22 @@ function renderFileTree(nodes, container, level = 0) {
       itemDiv.addEventListener('click', (e) => {
         e.stopPropagation();
         li.classList.toggle('open');
-        const icon = li.querySelector('.icon');
-        icon.textContent = li.classList.contains('open') ? '📁' : '📂';
+        const icon = li.querySelector('svg');
+        if (icon) {
+           if (li.classList.contains('open')) {
+             icon.outerHTML = '<svg class="w-4 h-4 opacity-70 flex-shrink-0 text-neon-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
+           } else {
+             icon.outerHTML = '<svg class="w-4 h-4 opacity-70 flex-shrink-0 text-base-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+           }
+        }
       });
 
     } else {
       li.className = 'file-tree-file';
       li.innerHTML = `
         <div class="file-tree-item" data-path="${escapeHtml(node.path)}">
-          <span class="icon">📄</span>
-          <span class="name">${escapeHtml(node.name)}</span>
+          <svg class="w-4 h-4 opacity-70 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+          <span class="name truncate">${escapeHtml(node.name)}</span>
         </div>
       `;
 
@@ -530,8 +566,8 @@ function renderFileTreeChildren(nodes, container) {
       li.className = 'file-tree-folder open';
       li.innerHTML = `
         <div class="file-tree-item">
-          <span class="icon">📁</span>
-          <span class="name">${escapeHtml(node.name)}</span>
+          <svg class="w-4 h-4 opacity-70 flex-shrink-0 text-neon-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          <span class="name font-bold truncate">${escapeHtml(node.name)}</span>
         </div>
       `;
 
@@ -543,16 +579,22 @@ function renderFileTreeChildren(nodes, container) {
       itemDiv.addEventListener('click', (e) => {
         e.stopPropagation();
         li.classList.toggle('open');
-        const icon = li.querySelector('.icon');
-        icon.textContent = li.classList.contains('open') ? '📁' : '📂';
+        const icon = li.querySelector('svg');
+        if (icon) {
+           if (li.classList.contains('open')) {
+             icon.outerHTML = '<svg class="w-4 h-4 opacity-70 flex-shrink-0 text-neon-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
+           } else {
+             icon.outerHTML = '<svg class="w-4 h-4 opacity-70 flex-shrink-0 text-base-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+           }
+        }
       });
 
     } else {
       li.className = 'file-tree-file';
       li.innerHTML = `
         <div class="file-tree-item" data-path="${escapeHtml(node.path)}">
-          <span class="icon">📄</span>
-          <span class="name">${escapeHtml(node.name)}</span>
+          <svg class="w-4 h-4 opacity-70 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+          <span class="name truncate">${escapeHtml(node.name)}</span>
         </div>
       `;
 
@@ -600,9 +642,9 @@ async function previewFile(filePath) {
     const file = currentZip.file(filePath);
     if (!file) {
       container.innerHTML = `
-        <div class="empty-preview">
-          <div class="empty-preview-icon">❓</div>
-          <p>${t('skill.fileNotFound')}</p>
+        <div class="empty-preview flex flex-col items-center justify-center py-10">
+          <div class="empty-preview-icon text-4xl mb-4 opacity-50">❓</div>
+          <p class="text-base-400 font-mono">${t('skill.fileNotFound')}</p>
         </div>
       `;
       return;
@@ -654,9 +696,9 @@ async function previewFile(filePath) {
   } catch (error) {
     console.error('Failed to preview file:', error);
     container.innerHTML = `
-      <div class="empty-preview">
-        <div class="empty-preview-icon">❌</div>
-        <p>${t('skill.previewFailed')}${escapeHtml(error.message)}</p>
+      <div class="empty-preview flex flex-col items-center justify-center py-10">
+        <div class="empty-preview-icon text-4xl mb-4 opacity-50">❌</div>
+        <p class="text-base-400 font-mono">${t('skill.previewFailed')} ${escapeHtml(error.message)}</p>
       </div>
     `;
   }

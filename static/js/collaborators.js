@@ -73,24 +73,40 @@ function renderCollaborators(collaborators) {
   container.innerHTML = collaborators.map(c => {
     const roleLabel = c.role === 'owner' ? t('collab.owner') : t('collab.collaborator');
     const roleClass = c.role === 'owner' ? 'owner' : '';
-    const statusLabel = c.user.status === 'disabled' ? t('collab.disabled') : '';
+    const statusLabel = c.user.status === 'disabled' ? ` (${t('collab.disabled')})` : '';
     
     let removeBtn = '';
     if (canManage && c.role !== 'owner') {
-      removeBtn = `<button class="btn btn-secondary btn-sm" onclick="removeCollaborator(${c.user.id})">${t('btn.remove')}</button>`;
+      removeBtn = `
+        <button class="text-base-400 hover:text-red-400 transition-colors p-1" onclick="removeCollaborator(${c.user.id})" title="${t('btn.remove')}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      `;
     }
     
     // 显示 name（如果有）或 username
     const displayName = c.user.name || c.user.username;
-    const usernameHint = c.user.name ? ` <span class="collaborator-username">@${escapeHtml(c.user.username)}</span>` : '';
+    
+    // 生成头像字母 (取大写首字母)
+    const initial = (c.user.username || '?').charAt(0).toUpperCase();
     
     return `
-      <div class="collaborator-item">
-        <div class="collaborator-info">
-          <span class="collaborator-role ${roleClass}">${roleLabel}</span>
-          <span>${escapeHtml(displayName)}${usernameHint}${statusLabel}</span>
+      <div class="flex items-center gap-3 p-3 bg-base-950 border border-base-800 rounded-lg group hover:border-neon-500/50 transition-colors cursor-default mb-2">
+        <!-- 极客风头像 -->
+        <div class="w-10 h-10 rounded bg-base-800 flex items-center justify-center text-white font-mono font-bold uppercase border border-base-800 group-hover:border-neon-400 group-hover:text-neon-400 group-hover:shadow-[0_0_10px_rgba(0,255,163,0.2)] transition-all">
+            ${initial}
         </div>
-        ${removeBtn}
+        <div class="flex flex-col flex-1 min-w-0">
+            <span class="text-white font-mono text-sm truncate">@${escapeHtml(c.user.username)}${statusLabel}</span>
+            ${c.user.name ? `<span class="text-base-400 text-xs mt-0.5 truncate">${escapeHtml(c.user.name)}</span>` : ''}
+        </div>
+        <!-- Outline Badge & Remove Btn -->
+        <div class="flex flex-col items-end gap-1 flex-shrink-0">
+          <span class="border ${c.role === 'owner' ? 'border-neon-500/50 text-neon-400 bg-[rgba(0,255,163,0.05)] shadow-[0_0_8px_rgba(0,255,163,0.1)]' : 'border-base-800 text-base-400 bg-base-900'} text-[10px] px-2 py-0.5 rounded uppercase tracking-wider font-mono font-bold">
+              ${roleLabel}
+          </span>
+          ${removeBtn}
+        </div>
       </div>
     `;
   }).join('');

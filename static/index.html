@@ -1,251 +1,259 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="zh" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Skill Base</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <style>
-    /* 页面标题区域 */
-    .page-header {
-      margin-bottom: var(--spacing-lg);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Base</title>
+    <!-- 引入 Inter 和 JetBrains Mono 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans:['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        base: { 950: '#09090b', 900: '#13141a', 800: '#27272a', 400: '#a1a1aa', 200: '#e4e4e7' },
+                        neon: { 400: '#00FFA3', 500: '#00E592' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            background-color: #09090b;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 64px 64px;
+        }
+        ::selection { background: rgba(0, 255, 163, 0.3); color: #fff; }
+        
+        body.app-devtools {
+            background-color: transparent;
+            background-image: none;
+        }
+        body.app-devtools .page-content {
+            background-image: none;
+            padding-top: 2rem;
+            min-height: calc(100vh - 64px);
+        }
+        .navbar {
+            position: sticky;
+            top: 0;
+            background-color: rgba(9, 9, 11, 0.8) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #27272a !important;
+            height: 64px;
+        }
+        .navbar .container { height: 100%; }
 
-    .page-title {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-color);
-      margin-bottom: var(--spacing-md);
-    }
+        /* 兼容 app.js 的组件样式 */
+        .navbar-user-btn { color: #fff !important; border-color: #27272a !important; font-family: 'JetBrains Mono', monospace;}
+        .navbar-user-btn:hover { border-color: #00E592 !important; color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
+        .navbar-user-menu { background-color: #13141a !important; border-color: #27272a !important; }
+        .navbar-user-menu-item { color: #e4e4e7 !important; }
+        .navbar-user-menu-item:hover { background-color: #27272a !important; color: #00FFA3 !important; }
+        .lang-switcher-trigger { border-color: #27272a !important; font-family: 'JetBrains Mono', monospace; }
+        .lang-switcher-trigger:hover, .lang-switcher.active .lang-switcher-trigger { border-color: #00E592 !important; color: #00FFA3 !important; }
+        .lang-switcher-menu { background-color: #13141a !important; border-color: #27272a !important; }
+        .lang-switcher-option:hover { background-color: #27272a !important; }
+        .lang-switcher-option.active { color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
+        
+        .btn-primary { background-color: transparent !important; border: 1px solid #00E592 !important; color: #00FFA3 !important; box-shadow: 0 0 15px rgba(0,255,163,0.1) !important; }
+        .btn-primary:hover { background-color: rgba(0,255,163,0.1) !important; box-shadow: 0 0 20px rgba(0,255,163,0.2) !important; }
 
-    /* 搜索栏 */
-    .search-container {
-      max-width: 500px;
-    }
+        /* 搜索框 */
+        .search-bar { position: relative; width: 100%; max-width: 600px; margin: 0 auto; }
+        .search-bar input {
+            width: 100%; background-color: #13141a !important; border: 1px solid #27272a !important;
+            color: #fff !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.875rem !important;
+            border-radius: 0.5rem !important; padding: 0.75rem 2.5rem 0.75rem 3.5rem !important;
+            transition: all 0.2s ease !important;
+        }
+        .search-bar input:focus {
+            border-color: #00FFA3 !important; box-shadow: 0 0 0 1px #00FFA3 !important; outline: none !important;
+        }
+        .search-bar input::placeholder { color: #64748b !important; }
+        .search-icon-wrapper {
+            position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+            color: #00FFA3; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; pointer-events: none;
+            display: flex; items-center; gap: 0.5rem;
+        }
+        .search-bar .clear-btn {
+            position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+            color: #64748b; cursor: pointer; padding: 0.25rem; display: none; background: none; border: none;
+        }
+        .search-bar .clear-btn:hover { color: #fff; }
+        .search-bar input:not(:placeholder-shown) ~ .clear-btn { display: block; }
 
-    /* Skill 卡片网格 */
-    .skill-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: var(--spacing-lg);
-    }
+        /* Skill Grid */
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
 
-    .skill-card {
-      background-color: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: var(--spacing-lg);
-      cursor: pointer;
-      transition: var(--transition);
-      text-decoration: none;
-      color: inherit;
-      display: block;
-    }
+        .skill-card {
+            background-color: #13141a !important;
+            border: 1px solid #27272a !important;
+            border-radius: 0.75rem !important;
+            padding: 1.5rem !important;
+            transition: all 0.2s ease !important;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: none !important;
+        }
 
-    .skill-card:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateY(-2px);
-      text-decoration: none;
-    }
+        .skill-card:hover {
+            border-color: rgba(0,255,163,0.5) !important;
+            box-shadow: 0 0 20px rgba(0,255,163,0.05) !important;
+            transform: translateY(-2px) !important;
+        }
 
-    .skill-card-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: var(--spacing-sm);
-    }
+        .skill-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background-color: #27272a; transition: all 0.2s ease;
+        }
+        .skill-card:hover::before { background-color: #00FFA3; box-shadow: 0 0 10px #00FFA3; }
 
-    .skill-card-name {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--text-color);
-      margin: 0;
-    }
+        .skill-card-header {
+            display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem;
+        }
+        .skill-card-name {
+            font-family: 'JetBrains Mono', monospace; font-size: 1.125rem; font-weight: 600; color: #fff; margin: 0;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .skill-card-name::before { content: '>'; color: #00FFA3; opacity: 0.7; font-weight: 400; }
+        
+        .skill-card-desc {
+            font-size: 0.875rem; color: #a1a1aa; line-height: 1.6; margin-bottom: 1.5rem; flex: 1;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
 
-    .skill-card-desc {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      margin-bottom: var(--spacing-md);
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
+        .skill-card-footer {
+            display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #64748b;
+            padding-top: 1rem; border-top: 1px solid #27272a; font-family: 'JetBrains Mono', monospace;
+        }
+        .skill-card-meta { display: flex; align-items: center; gap: 1rem; }
+        .skill-card-owner { display: flex; align-items: center; gap: 0.25rem; }
 
-    .skill-card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
+        /* FAB */
+        .fab {
+            position: fixed; bottom: 2rem; right: 2rem; width: 56px; height: 56px; border-radius: 50%;
+            background-color: transparent !important; border: 1px solid #00E592 !important;
+            color: #00FFA3 !important; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px rgba(0,255,163,0.1) !important; transition: all 0.2s ease; z-index: 100;
+        }
+        .fab:hover {
+            background-color: rgba(0,255,163,0.1) !important; box-shadow: 0 0 25px rgba(0,255,163,0.3) !important;
+            transform: scale(1.05); color: #fff !important; border-color: #00FFA3 !important;
+        }
 
-    .skill-card-meta {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-md);
-    }
-
-    .skill-card-owner {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xs);
-    }
-
-    /* 空状态 */
-    .empty-state {
-      text-align: center;
-      padding: var(--spacing-xl) var(--spacing-md);
-      color: var(--text-secondary);
-    }
-
-    .empty-state-icon {
-      font-size: 4rem;
-      margin-bottom: var(--spacing-md);
-      opacity: 0.5;
-    }
-
-    .empty-state-text {
-      font-size: 1rem;
-      margin-bottom: var(--spacing-md);
-    }
-
-    /* 浮动按钮 */
-    .fab {
-      position: fixed;
-      bottom: var(--spacing-xl);
-      right: var(--spacing-xl);
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background-color: var(--primary-color);
-      color: var(--white);
-      border: none;
-      box-shadow: var(--shadow-lg);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: var(--transition);
-      text-decoration: none;
-      font-size: 1.5rem;
-    }
-
-    .fab:hover {
-      background-color: var(--primary-hover);
-      transform: scale(1.1);
-      text-decoration: none;
-    }
-
-    /* Loading 骨架屏 */
-    .skeleton-card {
-      background-color: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: var(--spacing-lg);
-    }
-
-    .skeleton-title {
-      height: 24px;
-      width: 60%;
-      margin-bottom: var(--spacing-sm);
-    }
-
-    .skeleton-desc {
-      height: 16px;
-      width: 100%;
-      margin-bottom: var(--spacing-xs);
-    }
-
-    .skeleton-desc-short {
-      height: 16px;
-      width: 75%;
-      margin-bottom: var(--spacing-md);
-    }
-
-    .skeleton-footer {
-      height: 14px;
-      width: 50%;
-    }
-
-    @media (max-width: 768px) {
-      .skill-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .fab {
-        bottom: var(--spacing-lg);
-        right: var(--spacing-lg);
-      }
-    }
-  </style>
+        /* 骨架屏覆盖 */
+        .skeleton-card {
+            background-color: #13141a !important; border: 1px solid #27272a !important; padding: 1.5rem !important; border-radius: 0.75rem !important;
+        }
+        .skeleton-title, .skeleton-desc, .skeleton-desc-short, .skeleton-footer {
+            background: linear-gradient(90deg, #13141a 25%, #27272a 50%, #13141a 75%) !important;
+            background-size: 200% 100% !important; animation: skeleton-loading 1.5s infinite !important; border-radius: 4px;
+        }
+        .empty-state { padding: 4rem 1rem; text-align: center; color: #64748b; font-family: 'JetBrains Mono', monospace; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; color: #00FFA3; }
+    </style>
 </head>
-<body class="app-devtools">
-  <!-- 导航栏 -->
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="navbar-brand">
-        <svg class="navbar-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        <span>Skill Base</span>
-      </a>
-      <div class="navbar-nav">
-        <a href="/" class="active" data-i18n="nav.home">首页</a>
-        <a href="/publish.html" class="hide-mobile" data-i18n="nav.publish">发布</a>
-      </div>
-      <!-- 用户区域由 JS 动态渲染 -->
-    </div>
-  </nav>
-
-  <!-- 页面内容 -->
-  <main class="page-content">
-    <div class="container">
-      <!-- 页面标题 + 搜索 -->
-      <div class="page-header">
-        <!-- <h1 class="page-title">Skill Base</h1> -->
-        <div class="search-container">
-          <div class="search-bar">
-            <input 
-              type="search" 
-              id="searchInput" 
-              data-i18n-placeholder="index.searchPlaceholder"
-              placeholder="搜索 Skill..."
-              autocomplete="off"
-            >
-            <span class="search-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-            </span>
-            <button type="button" class="clear-btn" id="clearSearch">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
+<body class="app-devtools text-base-200 font-sans min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="navbar z-50">
+        <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div class="flex items-center gap-8">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none hover:opacity-80 transition-opacity">
+                    <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </span>
+                    <span class="text-white font-bold font-mono">Skill Base</span>
+                </a>
+                <!-- Nav Links -->
+                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium font-mono">
+                    <a href="/" class="text-white flex items-center gap-1.5" data-i18n="nav.home"><span class="text-neon-400">./</span>首页</a>
+                    <a href="/publish.html" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5 hide-mobile" data-i18n="nav.publish"><span class="text-neon-400 opacity-0 group-hover:opacity-100 transition-opacity">./</span>发布</a>
+                </div>
+            </div>
+            <!-- app.js 用户区域 -->
         </div>
-      </div>
+    </nav>
 
-      <!-- Skill 列表 -->
-      <div id="skill-list" class="skill-grid">
-        <!-- 由 JS 动态渲染 -->
-      </div>
-    </div>
-  </main>
+    <!-- 页面内容 -->
+    <main class="page-content">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-8 pb-16">
+            
+            <!-- 页面标题区域 -->
+            <div class="page-header mb-8 text-center">
+                <div class="inline-flex items-center justify-center gap-2 px-3 py-1 bg-base-900 border border-base-800 rounded-full mb-6 text-xs font-mono text-neon-400">
+                    <span class="w-2 h-2 rounded-full bg-neon-400 animate-pulse"></span>
+                    Skill Directory
+                </div>
+                
+                <div class="search-bar">
+                    <div class="search-icon-wrapper">
+                        <span>$</span>
+                        <span>grep</span>
+                    </div>
+                    <input 
+                        type="search" 
+                        id="searchInput" 
+                        data-i18n-placeholder="index.searchPlaceholder"
+                        placeholder="&quot;search skill...&quot;"
+                        autocomplete="off"
+                    >
+                    <button type="button" class="clear-btn" id="clearSearch">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-  <!-- 浮动发布按钮 -->
-  <a href="/publish.html" class="fab" data-i18n-title="index.fabTitle" title="发布新版本">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  </a>
+            <!-- 面包屑 (终端路径风格) -->
+            <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
+                <span class="text-neon-400">~</span>
+                <span class="opacity-50">/</span>
+                <span class="text-white">skills</span>
+                <span class="opacity-50 ml-2">ls -la</span>
+            </div>
 
-  <!-- 引入 JS -->
-  <script src="/js/i18n.js"></script>
-  <script src="/js/app.js"></script>
-  <script src="/js/index.js"></script>
+            <!-- Skill 列表 -->
+            <div id="skill-list" class="skill-grid">
+                <!-- 由 JS 动态渲染 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 浮动发布按钮 -->
+    <a href="/publish.html" class="fab" data-i18n-title="index.fabTitle" title="发布新版本">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+    </a>
+
+    <!-- 引入 JS -->
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/index.js"></script>
 </body>
 </html>
