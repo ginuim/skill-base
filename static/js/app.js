@@ -274,6 +274,26 @@ function escapeHtml(text) {
 }
 
 /**
+ * 解析服务端时间：SQLite CURRENT_TIMESTAMP 等为 UTC，但常写成无 Z 的 "YYYY-MM-DD HH:MM:SS"，
+ * 直接 new Date(...) 会被当成浏览器本地时区的墙钟时间，与真实 UTC 不一致。
+ * @param {string|Date} input
+ * @returns {Date}
+ */
+function parseServerDate(input) {
+  if (!input) return new Date(NaN);
+  if (input instanceof Date) return input;
+  const s = String(input).trim();
+  if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(s)) {
+    return new Date(s);
+  }
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})(\.\d{1,3})?$/);
+  if (m) {
+    return new Date(`${m[1]}T${m[2]}${m[3] || ''}Z`);
+  }
+  return new Date(s);
+}
+
+/**
  * 格式化日期
  * @param {string|Date} dateStr - 日期字符串或 Date 对象
  * @returns {string} - 格式化后的日期
@@ -281,7 +301,7 @@ function escapeHtml(text) {
 function formatDate(dateStr) {
   if (!dateStr) return '-';
   
-  const date = new Date(dateStr);
+  const date = parseServerDate(dateStr);
   const now = new Date();
   const diff = now - date;
   

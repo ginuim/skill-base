@@ -308,7 +308,7 @@ function renderVersionHistory(versions, skillId) {
 
   container.innerHTML = versions.map((v, index) => {
     const uploaderName = v.uploader?.name || v.uploader?.username || t('state.unknown');
-    const createdTime = formatDate(v.created_at);
+    const timeLabel = formatDate(v.created_at);
 
     return `
       <div class="relative pl-6 group/item mb-8">
@@ -324,8 +324,8 @@ function renderVersionHistory(versions, skillId) {
               by @${escapeHtml(uploaderName)}
             </p>
           </div>
-          <div class="flex items-center gap-3 flex-shrink-0">
-            <span class="text-xs text-base-400 font-mono hidden sm:inline-block">${createdTime}</span>
+          <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right">${escapeHtml(timeLabel)}</span>
             <button title="Download Version" class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-[rgba(0,255,163,0.1)] hover:shadow-[0_0_10px_rgba(0,255,163,0.15)] transition-all group" onclick="event.stopPropagation(); window.open('/api/v1/skills/${skillId}/versions/${v.version}/download')">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             </button>

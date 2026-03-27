@@ -103,7 +103,6 @@ function renderSkillCard(skill) {
     <a href="/skill.html?id=${encodeURIComponent(skill.id)}" class="skill-card">
       <div class="skill-card-header">
         <h3 class="skill-card-name">${escapeHtml(skill.name)}</h3>
-        <span class="version-tag latest">${escapeHtml(skill.latest_version || '-')}</span>
       </div>
       <p class="skill-card-desc">${escapeHtml(description)}</p>
       <div class="skill-card-footer">
