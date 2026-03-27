@@ -223,14 +223,23 @@
     }
     .file-tree-folder:not(.open) > ul { display: none; }
 
-    /* 版本历史 */
+    /* 版本历史：竖线与 JS 里 pl-6 + 圆点对齐（圆心距行左缘 1.5rem），勿再叠一层 border-left/padding-left */
     #version-list {
       position: relative;
-      padding-left: 1.5rem;
-      margin-left: 0.75rem;
-      border-left: 1px solid #27272a;
+      padding-left: 0;
+      margin-left: 0;
       padding-bottom: 0.5rem;
       margin-top: 1rem;
+    }
+    #version-list::before {
+      content: '';
+      position: absolute;
+      /* left: 1.5rem; */
+      top: 0;
+      bottom: 0.5rem;
+      width: 1px;
+      background-color: #27272a;
+      pointer-events: none;
     }
     .version-item {
       position: relative;
