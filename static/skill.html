@@ -522,6 +522,68 @@
       color: #00FFA3;
       border: 1px solid #00E592;
     }
+
+    /* Markdown 源码预览 */
+    .md-source-pre {
+      width: 100%;
+      margin: 0;
+      padding: 1rem;
+      background-color: #09090b;
+      border: 1px solid #27272a;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      text-align: left;
+    }
+    .md-source-pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: #e4e4e7;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* 内容区域有实际内容时重置居中 */
+    #file-content:has(.markdown-body),
+    #file-content:has(.md-source-pre),
+    #file-content:has(pre > code.hljs) {
+      display: block;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 1.5rem;
+    }
+
+    /* 全屏模式 */
+    #file-preview-panel.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      max-height: none;
+      min-height: 100vh;
+      border-radius: 0;
+      border: none;
+    }
+    #file-preview-panel.fullscreen #file-content {
+      max-height: calc(100vh - 52px);
+    }
+    #file-preview-panel.fullscreen .rounded-t-xl {
+      border-radius: 0;
+    }
+    /* 全屏内容宽度限制 */
+    #file-preview-panel.fullscreen #file-content > .markdown-body,
+    #file-preview-panel.fullscreen #file-content > .md-source-pre,
+    #file-preview-panel.fullscreen #file-content > pre {
+      max-width: 72ch;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+    }
   </style>
 </head>
 <body class="text-base-200 font-sans min-h-screen pb-16 selection:bg-neon-400/30 selection:text-white">
@@ -583,14 +645,20 @@
       </div>
 
       <!-- 右侧预览区 -->
-      <div class="lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
+      <div id="file-preview-panel" class="lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
         <div class="px-5 py-3 border-b border-base-800 text-sm font-mono text-base-400 bg-base-950/50 rounded-t-xl flex justify-between items-center">
           <div>
             <span>cat <span class="text-white/30" id="file-preview-path" data-i18n="skill.selectFile">&lt;file&gt;</span></span>
           </div>
-          <div id="file-preview-md-actions" class="flex gap-2" hidden>
-            <button type="button" id="md-view-render" class="md-view-btn is-active" data-i18n="skill.htmlPreview">HTML 预览</button>
-            <button type="button" id="md-view-source" class="md-view-btn" data-i18n="skill.mdSource">Markdown 源码</button>
+          <div class="flex items-center gap-3">
+            <div id="file-preview-md-actions" class="flex gap-2" hidden>
+              <button type="button" id="md-view-render" class="md-view-btn is-active" data-i18n="skill.htmlPreview">HTML 预览</button>
+              <button type="button" id="md-view-source" class="md-view-btn" data-i18n="skill.mdSource">Markdown 源码</button>
+            </div>
+            <button type="button" id="fullscreen-btn" class="md-view-btn" onclick="toggleFullscreen()" title="全屏">
+              <svg id="fullscreen-icon-expand" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+              <svg id="fullscreen-icon-collapse" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
           </div>
         </div>
         <div id="file-content" class="flex-1 flex flex-col items-center justify-center overflow-auto text-base-400 p-8">

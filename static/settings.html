@@ -93,10 +93,19 @@
             color: #fff !important;
         }
         .cli-code-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             background-color: rgba(0,255,163,0.05) !important;
-            border-color: rgba(0,255,163,0.2) !important;
+            border: 1px solid rgba(0,255,163,0.2) !important;
             color: #00FFA3 !important;
             font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+        }
+        .cli-code-link svg {
+            width: 1rem;
+            height: 1rem;
+            flex-shrink: 0;
         }
         .cli-code-link:hover {
             background-color: rgba(0,255,163,0.1) !important;
@@ -126,7 +135,7 @@
         }
     </style>
 </head>
-<body class="app-devtools text-base-200 font-sans min-h-screen">
+<body class="text-base-200 font-sans min-h-screen">
     <!-- 导航栏 -->
     <nav class="navbar z-50">
         <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -150,7 +159,7 @@
 
     <!-- 页面内容 -->
     <main class="page-content">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-8 pb-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-8 pb-16" style="max-width: 680px;">
             
             <!-- 面包屑 -->
             <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
@@ -161,7 +170,7 @@
                 <span class="text-white">settings</span>
             </div>
 
-            <div class="card settings-card p-8 relative overflow-hidden" style="max-width: 680px; margin: 0 auto;">
+            <div class="card settings-card p-8 relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CFG-USER</div>
                 
                 <div class="settings-header mb-8 border-b border-base-800 pb-6">

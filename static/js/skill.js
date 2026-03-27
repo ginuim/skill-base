@@ -849,3 +849,31 @@ function toggleVersionHistory() {
   const container = document.getElementById('version-history');
   container.classList.toggle('collapsed');
 }
+
+/**
+ * 切换文件预览区全屏模式
+ */
+function toggleFullscreen() {
+  const panel = document.getElementById('file-preview-panel');
+  const expandIcon = document.getElementById('fullscreen-icon-expand');
+  const collapseIcon = document.getElementById('fullscreen-icon-collapse');
+  
+  panel.classList.toggle('fullscreen');
+  
+  const isFullscreen = panel.classList.contains('fullscreen');
+  expandIcon.classList.toggle('hidden', isFullscreen);
+  collapseIcon.classList.toggle('hidden', !isFullscreen);
+  
+  // 全屏时禁止页面滚动
+  document.body.style.overflow = isFullscreen ? 'hidden' : '';
+}
+
+// ESC 键退出全屏
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const panel = document.getElementById('file-preview-panel');
+    if (panel && panel.classList.contains('fullscreen')) {
+      toggleFullscreen();
+    }
+  }
+});

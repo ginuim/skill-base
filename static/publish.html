@@ -113,7 +113,7 @@
         .form-hint { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
     </style>
 </head>
-<body class="app-devtools text-base-200 font-sans min-h-screen">
+<body class="text-base-200 font-sans min-h-screen">
     <!-- 导航栏 -->
     <nav class="navbar z-50">
         <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -133,7 +133,7 @@
     </nav>
 
     <main class="page-content">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-4 pb-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-16" style="max-width: 720px;">
             <!-- 面包屑 -->
             <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
                 <span class="text-neon-400">~</span>
@@ -143,7 +143,7 @@
                 <span class="text-white">publish</span>
             </div>
 
-            <div class="card publish-card relative overflow-hidden" style="max-width: 720px; margin: 0 auto; padding: 2rem;">
+            <div class="card publish-card relative overflow-hidden p-8">
                 <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CMD-PUB</div>
                 
                 <h1 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
@@ -208,7 +208,7 @@
                         <div class="form-group">
                             <label for="skill-description" class="form-label font-mono text-base-400 mb-2 block required" data-i18n="publish.descLabel">描述</label>
                             <textarea id="skill-description" rows="3" readonly maxlength="500" data-i18n-placeholder="publish.descPlaceholder" placeholder="上传后从 SKILL.md 读取" class="rounded-lg px-4 py-2.5 w-full"></textarea>
-                            <p class="form-hint"><span id="skill-description-count" class="text-neon-400">0</span> / 500 字</p>
+                            <p class="form-hint"><span id="skill-description-count" class="text-neon-400">0</span> / 500 <span data-i18n="publish.charCount">chars</span></p>
                         </div>
                     </div>
 
