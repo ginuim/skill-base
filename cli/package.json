@@ -1,6 +1,6 @@
 {
   "name": "skill-base-cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Skill Base CLI - 命令行工具，用于搜索、安装、更新和发布 AI Agent Skills",
   "type": "module",
   "bin": {
