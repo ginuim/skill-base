@@ -342,5 +342,47 @@ function closeModal() {
   document.querySelectorAll('.modal-overlay').forEach(modal => {
     modal.classList.remove('visible');
   });
+  // 重置所有密码输入框类型
+  document.querySelectorAll('.password-input-container input').forEach(input => {
+    input.type = 'password';
+  });
+  document.querySelectorAll('.password-btn .eye-open').forEach(el => el.classList.remove('hidden'));
+  document.querySelectorAll('.password-btn .eye-closed').forEach(el => el.classList.add('hidden'));
   currentEditUserId = null;
+}
+
+// 密码相关功能
+function generatePassword(inputId) {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
+  const length = 12;
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  const input = document.getElementById(inputId);
+  input.value = password;
+  // 生成后自动显示，方便查看
+  input.type = 'text';
+  const container = input.closest('.password-input-container');
+  container.querySelector('.eye-open').classList.add('hidden');
+  container.querySelector('.eye-closed').classList.remove('hidden');
+}
+
+async function copyPassword(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input.value) return;
+  try {
+    await navigator.clipboard.writeText(input.value);
+    showToast(t('cliCode.copiedToast'), 'success');
+  } catch (err) {
+    showToast(t('cliCode.noCopy'), 'error');
+  }
+}
+
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  btn.querySelector('.eye-open').classList.toggle('hidden', isPassword);
+  btn.querySelector('.eye-closed').classList.toggle('hidden', !isPassword);
 }

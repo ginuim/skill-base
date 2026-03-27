@@ -1240,6 +1240,17 @@ textarea {
   color: var(--info-color);
 }
 
+/* Dark 模式 Toast */
+html.dark .toast {
+  background-color: #13141a;
+  border: 1px solid #27272a;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .toast-message {
+  color: #e4e4e7;
+}
+
 /* ========================================
    Loading 状态
    ======================================== */

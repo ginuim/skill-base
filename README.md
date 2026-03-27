@@ -216,7 +216,7 @@ description: "Internal Vue3 admin best practices for R&D Team 1. Triggers on req
 ```bash
 docker build -t skill-base .
 # 将本地的 ./data 目录挂载到容器内实现数据持久化
-docker run -d -p 8000:8000 -v $(pwd)/data:/app/data --name skill-base-server skill-base
+docker run -d -p 8000:8000 -v $(pwd)/data:/data --name skill-base-server skill-base
 ```
 
 ### 数据存储说明
@@ -225,8 +225,9 @@ docker run -d -p 8000:8000 -v $(pwd)/data:/app/data --name skill-base-server ski
 data/
 ├── skills.db          # SQLite 核心数据库
 ├── skills.db-wal      # WAL 日志缓存
-└── <skill-id>/        # 各个 Skill 的物理存储目录
-    ├── v20260326.120000.zip
+└── skills/            # 各 Skill 的 zip 包目录
+    └── <skill-id>/
+        └── v20260326.120000.zip
 ```
 
 ---

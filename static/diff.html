@@ -86,6 +86,11 @@
         .d2h-ins .d2h-code-line-ctn { background-color: transparent !important; }
         .d2h-del { background-color: rgba(248,113,113,0.15) !important; }
         .d2h-del .d2h-code-line-ctn { background-color: transparent !important; }
+        /* 仅行内对比高亮 <ins>/<del> 用同色深色字，整行仍为默认灰字 */
+        .d2h-code-line ins,
+        .d2h-code-side-line ins { color: #15803d !important; }
+        .d2h-code-line del,
+        .d2h-code-side-line del { color: #be123c !important; }
         .d2h-info { background-color: #09090b !important; color: #a1a1aa !important; border-color: #27272a !important; }
         .d2h-file-diff { border: none !important; }
         .d2h-diff-tbody tr { border-color: #27272a !important; }
