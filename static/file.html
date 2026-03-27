@@ -37,7 +37,7 @@
         }
         ::selection { background: rgba(0, 255, 163, 0.3); color: #fff; }
         
-        body.app-devtools { background-color: transparent; background-image: none; }
+        body.app-devtools { background-color: #09090b; }
         body.app-devtools .page-content { background-image: none; padding-top: 2rem; min-height: calc(100vh - 64px); }
         .navbar { position: sticky; top: 0; background-color: rgba(9, 9, 11, 0.8) !important; backdrop-filter: blur(12px); border-bottom: 1px solid #27272a !important; height: 64px; }
         .navbar .container { height: 100%; }
@@ -75,9 +75,81 @@
         .file-content-header { background-color: rgba(9, 9, 11, 0.5) !important; border-bottom: 1px solid #27272a !important; padding: 0.75rem 1.25rem !important; }
         .file-content-path { color: #a1a1aa !important; font-family: 'JetBrains Mono', monospace !important; }
         
-        .file-content-body pre { background-color: transparent !important; border: none !important; padding: 0 !important; }
-        .code-line-number { color: #3f3f46 !important; border-right: 1px solid #27272a !important; font-family: 'JetBrains Mono', monospace; }
-        .code-line-content { font-family: 'JetBrains Mono', monospace; color: #e4e4e7; }
+        .file-content-body pre { background-color: transparent !important; border: none !important; margin: 0 !important; }
+        .file-content-body pre code { background-color: transparent !important; padding: 0 !important; }
+        
+        .code-with-lines { padding: 1rem 0; }
+        .code-line { display: flex; line-height: 1.6; }
+        .code-line:hover { background-color: rgba(255,255,255,0.03); }
+        .code-line-number { 
+            min-width: 3.5rem; 
+            padding: 0 1rem; 
+            text-align: right; 
+            color: #3f3f46 !important; 
+            border-right: 1px solid #27272a !important; 
+            font-family: 'JetBrains Mono', monospace; 
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .code-line-content { 
+            padding-left: 1rem; 
+            padding-right: 1rem;
+            font-family: 'JetBrains Mono', monospace; 
+            color: #e4e4e7; 
+            white-space: pre;
+            flex: 1;
+        }
+        
+        /* Markdown 样式 */
+        .markdown-body { 
+            padding: 1.5rem; 
+            color: #e4e4e7; 
+            font-size: 0.9375rem;
+            line-height: 1.7;
+        }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 { color: #fff; margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 600; }
+        .markdown-body h1 { font-size: 1.75rem; border-bottom: 1px solid #27272a; padding-bottom: 0.5rem; }
+        .markdown-body h2 { font-size: 1.375rem; border-bottom: 1px solid #27272a; padding-bottom: 0.375rem; }
+        .markdown-body h3 { font-size: 1.125rem; }
+        .markdown-body p { margin-bottom: 1rem; }
+        .markdown-body a { color: #00FFA3; text-decoration: none; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body code { 
+            background-color: rgba(255,255,255,0.1); 
+            padding: 0.125rem 0.375rem; 
+            border-radius: 0.25rem; 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875em;
+        }
+        .markdown-body pre { 
+            background-color: #09090b !important; 
+            border: 1px solid #27272a; 
+            border-radius: 0.5rem; 
+            padding: 1rem !important; 
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .markdown-body pre code { background-color: transparent; padding: 0; }
+        .markdown-body ul, .markdown-body ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+        .markdown-body li { margin-bottom: 0.25rem; }
+        .markdown-body blockquote { 
+            border-left: 3px solid #00FFA3; 
+            padding-left: 1rem; 
+            margin: 1rem 0; 
+            color: #a1a1aa;
+        }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .markdown-body th, .markdown-body td { border: 1px solid #27272a; padding: 0.5rem 0.75rem; text-align: left; }
+        .markdown-body th { background-color: rgba(255,255,255,0.05); font-weight: 600; }
+        .markdown-body img { max-width: 100%; border-radius: 0.5rem; }
+        
+        /* Loading & Empty 状态 */
+        .loading-content { display: flex; align-items: center; justify-content: center; height: 100%; padding: 2rem; }
+        .empty-preview { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; color: #a1a1aa; text-align: center; }
+        .empty-preview-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5; }
+        .binary-notice { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; color: #a1a1aa; text-align: center; }
+        .binary-notice-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .large-file-warning { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background-color: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); border-radius: 0.5rem; color: #facc15; font-size: 0.875rem; margin: 1rem; }
         
         .action-bar { background-color: transparent !important; box-shadow: none !important; padding: 0 !important; margin-top: 1.5rem; }
         .version-bar { background-color: transparent !important; box-shadow: none !important; padding: 0 !important; border: none !important; margin-bottom: 0 !important; }
