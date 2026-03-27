@@ -40,17 +40,7 @@
         
         .navbar { background-color: rgba(9, 9, 11, 0.8) !important; backdrop-filter: blur(12px); border-bottom: 1px solid #27272a !important; }
 
-        /* 兼容 app.js 的组件样式 */
-        .navbar-user-btn { color: #fff !important; border-color: #27272a !important; font-family: 'JetBrains Mono', monospace;}
-        .navbar-user-btn:hover { border-color: #00E592 !important; color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
-        .navbar-user-menu { background-color: #13141a !important; border-color: #27272a !important; }
-        .navbar-user-menu-item { color: #e4e4e7 !important; }
-        .navbar-user-menu-item:hover { background-color: #27272a !important; color: #00FFA3 !important; }
-        .lang-switcher-trigger { border-color: #27272a !important; font-family: 'JetBrains Mono', monospace; }
-        .lang-switcher-trigger:hover, .lang-switcher.active .lang-switcher-trigger { border-color: #00E592 !important; color: #00FFA3 !important; }
-        .lang-switcher-menu { background-color: #13141a !important; border-color: #27272a !important; }
-        .lang-switcher-option:hover { background-color: #27272a !important; }
-        .lang-switcher-option.active { color: #00FFA3 !important; background-color: rgba(0,255,163,0.05) !important; }
+        /* 兼容 app.js：语言/用户按钮表面样式见 style.css html.dark … button.navbar-surface-btn */
         
         .btn-primary { background-color: transparent !important; border: 1px solid #00E592 !important; color: #00FFA3 !important; box-shadow: 0 0 15px rgba(0,255,163,0.1) !important; }
         .btn-primary:hover { background-color: rgba(0,255,163,0.1) !important; box-shadow: 0 0 20px rgba(0,255,163,0.2) !important; }
@@ -154,26 +144,10 @@
 </head>
 <body class="text-base-200 font-sans min-h-screen pb-16 selection:bg-neon-400/30 selection:text-white">
     <!-- 导航栏 -->
-    <nav class="navbar sticky top-0 z-50 bg-base-950/80 backdrop-blur-md border-b border-base-800">
-        <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-            <div class="flex items-center gap-8">
-                <!-- Logo -->
-                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none cursor-pointer">
-                    <div class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    </div>
-                    <span class="font-mono text-neon-400 font-bold drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">Skill</span>
-                    <span class="text-white font-bold">Base</span>
-                </a>
-                <!-- Nav Links -->
-                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium">
-                    <a href="/" class="text-white font-mono flex items-center gap-1.5" data-i18n="nav.home"><span class="text-neon-400">./</span>Home</a>
-                    <a href="/publish.html" class="text-base-400 hover:text-white font-mono transition-colors flex items-center gap-1.5" data-i18n="nav.publish">Publish</a>
-                </div>
-            </div>
-            <!-- app.js 将在这里注入 .navbar-user -->
-        </div>
-    </nav>
+    <skill-base-nav
+        current-path="/"
+        items='[{"href":"/","label":"Home","i18n":"nav.home"},{"href":"/publish.html","label":"Publish","i18n":"nav.publish"}]'>
+    </skill-base-nav>
 
     <!-- 页面内容 -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -230,6 +204,7 @@
 
     <!-- 引入 JS -->
     <script src="/js/i18n.js"></script>
+    <script src="/js/components/skill-base-nav.js"></script>
     <script src="/js/app.js"></script>
     <script src="/js/index.js"></script>
 </body>

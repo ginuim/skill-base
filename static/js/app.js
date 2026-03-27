@@ -383,7 +383,7 @@ function renderNavbar(user) {
   const _langLabel = _lang === 'zh' ? '中文' : 'English';
   const _langBtnHtml = `
     <div class="lang-switcher">
-      <button class="lang-switcher-trigger">
+      <button type="button" class="lang-switcher-trigger navbar-surface-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <circle cx="12" cy="12" r="10"/>
           <line x1="2" y1="12" x2="22" y2="12"/>
@@ -406,7 +406,7 @@ function renderNavbar(user) {
     userArea.innerHTML = `
       ${_langBtnHtml}
       <div class="navbar-user-dropdown">
-        <button class="navbar-user-btn">
+        <button type="button" class="navbar-user-btn navbar-surface-btn">
           <span class="username">${escapeHtml(user.username)}</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="6 9 12 15 18 9"/>
@@ -444,20 +444,22 @@ function renderNavbar(user) {
       </div>
     `;
     
-    // 绑定下拉菜单的点击事件
+    // 绑定下拉菜单的点击事件（与用户菜单、语言菜单互斥）
     const dropdown = userArea.querySelector('.navbar-user-dropdown');
     const button = dropdown.querySelector('.navbar-user-btn');
+    const langSwitcher = userArea.querySelector('.lang-switcher');
+    const langTrigger = userArea.querySelector('.lang-switcher-trigger');
+
     button.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (langSwitcher) langSwitcher.classList.remove('active');
       dropdown.classList.toggle('active');
     });
 
-    // 绑定语言切换下拉
-    const langSwitcher = userArea.querySelector('.lang-switcher');
-    const langTrigger = userArea.querySelector('.lang-switcher-trigger');
-    if (langTrigger) {
+    if (langTrigger && langSwitcher) {
       langTrigger.addEventListener('click', (e) => {
         e.stopPropagation();
+        dropdown.classList.remove('active');
         langSwitcher.classList.toggle('active');
       });
     }
