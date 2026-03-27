@@ -466,7 +466,10 @@
       display: block;
     }
     #file-content {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     /* 搜索联想 */
@@ -499,24 +502,25 @@
     .suggestion-item-username { color: #a1a1aa; font-family: 'JetBrains Mono', monospace; }
     .suggestion-empty { padding: 0.625rem 0.75rem; color: #a1a1aa; text-align: center; font-size: 0.875rem; }
 
-    .is-active {
-      background-color: white !important;
-      color: black !important;
-    }
-
     .md-view-btn {
       padding: 0.25rem 0.625rem;
-      font-size: 0.8125rem;
-      border: none;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid #27272a;
       background: transparent;
-      color: var(--text-secondary);
+      color: #a1a1aa;
       cursor: pointer;
+      border-radius: 0.25rem;
+      transition: all 0.2s;
+    }
+    .md-view-btn:hover {
+      color: white;
+      border-color: #a1a1aa;
     }
     .md-view-btn.is-active {
       background: rgba(0,255,163,0.1);
       color: #00FFA3;
       border: 1px solid #00E592;
-      border-radius: 0.25rem;
     }
   </style>
 </head>
@@ -564,7 +568,7 @@
     <!-- 文件树与预览区 (1:3 比例) -->
     <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
       <!-- 左侧文件树 -->
-      <div class="bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px]">
+      <div class="bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
         <div class="px-5 py-3 border-b border-base-800 font-mono text-sm text-base-400 flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
           <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
@@ -579,7 +583,7 @@
       </div>
 
       <!-- 右侧预览区 -->
-      <div class="lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px]">
+      <div class="lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
         <div class="px-5 py-3 border-b border-base-800 text-sm font-mono text-base-400 bg-base-950/50 rounded-t-xl flex justify-between items-center">
           <div>
             <span>cat <span class="text-white/30" id="file-preview-path" data-i18n="skill.selectFile">&lt;file&gt;</span></span>
@@ -589,14 +593,12 @@
             <button type="button" id="md-view-source" class="md-view-btn" data-i18n="skill.mdSource">Markdown 源码</button>
           </div>
         </div>
-        <div id="file-content" class="flex-1 overflow-auto p-6 text-base-400">
-          <div class="empty-preview flex flex-col items-center justify-center h-full min-h-[200px]">
-            <div class="flex items-center gap-3 opacity-30 font-mono mb-4">
-              <span class="text-neon-400 animate-pulse">_</span>
-              <span>EOF</span>
-            </div>
-            <p class="text-sm font-mono" data-i18n="skill.clickFile">Click a file on the left to preview</p>
+        <div id="file-content" class="flex-1 flex flex-col items-center justify-center overflow-auto text-base-400 p-8">
+          <div class="flex items-center gap-3 opacity-30 font-mono mb-4">
+            <span class="text-neon-400 animate-pulse">_</span>
+            <span>EOF</span>
           </div>
+          <p class="text-sm font-mono" data-i18n="skill.clickFile">Click a file on the left to preview</p>
         </div>
       </div>
     </section>

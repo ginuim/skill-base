@@ -38,24 +38,7 @@
         }
         ::selection { background: rgba(0, 255, 163, 0.3); color: #fff; }
         
-        body.app-devtools {
-            background-color: transparent;
-            background-image: none;
-        }
-        body.app-devtools .page-content {
-            background-image: none;
-            padding-top: 2rem;
-            min-height: calc(100vh - 64px);
-        }
-        .navbar {
-            position: sticky;
-            top: 0;
-            background-color: rgba(9, 9, 11, 0.8) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid #27272a !important;
-            height: 64px;
-        }
-        .navbar .container { height: 100%; }
+        .navbar { background-color: rgba(9, 9, 11, 0.8) !important; backdrop-filter: blur(12px); border-bottom: 1px solid #27272a !important; }
 
         /* 兼容 app.js 的组件样式 */
         .navbar-user-btn { color: #fff !important; border-color: #27272a !important; font-family: 'JetBrains Mono', monospace;}
@@ -77,7 +60,7 @@
         .search-bar input {
             width: 100%; background-color: #13141a !important; border: 1px solid #27272a !important;
             color: #fff !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.875rem !important;
-            border-radius: 0.5rem !important; padding: 0.75rem 2.5rem 0.75rem 3.5rem !important;
+            border-radius: 0.5rem !important; padding: 0.75rem 2.5rem 0.75rem 5rem !important;
             transition: all 0.2s ease !important;
         }
         .search-bar input:focus {
@@ -115,6 +98,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: none !important;
+            text-decoration: none !important;
         }
 
         .skill-card:hover {
@@ -122,12 +106,6 @@
             box-shadow: 0 0 20px rgba(0,255,163,0.05) !important;
             transform: translateY(-2px) !important;
         }
-
-        .skill-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            background-color: #27272a; transition: all 0.2s ease;
-        }
-        .skill-card:hover::before { background-color: #00FFA3; box-shadow: 0 0 10px #00FFA3; }
 
         .skill-card-header {
             display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem;
@@ -174,31 +152,31 @@
         .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; color: #00FFA3; }
     </style>
 </head>
-<body class="app-devtools text-base-200 font-sans min-h-screen">
+<body class="text-base-200 font-sans min-h-screen pb-16 selection:bg-neon-400/30 selection:text-white">
     <!-- 导航栏 -->
-    <nav class="navbar z-50">
-        <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <nav class="navbar sticky top-0 z-50 bg-base-950/80 backdrop-blur-md border-b border-base-800">
+        <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             <div class="flex items-center gap-8">
                 <!-- Logo -->
-                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none hover:opacity-80 transition-opacity">
-                    <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
+                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none cursor-pointer">
+                    <div class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    </span>
-                    <span class="text-white font-bold font-mono">Skill Base</span>
+                    </div>
+                    <span class="font-mono text-neon-400 font-bold drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">Skill</span>
+                    <span class="text-white font-bold">Base</span>
                 </a>
                 <!-- Nav Links -->
-                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium font-mono">
-                    <a href="/" class="text-white flex items-center gap-1.5" data-i18n="nav.home"><span class="text-neon-400">./</span>首页</a>
-                    <a href="/publish.html" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5 hide-mobile" data-i18n="nav.publish"><span class="text-neon-400 opacity-0 group-hover:opacity-100 transition-opacity">./</span>发布</a>
+                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium">
+                    <a href="/" class="text-white font-mono flex items-center gap-1.5" data-i18n="nav.home"><span class="text-neon-400">./</span>Home</a>
+                    <a href="/publish.html" class="text-base-400 hover:text-white font-mono transition-colors flex items-center gap-1.5" data-i18n="nav.publish">Publish</a>
                 </div>
             </div>
-            <!-- app.js 用户区域 -->
+            <!-- app.js 将在这里注入 .navbar-user -->
         </div>
     </nav>
 
     <!-- 页面内容 -->
-    <main class="page-content">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-8 pb-16">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
             
             <!-- 页面标题区域 -->
             <div class="page-header mb-8 text-center">
@@ -237,10 +215,9 @@
             </div>
 
             <!-- Skill 列表 -->
-            <div id="skill-list" class="skill-grid">
+            <div id="skill-list" class="skill-grid pb-16">
                 <!-- 由 JS 动态渲染 -->
             </div>
-        </div>
     </main>
 
     <!-- 浮动发布按钮 -->

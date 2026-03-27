@@ -394,10 +394,11 @@ async function switchVersion(version) {
     hideMarkdownPreviewActions();
     document.getElementById('file-preview-path').textContent = t('skill.selectFile');
     fileContentContainer.innerHTML = `
-      <div class="empty-preview flex flex-col items-center justify-center py-10">
-        <div class="empty-preview-icon text-4xl mb-4 opacity-50">📄</div>
-        <p class="text-base-400 font-mono">${t('skill.clickFile')}</p>
+      <div class="flex items-center gap-3 opacity-30 font-mono mb-4">
+        <span class="text-neon-400 animate-pulse">_</span>
+        <span>EOF</span>
       </div>
+      <p class="text-sm font-mono">${t('skill.clickFile')}</p>
     `;
 
   } catch (error) {

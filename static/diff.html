@@ -37,10 +37,8 @@
         }
         ::selection { background: rgba(0, 255, 163, 0.3); color: #fff; }
         
-        body.app-devtools { background-color: transparent; background-image: none; }
-        body.app-devtools .page-content { background-image: none; padding-top: 2rem; min-height: calc(100vh - 64px); }
-        .navbar { position: sticky; top: 0; background-color: rgba(9, 9, 11, 0.8) !important; backdrop-filter: blur(12px); border-bottom: 1px solid #27272a !important; height: 64px; z-index: 50;}
-        .navbar .container { height: 100%; }
+        body.app-devtools .page-content { padding-top: 2rem; min-height: calc(100vh - 64px); }
+        .navbar { background-color: rgba(9, 9, 11, 0.8) !important; backdrop-filter: blur(12px); border-bottom: 1px solid #27272a !important; }
 
         /* 兼容 app.js 的组件样式 */
         .navbar-user-btn { color: #fff !important; border-color: #27272a !important; font-family: 'JetBrains Mono', monospace;}
@@ -75,7 +73,7 @@
 
         .changed-files { background-color: #13141a !important; border: 1px solid #27272a !important; border-radius: 0.75rem !important; box-shadow: none !important; }
         .changed-files-header { border-bottom: 1px solid #27272a !important; color: #fff !important; font-family: 'JetBrains Mono', monospace; }
-        .changed-file-item { border-bottom: 1px solid #27272a !important; }
+        .changed-file-item { border-bottom: 1px solid #27272a !important; padding: 0.75rem 1rem !important; }
         .changed-file-item:hover { background-color: #09090b !important; }
         .changed-file-item.active { background-color: rgba(0,255,163,0.05) !important; }
         .changed-file-path { color: #a1a1aa !important; font-family: 'JetBrains Mono', monospace; }
@@ -84,31 +82,56 @@
         .changed-file-status.deleted { background-color: rgba(248,113,113,0.1) !important; color: #f87171 !important; }
         .changed-file-status.modified { background-color: rgba(251,146,60,0.1) !important; color: #fb923c !important; }
 
-        .diff-output-container { background-color: #13141a !important; border: 1px solid #27272a !important; border-radius: 0.75rem !important; box-shadow: none !important; }
+        .diff-output-container { background-color: #131419 !important; border: 1px solid #27272a !important; border-radius: 0.75rem !important; box-shadow: none !important; overflow: hidden; }
+        
+        /* diff2html 深色主题覆盖 */
+        .d2h-wrapper { background-color: #131419 !important; }
+        .d2h-file-wrapper { background-color: #131419 !important; border: none !important; }
+        .d2h-file-header { background-color: #09090b !important; border-bottom: 1px solid #27272a !important; }
+        .d2h-file-name-wrapper { background-color: transparent !important; }
+        .d2h-file-name { color: #00FFA3 !important; font-family: 'JetBrains Mono', monospace !important; }
+        .d2h-tag { background-color: rgba(0,255,163,0.1) !important; color: #00FFA3 !important; border: 1px solid #00E592 !important; }
+        .d2h-code-wrapper, .d2h-diff-table { background-color: #131419 !important; }
+        .d2h-code-line, .d2h-code-side-line { background-color: #131419 !important; color: #e4e4e7 !important; }
+        .d2h-code-line-ctn { color: #e4e4e7 !important; font-family: 'JetBrains Mono', monospace !important; }
+        .d2h-code-line-prefix { color: #a1a1aa !important; }
+        .d2h-ins { background-color: rgba(34,197,94,0.15) !important; }
+        .d2h-ins .d2h-code-line-ctn { background-color: transparent !important; }
+        .d2h-del { background-color: rgba(248,113,113,0.15) !important; }
+        .d2h-del .d2h-code-line-ctn { background-color: transparent !important; }
+        .d2h-info { background-color: #09090b !important; color: #a1a1aa !important; border-color: #27272a !important; }
+        .d2h-file-diff { border: none !important; }
+        .d2h-diff-tbody tr { border-color: #27272a !important; }
+        .d2h-code-linenumber, .d2h-code-side-linenumber { background-color: #1a1b23 !important; color: #9ca3af !important; border-color: #27272a !important; }
+        .d2h-cntx { background-color: #131419 !important; }
+        .d2h-file-collapse { background-color: #09090b !important; border-color: #27272a !important; }
+        .d2h-file-collapse-input:checked + .d2h-file-collapse-label { background-color: rgba(0,255,163,0.1) !important; }
+        
         .empty-state { font-family: 'JetBrains Mono', monospace; color: #64748b; }
     </style>
 </head>
-<body class="app-devtools text-base-200 font-sans min-h-screen">
+<body class="text-base-200 font-sans min-h-screen pb-16 selection:bg-neon-400/30 selection:text-white">
     <!-- 导航栏 -->
-    <nav class="navbar z-50">
-        <div class="container flex items-center justify-between mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <nav class="navbar sticky top-0 z-50 bg-base-950/80 backdrop-blur-md border-b border-base-800">
+        <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             <div class="flex items-center gap-8">
-                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none hover:opacity-80 transition-opacity">
-                    <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
+                <a href="/" class="flex items-center gap-2 text-lg tracking-tight select-none cursor-pointer">
+                    <div class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    </span>
-                    <span class="text-white font-bold font-mono">Skill Base</span>
+                    </div>
+                    <span class="font-mono text-neon-400 font-bold drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">Skill</span>
+                    <span class="text-white font-bold">Base</span>
                 </a>
-                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium font-mono">
-                    <a href="/" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5" data-i18n="nav.home">首页</a>
-                    <a href="/publish.html" class="text-base-400 hover:text-white transition-colors flex items-center gap-1.5 hide-mobile" data-i18n="nav.publish">发布</a>
+                <div class="hidden md:flex items-baseline space-x-6 text-sm font-medium">
+                    <a href="/" class="text-base-400 hover:text-white font-mono transition-colors flex items-center gap-1.5" data-i18n="nav.home"><span class="text-neon-400">./</span>Home</a>
+                    <a href="/publish.html" class="text-base-400 hover:text-white font-mono transition-colors flex items-center gap-1.5" data-i18n="nav.publish">Publish</a>
                 </div>
             </div>
+            <!-- app.js 将在这里注入 .navbar-user -->
         </div>
     </nav>
 
-    <main class="page-content">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-4 pb-16">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
             
             <!-- 面包屑 -->
             <div class="text-sm text-base-400 font-mono mb-6 flex items-center flex-wrap gap-2">
@@ -128,12 +151,12 @@
                 <div class="diff-controls-row flex flex-wrap items-center gap-4">
                     <div class="diff-control-group flex items-center gap-2">
                         <span class="diff-control-label text-xs" data-i18n="diff.versionA">Old:</span>
-                        <select id="version-a" onchange="onVersionChange()" class="text-xs py-2 w-40"></select>
+                        <select id="version-a" onchange="onVersionChange()" class="text-xs py-2 w-52"></select>
                     </div>
                     <span class="diff-arrow font-mono text-base-800">-></span>
                     <div class="diff-control-group flex items-center gap-2">
                         <span class="diff-control-label text-xs" data-i18n="diff.versionB">New:</span>
-                        <select id="version-b" onchange="onVersionChange()" class="text-xs py-2 w-40"></select>
+                        <select id="version-b" onchange="onVersionChange()" class="text-xs py-2 w-52"></select>
                     </div>
                     <button class="btn btn-primary btn-sm flex items-center gap-2 ml-2" onclick="performDiff()">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -180,15 +203,14 @@
                     </div>
                 </div>
             </div>
-
+    
             <!-- 底部返回 -->
-            <div class="mt-8">
+            <div class="mt-8 pb-16">
                 <button class="btn btn-secondary btn-sm flex items-center gap-2" onclick="goToSkillDetail()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                     <span data-i18n="diff.back">Back to details</span>
                 </button>
             </div>
-        </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
