@@ -5,31 +5,67 @@ import { randomBytes } from 'node:crypto';
 import chalk from 'chalk';
 import ora from 'ora';
 import archiver from 'archiver';
+import { parse as parseYaml } from 'yaml';
 import { loadCredentials } from '../auth.js';
 import { createClient } from '../api.js';
 
+/** skill id：字母、数字、下划线、连字符（与文档 /^[\\w-]+$/ 一致） */
+const SKILL_ID_RE = /^[\w-]+$/;
+
 /**
- * 从 SKILL.md 提取 name 和 description
- * - name: 取第一个 # 标题
- * - description: 取标题后的第一段非空文本（前 200 字符）
+ * 在文件夹名与 frontmatter 的 name 之间选取 skill_id：须至少其一符合 SKILL_ID_RE；
+ * 若两者都符合则必须相同，否则报错。
  */
-function parseSkillMd(content) {
-  const lines = content.split('\n');
+export function resolveSkillId(folderBasename, frontmatterName) {
+  const f = String(folderBasename ?? '').trim();
+  const m =
+    frontmatterName === undefined || frontmatterName === null
+      ? ''
+      : String(frontmatterName).trim();
+
+  const fOk = SKILL_ID_RE.test(f);
+  const mOk = m.length > 0 && SKILL_ID_RE.test(m);
+
+  if (fOk && mOk) {
+    if (f === m) return f;
+    throw new Error(
+      `skill_id 不一致：文件夹名为 "${f}"，frontmatter 的 name 为 "${m}"，请统一为同一标识`
+    );
+  }
+  if (fOk) return f;
+  if (mOk) return m;
+  throw new Error(
+    `无效的 skill id：文件夹名 "${f}" 与 frontmatter name "${m || '(无)'}" 须至少其一符合 /^[\\w-]+$/（仅字母、数字、下划线与连字符）`
+  );
+}
+
+function splitFrontmatter(content) {
+  const s = content.replace(/^\uFEFF/, '');
+  if (!s.startsWith('---')) return { fmYaml: null, body: s };
+  const lines = s.split(/\r?\n/);
+  if (lines[0].trim() !== '---') return { fmYaml: null, body: s };
+  const end = lines.findIndex((line, i) => i > 0 && line.trim() === '---');
+  if (end === -1) return { fmYaml: null, body: s };
+  const fmYaml = lines.slice(1, end).join('\n');
+  const body = lines.slice(end + 1).join('\n');
+  return { fmYaml, body };
+}
+
+function parseBodyHeading(body) {
+  const lines = body.split(/\r?\n/);
   let name = null;
   let description = null;
   let foundTitle = false;
 
   for (const line of lines) {
     const trimmed = line.trim();
-    
-    // 匹配 # 标题
+
     if (!foundTitle && trimmed.startsWith('# ')) {
       name = trimmed.slice(2).trim();
       foundTitle = true;
       continue;
     }
-    
-    // 找标题后的第一段非空文本
+
     if (foundTitle && trimmed && !trimmed.startsWith('#')) {
       description = trimmed.slice(0, 200);
       break;
@@ -37,6 +73,35 @@ function parseSkillMd(content) {
   }
 
   return { name, description };
+}
+
+/**
+ * 解析 SKILL.md：YAML frontmatter（若有）+ 正文第一个 # 标题与首段描述。
+ */
+function parseSkillMd(content) {
+  const { fmYaml, body } = splitFrontmatter(content);
+  let fm = null;
+  if (fmYaml !== null && fmYaml.trim() !== '') {
+    try {
+      fm = parseYaml(fmYaml);
+      if (fm === null || typeof fm !== 'object') fm = {};
+    } catch {
+      fm = null;
+    }
+  }
+
+  const heading = parseBodyHeading(body);
+  let descriptionFromFm = '';
+  if (fm && fm.description !== undefined && fm.description !== null) {
+    descriptionFromFm = String(fm.description).trim();
+  }
+
+  return {
+    fm,
+    headingTitle: heading.name,
+    headingDescription: heading.description,
+    descriptionFromFm,
+  };
 }
 
 /**
@@ -54,21 +119,18 @@ function zipDirectory(dirPath, outputPath, dirName) {
     archive.on('error', reject);
 
     archive.pipe(output);
-    // 使用 dirName 作为 zip 包内的顶层文件夹名称
     archive.directory(dirPath, dirName);
     archive.finalize();
   });
 }
 
 export default async function publish(directory, options) {
-  // 1. 验证凭证
   const credentials = loadCredentials();
   if (!credentials?.token) {
     console.log(chalk.red('❌ Please login first: skb login'));
     process.exit(1);
   }
 
-  // 2. 验证目录存在（默认使用当前目录）
   const resolvedDir = path.resolve(directory || process.cwd());
   if (!fs.existsSync(resolvedDir)) {
     console.log(chalk.red(`❌ Directory not found: ${resolvedDir}`));
@@ -81,30 +143,37 @@ export default async function publish(directory, options) {
     process.exit(1);
   }
 
-  // 3. 验证 SKILL.md 存在
   const skillMdPath = path.join(resolvedDir, 'SKILL.md');
   if (!fs.existsSync(skillMdPath)) {
     console.log(chalk.red(`❌ Missing SKILL.md in directory: ${skillMdPath}`));
     process.exit(1);
   }
 
-  // 4. 从文件夹名提取 skill_id
-  const skillId = path.basename(resolvedDir);
-
-  // 5. 从 SKILL.md 提取 name 和 description
+  const folderBasename = path.basename(resolvedDir);
   const skillMdContent = fs.readFileSync(skillMdPath, 'utf-8');
   const parsed = parseSkillMd(skillMdContent);
 
-  const name = options.name || parsed.name || skillId;
-  const description = options.description || parsed.description || '';
+  let skillId;
+  try {
+    skillId = resolveSkillId(folderBasename, parsed.fm?.name);
+  } catch (e) {
+    console.log(chalk.red(`❌ ${e.message}`));
+    process.exit(1);
+  }
+
+  const name = options.name || parsed.headingTitle || skillId;
+  const description =
+    options.description ||
+    (parsed.descriptionFromFm ? parsed.descriptionFromFm : '') ||
+    parsed.headingDescription ||
+    '';
   const changelog = options.changelog;
 
   console.log(chalk.cyan(`📦 Preparing to publish Skill: ${skillId}`));
   console.log(chalk.gray(`   Name: ${name}`));
-  console.log(chalk.gray(`   Description: ${description || '(none)'}`))
+  console.log(chalk.gray(`   Description: ${description || '(none)'}`));
   console.log(chalk.gray(`   Changelog: ${changelog}`));
 
-  // 6. 打包为 zip
   const spinner = ora('Packing...').start();
   const tmpZipPath = path.join(os.tmpdir(), `skb-${randomBytes(8).toString('hex')}.zip`);
 
@@ -112,14 +181,11 @@ export default async function publish(directory, options) {
     const size = await zipDirectory(resolvedDir, tmpZipPath, skillId);
     spinner.text = `Pack complete (${(size / 1024).toFixed(1)} KB), uploading...`;
 
-    // 7. 上传
     const client = createClient();
-    
-    // 读取 zip 文件内容
+
     const zipBuffer = fs.readFileSync(tmpZipPath);
     const zipBlob = new Blob([zipBuffer], { type: 'application/zip' });
-    
-    // 使用原生 FormData
+
     const formData = new FormData();
     formData.append('zip_file', zipBlob, 'skill.zip');
     formData.append('skill_id', skillId);
@@ -139,13 +205,12 @@ export default async function publish(directory, options) {
     spinner.fail(chalk.red(`Publish failed: ${err.message}`));
     process.exit(1);
   } finally {
-    // 8. 清理临时文件
     try {
       if (fs.existsSync(tmpZipPath)) {
         fs.unlinkSync(tmpZipPath);
       }
     } catch {
-      // 忽略清理错误
+      // ignore
     }
   }
 }

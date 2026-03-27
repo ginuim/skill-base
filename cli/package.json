@@ -31,7 +31,8 @@
     "ora": "^8.0.1",
     "prompts": "^2.4.2",
     "form-data": "^4.0.0",
-    "extract-zip": "^2.0.1"
+    "extract-zip": "^2.0.1",
+    "yaml": "^2.7.0"
   },
   "engines": {
     "node": ">=18.0.0"
