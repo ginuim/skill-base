@@ -1,0 +1,226 @@
+/**
+ * Skill Base - API Service
+ * 封装 fetch 请求，处理认证、错误等
+ */
+
+const API_BASE = '/api/v1'
+
+export interface ApiOptions {
+  method?: string
+  headers?: Record<string, string>
+  body?: BodyInit | null
+}
+
+export interface ApiError extends Error {
+  status?: number
+  data?: any
+}
+
+/**
+ * 封装 fetch 请求
+ */
+export async function api<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
+  const url = path.startsWith('/') ? `${API_BASE}${path}` : `${API_BASE}/${path}`
+
+  const headers: Record<string, string> = {
+    ...options.headers,
+  }
+
+  // 如果不是 FormData，添加 JSON content-type
+  if (options.body && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: 'same-origin',
+  })
+
+  // 处理 401 未授权
+  if (response.status === 401) {
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login'
+    }
+    throw new Error('未授权，请重新登录')
+  }
+
+  // 处理 204 No Content
+  if (response.status === 204) {
+    return null as T
+  }
+
+  // 解析响应
+  const contentType = response.headers.get('content-type')
+  let data: any
+
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json()
+  } else {
+    data = await response.text()
+  }
+
+  // 处理错误响应
+  if (!response.ok) {
+    const error = new Error(data?.detail || data?.error || data?.message || `请求失败 (${response.status})`) as ApiError
+    error.status = response.status
+    error.data = data
+    throw error
+  }
+
+  return data as T
+}
+
+/**
+ * GET 请求
+ */
+export function apiGet<T = any>(path: string): Promise<T> {
+  return api<T>(path, { method: 'GET' })
+}
+
+/**
+ * POST 请求
+ */
+export function apiPost<T = any>(path: string, body?: any): Promise<T> {
+  return api<T>(path, {
+    method: 'POST',
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  })
+}
+
+/**
+ * PUT 请求
+ */
+export function apiPut<T = any>(path: string, body?: any): Promise<T> {
+  return api<T>(path, {
+    method: 'PUT',
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  })
+}
+
+/**
+ * DELETE 请求
+ */
+export function apiDelete<T = any>(path: string): Promise<T> {
+  return api<T>(path, { method: 'DELETE' })
+}
+
+/**
+ * 检查系统是否已初始化
+ */
+export async function checkSystemInit(): Promise<boolean> {
+  // setup 页面不需要检查
+  if (window.location.pathname === '/setup') {
+    return true
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/init/status`)
+    const data = await res.json()
+
+    if (!data.initialized) {
+      window.location.href = '/setup'
+      return false
+    }
+    return true
+  } catch (err) {
+    console.error('Failed to check system init status:', err)
+    return true
+  }
+}
+
+// ===== Auth API =====
+
+export interface LoginRequest {
+  username: string
+  password: string
+}
+
+export interface User {
+  id: number
+  username: string
+  name: string | null
+  email: string | null
+  role: 'admin' | 'user'
+  created_at: string
+}
+
+export const authApi = {
+  login: (data: LoginRequest) => apiPost<{ user: User }>('/auth/login', data),
+  logout: () => apiPost('/auth/logout'),
+  me: () => apiGet<User>('/auth/me'),
+}
+
+// ===== Skills API =====
+
+export interface Skill {
+  id: number
+  name: string
+  description: string
+  owner_id: number
+  owner: User
+  created_at: string
+  updated_at: string
+  latest_version?: SkillVersion
+  permission?: 'owner' | 'collaborator' | 'user'
+}
+
+export interface SkillVersion {
+  id: number
+  skill_id: number
+  version: string
+  changelog: string
+  file_count: number
+  total_size: number
+  created_by: number
+  creator?: User
+  created_at: string
+}
+
+export interface SkillDetail extends Skill {
+  versions: SkillVersion[]
+  collaborators: User[]
+}
+
+export const skillsApi = {
+  list: (query?: string) => apiGet<{ skills: Skill[] }>(`/skills${query ? `?q=${encodeURIComponent(query)}` : ''}`),
+  get: (id: number) => apiGet<SkillDetail>(`/skills/${id}`),
+  create: (data: { name: string; description: string }) => apiPost<Skill>('/skills', data),
+  update: (id: number, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
+  delete: (id: number) => apiDelete(`/skills/${id}`),
+}
+
+// ===== Versions API =====
+
+export const versionsApi = {
+  list: (skillId: number) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),
+  get: (skillId: number, versionId: number) => apiGet<SkillVersion>(`/skills/${skillId}/versions/${versionId}`),
+  download: (skillId: number, versionId: number) => apiGet<{ download_url: string }>(`/skills/${skillId}/versions/${versionId}/download`),
+}
+
+// ===== Collaborators API =====
+
+export const collaboratorsApi = {
+  list: (skillId: number) => apiGet<{ collaborators: User[] }>(`/skills/${skillId}/collaborators`),
+  add: (skillId: number, username: string) => apiPost(`/skills/${skillId}/collaborators`, { username }),
+  remove: (skillId: number, userId: number) => apiDelete(`/skills/${skillId}/collaborators/${userId}`),
+}
+
+// ===== Users API =====
+
+export const usersApi = {
+  list: () => apiGet<{ users: User[] }>('/users'),
+  create: (data: { username: string; password: string; name?: string; email?: string; role?: string }) =>
+    apiPost<User>('/users', data),
+  update: (id: number, data: { name?: string; email?: string; role?: string }) =>
+    apiPut<User>(`/users/${id}`, data),
+  delete: (id: number) => apiDelete(`/users/${id}`),
+}
+
+// ===== Init API =====
+
+export const initApi = {
+  status: () => apiGet<{ initialized: boolean }>('/init/status'),
+  setup: (data: { admin_username: string; admin_password: string }) =>
+    apiPost('/init/setup', data),
+}
