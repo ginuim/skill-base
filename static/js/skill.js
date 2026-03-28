@@ -118,6 +118,48 @@ function showMarkdownPreviewActions(content) {
 }
 
 /**
+ * 逻辑行数（与编辑器里按 \\n 换行一致）
+ * @param {string} [text]
+ * @returns {number}
+ */
+function countLogicalLines(text) {
+  if (text == null || text === '') return 1;
+  return text.split(/\r?\n/).length;
+}
+
+/**
+ * 为 <pre><code> 左侧增加行号列（行数以源码为准；hljs 高亮后 textContent 换行可能变少，不能用来计数）
+ * @param {HTMLPreElement} pre
+ * @param {number} [lineCountOverride] 高亮前从原始字符串统计传入
+ * @returns {HTMLDivElement} 外层 .code-with-lines
+ */
+function wrapPreWithLineNumbers(pre, lineCountOverride) {
+  if (!pre) return null;
+  if (pre.parentElement?.classList.contains('code-with-lines')) return pre.parentElement;
+  const code = pre.querySelector('code');
+  const raw = code ? code.textContent : pre.textContent;
+  const lineCount = lineCountOverride != null
+    ? Math.max(1, lineCountOverride)
+    : Math.max(1, countLogicalLines(raw || ''));
+  const nums = Array.from({ length: lineCount }, (_, i) => String(i + 1)).join('\n');
+
+  const wrap = document.createElement('div');
+  wrap.className = 'code-with-lines';
+  const gutter = document.createElement('div');
+  gutter.className = 'line-numbers';
+  gutter.setAttribute('aria-hidden', 'true');
+  gutter.textContent = nums;
+
+  const parent = pre.parentNode;
+  if (parent) {
+    parent.insertBefore(wrap, pre);
+  }
+  wrap.appendChild(gutter);
+  wrap.appendChild(pre);
+  return wrap;
+}
+
+/**
  * 将 Markdown 渲染为 HTML，并做表格包裹（避免撑破布局）
  * @param {string} content
  * @returns {HTMLElement}
@@ -136,9 +178,15 @@ function buildMarkdownBodyElement(content) {
   });
   const hl = typeof hljs !== 'undefined' ? hljs : null;
   wrapper.querySelectorAll('pre code').forEach((block) => {
+    block.dataset.lineCount = String(countLogicalLines(block.textContent));
     if (hl && typeof hl.highlightElement === 'function') {
       hl.highlightElement(block);
     }
+  });
+  wrapper.querySelectorAll('pre').forEach((pre) => {
+    const code = pre.querySelector('code');
+    const n = code?.dataset?.lineCount ? parseInt(code.dataset.lineCount, 10) : NaN;
+    wrapPreWithLineNumbers(pre, Number.isFinite(n) ? n : undefined);
   });
   return wrapper;
 }
@@ -165,7 +213,13 @@ function setMarkdownPreviewMode(mode) {
  */
 function renderMarkdownPreview(container, content, mode) {
   if (mode === 'source') {
-    container.innerHTML = `<pre class="md-source-pre"><code>${escapeHtml(content)}</code></pre>`;
+    container.innerHTML = '';
+    const pre = document.createElement('pre');
+    pre.className = 'md-source-pre';
+    const code = document.createElement('code');
+    code.textContent = content;
+    pre.appendChild(code);
+    container.appendChild(wrapPreWithLineNumbers(pre, countLogicalLines(content)));
     return;
   }
   container.innerHTML = '';
@@ -688,10 +742,14 @@ async function previewFile(filePath) {
       } else {
         highlighted = escapeHtml(content);
       }
+      const lines = countLogicalLines(content);
       container.innerHTML = `<pre><code class="hljs">${highlighted}</code></pre>`;
+      wrapPreWithLineNumbers(container.querySelector('pre'), lines);
     } else {
       // 纯文本
+      const lines = countLogicalLines(content);
       container.innerHTML = `<pre><code>${escapeHtml(content)}</code></pre>`;
+      wrapPreWithLineNumbers(container.querySelector('pre'), lines);
     }
 
   } catch (error) {
