@@ -34,7 +34,7 @@ export async function api<T = any>(path: string, options: ApiOptions = {}): Prom
   const response = await fetch(url, {
     ...options,
     headers,
-    credentials: 'same-origin',
+    credentials: 'include',
   })
 
   // 处理 401 未授权
@@ -143,6 +143,7 @@ export interface User {
   email: string | null
   role: 'admin' | 'user'
   created_at: string
+  disabled?: boolean
 }
 
 export const authApi = {

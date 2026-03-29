@@ -8,6 +8,7 @@ import SettingsView from '@/views/SettingsView.vue'
 import CliCodeView from '@/views/CliCodeView.vue'
 import SetupView from '@/views/SetupView.vue'
 import DiffView from '@/views/DiffView.vue'
+import UserManagementView from '@/views/UserManagementView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,6 +57,11 @@ const router = createRouter({
       path: '/diff',
       name: 'diff',
       component: DiffView,
+    },
+    {
+      path: '/admin/users',
+      name: 'user-management',
+      component: UserManagementView,
     },
   ],
 })
