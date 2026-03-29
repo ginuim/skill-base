@@ -264,7 +264,7 @@ section {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  padding-top: 124px;
+  padding-top: 0;
   position: relative;
   overflow: hidden;
 }

@@ -13,13 +13,13 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'landing',
-      component: LandingView,
+      name: '',
+      component: HomeView,
     },
     {
-      path: '/home',
-      name: 'home',
-      component: HomeView,
+      path: '/landing',
+      name: 'landing',
+      component: LandingView,
     },
     {
       path: '/login',

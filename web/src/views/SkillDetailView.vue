@@ -1,7 +1,4 @@
 <template>
-  <div>
-    <SkillBaseNav :current-path="'/skill'"></SkillBaseNav>
-
     <div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div class="container mx-auto max-w-5xl">
       <!-- Loading State -->
@@ -279,7 +276,6 @@
       </template>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">

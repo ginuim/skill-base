@@ -1,8 +1,4 @@
 <template>
-  <div>
-    <!-- 导航栏 -->
-    <SkillBaseNav :current-path="'/publish'"></SkillBaseNav>
-
     <main class="page-content">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8 pb-16" style="max-width: 720px;">
         <!-- 面包屑 -->
@@ -194,7 +190,6 @@
         </div>
       </div>
     </main>
-  </div>
 </template>
 
 <script setup lang="ts">
