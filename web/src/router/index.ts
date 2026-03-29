@@ -7,6 +7,7 @@ import PublishView from '@/views/PublishView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import CliCodeView from '@/views/CliCodeView.vue'
 import SetupView from '@/views/SetupView.vue'
+import DiffView from '@/views/DiffView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +51,11 @@ const router = createRouter({
       path: '/setup',
       name: 'setup',
       component: SetupView,
+    },
+    {
+      path: '/diff',
+      name: 'diff',
+      component: DiffView,
     },
   ],
 })

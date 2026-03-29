@@ -199,7 +199,7 @@ async function logout() {
   await authStore.logout()
   showUserMenu.value = false
   closeMobileMenu()
-  router.push('/login.html')
+  router.push('/login')
 }
 
 function handleClickOutside() {

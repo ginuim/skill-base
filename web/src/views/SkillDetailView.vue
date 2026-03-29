@@ -419,7 +419,7 @@ const TEXT_EXTS = new Set([
   '.md', '.py', '.sh', '.bash', '.zsh',
   '.js', '.jsx', '.ts', '.tsx', '.vue',
   '.json', '.yaml', '.yml', '.toml', '.ini', '.cfg',
-  '.txt', '.text', '.log',
+  '.txt', '.text', '.log', '.csv',
   '.html', '.htm', '.css', '.scss', '.sass', '.less',
   '.xml', '.sql', '.go', '.rs', '.java', '.c', '.cpp',
   '.h', '.hpp', '.cs', '.rb', '.php', '.swift', '.kt',
@@ -636,7 +636,8 @@ function goToDiff() {
   // 默认对比最新两个版本
   const versionA = versions.value[1]?.version || ''
   const versionB = versions.value[0]?.version || ''
-  window.open(`/diff?id=${encodeURIComponent(skillId.value)}&version_a=${encodeURIComponent(versionA)}&version_b=${encodeURIComponent(versionB)}`, '_blank')
+  const url = `/diff?id=${encodeURIComponent(skillId.value)}&version_a=${encodeURIComponent(versionA)}&version_b=${encodeURIComponent(versionB)}`
+  window.open(url, '_blank')
 }
 
 async function submitAddCollaborator() {
