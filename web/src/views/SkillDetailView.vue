@@ -258,20 +258,20 @@
                 <div
                   v-for="(v, index) in versions"
                   :key="v.id"
-                  class="relative mb-8 last:mb-0"
+                  class="relative mb-8 last:mb-0 group cursor-pointer"
                 >
                   <!-- Timeline dot -->
                   <span
-                    class="absolute -left-[21px] top-2 w-2.5 h-2.5 rounded-full ring-4 ring-base-900"
-                    :class="index === 0 ? 'bg-neon-400 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 group-hover:bg-neon-500 transition-colors'"
+                    class="absolute -left-[21px] top-2 w-2.5 h-2.5 rounded-full ring-4 ring-base-900 transition-colors"
+                    :class="index === 0 ? 'bg-neon-400 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 group-hover:bg-neon-500'"
                   ></span>
 
-                  <div class="flex items-start justify-between gap-4">
+                  <div class="flex items-start justify-between gap-4 p-3 -m-3 rounded-lg transition-all duration-200 group-hover:bg-base-800/50">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap mb-1">
                         <span
                           class="text-xs px-2 py-0.5 rounded font-mono border transition-colors"
-                          :class="index === 0 ? 'text-neon-400 border-neon-500/30 bg-neon-400/5' : 'text-base-400 border-base-800'"
+                          :class="index === 0 ? 'text-neon-400 border-neon-500/30 bg-neon-400/5' : 'text-base-400 border-base-800 group-hover:text-neon-400 group-hover:border-neon-500/30'"
                         >
                           {{ v.version }}
                         </span>
@@ -285,7 +285,7 @@
                       </p>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                      <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right">{{ formatDate(v.created_at) }}</span>
+                      <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at) }}</span>
                       <button
                         title="下载版本"
                         class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 hover:shadow-[0_0_10px_rgba(0,255,163,0.15)] transition-all"
@@ -373,10 +373,11 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSkillsStore } from '@/stores/skills'
 import { useAuthStore } from '@/stores/auth'
-import { versionsApi, collaboratorsApi, type SkillVersion } from '@/services/api'
+import { versionsApi, type SkillVersion } from '@/services/api'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
+import { formatDate, formatDateFull } from '@/utils/date'
 
 const route = useRoute()
 const router = useRouter()
@@ -679,15 +680,7 @@ async function submitDeleteSkill() {
   }
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+
 </script>
 
 <style scoped>

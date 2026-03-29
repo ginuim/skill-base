@@ -246,7 +246,7 @@ async function loadData() {
 
     // Load versions
     const versionsData = await skillsStore.fetchVersions(skillId.value)
-    versions.value = versionsData.versions || []
+    versions.value = versionsData || []
 
     // Auto perform diff if versions are provided
     if (currentVersionA.value && currentVersionB.value) {
