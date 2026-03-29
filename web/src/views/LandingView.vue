@@ -1,4 +1,5 @@
 <template>
+  <div class="landing-page">
   <!-- 复制原始 landing.html 的完整结构 -->
   <nav class="navbar">
     <div class="container">
@@ -319,7 +320,7 @@
 <span class="command">mkdir</span> my-team-skill && <span class="command">cd</span> my-team-skill
 
 <span class="comment"># 创建 SKILL.md 文件（必需）</span>
-<span class="command">cat</span> > SKILL.md << <span class="string">'EOF'</span>
+<span class="command">cat</span> &gt; SKILL.md &lt;&lt; <span class="string">'EOF'</span>
 <span class="string"># My Team Coding Standards
 
 这是我们团队的编码规范...
@@ -410,17 +411,23 @@ EOF</span>
       </div>
     </div>
   </footer>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import '@/assets/landing.css'
 
 onMounted(() => {
+  document.body.classList.add('landing-body')
   initTypewriter()
   initScrollAnimations()
   initTabs()
   initCopyButtons()
+})
+
+onUnmounted(() => {
+  document.body.classList.remove('landing-body')
 })
 
 function initTypewriter() {

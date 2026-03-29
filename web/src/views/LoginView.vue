@@ -1,41 +1,41 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
+  <div class="login-container">
+    <div class="login-shell">
       <!-- Logo -->
-      <div class="flex items-center justify-center gap-2 text-2xl tracking-tight select-none mb-8">
-        <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
+      <div class="login-brand">
+        <span class="login-brand-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
         </span>
-        <span class="text-white font-bold font-mono">Skill Base</span>
+        <span class="login-brand-text">Skill Base</span>
       </div>
 
       <!-- 登录卡片 -->
-      <div class="bg-base-900 border border-base-800 rounded-xl p-8 shadow-2xl shadow-black/50 relative overflow-hidden">
+      <div class="login-card">
         <!-- 装饰性代码角标 -->
-        <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">AUTH-REQ</div>
+        <div class="login-card-badge">AUTH-REQ</div>
 
-        <div class="mb-8">
-          <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
-            <span class="text-neon-400 font-mono font-normal opacity-70">></span>
+        <div class="login-header">
+          <h1 class="login-title">
+            <span class="login-title-prompt">></span>
             Sign In
           </h1>
-          <p class="text-base-400 text-sm font-mono">
+          <p class="login-subtitle">
             // 内网 Skill 管理平台 · 需要凭证
           </p>
         </div>
 
         <!-- 错误信息容器 -->
-        <div v-if="authStore.error" class="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm font-mono break-words">
+        <div v-if="authStore.error" class="login-error" role="alert">
           {{ authStore.error }}
         </div>
 
-        <form @submit.prevent="handleLogin" class="space-y-6">
+        <form @submit.prevent="handleLogin" class="login-form">
           <!-- Username -->
-          <div class="space-y-2">
-            <label for="username" class="block text-sm font-mono text-base-400">
-              <span class="text-neon-400 opacity-70">const</span> <span class="text-white">username</span> <span class="text-neon-400 opacity-70">=</span>
+          <div class="login-field">
+            <label for="username" class="login-label">
+              <span class="login-keyword">const</span> <span class="login-label-name">username</span> <span class="login-equals">=</span>
             </label>
-            <div class="relative">
+            <div>
               <input
                 type="text"
                 id="username"
@@ -44,17 +44,17 @@
                 autocomplete="username"
                 required
                 :disabled="authStore.isLoading"
-                class="w-full bg-base-950 border border-base-800 text-white font-mono text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors placeholder:text-base-400/50"
+                class="login-input"
               >
             </div>
           </div>
 
           <!-- Password -->
-          <div class="space-y-2">
-            <label for="password" class="block text-sm font-mono text-base-400">
-              <span class="text-neon-400 opacity-70">const</span> <span class="text-white">password</span> <span class="text-neon-400 opacity-70">=</span>
+          <div class="login-field">
+            <label for="password" class="login-label">
+              <span class="login-keyword">const</span> <span class="login-label-name">password</span> <span class="login-equals">=</span>
             </label>
-            <div class="relative">
+            <div>
               <input
                 type="password"
                 id="password"
@@ -63,17 +63,17 @@
                 autocomplete="current-password"
                 required
                 :disabled="authStore.isLoading"
-                class="w-full bg-base-950 border border-base-800 text-white font-mono text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors placeholder:text-base-400/50"
+                class="login-input"
               >
             </div>
           </div>
 
           <!-- Submit Button -->
-          <div class="pt-2">
+          <div class="login-actions">
             <button
               type="submit"
               :disabled="authStore.isLoading"
-              class="w-full flex items-center justify-center bg-transparent border border-neon-500 text-neon-400 hover:bg-[rgba(0,255,163,0.1)] text-sm font-mono px-5 py-3 rounded-lg transition-colors shadow-[0_0_15px_rgba(0,255,163,0.1)] hover:shadow-[0_0_20px_rgba(0,255,163,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+              class="login-submit"
             >
               <svg v-if="!authStore.isLoading" class="btn-devtools-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               <span v-if="authStore.isLoading" class="spinner"></span>
@@ -84,9 +84,9 @@
       </div>
 
       <!-- 底部提示 -->
-      <div class="mt-8 text-center text-xs text-base-400 font-mono flex items-center justify-center gap-2">
-        <span class="w-1.5 h-1.5 rounded-full bg-neon-400 animate-pulse"></span>
-        <span class="opacity-50">Secure Connection Established</span>
+      <div class="login-status">
+        <span class="login-status-dot"></span>
+        <span class="login-status-text">Secure Connection Established</span>
       </div>
     </div>
   </div>
@@ -132,6 +132,232 @@ async function handleLogin() {
 </script>
 
 <style scoped>
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: #09090b;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+  color: #e4e4e7;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.login-shell {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  user-select: none;
+}
+
+.login-brand-icon {
+  color: #00ffa3;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 163, 0.4));
+}
+
+.login-brand-text {
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
+.login-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #27272a;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  background: #13141a;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.login-card-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.25rem 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+  background: #27272a;
+  color: #a1a1aa;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  opacity: 0.5;
+  user-select: none;
+}
+
+.login-header {
+  margin-bottom: 2rem;
+}
+
+.login-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  color: #fff;
+  font-size: 2.25rem;
+  line-height: 1;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.login-title-prompt {
+  color: #00ffa3;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.login-subtitle {
+  margin: 0;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.login-error {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', monospace;
+  overflow-wrap: anywhere;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-label {
+  display: block;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.login-keyword,
+.login-equals {
+  color: #00ffa3;
+  opacity: 0.7;
+}
+
+.login-label-name {
+  color: #fff;
+}
+
+.login-input {
+  display: block;
+  width: 100%;
+  height: 3rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid #27272a;
+  border-radius: 0.5rem;
+  background: #09090b;
+  color: #fff;
+  font-size: 0.875rem;
+  line-height: calc(3rem - 2px);
+  font-family: 'JetBrains Mono', monospace;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-input::placeholder {
+  color: rgba(161, 161, 170, 0.5);
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #00e592;
+  box-shadow: 0 0 0 1px #00e592;
+}
+
+.login-input:disabled,
+.login-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.login-actions {
+  padding-top: 0.5rem;
+}
+
+.login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border: 1px solid #00e592;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #00ffa3;
+  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', monospace;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 0 15px rgba(0, 255, 163, 0.1);
+}
+
+.login-submit:hover:not(:disabled) {
+  background: rgba(0, 255, 163, 0.1);
+  box-shadow: 0 0 20px rgba(0, 255, 163, 0.2);
+}
+
+.login-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+}
+
+.login-status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: #00ffa3;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.login-status-text {
+  opacity: 0.5;
+}
+
+.login-container ::selection {
+  background: rgba(0, 255, 163, 0.3);
+  color: #fff;
+}
+
 .spinner {
   display: inline-block;
   width: 16px;
@@ -150,12 +376,30 @@ async function handleLogin() {
   }
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
+.btn-devtools-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+input.login-input:-webkit-autofill,
+input.login-input:-webkit-autofill:hover,
+input.login-input:-webkit-autofill:focus,
+input.login-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px #09090b inset !important;
   -webkit-text-fill-color: white !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>

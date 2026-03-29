@@ -31,11 +31,16 @@
   box-sizing: border-box;
 }
 
+.landing-page {
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
 html {
   scroll-behavior: smooth;
 }
 
-body {
+body.landing-body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -44,7 +49,7 @@ body {
 }
 
 /* Noise texture overlay */
-body::before {
+body.landing-body::before {
   content: '';
   position: fixed;
   top: 0;
@@ -58,7 +63,7 @@ body::before {
 }
 
 /* Grid background */
-body::after {
+body.landing-body::after {
   content: '';
   position: fixed;
   top: 0;
@@ -162,38 +167,38 @@ body::after {
 }
 
 /* ===== Typography ===== */
-h1, h2, h3, h4 {
+.landing-page h1, .landing-page h2, .landing-page h3, .landing-page h4 {
   font-family: var(--font-mono);
   font-weight: 700;
   line-height: 1.2;
 }
 
-h1 {
+.landing-page h1 {
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   letter-spacing: -0.02em;
 }
 
-h2 {
+.landing-page h2 {
   font-size: clamp(1.8rem, 4vw, 2.8rem);
   margin-bottom: 1rem;
 }
 
-h3 {
+.landing-page h3 {
   font-size: clamp(1.2rem, 2vw, 1.5rem);
 }
 
-p {
+.landing-page p {
   color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
-a {
+.landing-page a {
   color: var(--accent-green);
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
-a:hover {
+.landing-page a:hover {
   color: var(--accent-green-dim);
 }
 
