@@ -158,7 +158,7 @@ const navItems = computed(() => {
 function normalizePath(path: string): string {
   if (!path) return '/'
   const [cleanPath] = path.split(/[?#]/)
-  const normalized = cleanPath
+  const normalized = (cleanPath || '')
     .replace(/\/index\.html$/, '/')
     .replace(/\/+$/, '')
   return normalized || '/'

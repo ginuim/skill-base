@@ -53,7 +53,7 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function fetchSkill(id: number) {
+  async function fetchSkill(id: string) {
     isLoadingDetail.value = true
     error.value = null
 
@@ -82,7 +82,7 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function updateSkill(id: number, data: { name?: string; description?: string }) {
+  async function updateSkill(id: string, data: { name?: string; description?: string }) {
     error.value = null
 
     try {
@@ -103,7 +103,7 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function deleteSkill(id: number) {
+  async function deleteSkill(id: string) {
     error.value = null
 
     try {
@@ -119,7 +119,7 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function fetchVersions(skillId: number) {
+  async function fetchVersions(skillId: string) {
     try {
       const response = await versionsApi.list(skillId)
       if (currentSkill.value?.id === skillId) {
@@ -132,7 +132,7 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function addCollaborator(skillId: number, username: string) {
+  async function addCollaborator(skillId: string, username: string) {
     try {
       await collaboratorsApi.add(skillId, username)
       // Refresh skill to get updated collaborators
@@ -144,7 +144,7 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function removeCollaborator(skillId: number, userId: number) {
+  async function removeCollaborator(skillId: string, userId: number) {
     try {
       await collaboratorsApi.remove(skillId, userId)
       // Refresh skill to get updated collaborators

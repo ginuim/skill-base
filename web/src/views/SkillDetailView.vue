@@ -1,6 +1,6 @@
 <template>
-    <div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div class="container mx-auto max-w-5xl">
+  <div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
       <!-- Loading State -->
       <div v-if="skillsStore.isLoadingDetail" class="flex items-center justify-center py-20">
         <div class="spinner"></div>
@@ -22,295 +22,444 @@
 
       <!-- Skill Detail -->
       <template v-else>
-        <!-- Back Button -->
-        <router-link
-          to="/"
-          class="inline-flex items-center gap-2 text-base-400 hover:text-white mb-6 transition-colors"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-          </svg>
-          返回列表
-        </router-link>
+        <!-- Breadcrumb -->
+        <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
+          <span class="text-neon-400">~</span>
+          <span class="opacity-50">/</span>
+          <router-link to="/" class="hover:text-white transition-colors">home</router-link>
+          <span class="opacity-50">/</span>
+          <span class="text-white">{{ skill.name }}</span>
+        </div>
 
         <!-- Skill Info Card -->
-        <div class="card p-6 mb-6">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <h1 class="text-2xl font-bold text-white flex items-center gap-3">
-                <span class="text-neon-400">></span>
-                {{ skill.name }}
-              </h1>
-              <p class="text-base-400 mt-2">{{ skill.description || '暂无描述' }}</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <span
-                v-if="skill.permission"
-                class="px-3 py-1 rounded-full text-xs font-mono border"
-                :class="{
-                  'bg-neon-400/10 text-neon-400 border-neon-400/20': skill.permission === 'owner',
-                  'bg-blue-400/10 text-blue-400 border-blue-400/20': skill.permission === 'collaborator',
-                  'bg-base-800 text-base-400 border-base-700': skill.permission === 'user'
-                }"
+        <div id="skill-info" class="card p-6 mb-6 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ID: {{ skill.id.toString().substring(0, 8) }}</div>
+          <h1 class="text-3xl font-bold text-white mb-3 flex items-center gap-3">
+            <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
+            {{ skill.name }}
+          </h1>
+          <p class="text-base-400 text-sm leading-relaxed max-w-5xl mb-6">
+            {{ skill.description || '暂无描述' }}
+          </p>
+
+          <!-- Version Select & Actions -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800">
+            <div class="relative w-full sm:flex-1 sm:max-w-md">
+              <select
+                v-model="currentVersion"
+                @change="onVersionChange"
+                class="w-full appearance-none bg-base-950 border border-base-800 text-white font-mono text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors cursor-pointer"
               >
-                {{ skill.permission }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Meta Info -->
-          <div class="flex flex-wrap items-center gap-4 text-sm text-base-500 border-t border-base-800 pt-4">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-full bg-base-800 flex items-center justify-center text-xs">
-                {{ (skill.owner?.name || skill.owner?.username || 'U').charAt(0).toUpperCase() }}
-              </span>
-              <span>{{ skill.owner?.name || skill.owner?.username || '未知' }}</span>
-            </div>
-            <span class="text-base-700">|</span>
-            <span>创建于 {{ formatDate(skill.created_at) }}</span>
-            <span class="text-base-700">|</span>
-            <span>更新于 {{ formatDate(skill.updated_at) }}</span>
-          </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="border-b border-base-800 mb-6">
-          <div class="flex gap-6">
-            <button
-              v-for="tab in tabs"
-              :key="tab.id"
-              @click="activeTab = tab.id"
-              class="pb-4 text-sm font-medium transition-colors relative"
-              :class="activeTab === tab.id ? 'text-neon-400' : 'text-base-400 hover:text-white'"
-            >
-              {{ tab.name }}
-              <span
-                v-if="tab.id === 'versions' && skill.versions?.length"
-                class="ml-2 px-2 py-0.5 rounded-full text-xs bg-base-800 text-base-400"
-              >
-                {{ skill.versions.length }}
-              </span>
-              <div
-                v-if="activeTab === tab.id"
-                class="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-400"
-              ></div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Versions Tab -->
-        <div v-if="activeTab === 'versions'" class="space-y-4">
-          <div
-            v-for="version in skill.versions"
-            :key="version.id"
-            class="card p-4 flex items-center justify-between group hover:border-neon-400/30 transition-colors"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-lg bg-neon-400/10 flex items-center justify-center">
-                <svg class="w-5 h-5 text-neon-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                </svg>
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="font-mono text-neon-400">{{ version.version }}</span>
-                  <span v-if="version.id === skill.latest_version?.id" class="px-2 py-0.5 rounded text-xs bg-neon-400/10 text-neon-400 border border-neon-400/20">
-                    latest
-                  </span>
-                </div>
-                <p class="text-sm text-base-400 mt-1">{{ version.changelog || '无更新日志' }}</p>
-                <div class="flex items-center gap-4 mt-2 text-xs text-base-500">
-                  <span>{{ version.file_count }} 个文件</span>
-                  <span>{{ formatFileSize(version.total_size) }}</span>
-                  <span>by {{ version.creator?.name || version.creator?.username || '未知' }}</span>
-                  <span>{{ formatDate(version.created_at) }}</span>
-                </div>
-              </div>
-            </div>
-            <button
-              @click="downloadVersion(version.id)"
-              class="btn-secondary px-4 py-2 rounded-lg text-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                <option v-for="(v, index) in versions" :key="v.id" :value="v.version">
+                  {{ v.version }} {{ index === 0 ? '(latest)' : '' }}
+                </option>
+              </select>
+              <svg class="w-4 h-4 absolute right-4 top-3 pointer-events-none text-base-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
-              下载
-            </button>
-          </div>
-
-          <div v-if="!skill.versions?.length" class="text-center py-12">
-            <p class="text-base-400">暂无版本</p>
-          </div>
-        </div>
-
-        <!-- Collaborators Tab -->
-        <div v-if="activeTab === 'collaborators'" class="space-y-4">
-          <div v-if="skillsStore.isOwner" class="card p-4">
-            <h3 class="text-sm font-medium text-white mb-4">添加协作者</h3>
-            <div class="flex gap-4">
-              <input
-                v-model="newCollaborator"
-                type="text"
-                placeholder="输入用户名"
-                class="flex-1 px-4 py-2 rounded-lg"
-                @keyup.enter="addCollaborator"
-              />
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4 sm:mt-0 flex-shrink-0">
               <button
-                @click="addCollaborator"
-                :disabled="!newCollaborator || isAddingCollaborator"
-                class="btn-primary px-6 py-2 rounded-lg flex items-center gap-2"
+                @click="goToDiff"
+                class="flex items-center justify-center gap-2 bg-transparent text-white border border-base-800 hover:bg-base-800 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
               >
-                <span v-if="isAddingCollaborator" class="spinner spinner-sm"></span>
-                <template v-else>
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                  </svg>
-                  添加
-                </template>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                对比
+              </button>
+              <button
+                @click="downloadCurrentVersion"
+                class="flex items-center justify-center gap-2 bg-transparent border border-neon-500 text-neon-400 hover:bg-neon-400/10 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto shadow-[0_0_15px_rgba(0,255,163,0.1)] hover:shadow-[0_0_20px_rgba(0,255,163,0.2)]"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                下载
               </button>
             </div>
           </div>
-
-          <div class="grid gap-4">
-            <!-- Owner -->
-            <div class="card p-4 flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <span class="w-10 h-10 rounded-full bg-neon-400/20 flex items-center justify-center text-neon-400 font-bold">
-                  {{ (skill.owner?.name || skill.owner?.username || 'U').charAt(0).toUpperCase() }}
-                </span>
-                <div>
-                  <div class="font-medium text-white">{{ skill.owner?.name || skill.owner?.username }}</div>
-                  <div class="text-sm text-base-400">{{ skill.owner?.email || '' }}</div>
-                </div>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-mono bg-neon-400/10 text-neon-400 border border-neon-400/20">
-                owner
-              </span>
-            </div>
-
-            <!-- Collaborators -->
-            <div
-              v-for="collaborator in skill.collaborators"
-              :key="collaborator.id"
-              class="card p-4 flex items-center justify-between group"
-            >
-              <div class="flex items-center gap-4">
-                <span class="w-10 h-10 rounded-full bg-blue-400/20 flex items-center justify-center text-blue-400 font-bold">
-                  {{ (collaborator.name || collaborator.username || 'U').charAt(0).toUpperCase() }}
-                </span>
-                <div>
-                  <div class="font-medium text-white">{{ collaborator.name || collaborator.username }}</div>
-                  <div class="text-sm text-base-400">{{ collaborator.email || '' }}</div>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="px-3 py-1 rounded-full text-xs font-mono bg-blue-400/10 text-blue-400 border border-blue-400/20">
-                  collaborator
-                </span>
-                <button
-                  v-if="skillsStore.isOwner"
-                  @click="removeCollaborator(collaborator.id)"
-                  class="p-2 text-base-400 hover:text-red-400 transition-colors"
-                  title="移除协作者"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <!-- Settings Tab -->
-        <div v-if="activeTab === 'settings'" class="space-y-6">
-          <div v-if="skillsStore.canEditCurrentSkill" class="card p-6">
-            <h3 class="text-lg font-medium text-white mb-4">基本信息</h3>
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-base-200 mb-2">名称</label>
-                <input
-                  v-model="editForm.name"
-                  type="text"
-                  class="w-full px-4 py-3 rounded-lg"
+        <!-- File Tree & Preview (1:3 ratio) -->
+        <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          <!-- Left: File Tree -->
+          <div class="bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
+            <div class="px-5 py-3 border-b border-base-800 font-mono text-sm text-base-400 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
+              <span class="ml-2 text-white/50">ls -la</span>
+            </div>
+            <div id="file-tree" class="p-3 flex-1 overflow-y-auto no-scrollbar font-mono text-sm">
+              <div v-if="isLoadingZip" class="flex justify-center py-8">
+                <div class="spinner spinner-sm"></div>
+              </div>
+              <div v-else-if="fileTree.length === 0" class="flex flex-col items-center justify-center py-10">
+                <p class="text-base-400 font-mono">暂无文件</p>
+              </div>
+              <template v-else>
+                <FileTreeNode
+                  v-for="node in fileTree"
+                  :key="node.path"
+                  :node="node"
+                  :selected-path="selectedFilePath"
+                  @select="onFileSelect"
+                  @toggle="onFolderToggle"
                 />
-              </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Right: File Preview -->
+          <div id="file-preview-panel" class="lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
+            <div class="px-5 py-3 border-b border-base-800 text-sm font-mono text-base-400 bg-base-950/50 rounded-t-xl flex justify-between items-center">
               <div>
-                <label class="block text-sm font-medium text-base-200 mb-2">描述</label>
-                <textarea
-                  v-model="editForm.description"
-                  rows="4"
-                  class="w-full px-4 py-3 rounded-lg resize-none"
-                ></textarea>
+                <span>cat <span class="text-white/30">{{ selectedFilePath || '<file>' }}</span></span>
               </div>
-              <div class="flex gap-4">
+              <div class="flex items-center gap-3">
+                <div v-if="isMarkdownFile" class="flex gap-2">
+                  <button
+                    @click="setMarkdownMode('render')"
+                    :class="['md-view-btn', markdownMode === 'render' ? 'is-active' : '']"
+                  >
+                    HTML 预览
+                  </button>
+                  <button
+                    @click="setMarkdownMode('source')"
+                    :class="['md-view-btn', markdownMode === 'source' ? 'is-active' : '']"
+                  >
+                    Markdown 源码
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div id="file-content" class="flex-1 overflow-auto text-base-400 p-0">
+              <div v-if="!selectedFileContent" class="flex flex-col items-center justify-center h-full">
+                <div class="flex items-center gap-3 opacity-30 font-mono mb-4">
+                  <span class="text-neon-400 animate-pulse">_</span>
+                  <span>EOF</span>
+                </div>
+                <p class="text-sm font-mono">点击左侧文件预览</p>
+              </div>
+              <div v-else-if="isMarkdownFile && markdownMode === 'render'" class="markdown-body p-6" v-html="renderedMarkdown"></div>
+              <div v-else-if="isMarkdownFile && markdownMode === 'source'" class="code-with-lines">
+                <div class="line-numbers" aria-hidden="true">{{ markdownLineNumbers }}</div>
+                <pre class="md-source-pre"><code>{{ selectedFileContent }}</code></pre>
+              </div>
+              <div v-else-if="isTextFile" class="code-with-lines">
+                <div class="line-numbers" aria-hidden="true">{{ fileLineNumbers }}</div>
+                <pre><code ref="codeBlock">{{ selectedFileContent }}</code></pre>
+              </div>
+              <div v-else class="flex flex-col items-center justify-center h-full">
+                <p class="text-base-400 font-mono">二进制文件无法预览</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bottom Grid: Team (1/3) & Version History (2/3) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left: Collaborators -->
+          <div class="bg-base-900 border border-base-800 rounded-xl h-fit">
+            <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-white flex items-center justify-between text-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-neon-400">#</span> 协作者
+              </div>
+              <button
+                v-if="skillsStore.isOwner"
+                @click="showAddCollaboratorModal = true"
+                class="text-xs text-neon-400 hover:text-white transition-colors"
+              >
+                + 添加
+              </button>
+            </div>
+            <div class="p-5 flex flex-col gap-4">
+              <!-- Owner -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="w-10 h-10 rounded-full bg-neon-400/20 flex items-center justify-center text-neon-400 font-bold text-sm">
+                    {{ (skill.owner?.username || 'U').charAt(0).toUpperCase() }}
+                  </span>
+                  <div>
+                    <div class="font-medium text-white text-sm">{{ skill.owner?.name || skill.owner?.username }}</div>
+                    <div class="text-xs text-base-400">{{ skill.owner?.email || '' }}</div>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-xs font-mono bg-neon-400/10 text-neon-400 border border-neon-400/20">
+                  owner
+                </span>
+              </div>
+              <!-- Collaborators -->
+              <div
+                v-for="collaborator in skill.collaborators"
+                :key="collaborator.id"
+                class="flex items-center justify-between"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="w-10 h-10 rounded-full bg-blue-400/20 flex items-center justify-center text-blue-400 font-bold text-sm">
+                    {{ (collaborator.username || 'U').charAt(0).toUpperCase() }}
+                  </span>
+                  <div>
+                    <div class="font-medium text-white text-sm">{{ collaborator.name || collaborator.username }}</div>
+                    <div class="text-xs text-base-400">{{ collaborator.email || '' }}</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded text-xs font-mono bg-blue-400/10 text-blue-400 border border-blue-400/20">
+                    collaborator
+                  </span>
+                  <button
+                    v-if="skillsStore.isOwner"
+                    @click="removeCollaborator(collaborator.id)"
+                    class="p-1.5 text-base-400 hover:text-red-400 transition-colors"
+                    title="移除协作者"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Danger Zone -->
+            <div v-if="skillsStore.isOwner" class="px-5 pb-5 pt-0">
+              <div class="border-t border-base-800 pt-4">
                 <button
-                  @click="saveSkill"
-                  :disabled="isSaving"
-                  class="btn-primary px-6 py-2 rounded-lg flex items-center gap-2"
+                  @click="showDeleteModal = true"
+                  class="w-full py-2 text-xs font-mono text-red-500 border border-red-500/30 rounded bg-red-500/5 hover:bg-red-500/10 transition-colors"
                 >
-                  <span v-if="isSaving" class="spinner spinner-sm"></span>
-                  <template v-else>保存</template>
-                </button>
-                <button
-                  @click="resetForm"
-                  class="btn-secondary px-6 py-2 rounded-lg"
-                >
-                  重置
+                  删除 Skill
                 </button>
               </div>
             </div>
           </div>
 
-          <div v-if="skillsStore.isOwner" class="card p-6 border-red-500/20">
-            <h3 class="text-lg font-medium text-red-400 mb-4">危险操作</h3>
-            <p class="text-base-400 text-sm mb-4">删除 Skill 后无法恢复，所有版本数据将被永久删除。</p>
-            <button
-              @click="confirmDelete"
-              class="px-6 py-2 rounded-lg border border-red-500/50 text-red-400 hover:bg-red-500/10 transition-colors"
+          <!-- Right: Version History -->
+          <div class="lg:col-span-2 bg-base-900 border border-base-800 rounded-xl">
+            <div
+              class="px-5 py-4 border-b border-base-800 flex items-center justify-between rounded-t-xl cursor-pointer hover:bg-base-950/30 transition-colors"
+              @click="isVersionHistoryCollapsed = !isVersionHistoryCollapsed"
             >
-              删除 Skill
-            </button>
+              <div class="flex items-center gap-2 font-mono font-semibold text-white text-sm">
+                <span class="text-neon-400">git</span> log
+              </div>
+              <span class="text-base-400 transition-transform" :class="isVersionHistoryCollapsed ? '-rotate-90' : ''">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
+            </div>
+            <div v-if="!isVersionHistoryCollapsed" class="p-6 overflow-hidden">
+              <div id="version-list" class="relative pl-6">
+                <!-- Timeline line -->
+                <div class="absolute left-[5px] top-0 bottom-2 w-px bg-base-800"></div>
+
+                <div
+                  v-for="(v, index) in versions"
+                  :key="v.id"
+                  class="relative mb-8 last:mb-0"
+                >
+                  <!-- Timeline dot -->
+                  <span
+                    class="absolute -left-[21px] top-2 w-2.5 h-2.5 rounded-full ring-4 ring-base-900"
+                    :class="index === 0 ? 'bg-neon-400 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 group-hover:bg-neon-500 transition-colors'"
+                  ></span>
+
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span
+                          class="text-xs px-2 py-0.5 rounded font-mono border transition-colors"
+                          :class="index === 0 ? 'text-neon-400 border-neon-500/30 bg-neon-400/5' : 'text-base-400 border-base-800'"
+                        >
+                          {{ v.version }}
+                        </span>
+                        <span v-if="index === 0" class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>
+                      </div>
+                      <p class="text-sm font-medium mt-2" :class="index === 0 ? 'text-white' : 'text-base-200'">
+                        {{ v.changelog || '无更新日志' }}
+                      </p>
+                      <p class="text-xs text-base-400 mt-1 flex items-center gap-1.5 font-mono">
+                        by @{{ v.uploader?.name || v.uploader?.username || '未知' }}
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                      <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right">{{ formatDate(v.created_at) }}</span>
+                      <button
+                        title="下载版本"
+                        class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 hover:shadow-[0_0_10px_rgba(0,255,163,0.15)] transition-all"
+                        @click="downloadVersion(v.version)"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="versions.length === 0" class="flex flex-col items-center justify-center py-8">
+                  <p class="text-base-400 font-mono">暂无版本</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </template>
+    </div>
+
+    <!-- Add Collaborator Modal -->
+    <div v-if="showAddCollaboratorModal" class="modal" @click.self="showAddCollaboratorModal = false">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>添加协作者</h3>
+          <button class="modal-close" @click="showAddCollaboratorModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>用户名</label>
+            <input
+              v-model="newCollaboratorUsername"
+              type="text"
+              placeholder="输入用户名"
+              class="form-input"
+              @keyup.enter="submitAddCollaborator"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showAddCollaboratorModal = false">取消</button>
+          <button class="btn btn-primary" @click="submitAddCollaborator" :disabled="!newCollaboratorUsername || isAddingCollaborator">
+            <span v-if="isAddingCollaborator" class="spinner spinner-sm mr-2"></span>
+            添加
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Delete Skill Modal -->
+    <div v-if="showDeleteModal" class="modal" @click.self="showDeleteModal = false">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>确认删除</h3>
+          <button class="modal-close" @click="showDeleteModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="warning-text">⚠️ 此操作不可恢复！将删除该 Skill 的所有版本和数据。</p>
+          <div class="form-group">
+            <label>请输入 Skill ID 确认删除：{{ skill?.id }}</label>
+            <input
+              v-model="deleteConfirmInput"
+              type="text"
+              placeholder=""
+              class="form-input"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showDeleteModal = false">取消</button>
+          <button class="btn btn-danger" @click="submitDeleteSkill" :disabled="deleteConfirmInput !== String(skill?.id)">确认删除</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSkillsStore } from '@/stores/skills'
 import { useAuthStore } from '@/stores/auth'
-import { versionsApi } from '@/services/api'
-import SkillBaseNav from '@/components/SkillBaseNav.vue'
+import { versionsApi, collaboratorsApi, type SkillVersion } from '@/services/api'
+import { marked } from 'marked'
+import hljs from 'highlight.js'
+import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
 
 const route = useRoute()
 const router = useRouter()
 const skillsStore = useSkillsStore()
 const authStore = useAuthStore()
 
-const skillId = computed(() => parseInt(route.params.id as string))
+const skillId = computed(() => route.params.id as string)
 const skill = computed(() => skillsStore.currentSkill)
 
-const activeTab = ref('versions')
-const tabs = [
-  { id: 'versions', name: '版本' },
-  { id: 'collaborators', name: '协作者' },
-  { id: 'settings', name: '设置' },
-]
+// Version management
+const versions = ref<SkillVersion[]>([])
+const currentVersion = ref<string>('')
+const isLoadingZip = ref(false)
+const currentZip = ref<any>(null)
 
-// Edit form
-const editForm = ref({
-  name: '',
-  description: '',
+// File tree
+const fileTree = ref<any[]>([])
+const selectedFilePath = ref('')
+const selectedFileContent = ref('')
+const expandedFolders = ref<Set<string>>(new Set())
+
+// Markdown preview
+const markdownMode = ref<'render' | 'source'>('render')
+const isMarkdownFile = computed(() => {
+  if (!selectedFilePath.value) return false
+  return selectedFilePath.value.toLowerCase().endsWith('.md')
 })
-const isSaving = ref(false)
 
-// Collaborators
-const newCollaborator = ref('')
+// UI state
+const isVersionHistoryCollapsed = ref(false)
+const showAddCollaboratorModal = ref(false)
+const showDeleteModal = ref(false)
+const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
+const deleteConfirmInput = ref('')
+const codeBlock = ref<HTMLElement | null>(null)
+
+// Text file extensions
+const TEXT_EXTS = new Set([
+  '.md', '.py', '.sh', '.bash', '.zsh',
+  '.js', '.jsx', '.ts', '.tsx', '.vue',
+  '.json', '.yaml', '.yml', '.toml', '.ini', '.cfg',
+  '.txt', '.text', '.log',
+  '.html', '.htm', '.css', '.scss', '.sass', '.less',
+  '.xml', '.sql', '.go', '.rs', '.java', '.c', '.cpp',
+  '.h', '.hpp', '.cs', '.rb', '.php', '.swift', '.kt',
+  '.dockerfile', '.gitignore', '.env.example',
+])
+
+const TEXT_FILENAMES = new Set([
+  'dockerfile', 'makefile', 'rakefile', 'readme', 'license', 'changelog',
+  '.gitignore', '.gitattributes', '.editorconfig', '.env', '.env.example',
+])
+
+const canManageCollaborators = computed(() => {
+  if (!skill.value) return false
+  return skill.value.permission === 'owner' || skill.value.permission === 'collaborator'
+})
+
+const isTextFile = computed(() => {
+  if (!selectedFilePath.value) return false
+  const path = selectedFilePath.value.toLowerCase()
+  const ext = '.' + path.split('.').pop()
+  const name = path.split('/').pop() || ''
+  return TEXT_EXTS.has(ext) || TEXT_FILENAMES.has(name) || TEXT_FILENAMES.has(name.replace(/^\./, ''))
+})
+
+const renderedMarkdown = computed(() => {
+  if (!selectedFileContent.value) return ''
+  return marked.parse(selectedFileContent.value)
+})
+
+const markdownLineNumbers = computed(() => {
+  if (!selectedFileContent.value) return '1'
+  const lines = selectedFileContent.value.split(/\r?\n/).length
+  return Array.from({ length: lines }, (_, i) => i + 1).join('\n')
+})
+
+const fileLineNumbers = computed(() => {
+  if (!selectedFileContent.value) return '1'
+  const lines = selectedFileContent.value.split(/\r?\n/).length
+  return Array.from({ length: lines }, (_, i) => i + 1).join('\n')
+})
 
 onMounted(async () => {
   // Check auth
@@ -322,45 +471,185 @@ onMounted(async () => {
 
   // Load skill
   await skillsStore.fetchSkill(skillId.value)
-  resetForm()
-})
 
-watch(skill, (newSkill) => {
-  if (newSkill) {
-    resetForm()
+  // Load versions
+  await loadVersions()
+
+  // Load initial version
+  if (versions.value.length > 0) {
+    currentVersion.value = versions.value[0]!.version
+    await loadVersionZip(currentVersion.value)
   }
 })
 
-function resetForm() {
-  if (skill.value) {
-    editForm.value = {
-      name: skill.value.name,
-      description: skill.value.description,
+watch(() => codeBlock.value, (el) => {
+  if (el && isTextFile.value && !isMarkdownFile.value) {
+    nextTick(() => {
+      hljs.highlightElement(el)
+    })
+  }
+})
+
+async function loadVersions() {
+  try {
+    const response = await versionsApi.list(skillId.value)
+    versions.value = response.versions || []
+  } catch (err) {
+    console.error('Failed to load versions:', err)
+  }
+}
+
+async function onVersionChange() {
+  if (currentVersion.value) {
+    await loadVersionZip(currentVersion.value)
+  }
+}
+
+async function loadVersionZip(version: string) {
+  isLoadingZip.value = true
+  selectedFilePath.value = ''
+  selectedFileContent.value = ''
+
+  try {
+    // Backend returns the ZIP file directly, not a download URL
+    const response = await fetch(`/api/v1/skills/${skillId.value}/versions/${version}/download`, {
+      credentials: 'same-origin'
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to download version')
     }
-  }
-}
 
-async function saveSkill() {
-  isSaving.value = true
-  try {
-    await skillsStore.updateSkill(skillId.value, editForm.value)
-    showToast('保存成功')
+    const zipData = await response.arrayBuffer()
+
+    // Dynamic import JSZip
+    const JSZip = (await import('jszip')).default
+    const zip = await JSZip.loadAsync(zipData)
+    currentZip.value = zip
+
+    // Generate file tree
+    fileTree.value = generateFileTree(zip)
   } catch (err) {
-    showToast('保存失败', 'error')
+    console.error('Failed to load version zip:', err)
+    fileTree.value = []
   } finally {
-    isSaving.value = false
+    isLoadingZip.value = false
   }
 }
 
-async function addCollaborator() {
-  if (!newCollaborator.value) return
-  isAddingCollaborator.value = true
+function generateFileTree(zip: any): any[] {
+  const root: any = { type: 'directory', name: '', children: [], path: '' }
+
+  zip.forEach((relativePath: string, zipEntry: any) => {
+    if (!relativePath) return
+
+    const parts = relativePath.split('/').filter(Boolean)
+    let current = root
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i]
+      const isLast = i === parts.length - 1
+      const isDir = zipEntry.dir || !isLast
+
+      let child = current.children.find((c: any) => c.name === part)
+      if (!child) {
+        child = {
+          type: isDir ? 'directory' : 'file',
+          name: part,
+          path: relativePath,
+          ...(isDir ? { children: [], isOpen: false } : {})
+        }
+        current.children.push(child)
+      }
+      if (isDir) current = child
+    }
+  })
+
+  sortTree(root.children)
+  return root.children
+}
+
+function sortTree(nodes: any[]) {
+  nodes.sort((a, b) => {
+    if (a.type !== b.type) {
+      return a.type === 'directory' ? -1 : 1
+    }
+    return a.name.localeCompare(b.name)
+  })
+
+  nodes.forEach((node: any) => {
+    if (node.children) {
+      sortTree(node.children)
+    }
+  })
+}
+
+async function onFileSelect(node: TreeNode) {
+  selectedFilePath.value = node.path
+
+  if (!currentZip.value) return
+
+  const file = currentZip.value.file(node.path)
+  if (!file) return
+
   try {
-    await skillsStore.addCollaborator(skillId.value, newCollaborator.value)
-    newCollaborator.value = ''
-    showToast('添加成功')
+    const content = await file.async('string')
+    selectedFileContent.value = content
+
+    if (isMarkdownFile.value) {
+      markdownMode.value = 'render'
+    }
   } catch (err) {
-    showToast('添加失败', 'error')
+    // Binary file
+    selectedFileContent.value = ''
+  }
+}
+
+function onFolderToggle(node: TreeNode) {
+  node.isOpen = !node.isOpen
+}
+
+function setMarkdownMode(mode: 'render' | 'source') {
+  markdownMode.value = mode
+}
+
+function downloadCurrentVersion() {
+  if (!currentVersion.value) return
+  downloadVersion(currentVersion.value)
+}
+
+function downloadVersion(version: string) {
+  window.open(`/api/v1/skills/${skillId.value}/versions/${version}/download`, '_blank')
+}
+
+function goToDiff() {
+  if (!skill.value) {
+    alert('Skill 信息加载中')
+    return
+  }
+
+  if (versions.value.length < 2) {
+    alert('需要至少两个版本才能对比')
+    return
+  }
+
+  // 默认对比最新两个版本
+  const versionA = versions.value[1]?.version || ''
+  const versionB = versions.value[0]?.version || ''
+  window.open(`/diff?id=${encodeURIComponent(skillId.value)}&version_a=${encodeURIComponent(versionA)}&version_b=${encodeURIComponent(versionB)}`, '_blank')
+}
+
+async function submitAddCollaborator() {
+  if (!newCollaboratorUsername.value) return
+  isAddingCollaborator.value = true
+
+  try {
+    await skillsStore.addCollaborator(skillId.value, newCollaboratorUsername.value)
+    showAddCollaboratorModal.value = false
+    newCollaboratorUsername.value = ''
+    alert('添加成功')
+  } catch (err) {
+    alert('添加失败')
   } finally {
     isAddingCollaborator.value = false
   }
@@ -368,30 +657,25 @@ async function addCollaborator() {
 
 async function removeCollaborator(userId: number) {
   if (!confirm('确定要移除该协作者吗？')) return
+
   try {
     await skillsStore.removeCollaborator(skillId.value, userId)
-    showToast('移除成功')
+    alert('移除成功')
   } catch (err) {
-    showToast('移除失败', 'error')
+    alert('移除失败')
   }
 }
 
-async function downloadVersion(versionId: number) {
+async function submitDeleteSkill() {
+  if (deleteConfirmInput.value !== String(skill.value?.id)) return
+
   try {
-    const response = await versionsApi.download(skillId.value, versionId)
-    if (response.download_url) {
-      window.open(response.download_url, '_blank')
-    }
-  } catch (err) {
-    showToast('下载失败', 'error')
-  }
-}
-
-function confirmDelete() {
-  if (!confirm('确定要删除这个 Skill 吗？此操作不可恢复。')) return
-  skillsStore.deleteSkill(skillId.value).then(() => {
+    await skillsStore.deleteSkill(skillId.value)
+    showDeleteModal.value = false
     router.push('/')
-  })
+  } catch (err) {
+    alert('删除失败')
+  }
 }
 
 function formatDate(dateString: string): string {
@@ -403,18 +687,322 @@ function formatDate(dateString: string): string {
     minute: '2-digit',
   })
 }
-
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-// Simple toast function
-function showToast(message: string, type: 'success' | 'error' = 'success') {
-  // You can implement a proper toast system here
-  alert(message)
-}
 </script>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Markdown preview styles */
+.markdown-body {
+  color: #e4e4e7;
+  line-height: 1.8;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4) {
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  color: white;
+}
+
+.markdown-body :deep(h1) { font-size: 1.5rem; }
+.markdown-body :deep(h2) { font-size: 1.25rem; border-bottom: 1px solid #27272a; padding-bottom: 0.3em; }
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) { padding-left: 2em; margin-bottom: 1em; }
+.markdown-body :deep(li) { margin-bottom: 0.25em; list-style: disc; }
+.markdown-body :deep(p) { margin-bottom: 1em; }
+.markdown-body :deep(a) { color: #00FFA3; text-decoration: underline; text-underline-offset: 4px; }
+.markdown-body :deep(code) {
+  background-color: #09090b;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875em;
+  border: 1px solid #27272a;
+}
+.markdown-body :deep(pre code) {
+  background: none;
+  border: none;
+  padding: 0;
+}
+.markdown-body :deep(pre) {
+  background-color: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+.markdown-body :deep(blockquote) {
+  border-left: 4px solid #27272a;
+  padding-left: 1em;
+  color: #a1a1aa;
+  margin: 1em 0;
+}
+.markdown-body :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+.markdown-body :deep(th),
+.markdown-body :deep(td) {
+  border: 1px solid #27272a;
+  padding: 0.5em 1em;
+  text-align: left;
+}
+.markdown-body :deep(th) {
+  background-color: #09090b;
+}
+
+/* Code with line numbers */
+.code-with-lines {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  gap: 0.75rem;
+  overflow-x: auto;
+  background-color: #09090b;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.line-numbers {
+  flex-shrink: 0;
+  text-align: right;
+  color: #52525b;
+  user-select: none;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre;
+  padding: 1.5rem 0.75rem 1.5rem 1.5rem;
+  border-right: 1px solid #27272a;
+}
+
+.code-with-lines pre {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  padding: 1.5rem !important;
+  border: none !important;
+  background: transparent !important;
+  overflow-x: auto;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.code-with-lines pre code {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+/* Markdown source preview */
+.md-source-pre {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  overflow-x: auto;
+  text-align: left;
+}
+
+.md-source-pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #e4e4e7;
+  white-space: pre;
+}
+
+/* Markdown view buttons */
+.md-view-btn {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  border: 1px solid #27272a;
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.md-view-btn:hover {
+  color: white;
+  border-color: #a1a1aa;
+}
+
+.md-view-btn.is-active {
+  background: rgba(0, 255, 163, 0.1);
+  color: #00FFA3;
+  border: 1px solid #00E592;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  background-color: #13141a;
+  border: 1px solid #27272a;
+  border-radius: 0.75rem;
+  width: 90%;
+  max-width: 420px;
+  padding: 1.5rem;
+  color: #e4e4e7;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: white;
+}
+
+.modal-body {
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #a1a1aa;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background-color: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 0.5rem;
+  color: white;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #00E592;
+  box-shadow: 0 0 0 1px #00E592;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.modal-footer .btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-family: "JetBrains Mono", monospace;
+  cursor: pointer;
+  border: none;
+}
+
+.modal-footer .btn-secondary {
+  background: transparent;
+  border: 1px solid #27272a;
+  color: white;
+}
+
+.modal-footer .btn-secondary:hover {
+  background-color: #27272a;
+}
+
+.modal-footer .btn-primary {
+  background-color: rgba(0, 255, 163, 0.1);
+  border: 1px solid #00E592;
+  color: #00FFA3;
+}
+
+.modal-footer .btn-primary:hover {
+  background-color: rgba(0, 255, 163, 0.2);
+}
+
+.modal-footer .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-footer .btn-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #f87171;
+}
+
+.modal-footer .btn-danger:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.modal-footer .btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.warning-text {
+  color: #f87171;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+</style>

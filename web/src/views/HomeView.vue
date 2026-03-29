@@ -66,7 +66,7 @@
         <router-link
           v-for="skill in filteredSkills"
           :key="skill.id"
-          :to="{ path: '/skill', query: { id: skill.id } }"
+          :to="`/skills/${skill.id}`"
           class="skill-card"
         >
           <div class="skill-card-header">

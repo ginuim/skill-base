@@ -154,14 +154,14 @@ export const authApi = {
 // ===== Skills API =====
 
 export interface Skill {
-  id: number
+  id: string
   name: string
   description: string
   owner_id: number
   owner: User
   created_at: string
   updated_at: string
-  latest_version?: SkillVersion
+  latest_version?: string
   permission?: 'owner' | 'collaborator' | 'user'
 }
 
@@ -173,7 +173,7 @@ export interface SkillVersion {
   file_count: number
   total_size: number
   created_by: number
-  creator?: User
+  uploader?: User
   created_at: string
 }
 
@@ -184,26 +184,26 @@ export interface SkillDetail extends Skill {
 
 export const skillsApi = {
   list: (query?: string) => apiGet<{ skills: Skill[] }>(`/skills${query ? `?q=${encodeURIComponent(query)}` : ''}`),
-  get: (id: number) => apiGet<SkillDetail>(`/skills/${id}`),
+  get: (id: string) => apiGet<SkillDetail>(`/skills/${id}`),
   create: (data: { name: string; description: string }) => apiPost<Skill>('/skills', data),
-  update: (id: number, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
-  delete: (id: number) => apiDelete(`/skills/${id}`),
+  update: (id: string, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
+  delete: (id: string) => apiDelete(`/skills/${id}`),
 }
 
 // ===== Versions API =====
 
 export const versionsApi = {
-  list: (skillId: number) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),
-  get: (skillId: number, versionId: number) => apiGet<SkillVersion>(`/skills/${skillId}/versions/${versionId}`),
-  download: (skillId: number, versionId: number) => apiGet<{ download_url: string }>(`/skills/${skillId}/versions/${versionId}/download`),
+  list: (skillId: string) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),
+  get: (skillId: string, versionId: number) => apiGet<SkillVersion>(`/skills/${skillId}/versions/${versionId}`),
+  download: (skillId: string, versionId: number) => apiGet<{ download_url: string }>(`/skills/${skillId}/versions/${versionId}/download`),
 }
 
 // ===== Collaborators API =====
 
 export const collaboratorsApi = {
-  list: (skillId: number) => apiGet<{ collaborators: User[] }>(`/skills/${skillId}/collaborators`),
-  add: (skillId: number, username: string) => apiPost(`/skills/${skillId}/collaborators`, { username }),
-  remove: (skillId: number, userId: number) => apiDelete(`/skills/${skillId}/collaborators/${userId}`),
+  list: (skillId: string) => apiGet<{ collaborators: User[] }>(`/skills/${skillId}/collaborators`),
+  add: (skillId: string, username: string) => apiPost(`/skills/${skillId}/collaborators`, { username }),
+  remove: (skillId: string, userId: number) => apiDelete(`/skills/${skillId}/collaborators/${userId}`),
 }
 
 // ===== Users API =====

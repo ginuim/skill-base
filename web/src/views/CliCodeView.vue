@@ -1,7 +1,4 @@
 <template>
-  <div>
-    <SkillBaseNav :current-path="'/cli-code'"></SkillBaseNav>
-
     <div class="min-h-screen flex items-center justify-center p-4">
       <div class="w-full max-w-md">
       <!-- Logo -->
@@ -70,7 +67,6 @@
       </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
