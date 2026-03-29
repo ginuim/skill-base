@@ -1,80 +1,98 @@
 <template>
-    <div class="min-h-screen flex items-center justify-center p-4">
-      <div class="w-full max-w-md">
-      <!-- Logo -->
-      <div class="flex items-center justify-center gap-2 text-2xl tracking-tight select-none mb-8">
-        <span class="text-neon-400 drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-            <line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
-        </span>
-        <span class="font-semibold text-white">Skill Base</span>
-      </div>
-
-      <!-- CLI Code Card -->
-      <div class="card p-8">
-        <h1 class="text-2xl font-bold text-white text-center mb-2">CLI 授权</h1>
-        <p class="text-base-400 text-center mb-8 text-sm">
-          {{ fromCli ? '请在终端中输入以下授权码' : '生成 CLI 授权码以在命令行中使用' }}
-        </p>
-
-        <!-- Code Display -->
-        <div class="bg-base-950 rounded-lg p-6 mb-6 text-center">
-          <div v-if="isLoading" class="py-4">
-            <div class="spinner mx-auto"></div>
-          </div>
-          <template v-else>
-            <div class="font-mono text-3xl text-neon-400 tracking-wider mb-2">
-              {{ cliCode }}
-            </div>
-            <p class="text-xs text-base-500">授权码有效期 5 分钟</p>
-          </template>
-        </div>
-
-        <!-- Actions -->
-        <div class="space-y-4">
-          <button
-            @click="copyCode"
-            :disabled="!cliCode || isLoading"
-            class="w-full btn-primary py-3 rounded-lg font-medium flex items-center justify-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-            </svg>
-            复制授权码
-          </button>
-
-          <button
-            @click="generateCode"
-            :disabled="isLoading"
-            class="w-full btn-secondary py-3 rounded-lg font-medium"
-          >
-            重新生成
-          </button>
-        </div>
-
-        <!-- Back Link -->
-        <div class="mt-6 text-center">
-          <router-link
-            :to="fromCli ? '/login?from=cli' : '/'"
-            class="text-base-400 hover:text-white text-sm"
-          >
-            {{ fromCli ? '返回登录' : '返回首页' }}
-          </router-link>
-        </div>
-      </div>
+  <div class="min-h-screen">
+    <!-- 面包屑 -->
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0" style="max-width: 520px;">
+      <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
+        <span class="text-neon-400">~</span>
+        <span class="opacity-50">/</span>
+        <router-link to="/" class="hover:text-white transition-colors">home</router-link>
+        <span class="opacity-50">/</span>
+        <span class="text-white">cli-code</span>
       </div>
     </div>
+
+    <!-- 页面内容 -->
+    <main class="page-content">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-16" style="max-width: 520px;">
+        <div class="card cli-code-card relative overflow-hidden p-8">
+          <!-- 装饰性角标 -->
+          <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">AUTH-CLI</div>
+
+          <div class="cli-code-header mb-8 text-left">
+            <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+              <span class="text-neon-400 font-mono font-normal opacity-70">></span>
+              <span>CLI 验证码</span>
+            </h1>
+            <p class="text-base-400 text-sm font-mono">// 在命令行工具中输入此验证码完成登录</p>
+          </div>
+
+          <!-- 加载状态 -->
+          <div v-if="isLoading" class="cli-code-loading py-8 text-center">
+            <div class="spinner mx-auto"></div>
+            <div class="text-base-400 text-sm font-mono mt-4">Generating secure token...</div>
+          </div>
+
+          <!-- 验证码显示区域 -->
+          <div v-else>
+            <div class="cli-code-display rounded-xl p-8 mb-8 flex flex-col items-center">
+              <div class="cli-code-value text-4xl sm:text-5xl font-mono tracking-widest text-center select-all">
+                {{ cliCode || '----' }}
+              </div>
+              <div class="cli-code-timer font-mono mt-6 flex items-center gap-2 text-base-400">
+                <svg class="cli-code-timer-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span :class="{ 'text-red-400': isExpiring, 'text-red-500': isExpired }">
+                  {{ timerText }}
+                </span>
+              </div>
+            </div>
+
+            <div class="cli-code-actions flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                @click="copyCode"
+                :disabled="!cliCode || isLoading"
+                class="btn btn-primary flex-1 py-3 font-mono text-sm rounded-lg flex items-center justify-center gap-2"
+              >
+                <svg v-if="!copied" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>{{ copied ? '已复制' : '复制验证码' }}</span>
+              </button>
+              <button
+                @click="generateCode"
+                :disabled="isLoading"
+                class="btn btn-secondary flex-1 py-3 font-mono text-sm rounded-lg flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"/>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+                <span>重新生成</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="cli-code-hint mt-8 p-4 rounded-lg text-left">
+            <strong class="block mb-2 font-mono text-neon-400"># Usage:</strong>
+            <span class="font-mono text-sm">在终端运行 <code class="bg-base-950 text-neon-400 px-1 py-0.5 rounded border border-base-800">skb login</code>，然后输入上方验证码即可完成 CLI 登录。</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
-import SkillBaseNav from '@/components/SkillBaseNav.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -82,11 +100,25 @@ const authStore = useAuthStore()
 
 const cliCode = ref('')
 const isLoading = ref(false)
-const fromCli = ref(false)
+const copied = ref(false)
+const expiresAt = ref<Date | null>(null)
+const timerInterval = ref<number | null>(null)
+const remainingMs = ref(0)
+
+const isExpired = computed(() => remainingMs.value <= 0)
+const isExpiring = computed(() => remainingMs.value > 0 && remainingMs.value <= 60000)
+
+const timerText = computed(() => {
+  if (isExpired.value) {
+    return '已过期'
+  }
+  const minutes = Math.floor(remainingMs.value / 60000)
+  const seconds = Math.floor((remainingMs.value % 60000) / 1000)
+  const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`
+  return `${formattedTime} 后过期`
+})
 
 onMounted(async () => {
-  fromCli.value = route.query.from === 'cli'
-
   // Check auth
   const isAuth = await authStore.fetchUser()
   if (!isAuth) {
@@ -97,11 +129,21 @@ onMounted(async () => {
   generateCode()
 })
 
+onUnmounted(() => {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+  }
+})
+
 async function generateCode() {
   isLoading.value = true
   try {
-    const response = await apiPost<{ code: string }>('/auth/cli-code')
+    const response = await apiPost<{ code: string; expires_at: string }>('/auth/cli-code/generate')
     cliCode.value = response.code
+    expiresAt.value = new Date(response.expires_at)
+    
+    // 启动倒计时
+    startTimer()
   } catch (err) {
     alert('生成失败')
   } finally {
@@ -109,9 +151,95 @@ async function generateCode() {
   }
 }
 
-function copyCode() {
+function startTimer() {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+  }
+  
+  updateTimer()
+  timerInterval.value = window.setInterval(updateTimer, 1000)
+}
+
+function updateTimer() {
+  if (!expiresAt.value) {
+    remainingMs.value = 0
+    return
+  }
+  
+  const now = new Date()
+  remainingMs.value = Math.max(0, expiresAt.value.getTime() - now.getTime())
+  
+  if (remainingMs.value <= 0 && timerInterval.value) {
+    clearInterval(timerInterval.value)
+  }
+}
+
+async function copyCode() {
   if (!cliCode.value) return
-  navigator.clipboard.writeText(cliCode.value)
-  alert('已复制到剪贴板')
+  
+  try {
+    await navigator.clipboard.writeText(cliCode.value)
+    copied.value = true
+    
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
+  } catch (error) {
+    // 降级方案
+    alert('已复制到剪贴板')
+  }
 }
 </script>
+
+<style scoped>
+.card {
+  background-color: #13141a;
+  border: 1px solid #27272a;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 0.75rem;
+}
+
+.cli-code-display {
+  background-color: #09090b;
+  border: 1px solid #27272a;
+}
+
+.cli-code-value {
+  color: #00FFA3;
+  text-shadow: 0 0 15px rgba(0,255,163,0.3);
+}
+
+.cli-code-hint {
+  background-color: rgba(0,255,163,0.05);
+  border: 1px solid rgba(0,255,163,0.2);
+  color: #a1a1aa;
+}
+
+.btn-primary {
+  background-color: transparent;
+  border: 1px solid #00E592;
+  color: #00FFA3;
+  box-shadow: 0 0 15px rgba(0,255,163,0.1);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: rgba(0,255,163,0.1);
+  box-shadow: 0 0 20px rgba(0,255,163,0.2);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid #27272a;
+  color: #e4e4e7;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #27272a;
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

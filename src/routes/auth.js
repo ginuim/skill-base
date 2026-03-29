@@ -160,7 +160,7 @@ async function authRoutes(fastify, options) {
     const user = UserModel.findByUsername(request.user.username);
 
     if (!verifyPassword(old_password, user.password_hash)) {
-      return reply.code(401).send({ ok: false, error: 'wrong_password', detail: 'Incorrect old password' });
+      return reply.code(400).send({ ok: false, error: 'wrong_password', detail: 'Incorrect old password' });
     }
 
     const newHash = hashPassword(new_password);
