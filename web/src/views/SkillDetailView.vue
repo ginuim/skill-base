@@ -112,7 +112,7 @@
           </div>
 
           <!-- Right: File Preview -->
-          <div id="file-preview-panel" class="lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
+          <div id="file-preview-panel" :class="['lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]', { 'fullscreen': isFullscreen }]">
             <div class="px-5 py-3 border-b border-base-800 text-sm font-mono text-base-400 bg-base-950/50 rounded-t-xl flex justify-between items-center">
               <div>
                 <span>cat <span class="text-white/30">{{ selectedFilePath || '<file>' }}</span></span>
@@ -132,9 +132,21 @@
                     Markdown 源码
                   </button>
                 </div>
+                <button
+                  @click="toggleFullscreen"
+                  class="md-view-btn"
+                  title="全屏"
+                >
+                  <svg v-if="!isFullscreen" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                  </svg>
+                  <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
               </div>
             </div>
-            <div id="file-content" class="flex-1 overflow-auto text-base-400 p-0">
+            <div id="file-content" class="flex-1 overflow-y-auto overflow-x-auto text-base-400 p-0">
               <div v-if="!selectedFileContent" class="flex flex-col items-center justify-center h-full">
                 <div class="flex items-center gap-3 opacity-30 font-mono mb-4">
                   <span class="text-neon-400 animate-pulse">_</span>
@@ -145,11 +157,11 @@
               <div v-else-if="isMarkdownFile && markdownMode === 'render'" class="markdown-body p-6" v-html="renderedMarkdown"></div>
               <div v-else-if="isMarkdownFile && markdownMode === 'source'" class="code-with-lines">
                 <div class="line-numbers" aria-hidden="true">{{ markdownLineNumbers }}</div>
-                <pre class="md-source-pre"><code>{{ selectedFileContent }}</code></pre>
+                <pre class="md-source-pre"><code>{{ normalizedSelectedFileContent }}</code></pre>
               </div>
               <div v-else-if="isTextFile" class="code-with-lines">
                 <div class="line-numbers" aria-hidden="true">{{ fileLineNumbers }}</div>
-                <pre><code ref="codeBlock">{{ selectedFileContent }}</code></pre>
+                <pre><code ref="codeBlock">{{ normalizedSelectedFileContent }}</code></pre>
               </div>
               <div v-else class="flex flex-col items-center justify-center h-full">
                 <p class="text-base-400 font-mono">二进制文件无法预览</p>
@@ -414,6 +426,16 @@ const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
 const deleteConfirmInput = ref('')
 const codeBlock = ref<HTMLElement | null>(null)
+const isFullscreen = ref(false)
+
+function normalizeLineEndings(content: string) {
+  return content.replace(/\r\n?/g, '\n')
+}
+
+function getLineCount(content: string) {
+  if (!content) return 1
+  return normalizeLineEndings(content).split('\n').length
+}
 
 // Text file extensions
 const TEXT_EXTS = new Set([
@@ -447,18 +469,21 @@ const isTextFile = computed(() => {
 
 const renderedMarkdown = computed(() => {
   if (!selectedFileContent.value) return ''
-  return marked.parse(selectedFileContent.value)
+  return marked.parse(normalizedSelectedFileContent.value)
+})
+
+const normalizedSelectedFileContent = computed(() => {
+  if (!selectedFileContent.value) return ''
+  return normalizeLineEndings(selectedFileContent.value)
 })
 
 const markdownLineNumbers = computed(() => {
-  if (!selectedFileContent.value) return '1'
-  const lines = selectedFileContent.value.split(/\r?\n/).length
+  const lines = getLineCount(selectedFileContent.value)
   return Array.from({ length: lines }, (_, i) => i + 1).join('\n')
 })
 
 const fileLineNumbers = computed(() => {
-  if (!selectedFileContent.value) return '1'
-  const lines = selectedFileContent.value.split(/\r?\n/).length
+  const lines = getLineCount(selectedFileContent.value)
   return Array.from({ length: lines }, (_, i) => i + 1).join('\n')
 })
 
@@ -481,9 +506,12 @@ onMounted(async () => {
     currentVersion.value = versions.value[0]!.version
     await loadVersionZip(currentVersion.value)
   }
+
+  // ESC 键退出全屏
+  document.addEventListener('keydown', handleEscKey)
 })
 
-watch(() => codeBlock.value, (el) => {
+watch([() => codeBlock.value, () => normalizedSelectedFileContent.value], ([el]) => {
   if (el && isTextFile.value && !isMarkdownFile.value) {
     nextTick(() => {
       hljs.highlightElement(el)
@@ -680,6 +708,18 @@ async function submitDeleteSkill() {
   }
 }
 
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value
+  // 全屏时禁止页面滚动
+  document.body.style.overflow = isFullscreen.value ? 'hidden' : ''
+}
+
+function handleEscKey(e: KeyboardEvent) {
+  if (e.key === 'Escape' && isFullscreen.value) {
+    toggleFullscreen()
+  }
+}
+
 
 </script>
 
@@ -731,6 +771,13 @@ async function submitDeleteSkill() {
   border-radius: 0.5rem;
   padding: 1rem;
   overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.markdown-body :deep(pre) code {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 .markdown-body :deep(blockquote) {
   border-left: 4px solid #27272a;
@@ -757,10 +804,10 @@ async function submitDeleteSkill() {
 .code-with-lines {
   display: flex;
   align-items: stretch;
-  width: 100%;
-  height: 100%;
+  width: max-content;
+  min-width: 100%;
+  min-height: 100%;
   gap: 0.75rem;
-  overflow-x: auto;
   background-color: #09090b;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
@@ -801,9 +848,10 @@ async function submitDeleteSkill() {
 
 /* Markdown source preview */
 .md-source-pre {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   margin: 0;
-  padding: 0;
+  padding: 1.5rem;
   background: transparent;
   border: none;
   overflow-x: auto;
@@ -843,6 +891,67 @@ async function submitDeleteSkill() {
   background: rgba(0, 255, 163, 0.1);
   color: #00FFA3;
   border: 1px solid #00E592;
+}
+
+/* Fullscreen mode */
+#file-preview-panel.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  max-height: none;
+  min-height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+
+#file-preview-panel.fullscreen :deep(#file-content) {
+  max-height: calc(100vh - 52px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Prevent double scrollbar in markdown preview */
+#file-preview-panel.fullscreen :deep(#file-content) > .markdown-body {
+  overflow: visible;
+  max-height: none;
+}
+
+/* Ensure only file-content has scrollbar in fullscreen */
+#file-preview-panel.fullscreen :deep(.markdown-body pre) {
+  overflow: visible;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+#file-preview-panel.fullscreen .rounded-t-xl {
+  border-radius: 0;
+}
+
+/* Fullscreen content width limit */
+#file-preview-panel.fullscreen :deep(#file-content) > .markdown-body,
+#file-preview-panel.fullscreen :deep(#file-content) > .code-with-lines,
+#file-preview-panel.fullscreen :deep(#file-content) > pre {
+  max-width: 120ch;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Word wrap for code and text content */
+.code-with-lines pre code,
+.md-source-pre code,
+.code-with-lines pre {
+  white-space: pre;
+  word-wrap: normal;
+  overflow-wrap: normal;
+}
+
+/* Ensure line numbers don't wrap */
+.line-numbers {
+  white-space: pre;
 }
 
 /* Modal styles */
