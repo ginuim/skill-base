@@ -15,13 +15,13 @@
 
           <h1 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
             <span class="text-neon-400 font-mono font-normal opacity-70">></span>
-            <span>发布新版本</span>
+            <span>{{ t('publish.title') }}</span>
           </h1>
 
           <form @submit.prevent="handlePublish" class="space-y-6">
             <!-- 文件上传 -->
             <div class="form-group">
-              <label class="form-label font-mono text-base-400 mb-2 block required">上传文件</label>
+              <label class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.uploadFile') }}</label>
               <div
                 id="drop-zone"
                 class="drop-zone"
@@ -34,9 +34,9 @@
                 <div class="drop-zone-icon">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 </div>
-                <div class="drop-zone-text">拖拽 Skill 文件夹或 zip 到此处</div>
-                <div class="drop-zone-subtitle">或点击选择文件夹</div>
-                <div class="drop-zone-hint">// Skill ID、名称、描述均从包内读取，不可手改</div>
+                <div class="drop-zone-text">{{ t('publish.dropZoneText') }}</div>
+                <div class="drop-zone-subtitle">{{ t('publish.dropZoneSubtitle') }}</div>
+                <div class="drop-zone-hint">{{ t('publish.dropZoneHint') }}</div>
               </div>
 
               <input
@@ -56,14 +56,14 @@
               <div class="text-center">
                 <label class="btn btn-secondary zip-select-btn px-4 py-2 rounded-lg cursor-pointer">
                   <span class="text-neon-400">📎</span>
-                  <span>选择 zip 文件...</span>
+                  <span>{{ t('publish.selectZip') }}</span>
                   <input type="file" ref="zipInput" class="hidden" accept=".zip" @change="handleZipSelect">
                 </label>
               </div>
 
               <div id="file-preview" class="file-preview" :class="{ 'visible': selectedFiles.length > 0 }">
                 <div class="file-preview-header">
-                  <span>已选择文件</span>
+                  <span>{{ t('publish.selectedFiles') }}</span>
                   <button type="button" class="file-preview-clear" @click="clearFiles">[ clear ]</button>
                 </div>
                 <div id="file-preview-list" class="file-preview-list">
@@ -71,25 +71,25 @@
                     {{ file.name }} ({{ formatFileSize(file.size) }})
                   </div>
                   <div v-if="selectedFiles.length > 20" class="mt-2 text-neon-400">
-                    ...还有 {{ selectedFiles.length - 20 }} 个文件
+                    {{ t('publish.moreFiles', { count: selectedFiles.length - 20 }) }}
                   </div>
                 </div>
                 <div id="file-preview-summary" class="file-preview-summary">
-                  共 {{ selectedFiles.length }} 个文件
+                  {{ t('publish.totalFiles', { count: selectedFiles.length }) }}
                 </div>
               </div>
             </div>
 
             <!-- Skill 选择 -->
             <div class="form-group">
-              <label for="skill-select" class="form-label font-mono text-base-400 mb-2 block">选择 Skill</label>
+              <label for="skill-select" class="form-label font-mono text-base-400 mb-2 block">{{ t('publish.selectSkill') }}</label>
               <select
                 id="skill-select"
                 v-model="form.skillId"
                 class="rounded-lg px-4 py-2.5 w-full"
                 :disabled="isPublishing"
               >
-                <option value="">-- 创建新 Skill --</option>
+                <option value="">-- {{ t('publish.createNewSkill') }} --</option>
                 <option
                   v-for="skill in mySkills"
                   :key="skill.id"
@@ -98,46 +98,46 @@
                   {{ skill.name }}
                 </option>
               </select>
-              <p class="form-hint">// 更新已有 Skill 时请选择与包内 Skill ID 一致的一项；新建则保持「创建新 Skill」</p>
+              <p class="form-hint">{{ t('publish.skillSelectHint') }}</p>
             </div>
 
             <!-- Skill 元信息 (只读) -->
             <div class="skill-meta-readonly space-y-4 pt-4 border-t border-base-800">
               <div class="form-group">
-                <label for="skill-id" class="form-label font-mono text-base-400 mb-2 block required">Skill ID</label>
+                <label for="skill-id" class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.skillId') }}</label>
                 <input
                   type="text"
                   id="skill-id"
                   v-model="form.skillId"
                   readonly
-                  placeholder="上传文件夹或 zip 后自动填入"
+                  :placeholder="t('publish.skillIdPlaceholder')"
                   pattern="[a-z0-9\-_]+"
                   class="rounded-lg px-4 py-2.5 w-full"
                 >
-                <p class="form-hint">// 由文件夹名或 zip 文件名推导（小写字母、数字、连字符、下划线）</p>
+                <p class="form-hint">{{ t('publish.skillIdHint') }}</p>
               </div>
 
               <div class="form-group">
-                <label for="skill-name" class="form-label font-mono text-base-400 mb-2 block required">Skill 名称</label>
+                <label for="skill-name" class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.skillName') }}</label>
                 <input
                   type="text"
                   id="skill-name"
                   v-model="form.name"
                   readonly
-                  placeholder="上传后从 SKILL.md 读取"
+                  :placeholder="t('publish.skillNamePlaceholder')"
                   class="rounded-lg px-4 py-2.5 w-full"
                 >
               </div>
 
               <div class="form-group">
-                <label for="skill-description" class="form-label font-mono text-base-400 mb-2 block required">描述</label>
+                <label for="skill-description" class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.description') }}</label>
                 <textarea
                   id="skill-description"
                   v-model="form.description"
                   rows="3"
                   readonly
                   maxlength="500"
-                  placeholder="上传后从 SKILL.md 读取"
+                  :placeholder="t('publish.descriptionPlaceholder')"
                   class="rounded-lg px-4 py-2.5 w-full"
                 ></textarea>
                 <p class="form-hint"><span class="text-neon-400">{{ form.description.length }}</span> / 500 chars</p>
@@ -146,15 +146,13 @@
 
             <!-- 更新说明 -->
             <div class="form-group pt-4 border-t border-base-800">
-              <label for="changelog" class="form-label font-mono text-base-400 mb-2 block">更新说明</label>
+              <label for="changelog" class="form-label font-mono text-base-400 mb-2 block">{{ t('publish.changelog') }}</label>
               <textarea
                 id="changelog"
                 v-model="form.changelog"
                 rows="4"
                 :disabled="isPublishing"
-                placeholder="描述本次更新的内容...
-- feat: add new feature
-- fix: resolve issue"
+                :placeholder="t('publish.changelogPlaceholder')"
                 class="rounded-lg px-4 py-2.5 w-full"
               ></textarea>
             </div>
@@ -174,7 +172,7 @@
 
             <!-- 提交按钮 -->
             <div class="flex gap-4 justify-end pt-6 border-t border-base-800 mt-8">
-              <router-link to="/" class="btn btn-secondary px-6 py-2.5 rounded-lg">取消</router-link>
+              <router-link to="/" class="btn btn-secondary px-6 py-2.5 rounded-lg">{{ t('common.cancel') }}</router-link>
               <button
                 type="submit"
                 id="submit-btn"
@@ -183,7 +181,7 @@
               >
                 <svg v-if="!isPublishing" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <span v-if="isPublishing" class="spinner spinner-sm"></span>
-                {{ isPublishing ? '发布中...' : '发布新版本' }}
+                {{ isPublishing ? t('publish.publishing') : t('publish.publishBtn') }}
               </button>
             </div>
           </form>
@@ -198,11 +196,12 @@ import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { useAuthStore } from '@/stores/auth'
 import { skillsApi } from '@/services/api'
-import SkillBaseNav from '@/components/SkillBaseNav.vue'
+import { useI18n } from '@/composables/useI18n'
 import type { Skill } from '@/services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const fileInput = ref<HTMLInputElement>()
 const zipInput = ref<HTMLInputElement>()
@@ -301,7 +300,7 @@ async function loadZipFile(file: File) {
       parseSkillMd(content, file.name)
     }
   } catch (err) {
-    error.value = '无法读取 zip 文件'
+    error.value = t('publish.zipError')
   }
 }
 
@@ -366,7 +365,7 @@ async function handlePublish() {
   error.value = ''
   isPublishing.value = true
   progress.value = 0
-  progressText.value = '准备上传...'
+  progressText.value = t('publish.preparing')
 
   try {
     const zip = new JSZip()
@@ -376,12 +375,12 @@ async function handlePublish() {
       zip.file(path, file)
     }
 
-    progressText.value = '压缩文件...'
+    progressText.value = t('publish.compressing')
     progress.value = 30
 
     const zipBlob = await zip.generateAsync({ type: 'blob' })
 
-    progressText.value = '上传中...'
+    progressText.value = t('publish.uploading')
     progress.value = 60
 
     const formData = new FormData()
@@ -396,7 +395,7 @@ async function handlePublish() {
     })
 
     progress.value = 100
-    progressText.value = '完成!'
+    progressText.value = t('publish.completed')
 
     if (response.ok) {
       setTimeout(() => {
@@ -404,11 +403,11 @@ async function handlePublish() {
       }, 500)
     } else {
       const data = await response.json()
-      error.value = data.detail || '上传失败'
+      error.value = data.detail || t('publish.uploadFailed')
       isPublishing.value = false
     }
   } catch (err: any) {
-    error.value = err.message || '上传失败'
+    error.value = err.message || t('publish.uploadFailed')
     isPublishing.value = false
   }
 }

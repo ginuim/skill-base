@@ -418,7 +418,7 @@ import { useI18n } from '@/composables/useI18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { t } = useI18n()
+const { t, currentLang } = useI18n()
 
 // 权限检查
 onMounted(async () => {
@@ -601,7 +601,7 @@ async function handleEditUser() {
 // 日期格式化
 function formatDate(dateStr: string) {
   const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN', {
+  return date.toLocaleDateString(currentLang.value === 'zh' ? 'zh-CN' : 'en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'

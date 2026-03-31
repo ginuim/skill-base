@@ -13,10 +13,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-2">Skill 不存在</h3>
-        <p class="text-base-400 mb-6">该 Skill 可能已被删除或你没有访问权限</p>
+        <h3 class="text-xl font-semibold text-white mb-2">{{ t('skill.notFound') }}</h3>
+        <p class="text-base-400 mb-6">{{ t('skill.notFoundDesc') }}</p>
         <router-link to="/" class="btn-primary px-6 py-3 rounded-lg">
-          返回首页
+          {{ t('skill.backToHome') }}
         </router-link>
       </div>
 
@@ -26,7 +26,7 @@
         <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
           <span class="text-neon-400">~</span>
           <span class="opacity-50">/</span>
-          <router-link to="/" class="hover:text-white transition-colors">home</router-link>
+          <router-link to="/" class="hover:text-white transition-colors">{{ t('skill.breadcrumbHome') }}</router-link>
           <span class="opacity-50">/</span>
           <span class="text-white">{{ skill.name }}</span>
         </div>
@@ -39,7 +39,7 @@
             {{ skill.name }}
           </h1>
           <p class="text-base-400 text-sm leading-relaxed max-w-5xl mb-6">
-            {{ skill.description || '暂无描述' }}
+            {{ skill.description || t('state.noDesc') }}
           </p>
 
           <!-- Version Select & Actions -->
@@ -51,7 +51,7 @@
                 class="w-full appearance-none bg-base-950 border border-base-800 text-white font-mono text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors cursor-pointer"
               >
                 <option v-for="(v, index) in versions" :key="v.id" :value="v.version">
-                  {{ v.version }} {{ index === 0 ? '(latest)' : '' }}
+                  {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
                 </option>
               </select>
               <svg class="w-4 h-4 absolute right-4 top-3 pointer-events-none text-base-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,7 +66,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                 </svg>
-                对比
+                {{ t('skill.compare') }}
               </button>
               <button
                 @click="downloadCurrentVersion"
@@ -75,7 +75,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
-                下载
+                {{ t('skill.download') }}
               </button>
             </div>
           </div>
@@ -96,7 +96,7 @@
                 <div class="spinner spinner-sm"></div>
               </div>
               <div v-else-if="fileTree.length === 0" class="flex flex-col items-center justify-center py-10">
-                <p class="text-base-400 font-mono">暂无文件</p>
+                <p class="text-base-400 font-mono">{{ t('skill.noFile') }}</p>
               </div>
               <template v-else>
                 <FileTreeNode
@@ -123,19 +123,19 @@
                     @click="setMarkdownMode('render')"
                     :class="['md-view-btn', markdownMode === 'render' ? 'is-active' : '']"
                   >
-                    HTML 预览
+                    {{ t('skill.htmlPreview') }}
                   </button>
                   <button
                     @click="setMarkdownMode('source')"
                     :class="['md-view-btn', markdownMode === 'source' ? 'is-active' : '']"
                   >
-                    Markdown 源码
+                    {{ t('skill.mdSource') }}
                   </button>
                 </div>
                 <button
                   @click="toggleFullscreen"
                   class="md-view-btn"
-                  title="全屏"
+                  :title="isFullscreen ? t('skill.exitFullscreen') : t('skill.fullscreen')"
                 >
                   <svg v-if="!isFullscreen" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
@@ -152,7 +152,7 @@
                   <span class="text-neon-400 animate-pulse">_</span>
                   <span>EOF</span>
                 </div>
-                <p class="text-sm font-mono">点击左侧文件预览</p>
+                <p class="text-sm font-mono">{{ t('skill.selectFile') }}</p>
               </div>
               <div v-else-if="isMarkdownFile && markdownMode === 'render'" class="markdown-body p-6" v-html="renderedMarkdown"></div>
               <div v-else-if="isMarkdownFile && markdownMode === 'source'" class="code-with-lines">
@@ -164,7 +164,7 @@
                 <pre><code ref="codeBlock">{{ normalizedSelectedFileContent }}</code></pre>
               </div>
               <div v-else class="flex flex-col items-center justify-center h-full">
-                <p class="text-base-400 font-mono">二进制文件无法预览</p>
+                <p class="text-base-400 font-mono">{{ t('skill.binaryFile') }}</p>
               </div>
             </div>
           </div>
@@ -176,14 +176,14 @@
           <div class="bg-base-900 border border-base-800 rounded-xl h-fit">
             <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-white flex items-center justify-between text-sm">
               <div class="flex items-center gap-2">
-                <span class="text-neon-400">#</span> 协作者
+                <span class="text-neon-400">#</span> {{ t('skill.collaborators') }}
               </div>
               <button
                 v-if="skillsStore.isOwner"
                 @click="showAddCollaboratorModal = true"
                 class="text-xs text-neon-400 hover:text-white transition-colors"
               >
-                + 添加
+                + {{ t('btn.add') }}
               </button>
             </div>
             <div class="p-5 flex flex-col gap-4">
@@ -199,7 +199,7 @@
                   </div>
                 </div>
                 <span class="px-2 py-0.5 rounded text-xs font-mono bg-neon-400/10 text-neon-400 border border-neon-400/20">
-                  owner
+                  {{ t('collab.owner') }}
                 </span>
               </div>
               <!-- Collaborators -->
@@ -219,13 +219,13 @@
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 rounded text-xs font-mono bg-blue-400/10 text-blue-400 border border-blue-400/20">
-                    collaborator
+                    {{ t('collab.collaborator') }}
                   </span>
                   <button
                     v-if="skillsStore.isOwner"
                     @click="removeCollaborator(collaborator.id)"
                     class="p-1.5 text-base-400 hover:text-red-400 transition-colors"
-                    title="移除协作者"
+                    :title="t('btn.remove')"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -241,7 +241,7 @@
                   @click="showDeleteModal = true"
                   class="w-full py-2 text-xs font-mono text-red-500 border border-red-500/30 rounded bg-red-500/5 hover:bg-red-500/10 transition-colors"
                 >
-                  删除 Skill
+                  {{ t('skill.deleteSkill') }}
                 </button>
               </div>
             </div>
@@ -290,16 +290,16 @@
                         <span v-if="index === 0" class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>
                       </div>
                       <p class="text-sm font-medium mt-2" :class="index === 0 ? 'text-white' : 'text-base-200'">
-                        {{ v.changelog || '无更新日志' }}
+                        {{ v.changelog || t('skill.noChangelog') }}
                       </p>
                       <p class="text-xs text-base-400 mt-1 flex items-center gap-1.5 font-mono">
-                        by @{{ v.uploader?.name || v.uploader?.username || '未知' }}
+                        by @{{ v.uploader?.name || v.uploader?.username || t('state.unknown') }}
                       </p>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                       <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at) }}</span>
                       <button
-                        title="下载版本"
+                        :title="t('skill.download')"
                         class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 hover:shadow-[0_0_10px_rgba(0,255,163,0.15)] transition-all"
                         @click="downloadVersion(v.version)"
                       >
@@ -312,7 +312,7 @@
                 </div>
 
                 <div v-if="versions.length === 0" class="flex flex-col items-center justify-center py-8">
-                  <p class="text-base-400 font-mono">暂无版本</p>
+                  <p class="text-base-400 font-mono">{{ t('skill.noVersions') }}</p>
                 </div>
               </div>
             </div>
@@ -326,26 +326,26 @@
       <div class="modal-overlay"></div>
       <div class="modal-content">
         <div class="modal-header">
-          <h3>添加协作者</h3>
+          <h3>{{ t('collab.modal') }}</h3>
           <button class="modal-close" @click="showAddCollaboratorModal = false">&times;</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>用户名</label>
+            <label>{{ t('collab.usernameLabel') }}</label>
             <input
               v-model="newCollaboratorUsername"
               type="text"
-              placeholder="输入用户名"
+              :placeholder="t('collab.usernamePlaceholder')"
               class="form-input"
               @keyup.enter="submitAddCollaborator"
             />
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="showAddCollaboratorModal = false">取消</button>
+          <button class="btn btn-secondary" @click="showAddCollaboratorModal = false">{{ t('btn.cancel') }}</button>
           <button class="btn btn-primary" @click="submitAddCollaborator" :disabled="!newCollaboratorUsername || isAddingCollaborator">
             <span v-if="isAddingCollaborator" class="spinner spinner-sm mr-2"></span>
-            添加
+            {{ t('btn.add') }}
           </button>
         </div>
       </div>
@@ -356,13 +356,13 @@
       <div class="modal-overlay"></div>
       <div class="modal-content">
         <div class="modal-header">
-          <h3>确认删除</h3>
+          <h3>{{ t('collab.deleteModal') }}</h3>
           <button class="modal-close" @click="showDeleteModal = false">&times;</button>
         </div>
         <div class="modal-body">
-          <p class="warning-text">⚠️ 此操作不可恢复！将删除该 Skill 的所有版本和数据。</p>
+          <p class="warning-text">{{ t('collab.deleteWarning') }}</p>
           <div class="form-group">
-            <label>请输入 Skill ID 确认删除：{{ skill?.id }}</label>
+            <label>{{ t('collab.deleteLabel') }} {{ skill?.id }}</label>
             <input
               v-model="deleteConfirmInput"
               type="text"
@@ -372,8 +372,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="showDeleteModal = false">取消</button>
-          <button class="btn btn-danger" @click="submitDeleteSkill" :disabled="deleteConfirmInput !== String(skill?.id)">确认删除</button>
+          <button class="btn btn-secondary" @click="showDeleteModal = false">{{ t('btn.cancel') }}</button>
+          <button class="btn btn-danger" @click="submitDeleteSkill" :disabled="deleteConfirmInput !== String(skill?.id)">{{ t('collab.deleteConfirmBtn') }}</button>
         </div>
       </div>
     </div>
@@ -385,6 +385,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSkillsStore } from '@/stores/skills'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from '@/composables/useI18n'
 import { versionsApi, type SkillVersion } from '@/services/api'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -395,6 +396,7 @@ const route = useRoute()
 const router = useRouter()
 const skillsStore = useSkillsStore()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const skillId = computed(() => route.params.id as string)
 const skill = computed(() => skillsStore.currentSkill)
@@ -488,6 +490,9 @@ const fileLineNumbers = computed(() => {
 })
 
 onMounted(async () => {
+  // Set page title
+  document.title = t('skill.title')
+
   // Check auth
   const isAuth = await authStore.fetchUser()
   if (!isAuth) {
@@ -653,12 +658,12 @@ function downloadVersion(version: string) {
 
 function goToDiff() {
   if (!skill.value) {
-    alert('Skill 信息加载中')
+    alert(t('skill.infoLoading'))
     return
   }
 
   if (versions.value.length < 2) {
-    alert('需要至少两个版本才能对比')
+    alert(t('skill.needTwoVersions'))
     return
   }
 
@@ -677,22 +682,22 @@ async function submitAddCollaborator() {
     await skillsStore.addCollaborator(skillId.value, newCollaboratorUsername.value)
     showAddCollaboratorModal.value = false
     newCollaboratorUsername.value = ''
-    alert('添加成功')
+    alert(t('collab.addSuccess'))
   } catch (err) {
-    alert('添加失败')
+    alert(t('collab.addFailed'))
   } finally {
     isAddingCollaborator.value = false
   }
 }
 
 async function removeCollaborator(userId: number) {
-  if (!confirm('确定要移除该协作者吗？')) return
+  if (!confirm(t('collab.removeConfirm'))) return
 
   try {
     await skillsStore.removeCollaborator(skillId.value, userId)
-    alert('移除成功')
+    alert(t('collab.removeSuccess'))
   } catch (err) {
-    alert('移除失败')
+    alert(t('collab.removeFailed'))
   }
 }
 
@@ -704,7 +709,7 @@ async function submitDeleteSkill() {
     showDeleteModal.value = false
     router.push('/')
   } catch (err) {
-    alert('删除失败')
+    alert(t('collab.deleteFailed'))
   }
 }
 

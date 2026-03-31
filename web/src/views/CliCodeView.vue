@@ -21,15 +21,15 @@
           <div class="cli-code-header mb-8 text-left">
             <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
               <span class="text-neon-400 font-mono font-normal opacity-70">></span>
-              <span>CLI 验证码</span>
+              <span>{{ t('cliCode.heading') }}</span>
             </h1>
-            <p class="text-base-400 text-sm font-mono">// 在命令行工具中输入此验证码完成登录</p>
+            <p class="text-base-400 text-sm font-mono">// {{ t('cliCode.subtitle') }}</p>
           </div>
 
           <!-- 加载状态 -->
           <div v-if="isLoading" class="cli-code-loading py-8 text-center">
             <div class="spinner mx-auto"></div>
-            <div class="text-base-400 text-sm font-mono mt-4">Generating secure token...</div>
+            <div class="text-base-400 text-sm font-mono mt-4">{{ t('cliCode.secureToken') }}</div>
           </div>
 
           <!-- 验证码显示区域 -->
@@ -62,7 +62,7 @@
                 <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                <span>{{ copied ? '已复制' : '复制验证码' }}</span>
+                <span>{{ copied ? t('cliCode.copied') : t('cliCode.copyBtn') }}</span>
               </button>
               <button
                 @click="generateCode"
@@ -73,14 +73,14 @@
                   <polyline points="23 4 23 10 17 10"/>
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                 </svg>
-                <span>重新生成</span>
+                <span>{{ t('cliCode.regenerate') }}</span>
               </button>
             </div>
           </div>
 
           <div class="cli-code-hint mt-8 p-4 rounded-lg text-left">
-            <strong class="block mb-2 font-mono text-neon-400"># Usage:</strong>
-            <span class="font-mono text-sm">在终端运行 <code class="bg-base-950 text-neon-400 px-1 py-0.5 rounded border border-base-800">skb login</code>，然后输入上方验证码即可完成 CLI 登录。</span>
+            <strong class="block mb-2 font-mono text-neon-400"># {{ t('cliCode.usage') }}</strong>
+            <span class="font-mono text-sm" v-html="t('cliCode.cliHint')"></span>
           </div>
         </div>
       </div>
@@ -93,10 +93,12 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
+import { useI18n } from '@/composables/useI18n'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const cliCode = ref('')
 const isLoading = ref(false)
@@ -110,12 +112,12 @@ const isExpiring = computed(() => remainingMs.value > 0 && remainingMs.value <= 
 
 const timerText = computed(() => {
   if (isExpired.value) {
-    return '已过期'
+    return t('cliCode.expired')
   }
   const minutes = Math.floor(remainingMs.value / 60000)
   const seconds = Math.floor((remainingMs.value % 60000) / 1000)
   const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`
-  return `${formattedTime} 后过期`
+  return `${formattedTime}${t('cliCode.expires')}`
 })
 
 onMounted(async () => {
@@ -145,7 +147,7 @@ async function generateCode() {
     // 启动倒计时
     startTimer()
   } catch (err) {
-    alert('生成失败')
+    alert(t('cliCode.genFailed'))
   } finally {
     isLoading.value = false
   }
@@ -186,7 +188,7 @@ async function copyCode() {
     }, 2000)
   } catch (error) {
     // 降级方案
-    alert('已复制到剪贴板')
+    alert(t('cliCode.copiedToast'))
   }
 }
 </script>

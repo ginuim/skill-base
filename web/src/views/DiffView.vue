@@ -13,10 +13,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-2">加载失败</h3>
+        <h3 class="text-xl font-semibold text-white mb-2">{{ t('diff.loadFailed') }}</h3>
         <p class="text-base-400 mb-6">{{ error }}</p>
         <router-link to="/" class="btn-primary px-6 py-3 rounded-lg">
-          返回首页
+          {{ t('diff.backToHome') }}
         </router-link>
       </div>
 
@@ -39,21 +39,21 @@
           
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-mono text-base-400">Old:</span>
+              <span class="text-xs font-mono text-base-400">{{ t('diff.old') }}</span>
               <select v-model="currentVersionA" class="bg-base-950 border border-base-800 text-white font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
-                <option value="">选择版本</option>
+                <option value="">{{ t('diff.selectVersion') }}</option>
                 <option v-for="(v, index) in versions" :key="v.version" :value="v.version">
-                  {{ v.version }} {{ index === 0 ? '(latest)' : '' }}
+                  {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
                 </option>
               </select>
             </div>
             <span class="font-mono text-base-600">-></span>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-mono text-base-400">New:</span>
+              <span class="text-xs font-mono text-base-400">{{ t('diff.new') }}</span>
               <select v-model="currentVersionB" class="bg-base-950 border border-base-800 text-white font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
-                <option value="">选择版本</option>
+                <option value="">{{ t('diff.selectVersion') }}</option>
                 <option v-for="(v, index) in versions" :key="v.version" :value="v.version">
-                  {{ v.version }} {{ index === 0 ? '(latest)' : '' }}
+                  {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
                 </option>
               </select>
             </div>
@@ -67,18 +67,18 @@
                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
               </svg>
               <div v-else class="spinner spinner-sm"></div>
-              {{ isComputing ? '计算中...' : 'Diff' }}
+              {{ isComputing ? t('diff.computingDiff') : 'Diff' }}
             </button>
           </div>
 
           <div class="flex flex-wrap items-center justify-between mt-6 pt-6 border-t border-base-800 gap-4">
             <div class="flex items-center gap-3">
-              <span class="text-xs font-mono text-base-400">File:</span>
+              <span class="text-xs font-mono text-base-400">{{ t('diff.file') }}</span>
               <span class="text-xs font-mono px-2 py-1 rounded bg-base-950 border border-base-800 text-neon-400">
-                {{ currentFilePath || 'All Files' }}
+                {{ currentFilePath || t('diff.allFiles') }}
               </span>
               <button v-if="currentFilePath" @click="clearFileSelection" class="text-xs text-base-400 hover:text-white">
-                清除选择
+                {{ t('diff.clearSelection') }}
               </button>
             </div>
 
@@ -88,14 +88,14 @@
                 class="px-4 py-1.5 text-xs font-mono transition-colors"
                 :class="outputFormat === 'side-by-side' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-white'"
               >
-                Split
+                {{ t('diff.split') }}
               </button>
               <button 
                 @click="outputFormat = 'line-by-line'"
                 class="px-4 py-1.5 text-xs font-mono transition-colors border-l border-base-800"
                 :class="outputFormat === 'line-by-line' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-white'"
               >
-                Unified
+                {{ t('diff.unifiedView') }}
               </button>
             </div>
           </div>
@@ -103,9 +103,9 @@
 
         <!-- Stats -->
         <div v-if="diffStats.added > 0 || diffStats.removed > 0" class="flex items-center gap-6 py-3 px-4 mb-6 text-xs bg-base-950 border border-base-800 rounded-lg">
-          <span class="text-green-400 font-mono">+{{ diffStats.added }} lines</span>
-          <span class="text-red-400 font-mono">-{{ diffStats.removed }} lines</span>
-          <span class="text-base-400 font-mono">{{ changedFiles.length }} files changed</span>
+          <span class="text-green-400 font-mono">+{{ diffStats.added }} {{ t('diff.linesAdded') }}</span>
+          <span class="text-red-400 font-mono">-{{ diffStats.removed }} {{ t('diff.linesRemoved') }}</span>
+          <span class="text-base-400 font-mono">{{ changedFiles.length }}{{ t('diff.filesChanged') }}</span>
         </div>
 
         <!-- Changed Files List -->
@@ -141,12 +141,12 @@
         <div class="card overflow-hidden min-h-[300px]">
           <div v-if="isComputing" class="flex flex-col items-center justify-center py-24">
             <div class="spinner mb-4"></div>
-            <p class="text-sm text-base-400 font-mono">计算差异中...</p>
+            <p class="text-sm text-base-400 font-mono">{{ t('diff.computing') }}</p>
           </div>
           <div v-else-if="diffHtml" ref="diffOutputRef" class="diff-output" v-html="diffHtml"></div>
           <div v-else class="flex flex-col items-center justify-center py-24 opacity-50">
             <div class="font-mono text-4xl mb-4">_</div>
-            <p class="text-xs font-mono text-base-400">选择版本进行对比</p>
+            <p class="text-xs font-mono text-base-400">{{ t('diff.empty') }}</p>
           </div>
         </div>
 
@@ -157,7 +157,7 @@
               <line x1="19" y1="12" x2="5" y2="12"/>
               <polyline points="12 19 5 12 12 5"/>
             </svg>
-            返回详情页
+            {{ t('diff.back') }}
           </router-link>
         </div>
       </template>
@@ -170,6 +170,7 @@ import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { useSkillsStore } from '@/stores/skills'
+import { useI18n } from '@/composables/useI18n'
 import type { Skill, SkillVersion } from '@/services/api'
 
 // diff2html and diff are loaded via CDN
@@ -183,6 +184,7 @@ declare global {
 const route = useRoute()
 const router = useRouter()
 const skillsStore = useSkillsStore()
+const { t } = useI18n()
 
 // State
 const isLoading = ref(true)
@@ -206,9 +208,9 @@ let zipA: JSZip | null = null
 let zipB: JSZip | null = null
 
 const statusLabels = {
-  added: '新增',
-  deleted: '删除',
-  modified: '修改'
+  added: t('diff.added'),
+  deleted: t('diff.deleted'),
+  modified: t('diff.modified')
 }
 
 const BINARY_EXTS = new Set([
@@ -236,7 +238,7 @@ async function loadData() {
     currentFilePath.value = (route.query.path as string) || ''
 
     if (!skillId.value) {
-      error.value = '缺少 Skill ID'
+      error.value = t('diff.missingId')
       return
     }
 
@@ -253,7 +255,7 @@ async function loadData() {
       await performDiff()
     }
   } catch (err: any) {
-    error.value = err.message || '加载失败'
+    error.value = err.message || t('diff.loadFailed')
   } finally {
     isLoading.value = false
   }
@@ -261,12 +263,12 @@ async function loadData() {
 
 async function performDiff() {
   if (!currentVersionA.value || !currentVersionB.value) {
-    alert('请选择两个版本')
+    alert(t('diff.selectBoth'))
     return
   }
 
   if (currentVersionA.value === currentVersionB.value) {
-    alert('请选择不同的版本')
+    alert(t('diff.selectBoth'))
     return
   }
 
@@ -279,11 +281,11 @@ async function performDiff() {
     // Download both versions
     const [bufA, bufB] = await Promise.all([
       fetch(`/api/v1/skills/${skillId.value}/versions/${currentVersionA.value}/download`).then(r => {
-        if (!r.ok) throw new Error(`下载版本 ${currentVersionA.value} 失败`)
+        if (!r.ok) throw new Error(`${t('diff.loadFailed')} ${currentVersionA.value}`)
         return r.arrayBuffer()
       }),
       fetch(`/api/v1/skills/${skillId.value}/versions/${currentVersionB.value}/download`).then(r => {
-        if (!r.ok) throw new Error(`下载版本 ${currentVersionB.value} 失败`)
+        if (!r.ok) throw new Error(`${t('diff.loadFailed')} ${currentVersionB.value}`)
         return r.arrayBuffer()
       })
     ])
@@ -310,7 +312,7 @@ async function performDiff() {
 
 async function diffSingleFile(filePath: string) {
   if (isBinaryExt(filePath)) {
-    diffHtml.value = `<div class="flex flex-col items-center justify-center py-24"><div class="text-4xl mb-4">📦</div><p class="text-base-400">二进制文件: ${filePath}</p></div>`
+    diffHtml.value = `<div class="flex flex-col items-center justify-center py-24"><div class="text-4xl mb-4">📦</div><p class="text-base-400">${t('diff.binaryDiff')}: ${filePath}</p></div>`
     diffStats.value = { added: 0, removed: 0 }
     return
   }
@@ -322,7 +324,7 @@ async function diffSingleFile(filePath: string) {
   const contentB = fileB ? await fileB.async('string') : ''
 
   if (contentA === contentB) {
-    diffHtml.value = `<div class="flex flex-col items-center justify-center py-24"><div class="text-4xl mb-4">✅</div><p class="text-base-400">文件内容相同</p></div>`
+    diffHtml.value = `<div class="flex flex-col items-center justify-center py-24"><div class="text-4xl mb-4">✅</div><p class="text-base-400">${t('state.noData')}</p></div>`
     diffStats.value = { added: 0, removed: 0 }
     return
   }
@@ -388,7 +390,7 @@ async function diffAllFiles() {
   changedFiles.value = changes
 
   if (changes.length === 0) {
-    diffHtml.value = `<div class="flex flex-col items-center justify-center py-24"><div class="text-4xl mb-4">✅</div><p class="text-base-400">两个版本完全相同</p></div>`
+    diffHtml.value = `<div class="flex flex-col items-center justify-center py-24"><div class="text-4xl mb-4">✅</div><p class="text-base-400">${t('state.noData')}</p></div>`
     diffStats.value = { added: 0, removed: 0 }
     return
   }

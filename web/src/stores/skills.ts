@@ -36,6 +36,10 @@ export const useSkillsStore = defineStore('skills', () => {
     return currentSkill.value?.permission === 'owner'
   })
 
+  const currentVersions = computed(() => {
+    return currentSkill.value?.versions || []
+  })
+
   // Actions
   async function fetchSkills(query?: string) {
     isLoading.value = true
@@ -56,6 +60,7 @@ export const useSkillsStore = defineStore('skills', () => {
   async function fetchSkill(id: string) {
     isLoadingDetail.value = true
     error.value = null
+    currentSkill.value = null
 
     try {
       const response = await skillsApi.get(id)
@@ -63,6 +68,7 @@ export const useSkillsStore = defineStore('skills', () => {
       return true
     } catch (err: any) {
       error.value = err.message || '获取 Skill 详情失败'
+      currentSkill.value = null
       return false
     } finally {
       isLoadingDetail.value = false
@@ -181,6 +187,7 @@ export const useSkillsStore = defineStore('skills', () => {
     filteredSkills,
     canEditCurrentSkill,
     isOwner,
+    currentVersions,
     // Actions
     fetchSkills,
     fetchSkill,

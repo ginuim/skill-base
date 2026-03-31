@@ -20,7 +20,7 @@
             Sign In
           </h1>
           <p class="login-subtitle">
-            // 内网 Skill 管理平台 · 需要凭证
+            {{ t('login.subtitle') }}
           </p>
         </div>
 
@@ -77,7 +77,7 @@
             >
               <svg v-if="!authStore.isLoading" class="btn-devtools-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               <span v-if="authStore.isLoading" class="spinner"></span>
-              <span>{{ authStore.isLoading ? '登录中...' : '执行登录' }}</span>
+              <span>{{ authStore.isLoading ? t('login.loading') : t('login.submit') }}</span>
             </button>
           </div>
         </form>
@@ -97,10 +97,12 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { checkSystemInit } from '@/services/api'
+import { useI18n } from '@/composables/useI18n'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const username = ref('')
 const password = ref('')

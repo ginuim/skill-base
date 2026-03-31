@@ -160,11 +160,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiPost, apiGet } from '@/services/api'
+import { useI18n } from '@/composables/useI18n'
 
 const router = useRouter()
+const { t, setLang: setI18nLang, currentLang: i18nCurrentLang } = useI18n()
 
 // 语言相关
-const currentLang = ref<'zh' | 'en'>('zh')
+const currentLang = computed(() => i18nCurrentLang.value)
 const langMenuOpen = ref(false)
 
 const currentLangLabel = computed(() => {
@@ -179,49 +181,12 @@ const isLoading = ref(false)
 const error = ref('')
 const success = ref('')
 
-// 翻译
-const translations = {
-  zh: {
-    'setup.subtitle': '// 首次启动 · 请设置管理员账号',
-    'setup.usernameHint': '// 3-50 个字符',
-    'setup.passwordHint': '// 至少 6 个字符',
-    'setup.submit': '创建管理员账号',
-    'setup.loading': '创建中...',
-    'setup.success': '管理员账号创建成功，即将跳转到登录页...',
-    'setup.errUsername': '请输入用户名',
-    'setup.errUsernameLength': '用户名需要 3-50 个字符',
-    'setup.errPassword': '请输入密码',
-    'setup.errPasswordLength': '密码至少需要 6 个字符',
-    'setup.errPasswordMismatch': '两次输入的密码不一致',
-    'setup.errFailed': '创建失败，请重试',
-  },
-  en: {
-    'setup.subtitle': '// First time setup · Create admin account',
-    'setup.usernameHint': '// 3-50 characters',
-    'setup.passwordHint': '// At least 6 characters',
-    'setup.submit': 'Create Admin Account',
-    'setup.loading': 'Creating...',
-    'setup.success': 'Admin account created successfully, redirecting to login...',
-    'setup.errUsername': 'Please enter username',
-    'setup.errUsernameLength': 'Username must be 3-50 characters',
-    'setup.errPassword': 'Please enter password',
-    'setup.errPasswordLength': 'Password must be at least 6 characters',
-    'setup.errPasswordMismatch': 'Passwords do not match',
-    'setup.errFailed': 'Creation failed, please try again',
-  }
-}
-
-function t(key: string): string {
-  return translations[currentLang.value][key as keyof typeof translations['zh']] || key
-}
-
 function toggleLangMenu() {
   langMenuOpen.value = !langMenuOpen.value
 }
 
 function setLang(lang: 'zh' | 'en') {
-  currentLang.value = lang
-  localStorage.setItem('skill_base_lang', lang)
+  setI18nLang(lang)
   langMenuOpen.value = false
 }
 
@@ -301,12 +266,6 @@ function handleClickOutside(e: MouseEvent) {
 }
 
 onMounted(() => {
-  // 初始化语言
-  const storedLang = localStorage.getItem('skill_base_lang') as 'zh' | 'en' | null
-  if (storedLang === 'zh' || storedLang === 'en') {
-    currentLang.value = storedLang
-  }
-
   // 检查初始化状态
   checkInitStatus()
 

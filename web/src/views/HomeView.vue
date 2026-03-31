@@ -16,7 +16,7 @@
         <input
           type="search"
           id="searchInput"
-          placeholder="&quot;search skill...&quot;"
+          :placeholder="`&quot;${t('index.searchPlaceholder')}&quot;`"
           autocomplete="off"
           v-model="searchQuery"
         >
@@ -53,10 +53,10 @@
       <template v-else-if="!filteredSkills || filteredSkills.length === 0">
         <div class="empty-state" style="grid-column: 1 / -1;">
           <div class="empty-state-icon">📦</div>
-          <p v-if="searchQuery" class="empty-state-text">未找到包含 "{{ searchQuery }}" 的 Skill</p>
+          <p v-if="searchQuery" class="empty-state-text">{{ t('index.noResults', { q: searchQuery }) }}</p>
           <template v-else>
-            <p class="empty-state-text">暂无 Skill，去发布第一个吧</p>
-            <router-link to="/publish" class="btn btn-primary">发布 Skill</router-link>
+            <p class="empty-state-text">{{ t('index.noSkills') }}</p>
+            <router-link to="/publish" class="btn btn-primary">{{ t('index.publishBtn') }}</router-link>
           </template>
         </div>
       </template>
@@ -80,7 +80,7 @@
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
-                {{ skill.owner?.name || skill.owner?.username || '未知' }}
+                {{ skill.owner?.name || skill.owner?.username || t('state.unknown') }}
               </span>
             </div>
             <span>{{ formatDate(skill.updated_at) }}</span>
@@ -91,7 +91,7 @@
   </main>
 
   <!-- 浮动发布按钮 -->
-  <router-link to="/publish" class="fab" title="发布新版本">
+  <router-link to="/publish" class="fab" :title="t('index.fabTitle')">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="12" y1="5" x2="12" y2="19"/>
       <line x1="5" y1="12" x2="19" y2="12"/>
@@ -102,9 +102,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useSkillsStore } from '@/stores/skills'
+import { useI18n } from '@/composables/useI18n'
 import { formatDate } from '@/utils/date'
 
 const skillsStore = useSkillsStore()
+const { t } = useI18n()
 const searchQuery = ref('')
 const isLoading = ref(true)
 
@@ -124,7 +126,7 @@ function clearSearch() {
 }
 
 function truncateDescription(desc: string | null | undefined): string {
-  if (!desc) return '暂无描述'
+  if (!desc) return t('state.noDesc')
   if (desc.length > 100) {
     return desc.substring(0, 100) + '...'
   }

@@ -73,6 +73,111 @@ const zh: Record<string, string> = {
   'index.publishBtn': '发布 Skill',
   'index.loadFailed': '加载失败: ',
 
+  // Skill detail page
+  'skill.title': 'Skill 详情 - Skill Base',
+  'skill.breadcrumbHome': '首页',
+  'skill.loading': '加载中...',
+  'skill.fileDir': '文件目录',
+  'skill.selectFile': '选择文件以预览',
+  'skill.clickFile': '点击左侧文件查看内容',
+  'skill.htmlPreview': 'HTML 预览',
+  'skill.mdSource': 'Markdown 源码',
+  'skill.team': '管理团队',
+  'skill.addCollaborator': '+ 添加协作者',
+  'skill.deleteSkill': '删除 Skill',
+  'skill.versionHistory': '版本历史',
+  'skill.noVersions': '暂无版本记录',
+  'skill.owner': '负责人: ',
+  'skill.createdAt': '创建时间: ',
+  'skill.uploadedBy': '上传者: ',
+  'skill.noChangelog': '无更新说明',
+  'skill.selectVersion': '选择版本...',
+  'skill.latestTag': '(最新)',
+  'skill.download': '下载当前版本',
+  'skill.compare': '对比版本',
+  'skill.selectVersionFirst': '请先选择版本',
+  'skill.fileNotFound': '文件不存在',
+  'skill.binaryFile': '二进制文件，无法预览',
+  'skill.binaryHint': '请下载 zip 包后在本地查看',
+  'skill.previewFailed': '预览失败: ',
+  'skill.loadFailed': '加载 Skill 详情失败',
+  'skill.missingId': '缺少 Skill ID 参数',
+  'skill.loadVersionsFailed': '加载版本列表失败',
+  'skill.zipFailed': '下载 zip 失败',
+  'skill.versionFailed': '加载版本失败: ',
+  'skill.infoLoading': 'Skill 信息加载中',
+  'skill.needTwoVersions': '至少需要两个版本才能对比',
+  'skill.loadInfoFailed': '加载 Skill 信息失败',
+  'skill.notFound': 'Skill 不存在',
+  'skill.notFoundDesc': '该 Skill 可能已被删除或你没有访问权限',
+  'skill.backToHome': '返回首页',
+  'skill.collaborators': '协作者',
+  'skill.noFile': '暂无文件',
+  'skill.fullscreen': '全屏',
+  'skill.exitFullscreen': '退出全屏',
+  'skill.readmeNotFound': 'README 不存在',
+  'skill.addCollaboratorFailed': '添加协作者失败',
+  'skill.removeCollaboratorFailed': '移除协作者失败',
+  'skill.deleteFailed': '删除 Skill 失败',
+
+  // Collaborators
+  'collab.modal': '添加协作者',
+  'collab.usernameLabel': '用户名',
+  'collab.usernamePlaceholder': '输入用户名',
+  'collab.owner': '所有者',
+  'collab.collaborator': '协作者',
+  'collab.disabled': ' (已禁用)',
+  'collab.noUsers': '未找到用户',
+  'collab.enterUsername': '请输入用户名',
+  'collab.addSuccess': '协作者添加成功',
+  'collab.addFailed': '添加失败',
+  'collab.removeConfirm': '确定要移除该协作者吗？',
+  'collab.removeSuccess': '协作者已移除',
+  'collab.removeFailed': '移除失败',
+  'collab.deleteModal': '确认删除',
+  'collab.deleteWarning': '⚠️ 此操作不可恢复！将删除该 Skill 的所有版本和数据。',
+  'collab.deleteLabel': '请输入 Skill ID 确认删除：',
+  'collab.deleteConfirmBtn': '确认删除',
+  'collab.deleteWrongId': '请输入正确的 Skill ID 确认删除',
+  'collab.deleteSuccess': 'Skill 已删除',
+  'collab.deleteFailed': '删除失败',
+
+  // Publish page
+  'publish.title': '发布新版本 - Skill Base',
+  'publish.breadcrumbCurrent': '发布新版本',
+  'publish.heading': '发布新版本',
+  'publish.uploadLabel': '上传文件',
+  'publish.dropText': '拖拽 Skill 文件夹或 zip 到此处',
+  'publish.dropSubtitle': '或点击选择文件夹',
+  'publish.dropHint': 'Skill ID、名称、描述均从包内读取（文件夹名 / zip 文件名 + SKILL.md），不可手改',
+  'publish.or': '或',
+  'publish.selectZip': '选择 zip 文件...',
+  'publish.selectedFiles': '已选择文件',
+  'publish.clearFiles': '清除',
+  'publish.selectSkill': '选择 Skill',
+  'publish.createNew': '-- 创建新 Skill --',
+  'publish.skillSelectHint': '更新已有 Skill 时请选择与包内 Skill ID 一致的一项；新建则保持「创建新 Skill」',
+  'publish.idLabel': 'Skill ID',
+  'publish.idPlaceholder': '上传文件夹或 zip 后自动填入',
+  'publish.idHint': '由文件夹名或 zip 文件名推导（小写字母、数字、连字符、下划线）',
+  'publish.nameLabel': 'Skill 名称',
+  'publish.namePlaceholder': '上传后从 SKILL.md 读取',
+  'publish.nameHint': '来自 SKILL.md（frontmatter 或首行标题）',
+  'publish.descLabel': '描述',
+  'publish.descPlaceholder': '上传后从 SKILL.md 读取',
+  'publish.charCount': '字',
+  'publish.descHint': ' / 500 字（与包内一致，截断至 500 字）',
+  'publish.changelogLabel': '更新说明',
+  'publish.changelogPlaceholder': '描述本次更新的内容...\n\n例如：\n- 新增 xxx 功能\n- 修复 xxx 问题',
+  'publish.cancelBtn': '取消',
+  'publish.submitBtn': '发布新版本',
+  'publish.uploading': '正在上传...',
+  'publish.successTitle': '发布成功！',
+  'publish.viewDetail': '查看详情',
+  'publish.publishAnother': '继续发布',
+  'publish.filesCount': ' 个文件',
+  'publish.totalSize': '总大小: ',
+
   // Settings page
   'settings.title': '账户设置 - Skill Base',
   'settings.heading': '账户设置',
@@ -108,7 +213,86 @@ const zh: Record<string, string> = {
   'settings.changeFailed': '修改失败',
   'settings.wrongPassword': '当前密码错误',
 
-  // Admin page
+  // Diff page
+  'diff.title': '版本对比 - Skill Base',
+  'diff.breadcrumbCurrent': '版本对比',
+  'diff.versionA': '版本 A (旧):',
+  'diff.versionB': '版本 B (新):',
+  'diff.selectVersion': '选择版本...',
+  'diff.recalculate': '重新计算',
+  'diff.file': '文件:',
+  'diff.allFiles': '全部文件',
+  'diff.sideBySide': '左右对比',
+  'diff.unified': '统一视图',
+  'diff.changedFiles': '变更文件列表',
+  'diff.back': '返回详情页',
+  'diff.missingId': '缺少 Skill ID 参数',
+  'diff.loadInfoFailed': '加载 Skill 信息失败',
+  'diff.selectBoth': '请选择两个版本进行对比',
+  'diff.loadVersionsFailed': '加载版本列表失败',
+  'diff.computing': '正在计算差异...',
+  'diff.computeFailed': '计算差异失败',
+  'diff.empty': '选择两个版本后点击"重新计算"查看差异',
+  'diff.linesAdded': '行',
+  'diff.linesRemoved': '行',
+  'diff.filesChanged': ' 个文件变更',
+  'diff.added': '新增',
+  'diff.deleted': '删除',
+  'diff.modified': '修改',
+  'diff.binaryDiff': '二进制文件，无法显示差异',
+  'diff.pageTitle': '版本对比 - ',
+  'diff.old': '旧:',
+  'diff.new': '新:',
+  'diff.clearSelection': '清除选择',
+  'diff.split': 'Split',
+  'diff.unifiedView': 'Unified',
+  'diff.computingDiff': '计算中...',
+  'diff.loadFailed': '加载失败',
+  'diff.backToHome': '返回首页',
+
+  // File page
+  'file.title': '文件预览 - Skill Base',
+  'file.breadcrumbFile': '文件',
+  'file.currentVersion': '当前版本:',
+  'file.fileDir': '文件目录',
+  'file.selectFile': '选择文件以预览',
+  'file.clickFile': '点击左侧文件查看内容',
+  'file.download': '下载当前版本',
+  'file.selectOtherVersion': '选择其他版本...',
+  'file.compare': '对比版本',
+  'file.back': '返回详情页',
+  'file.missingId': '缺少 Skill ID 参数',
+  'file.loadFailed': '加载失败',
+  'file.binaryFile': '二进制文件，无法预览',
+  'file.binaryHint': '请下载 zip 包后在本地查看',
+  'file.largeFile': '文件较大，仅显示前 100KB',
+  'file.noFile': '无法读取文件',
+
+  // CLI Code page
+  'cliCode.title': 'CLI 验证码 - Skill Base',
+  'cliCode.heading': 'CLI 验证码',
+  'cliCode.subtitle': '在命令行工具中输入此验证码完成登录',
+  'cliCode.generating': '正在生成验证码...',
+  'cliCode.expires': ' 后过期',
+  'cliCode.expired': '已过期',
+  'cliCode.copyBtn': '复制验证码',
+  'cliCode.copied': '已复制',
+  'cliCode.regenerate': '重新生成',
+  'cliCode.hintTitle': '使用方法：',
+  'cliCode.hintText': '在终端运行 <code>skb login</code>，然后输入上方验证码即可完成 CLI 登录。',
+  'cliCode.fromCli': '请登录成功后，在下方输入验证码',
+  'cliCode.generateFailed': '生成验证码失败',
+  'cliCode.genFailed': '生成失败',
+  'cliCode.noCopy': '没有可复制的验证码',
+  'cliCode.copiedToast': '验证码已复制到剪贴板',
+  'cliCode.pressCopy': '请按 Ctrl+C 复制验证码',
+  'cliCode.newGenerated': '新验证码已生成',
+  'cliCode.secureToken': 'Generating secure token...',
+  'cliCode.usage': 'Usage:',
+  'cliCode.cliHint': '在终端运行 <code>skb login</code>，然后输入上方验证码即可完成 CLI 登录。',
+
+  // Admin - User Management
+  'admin.title': '用户管理 - Skill Base',
   'admin.heading': '用户管理',
   'admin.subtitle': '// 管理平台用户信息和权限控制',
   'admin.userList': '用户列表',
@@ -148,6 +332,21 @@ const zh: Record<string, string> = {
   'admin.addError': '添加用户失败',
   'admin.editSuccess': '用户信息已更新',
   'admin.editError': '更新用户失败',
+  'admin.resetSuccess': '密码重置成功',
+  'admin.resetError': '重置密码失败',
+  'admin.usernameRequired': '请输入用户名',
+  'admin.passwordRequired': '请输入密码',
+  'admin.newPasswordRequired': '请输入新密码',
+  'admin.close': '关闭',
+  'admin.name': '姓名',
+  'admin.password': '密码',
+  'admin.generatePassword': '生成随机密码',
+  'admin.toggleVisibility': '切换可见性',
+  'admin.adding': '添加中...',
+  'admin.saving': '保存中...',
+  'admin.resetting': '重置中...',
+  'admin.getUserFailed': '获取用户信息失败',
+  'admin.loadUsersFailed': '加载用户列表失败',
 }
 
 const en: Record<string, string> = {
@@ -218,6 +417,111 @@ const en: Record<string, string> = {
   'index.publishBtn': 'Publish Skill',
   'index.loadFailed': 'Load failed: ',
 
+  // Skill detail page
+  'skill.title': 'Skill Detail - Skill Base',
+  'skill.breadcrumbHome': 'Home',
+  'skill.loading': 'Loading...',
+  'skill.fileDir': 'Files',
+  'skill.selectFile': 'Select a file to preview',
+  'skill.clickFile': 'Click a file on the left to preview',
+  'skill.htmlPreview': 'HTML Preview',
+  'skill.mdSource': 'Markdown Source',
+  'skill.team': 'Team',
+  'skill.addCollaborator': '+ Add Collaborator',
+  'skill.deleteSkill': 'Delete Skill',
+  'skill.versionHistory': 'Version History',
+  'skill.noVersions': 'No version history',
+  'skill.owner': 'Owner: ',
+  'skill.createdAt': 'Created: ',
+  'skill.uploadedBy': 'Uploaded by: ',
+  'skill.noChangelog': 'No changelog',
+  'skill.selectVersion': 'Select version...',
+  'skill.latestTag': '(latest)',
+  'skill.download': 'Download',
+  'skill.compare': 'Compare',
+  'skill.selectVersionFirst': 'Please select a version first',
+  'skill.fileNotFound': 'File not found',
+  'skill.binaryFile': 'Binary file, cannot preview',
+  'skill.binaryHint': 'Download the zip package to view locally',
+  'skill.previewFailed': 'Preview failed: ',
+  'skill.loadFailed': 'Failed to load Skill details',
+  'skill.missingId': 'Missing Skill ID parameter',
+  'skill.loadVersionsFailed': 'Failed to load version list',
+  'skill.zipFailed': 'Failed to download zip',
+  'skill.versionFailed': 'Failed to load version: ',
+  'skill.infoLoading': 'Skill info is loading',
+  'skill.needTwoVersions': 'At least 2 versions are needed to compare',
+  'skill.loadInfoFailed': 'Failed to load Skill info',
+  'skill.notFound': 'Skill Not Found',
+  'skill.notFoundDesc': 'This skill may have been deleted or you do not have access',
+  'skill.backToHome': 'Back to Home',
+  'skill.collaborators': 'Collaborators',
+  'skill.noFile': 'No files',
+  'skill.fullscreen': 'Fullscreen',
+  'skill.exitFullscreen': 'Exit Fullscreen',
+  'skill.readmeNotFound': 'README not found',
+  'skill.addCollaboratorFailed': 'Failed to add collaborator',
+  'skill.removeCollaboratorFailed': 'Failed to remove collaborator',
+  'skill.deleteFailed': 'Failed to delete skill',
+
+  // Collaborators
+  'collab.modal': 'Add Collaborator',
+  'collab.usernameLabel': 'Username',
+  'collab.usernamePlaceholder': 'Enter username',
+  'collab.owner': 'Owner',
+  'collab.collaborator': 'Collaborator',
+  'collab.disabled': ' (disabled)',
+  'collab.noUsers': 'No users found',
+  'collab.enterUsername': 'Please enter a username',
+  'collab.addSuccess': 'Collaborator added',
+  'collab.addFailed': 'Failed to add',
+  'collab.removeConfirm': 'Are you sure you want to remove this collaborator?',
+  'collab.removeSuccess': 'Collaborator removed',
+  'collab.removeFailed': 'Failed to remove',
+  'collab.deleteModal': 'Confirm Delete',
+  'collab.deleteWarning': '⚠️ This action cannot be undone! All versions and data of this Skill will be deleted.',
+  'collab.deleteLabel': 'Enter Skill ID to confirm deletion:',
+  'collab.deleteConfirmBtn': 'Confirm Delete',
+  'collab.deleteWrongId': 'Please enter the correct Skill ID to confirm deletion',
+  'collab.deleteSuccess': 'Skill deleted',
+  'collab.deleteFailed': 'Delete failed',
+
+  // Publish page
+  'publish.title': 'Publish New Version - Skill Base',
+  'publish.breadcrumbCurrent': 'Publish New Version',
+  'publish.heading': 'Publish New Version',
+  'publish.uploadLabel': 'Upload Files',
+  'publish.dropText': 'Drag Skill folder or zip here',
+  'publish.dropSubtitle': 'Or click to select folder',
+  'publish.dropHint': 'Skill ID, name, and description are read from the package (folder name / zip file name + SKILL.md), cannot be modified manually',
+  'publish.or': 'OR',
+  'publish.selectZip': 'Select zip file...',
+  'publish.selectedFiles': 'Selected Files',
+  'publish.clearFiles': 'Clear',
+  'publish.selectSkill': 'Select Skill',
+  'publish.createNew': '-- Create New Skill --',
+  'publish.skillSelectHint': 'When updating an existing Skill, select the one that matches the Skill ID in the package; for new creation, keep "Create New Skill"',
+  'publish.idLabel': 'Skill ID',
+  'publish.idPlaceholder': 'Auto-filled after uploading folder or zip',
+  'publish.idHint': 'Derived from folder name or zip file name (lowercase letters, numbers, hyphens, underscores)',
+  'publish.nameLabel': 'Skill Name',
+  'publish.namePlaceholder': 'Read from SKILL.md after upload',
+  'publish.nameHint': 'From SKILL.md (frontmatter or first heading)',
+  'publish.descLabel': 'Description',
+  'publish.descPlaceholder': 'Read from SKILL.md after upload',
+  'publish.charCount': ' chars',
+  'publish.descHint': ' / 500 chars (consistent with package, truncated to 500)',
+  'publish.changelogLabel': 'Changelog',
+  'publish.changelogPlaceholder': 'Describe the changes in this update...\n\nExample:\n- feat: add new feature\n- fix: resolve issue',
+  'publish.cancelBtn': 'Cancel',
+  'publish.submitBtn': 'Publish New Version',
+  'publish.uploading': 'Uploading...',
+  'publish.successTitle': 'Published Successfully!',
+  'publish.viewDetail': 'View Details',
+  'publish.publishAnother': 'Publish Another',
+  'publish.filesCount': ' files',
+  'publish.totalSize': 'Total size: ',
+
   // Settings page
   'settings.title': 'Account Settings - Skill Base',
   'settings.heading': 'Account Settings',
@@ -253,7 +557,86 @@ const en: Record<string, string> = {
   'settings.changeFailed': 'Failed to change password',
   'settings.wrongPassword': 'Current password is incorrect',
 
-  // Admin page
+  // Diff page
+  'diff.title': 'Version Diff - Skill Base',
+  'diff.breadcrumbCurrent': 'Version Diff',
+  'diff.versionA': 'Version A (Old):',
+  'diff.versionB': 'Version B (New):',
+  'diff.selectVersion': 'Select version...',
+  'diff.recalculate': 'Recalculate',
+  'diff.file': 'File:',
+  'diff.allFiles': 'All Files',
+  'diff.sideBySide': 'Side by Side',
+  'diff.unified': 'Unified',
+  'diff.changedFiles': 'Changed Files',
+  'diff.back': 'Back to Detail',
+  'diff.missingId': 'Missing Skill ID parameter',
+  'diff.loadInfoFailed': 'Failed to load Skill info',
+  'diff.selectBoth': 'Please select two versions to compare',
+  'diff.loadVersionsFailed': 'Failed to load version list',
+  'diff.computing': 'Computing differences...',
+  'diff.computeFailed': 'Failed to compute differences',
+  'diff.empty': 'Select two versions and click "Recalculate" to view differences',
+  'diff.linesAdded': ' lines',
+  'diff.linesRemoved': ' lines',
+  'diff.filesChanged': ' files changed',
+  'diff.added': 'Added',
+  'diff.deleted': 'Deleted',
+  'diff.modified': 'Modified',
+  'diff.binaryDiff': 'Binary file, cannot show differences',
+  'diff.pageTitle': 'Version Diff - ',
+  'diff.old': 'Old:',
+  'diff.new': 'New:',
+  'diff.clearSelection': 'Clear Selection',
+  'diff.split': 'Split',
+  'diff.unifiedView': 'Unified',
+  'diff.computingDiff': 'Computing...',
+  'diff.loadFailed': 'Load Failed',
+  'diff.backToHome': 'Back to Home',
+
+  // File page
+  'file.title': 'File Preview - Skill Base',
+  'file.breadcrumbFile': 'File',
+  'file.currentVersion': 'Current Version:',
+  'file.fileDir': 'Files',
+  'file.selectFile': 'Select a file to preview',
+  'file.clickFile': 'Click a file on the left to view content',
+  'file.download': 'Download',
+  'file.selectOtherVersion': 'Select other version...',
+  'file.compare': 'Compare',
+  'file.back': 'Back to Detail',
+  'file.missingId': 'Missing Skill ID parameter',
+  'file.loadFailed': 'Load failed',
+  'file.binaryFile': 'Binary file, cannot preview',
+  'file.binaryHint': 'Download the zip package to view locally',
+  'file.largeFile': 'File is large, only showing first 100KB',
+  'file.noFile': 'Cannot read file',
+
+  // CLI Code page
+  'cliCode.title': 'CLI Code - Skill Base',
+  'cliCode.heading': 'CLI Verification Code',
+  'cliCode.subtitle': 'Enter this code in the CLI tool to complete login',
+  'cliCode.generating': 'Generating code...',
+  'cliCode.expires': ' until expiration',
+  'cliCode.expired': 'Expired',
+  'cliCode.copyBtn': 'Copy Code',
+  'cliCode.copied': 'Copied',
+  'cliCode.regenerate': 'Regenerate',
+  'cliCode.hintTitle': 'How to use:',
+  'cliCode.hintText': 'Run <code>skb login</code> in the terminal, then enter the code above to complete CLI login.',
+  'cliCode.fromCli': 'Please enter the code below after successful login',
+  'cliCode.generateFailed': 'Failed to generate code',
+  'cliCode.genFailed': 'Generation failed',
+  'cliCode.noCopy': 'No code to copy',
+  'cliCode.copiedToast': 'Code copied to clipboard',
+  'cliCode.pressCopy': 'Please press Ctrl+C to copy the code',
+  'cliCode.newGenerated': 'New code generated',
+  'cliCode.secureToken': 'Generating secure token...',
+  'cliCode.usage': 'Usage:',
+  'cliCode.cliHint': 'Run <code>skb login</code> in the terminal, then enter the code above to complete CLI login.',
+
+  // Admin - User Management
+  'admin.title': 'User Management - Skill Base',
   'admin.heading': 'User Management',
   'admin.subtitle': '// Manage platform users and permissions',
   'admin.userList': 'User List',
@@ -293,10 +676,48 @@ const en: Record<string, string> = {
   'admin.addError': 'Failed to add user',
   'admin.editSuccess': 'User updated successfully',
   'admin.editError': 'Failed to update user',
+  'admin.resetSuccess': 'Password reset successfully',
+  'admin.resetError': 'Failed to reset password',
+  'admin.usernameRequired': 'Please enter username',
+  'admin.passwordRequired': 'Please enter password',
+  'admin.newPasswordRequired': 'Please enter new password',
+  'admin.close': 'Close',
+  'admin.name': 'Name',
+  'admin.password': 'Password',
+  'admin.generatePassword': 'Generate Random Password',
+  'admin.toggleVisibility': 'Toggle Visibility',
+  'admin.adding': 'Adding...',
+  'admin.saving': 'Saving...',
+  'admin.resetting': 'Resetting...',
+  'admin.getUserFailed': 'Failed to get user info',
+  'admin.loadUsersFailed': 'Failed to load user list',
+}
+
+// Cookie helpers for fallback when localStorage is not available
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match && match[2] ? decodeURIComponent(match[2]) : null
+}
+
+function setCookie(name: string, value: string, days = 365) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+  document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/'
 }
 
 // Language detection - same as static/js/i18n.js
-const _storedLang = localStorage.getItem('skb-lang')
+function getStoredLang(): string | null {
+  // Try localStorage first
+  try {
+    const lang = localStorage.getItem('skb-lang')
+    if (lang) return lang
+  } catch {
+    // Ignore localStorage errors
+  }
+  // Fallback to cookie
+  return getCookie('skb-lang')
+}
+
+const _storedLang = getStoredLang()
 let isChinese: boolean
 if (_storedLang === 'zh' || _storedLang === 'en') {
   isChinese = _storedLang === 'zh'
@@ -308,14 +729,27 @@ if (_storedLang === 'zh' || _storedLang === 'en') {
 const currentLang = ref(isChinese ? 'zh' : 'en')
 
 export function useI18n() {
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string>): string => {
     const translations = currentLang.value === 'zh' ? zh : en
-    return translations[key] || key
+    let result = translations[key] || key
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        result = result.replace(`{${k}}`, v)
+      })
+    }
+    return result
   }
 
   const setLang = (lang: 'zh' | 'en') => {
     currentLang.value = lang
-    localStorage.setItem('skb-lang', lang)
+    // Try localStorage first
+    try {
+      localStorage.setItem('skb-lang', lang)
+    } catch {
+      // Ignore localStorage errors
+    }
+    // Also set cookie as fallback
+    setCookie('skb-lang', lang)
     // Reload page to apply translations like static/js/i18n.js
     window.location.reload()
   }
