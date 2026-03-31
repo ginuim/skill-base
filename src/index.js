@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const fastify = require('fastify')({
   logger: false,
@@ -5,6 +6,28 @@ const fastify = require('fastify')({
   bodyLimit: 100 * 1024 * 1024
 });
 const CappyMascot = require('./cappy');
+
+// 1. 规范化部署前缀 (APP_BASE_PATH)
+let APP_BASE_PATH = process.env.APP_BASE_PATH || '/';
+// 确保以 / 开头，以 / 结尾
+if (!APP_BASE_PATH.startsWith('/')) APP_BASE_PATH = '/' + APP_BASE_PATH;
+if (!APP_BASE_PATH.endsWith('/')) APP_BASE_PATH = APP_BASE_PATH + '/';
+// 将多个连续斜杠替换为单个
+APP_BASE_PATH = APP_BASE_PATH.replace(/\/+/g, '/');
+
+const STATIC_ROOT = path.join(__dirname, '../static');
+const INDEX_HTML_PATH = path.join(STATIC_ROOT, 'index.html');
+
+function renderSpaHtml() {
+  const html = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
+  const baseTag = `    <base href="${APP_BASE_PATH}">`;
+
+  if (html.includes('<base href=')) {
+    return html.replace(/<base href="[^"]*">/, baseTag.trim());
+  }
+
+  return html.replace('<head>', `<head>\n${baseTag}`);
+}
 
 // 主启动函数
 async function start() {
@@ -28,8 +51,10 @@ async function start() {
 
     // @fastify/static — 静态文件服务（指向 static/ 目录）
     await fastify.register(require('@fastify/static'), {
-      root: path.join(__dirname, '../static'),
-      prefix: '/'
+      root: STATIC_ROOT,
+      prefix: APP_BASE_PATH,
+      wildcard: true,
+      index: false
     });
 
     // 2. 注册自定义中间件
@@ -40,35 +65,34 @@ async function start() {
     // 管理员权限（注册 requireAdmin 装饰器）
     await fastify.register(require('./middleware/admin'));
 
-    // 3. 注册 API 路由（前缀 /api/v1）
-    await fastify.register(require('./routes/init'), { prefix: '/api/v1/init' });
-    await fastify.register(require('./routes/auth'), { prefix: '/api/v1/auth' });
-    await fastify.register(require('./routes/skills'), { prefix: '/api/v1/skills' });
-    await fastify.register(require('./routes/publish'), { prefix: '/api/v1/skills' });
-    await fastify.register(require('./routes/collaborators'), { prefix: '/api/v1/skills' });
-    await fastify.register(require('./routes/users'), { prefix: '/api/v1/users' });
+    // 3. 注册 API 路由
+    const API_PREFIX = (APP_BASE_PATH + 'api/v1').replace(/\/+/g, '/');
+    await fastify.register(require('./routes/init'), { prefix: `${API_PREFIX}/init` });
+    await fastify.register(require('./routes/auth'), { prefix: `${API_PREFIX}/auth` });
+    await fastify.register(require('./routes/skills'), { prefix: `${API_PREFIX}/skills` });
+    await fastify.register(require('./routes/publish'), { prefix: `${API_PREFIX}/skills` });
+    await fastify.register(require('./routes/collaborators'), { prefix: `${API_PREFIX}/skills` });
+    await fastify.register(require('./routes/users'), { prefix: `${API_PREFIX}/users` });
 
     // 4. 页面路由 fallback（SPA 风格路由支持）
     fastify.setNotFoundHandler(async (request, reply) => {
+      const requestPath = request.url.split('?')[0];
+
       // API 路由返回 JSON 404
-      if (request.url.startsWith('/api/')) {
+      if (requestPath.startsWith(API_PREFIX)) {
         return reply.code(404).send({ detail: 'Not found' });
       }
 
-      // 页面路由映射到对应 HTML 文件
-      const url = request.url.split('?')[0]; // 去掉 query string
+      // 已知静态资源缺失时直接返回 404，别把 HTML 假装成 JS/CSS
+      if (
+        requestPath.startsWith(`${APP_BASE_PATH}assets/`) ||
+        requestPath === `${APP_BASE_PATH}favicon.ico`
+      ) {
+        return reply.code(404).send({ detail: 'Not found' });
+      }
 
-      if (url === '/setup') return reply.sendFile('setup.html');
-      if (url === '/login') return reply.sendFile('login.html');
-      if (url === '/publish') return reply.sendFile('publish.html');
-      if (url === '/cli-code') return reply.sendFile('cli-code.html');
-      if (url === '/admin/users') return reply.sendFile('admin/users.html');
-      if (url.match(/^\/skill\/[^/]+\/file\//)) return reply.sendFile('file.html');
-      if (url.match(/^\/skill\/[^/]+\/diff/)) return reply.sendFile('diff.html');
-      if (url.match(/^\/skill\/[^/]+$/)) return reply.sendFile('skill.html');
-
-      // 其他未匹配路由返回首页
-      return reply.sendFile('index.html');
+      // 所有非 API 请求回退到入口 HTML，由前端 Vue Router 处理
+      return reply.type('text/html; charset=utf-8').send(renderSpaHtml());
     });
 
     // 5. 确保数据库已初始化
@@ -89,11 +113,11 @@ async function start() {
         const method = request.method;
         const url = request.url.split('?')[0];
 
-        if (method === 'POST' && url.match(/^\/api\/v1\/users\/?$/)) {
+        if (method === 'POST' && url === `${API_PREFIX}/users`) {
           cappy.action('新用户被添加了。又多了一个打工人，系统依旧稳定。');
-        } else if (method === 'POST' && url.match(/^\/api\/v1\/skills\/publish\/?$/)) {
+        } else if (method === 'POST' && url === `${API_PREFIX}/skills/publish`) {
           cappy.action('有新的 Skill/版本 发布了。希望它的代码没有过度设计。');
-        } else if (method === 'GET' && url.match(/^\/api\/v1\/skills\/[^/]+\/versions\/[^/]+\/download\/?$/)) {
+        } else if (method === 'GET' && url.match(new RegExp(`^${API_PREFIX}/skills/[^/]+/versions/[^/]+/download/?$`))) {
           cappy.action('有人拉取了 Skill。代码开始流通，Cappy 觉得很赞。');
         }
       }

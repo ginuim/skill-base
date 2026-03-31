@@ -13,6 +13,7 @@ const args = process.argv.slice(2);
 let port = 8000;
 let host = '0.0.0.0';
 let dataDir = null;
+let basePath = '/';
 
 for (let i = 0; i < args.length; i++) {
   if ((args[i] === '-p' || args[i] === '--port') && args[i + 1]) {
@@ -23,6 +24,9 @@ for (let i = 0; i < args.length; i++) {
     i++;
   } else if ((args[i] === '-d' || args[i] === '--data-dir') && args[i + 1]) {
     dataDir = path.resolve(args[i + 1]);
+    i++;
+  } else if (args[i] === '--base-path' && args[i + 1]) {
+    basePath = args[i + 1];
     i++;
   } else if (args[i] === '--help') {
     console.log(`
@@ -35,6 +39,7 @@ Options:
   -p, --port <port>       指定端口号 (默认: 8000)
   -h, --host <host>       指定监听地址 (默认: 0.0.0.0)
   -d, --data-dir <path>   指定数据目录 (默认: 包内 data/)
+  --base-path <path>      指定部署前缀 (默认: /，例如: /skills/)
   --help                  显示帮助信息
   --version               显示版本号
 
@@ -44,6 +49,7 @@ Examples:
   npx skill-base --host 127.0.0.1      # 仅本地访问
   npx skill-base -d ./data             # 数据存储到当前目录的 data 文件夹
   npx skill-base -d . -p 3000          # 数据存储到当前目录
+  npx skill-base --base-path /skills/  # 部署在子路径下
 `);
     process.exit(0);
   } else if (args[i] === '--version') {
@@ -56,6 +62,7 @@ Examples:
 // 设置环境变量
 process.env.PORT = port;
 process.env.HOST = host;
+process.env.APP_BASE_PATH = basePath;
 
 // 设置数据目录
 if (dataDir) {

@@ -11,7 +11,7 @@
         <a href="#quick-start">快速开始</a>
         <a href="#philosophy">设计哲学</a>
       </div>
-      <a href="/login" class="nav-cta">进入平台 →</a>
+      <router-link to="/login" class="nav-cta">进入平台 →</router-link>
     </div>
   </nav>
 

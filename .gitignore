@@ -6,3 +6,5 @@ data
 .DS_Store
 .qoder/
 .cursor/
+.pnpm-store/
+static/

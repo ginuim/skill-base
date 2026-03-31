@@ -729,12 +729,12 @@ if (_storedLang === 'zh' || _storedLang === 'en') {
 const currentLang = ref(isChinese ? 'zh' : 'en')
 
 export function useI18n() {
-  const t = (key: string, params?: Record<string, string>): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const translations = currentLang.value === 'zh' ? zh : en
     let result = translations[key] || key
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
-        result = result.replace(`{${k}}`, v)
+        result = result.replace(`{${k}}`, String(v))
       })
     }
     return result

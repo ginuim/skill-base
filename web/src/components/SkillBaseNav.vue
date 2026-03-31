@@ -2,7 +2,7 @@
   <nav class="navbar sticky top-0 z-50 bg-base-950/80 backdrop-blur-md border-b border-base-800">
     <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="sb-nav-main">
-        <a href="/" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
+        <router-link to="/" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
           <svg class="sb-nav-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
@@ -10,19 +10,19 @@
           </svg>
           <span class="font-mono text-neon-400 font-bold drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">Skill</span>
           <span class="text-white font-bold">Base</span>
-        </a>
+        </router-link>
 
         <div class="sb-nav-links">
-          <a
+          <router-link
             v-for="item in navItems"
             :key="item.href"
-            :href="item.href"
+            :to="item.href"
             class="sb-nav-link"
             :class="{ 'is-active': isActiveItem(item.href) }"
           >
             <span class="sb-nav-link-prefix">{{ isActiveItem(item.href) ? './' : '' }}</span>
             <span>{{ item.label }}</span>
-          </a>
+          </router-link>
         </div>
       </div>
 
@@ -62,13 +62,13 @@
               </svg>
             </button>
             <div class="navbar-user-menu">
-              <a href="/settings" class="navbar-user-menu-item" @click="showUserMenu = false">
+              <router-link to="/settings" class="navbar-user-menu-item" @click="showUserMenu = false">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="3"/>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
                 账户设置
-              </a>
+              </router-link>
               <router-link v-if="authStore.isAdmin" to="/admin/users" class="navbar-user-menu-item" @click="showUserMenu = false">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -98,17 +98,17 @@
     <div class="sb-nav-mobile" :hidden="!isMobileMenuOpen">
       <div class="sb-nav-mobile-panel">
         <div class="sb-nav-mobile-links">
-          <a
+          <router-link
             v-for="item in navItems"
             :key="item.href"
-            :href="item.href"
+            :to="item.href"
             class="sb-nav-mobile-link"
             :class="{ 'is-active': isActiveItem(item.href) }"
             @click="closeMobileMenu"
           >
             <span class="sb-nav-mobile-marker">{{ isActiveItem(item.href) ? './' : '--' }}</span>
             <span>{{ item.label }}</span>
-          </a>
+          </router-link>
         </div>
       </div>
     </div>
@@ -588,7 +588,7 @@ onUnmounted(() => {
   background-color: transparent;
   border: 1px solid #00E592;
   color: #00FFA3;
-  box-shadow: 0 0 15px rgba(0, 255, 163, 0.1);
+  box-shadow: 0 0 15px rgba(0,255,163,0.1);
 }
 
 .btn-primary:hover {

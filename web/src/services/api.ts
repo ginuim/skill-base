@@ -3,7 +3,9 @@
  * 封装 fetch 请求，处理认证、错误等
  */
 
-const API_BASE = '/api/v1'
+import { apiBasePath, withBasePath } from '@/utils/basePath'
+
+const API_BASE = apiBasePath
 
 export interface ApiOptions {
   method?: string
@@ -39,8 +41,9 @@ export async function api<T = any>(path: string, options: ApiOptions = {}): Prom
 
   // 处理 401 未授权
   if (response.status === 401) {
-    if (!window.location.pathname.includes('/login')) {
-      window.location.href = '/login'
+    const loginPath = withBasePath('/login')
+    if (!window.location.pathname.includes(loginPath)) {
+      window.location.href = loginPath
     }
     throw new Error('未授权，请重新登录')
   }
@@ -109,8 +112,9 @@ export function apiDelete<T = any>(path: string): Promise<T> {
  * 检查系统是否已初始化
  */
 export async function checkSystemInit(): Promise<boolean> {
+  const setupPath = withBasePath('/setup')
   // setup 页面不需要检查
-  if (window.location.pathname === '/setup') {
+  if (window.location.pathname === setupPath) {
     return true
   }
 
@@ -119,7 +123,7 @@ export async function checkSystemInit(): Promise<boolean> {
     const data = await res.json()
 
     if (!data.initialized) {
-      window.location.href = '/setup'
+      window.location.href = setupPath
       return false
     }
     return true

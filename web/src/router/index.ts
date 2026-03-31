@@ -9,9 +9,10 @@ import CliCodeView from '@/views/CliCodeView.vue'
 import SetupView from '@/views/SetupView.vue'
 import DiffView from '@/views/DiffView.vue'
 import UserManagementView from '@/views/UserManagementView.vue'
+import { appBasePath } from '@/utils/basePath'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(appBasePath),
   routes: [
     {
       path: '/',
