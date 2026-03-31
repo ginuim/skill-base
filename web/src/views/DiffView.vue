@@ -171,6 +171,7 @@ import { useRoute, useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
+import { versionsApi } from '@/services/api'
 import type { Skill, SkillVersion } from '@/services/api'
 
 // diff2html and diff are loaded via CDN
@@ -280,11 +281,11 @@ async function performDiff() {
   try {
     // Download both versions
     const [bufA, bufB] = await Promise.all([
-      fetch(`/api/v1/skills/${skillId.value}/versions/${currentVersionA.value}/download`).then(r => {
+      fetch(versionsApi.downloadUrl(skillId.value, currentVersionA.value), { credentials: 'include' }).then(r => {
         if (!r.ok) throw new Error(`${t('diff.loadFailed')} ${currentVersionA.value}`)
         return r.arrayBuffer()
       }),
-      fetch(`/api/v1/skills/${skillId.value}/versions/${currentVersionB.value}/download`).then(r => {
+      fetch(versionsApi.downloadUrl(skillId.value, currentVersionB.value), { credentials: 'include' }).then(r => {
         if (!r.ok) throw new Error(`${t('diff.loadFailed')} ${currentVersionB.value}`)
         return r.arrayBuffer()
       })

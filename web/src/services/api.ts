@@ -193,14 +193,14 @@ export const skillsApi = {
   create: (data: { name: string; description: string }) => apiPost<Skill>('/skills', data),
   update: (id: string, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
   delete: (id: string) => apiDelete(`/skills/${id}`),
+  upload: (data: FormData) => apiPost('/skills/upload', data),
 }
 
 // ===== Versions API =====
 
 export const versionsApi = {
   list: (skillId: string) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),
-  get: (skillId: string, versionId: number) => apiGet<SkillVersion>(`/skills/${skillId}/versions/${versionId}`),
-  download: (skillId: string, versionId: number) => apiGet<{ download_url: string }>(`/skills/${skillId}/versions/${versionId}/download`),
+  downloadUrl: (skillId: string, version: string) => `${API_BASE}/skills/${skillId}/versions/${version}/download`,
 }
 
 // ===== Collaborators API =====

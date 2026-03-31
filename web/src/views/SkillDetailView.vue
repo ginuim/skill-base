@@ -607,8 +607,8 @@ async function loadVersionZip(version: string) {
 
   try {
     // Backend returns the ZIP file directly, not a download URL
-    const response = await fetch(`/api/v1/skills/${skillId.value}/versions/${version}/download`, {
-      credentials: 'same-origin'
+    const response = await fetch(versionsApi.downloadUrl(skillId.value, version), {
+      credentials: 'include'
     })
 
     if (!response.ok) {
@@ -714,7 +714,7 @@ function downloadCurrentVersion() {
 }
 
 function downloadVersion(version: string) {
-  window.open(`/api/v1/skills/${skillId.value}/versions/${version}/download`, '_blank')
+  window.open(versionsApi.downloadUrl(skillId.value, version), '_blank')
 }
 
 function goToDiff() {

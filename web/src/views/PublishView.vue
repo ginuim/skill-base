@@ -388,24 +388,14 @@ async function handlePublish() {
     if (form.value.skillId) formData.append('skill_id', form.value.skillId)
     if (form.value.changelog) formData.append('changelog', form.value.changelog)
 
-    const response = await fetch('/api/v1/skills/upload', {
-      method: 'POST',
-      body: formData,
-      credentials: 'same-origin',
-    })
+    const response = await skillsApi.upload(formData)
 
     progress.value = 100
     progressText.value = t('publish.completed')
 
-    if (response.ok) {
-      setTimeout(() => {
-        router.push('/')
-      }, 500)
-    } else {
-      const data = await response.json()
-      error.value = data.detail || t('publish.uploadFailed')
-      isPublishing.value = false
-    }
+    setTimeout(() => {
+      router.push('/')
+    }, 500)
   } catch (err: any) {
     error.value = err.message || t('publish.uploadFailed')
     isPublishing.value = false
