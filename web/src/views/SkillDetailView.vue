@@ -2,8 +2,13 @@
   <div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
       <!-- Loading State -->
-      <div v-if="skillsStore.isLoadingDetail" class="flex items-center justify-center py-20">
-        <div class="spinner"></div>
+      <div v-if="isInitializing || skillsStore.isLoadingDetail" class="flex items-center justify-center min-h-[70vh]">
+        <div class="cube-loader">
+          <div class="cube cube-1"></div>
+          <div class="cube cube-2"></div>
+          <div class="cube cube-3"></div>
+          <div class="cube cube-4"></div>
+        </div>
       </div>
 
       <!-- Error State -->
@@ -384,9 +389,9 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSkillsStore } from '@/stores/skills'
-import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
 import { versionsApi, type SkillVersion } from '@/services/api'
+import { globalToast } from '@/composables/useToast'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
@@ -395,7 +400,6 @@ import { formatDate, formatDateFull } from '@/utils/date'
 const route = useRoute()
 const router = useRouter()
 const skillsStore = useSkillsStore()
-const authStore = useAuthStore()
 const { t } = useI18n()
 
 const skillId = computed(() => route.params.id as string)
@@ -421,6 +425,7 @@ const isMarkdownFile = computed(() => {
 })
 
 // UI state
+const isInitializing = ref(true)
 const isVersionHistoryCollapsed = ref(false)
 const showAddCollaboratorModal = ref(false)
 const showDeleteModal = ref(false)
@@ -554,13 +559,6 @@ onMounted(async () => {
   // Set page title
   document.title = t('skill.title')
 
-  // Check auth
-  const isAuth = await authStore.fetchUser()
-  if (!isAuth) {
-    router.push('/login')
-    return
-  }
-
   // Load skill
   await skillsStore.fetchSkill(skillId.value)
 
@@ -572,6 +570,8 @@ onMounted(async () => {
     currentVersion.value = versions.value[0]!.version
     await loadVersionZip(currentVersion.value)
   }
+
+  isInitializing.value = false
 
   // ESC 键退出全屏
   document.addEventListener('keydown', handleEscKey)
@@ -719,12 +719,12 @@ function downloadVersion(version: string) {
 
 function goToDiff() {
   if (!skill.value) {
-    alert(t('skill.infoLoading'))
+    globalToast.warning(t('skill.infoLoading'))
     return
   }
 
   if (versions.value.length < 2) {
-    alert(t('skill.needTwoVersions'))
+    globalToast.warning(t('skill.needTwoVersions'))
     return
   }
 
@@ -743,9 +743,9 @@ async function submitAddCollaborator() {
     await skillsStore.addCollaborator(skillId.value, newCollaboratorUsername.value)
     showAddCollaboratorModal.value = false
     newCollaboratorUsername.value = ''
-    alert(t('collab.addSuccess'))
+    globalToast.success(t('collab.addSuccess'))
   } catch (err) {
-    alert(t('collab.addFailed'))
+    globalToast.error(t('collab.addFailed'))
   } finally {
     isAddingCollaborator.value = false
   }
@@ -756,9 +756,9 @@ async function removeCollaborator(userId: number) {
 
   try {
     await skillsStore.removeCollaborator(skillId.value, userId)
-    alert(t('collab.removeSuccess'))
+    globalToast.success(t('collab.removeSuccess'))
   } catch (err) {
-    alert(t('collab.removeFailed'))
+    globalToast.error(t('collab.removeFailed'))
   }
 }
 
@@ -770,7 +770,7 @@ async function submitDeleteSkill() {
     showDeleteModal.value = false
     router.push('/')
   } catch (err) {
-    alert(t('collab.deleteFailed'))
+    globalToast.error(t('collab.deleteFailed'))
   }
 }
 
@@ -792,6 +792,13 @@ function handleEscKey(e: KeyboardEvent) {
 <style scoped>
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.card {
+  background-color: #13141a;
+  border: 1px solid #27272a;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
 
 /* Markdown preview styles */
 .markdown-body {
@@ -1013,6 +1020,96 @@ function handleEscKey(e: KeyboardEvent) {
   white-space: pre;
   word-wrap: normal;
   overflow-wrap: normal;
+}
+
+/* Cube Loader */
+.cube-loader {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  transform: rotateZ(45deg);
+}
+
+.cube-loader .cube {
+  float: left;
+  width: 50%;
+  height: 50%;
+  position: relative;
+  transform: scale(1.1);
+}
+
+.cube-loader .cube:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #00FFA3;
+  animation: cube-fold 2.4s infinite linear both;
+  transform-origin: 100% 100%;
+}
+
+.cube-loader .cube-2 {
+  transform: scale(1.1) rotateZ(90deg);
+}
+
+.cube-loader .cube-3 {
+  transform: scale(1.1) rotateZ(180deg);
+}
+
+.cube-loader .cube-4 {
+  transform: scale(1.1) rotateZ(270deg);
+}
+
+.cube-loader .cube-2:before {
+  animation-delay: 0.3s;
+}
+
+.cube-loader .cube-3:before {
+  animation-delay: 0.6s;
+}
+
+.cube-loader .cube-4:before {
+  animation-delay: 0.9s;
+}
+
+@keyframes cube-fold {
+  0%, 10% {
+    transform: perspective(140px) rotateX(-180deg);
+    opacity: 0;
+  }
+  25%, 75% {
+    transform: perspective(140px) rotateX(0deg);
+    opacity: 1;
+  }
+  90%, 100% {
+    transform: perspective(140px) rotateY(180deg);
+    opacity: 0;
+  }
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0, 255, 163, 0.2);
+  border-radius: 50%;
+  border-top-color: #00FFA3;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Ensure line numbers don't wrap */

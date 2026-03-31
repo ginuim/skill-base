@@ -191,6 +191,7 @@
               type="text"
               v-model="addForm.username"
               required
+              autocomplete="off"
               class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
             />
           </div>
@@ -203,6 +204,7 @@
                 :type="showPassword ? 'text' : 'password'"
                 v-model="addForm.password"
                 required
+                autocomplete="new-password"
                 class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-20"
               />
               <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
@@ -218,8 +220,11 @@
                 </button>
                 <button type="button" class="p-1.5 text-base-400 hover:text-neon-400 rounded transition-colors" @click="generatePassword" title="Generate password">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+                    <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/>
                   </svg>
                 </button>
               </div>
@@ -309,6 +314,7 @@
             <input
               type="text"
               v-model="editForm.name"
+              autocomplete="off"
               class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
             />
           </div>
@@ -367,6 +373,7 @@
                   :type="showEditPassword ? 'text' : 'password'"
                   v-model="editForm.newPassword"
                   :placeholder="t('admin.newPasswordPlaceholder')"
+                  autocomplete="new-password"
                   class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-16"
                 />
                 <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
@@ -382,8 +389,11 @@
                   </button>
                   <button type="button" class="p-1.5 text-base-400 hover:text-neon-400 rounded transition-colors" @click="generateEditPassword" title="Generate password">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+                      <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+                      <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+                      <circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+                      <circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/>
                     </svg>
                   </button>
                 </div>
@@ -411,23 +421,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import { usersApi, type User } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
 
-const router = useRouter()
-const authStore = useAuthStore()
 const { t, currentLang } = useI18n()
 
 // 权限检查
-onMounted(async () => {
-  const isAuth = await authStore.fetchUser()
-  if (!isAuth || !authStore.isAdmin) {
-    router.push('/')
-    return
-  }
+onMounted(() => {
   fetchUsers()
 })
 

@@ -90,14 +90,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
 
-const route = useRoute()
-const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
 
@@ -122,14 +119,9 @@ const timerText = computed(() => {
 })
 
 onMounted(async () => {
-  // Check auth
-  const isAuth = await authStore.fetchUser()
-  if (!isAuth) {
-    router.push('/login')
-    return
+  if (await authStore.fetchUser()) {
+    generateCode()
   }
-
-  generateCode()
 })
 
 onUnmounted(() => {

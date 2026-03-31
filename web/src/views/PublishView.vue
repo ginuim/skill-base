@@ -194,13 +194,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
-import { useAuthStore } from '@/stores/auth'
 import { skillsApi } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import type { Skill } from '@/services/api'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const { t } = useI18n()
 
 const fileInput = ref<HTMLInputElement>()
@@ -225,12 +223,6 @@ const canPublish = computed(() => {
 })
 
 onMounted(async () => {
-  const isAuth = await authStore.fetchUser()
-  if (!isAuth) {
-    router.push('/login')
-    return
-  }
-
   try {
     const response = await skillsApi.list()
     mySkills.value = response.skills.filter((s: Skill) => s.permission === 'owner' || s.permission === 'collaborator')

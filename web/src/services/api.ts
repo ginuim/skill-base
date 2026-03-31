@@ -39,15 +39,6 @@ export async function api<T = any>(path: string, options: ApiOptions = {}): Prom
     credentials: 'include',
   })
 
-  // 处理 401 未授权
-  if (response.status === 401) {
-    const loginPath = withBasePath('/login')
-    if (!window.location.pathname.includes(loginPath)) {
-      window.location.href = loginPath
-    }
-    throw new Error('未授权，请重新登录')
-  }
-
   // 处理 204 No Content
   if (response.status === 204) {
     return null as T

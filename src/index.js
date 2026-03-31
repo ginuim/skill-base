@@ -49,6 +49,19 @@ async function start() {
       }
     });
 
+    // 必须在 static 之前：index:false 时「目录 + 尾斜杠」会走 send 的 403，不会落到 notFoundHandler
+    fastify.route({
+      method: ['GET', 'HEAD'],
+      url: APP_BASE_PATH,
+      async handler(request, reply) {
+        reply.type('text/html; charset=utf-8');
+        if (request.method === 'HEAD') {
+          return reply.send();
+        }
+        return reply.send(renderSpaHtml());
+      }
+    });
+
     // @fastify/static — 静态文件服务（指向 static/ 目录）
     await fastify.register(require('@fastify/static'), {
       root: STATIC_ROOT,

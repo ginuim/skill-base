@@ -9,6 +9,7 @@ import CliCodeView from '@/views/CliCodeView.vue'
 import SetupView from '@/views/SetupView.vue'
 import DiffView from '@/views/DiffView.vue'
 import UserManagementView from '@/views/UserManagementView.vue'
+import { useAuthStore } from '@/stores/auth'
 import { appBasePath } from '@/utils/basePath'
 
 const router = createRouter({
@@ -38,11 +39,13 @@ const router = createRouter({
       path: '/publish',
       name: 'publish',
       component: PublishView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/settings',
       name: 'settings',
       component: SettingsView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/cli-code',
@@ -63,8 +66,33 @@ const router = createRouter({
       path: '/admin/users',
       name: 'user-management',
       component: UserManagementView,
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
   ],
+})
+
+router.beforeEach(async (to) => {
+  if (!to.meta.requiresAuth && !to.meta.requiresAdmin) {
+    return true
+  }
+
+  const authStore = useAuthStore()
+  const isAuthenticated = await authStore.fetchUser({ force: true })
+
+  if (!isAuthenticated) {
+    return {
+      path: '/login',
+      query: {
+        redirect: to.fullPath,
+      },
+    }
+  }
+
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    return { path: '/' }
+  }
+
+  return true
 })
 
 export default router

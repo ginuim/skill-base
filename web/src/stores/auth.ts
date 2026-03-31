@@ -5,6 +5,7 @@ import { authApi, usersApi, type User } from '@/services/api'
 export const useAuthStore = defineStore('auth', () => {
   // State
   const user = ref<User | null>(null)
+  const hasFetchedUser = ref(false)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -22,6 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await authApi.login({ username, password })
       user.value = response.user
+      hasFetchedUser.value = true
       return true
     } catch (err: any) {
       error.value = err.message || '登录失败'
@@ -36,16 +38,23 @@ export const useAuthStore = defineStore('auth', () => {
       await authApi.logout()
     } finally {
       user.value = null
+      hasFetchedUser.value = true
     }
   }
 
-  async function fetchUser() {
+  async function fetchUser(options: { force?: boolean } = {}) {
+    if (!options.force && hasFetchedUser.value) {
+      return !!user.value
+    }
+
     try {
       const response = await authApi.me()
       user.value = response
+      hasFetchedUser.value = true
       return true
     } catch (err) {
       user.value = null
+      hasFetchedUser.value = true
       return false
     }
   }
@@ -70,6 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     // State
     user,
+    hasFetchedUser,
     isLoading,
     error,
     // Getters

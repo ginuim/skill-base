@@ -140,13 +140,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
 
-const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
 
@@ -172,13 +170,7 @@ const canChangePassword = computed(() => {
     passwordForm.value.new === passwordForm.value.confirm
 })
 
-onMounted(async () => {
-  const isAuth = await authStore.fetchUser()
-  if (!isAuth) {
-    router.push('/login')
-    return
-  }
-
+onMounted(() => {
   resetProfile()
 })
 
