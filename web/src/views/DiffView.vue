@@ -169,18 +169,13 @@
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import JSZip from 'jszip'
+import * as Diff from 'diff'
+import { Diff2HtmlUI } from 'diff2html/lib-esm/ui/js/diff2html-ui'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
 import { versionsApi } from '@/services/api'
+import { globalToast } from '@/composables/useToast'
 import type { Skill, SkillVersion } from '@/services/api'
-
-// diff2html and diff are loaded via CDN
-declare global {
-  interface Window {
-    Diff2HtmlUI: any
-    Diff: any
-  }
-}
 
 const route = useRoute()
 const router = useRouter()
@@ -264,12 +259,12 @@ async function loadData() {
 
 async function performDiff() {
   if (!currentVersionA.value || !currentVersionB.value) {
-    alert(t('diff.selectBoth'))
+    globalToast.warning(t('diff.selectBoth'))
     return
   }
 
   if (currentVersionA.value === currentVersionB.value) {
-    alert(t('diff.selectBoth'))
+    globalToast.warning(t('diff.selectBoth'))
     return
   }
 
@@ -331,7 +326,7 @@ async function diffSingleFile(filePath: string) {
   }
 
   // Create unified diff
-  const patch = window.Diff.createPatch(
+  const patch = Diff.createPatch(
     filePath,
     contentA,
     contentB,
@@ -408,7 +403,7 @@ async function diffAllFiles() {
     const contentA = await zipA!.file(change.file)?.async('string') ?? ''
     const contentB = await zipB!.file(change.file)?.async('string') ?? ''
 
-    const patch = window.Diff.createPatch(
+    const patch = Diff.createPatch(
       change.file,
       contentA,
       contentB,
@@ -425,14 +420,14 @@ async function diffAllFiles() {
 function renderDiff(patch: string) {
   // Use a temporary div to render diff2html
   const tempDiv = document.createElement('div')
-  const configuration = {
+  const configuration: import('diff2html/lib-esm/ui/js/diff2html-ui').Diff2HtmlUIConfig = {
     drawFileList: false,
     matching: 'lines',
     outputFormat: outputFormat.value,
     renderNothingWhenEmpty: false
   }
   
-  const diff2htmlUi = new window.Diff2HtmlUI(tempDiv, patch, configuration)
+  const diff2htmlUi = new Diff2HtmlUI(tempDiv, patch, configuration)
   diff2htmlUi.draw()
   
   diffHtml.value = tempDiv.innerHTML

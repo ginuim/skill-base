@@ -67,7 +67,7 @@
                   <circle cx="12" cy="12" r="3"/>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
-                账户设置
+                {{ t('nav.settings') }}
               </router-link>
               <router-link v-if="authStore.isAdmin" to="/admin/users" class="navbar-user-menu-item" @click="showUserMenu = false">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -76,7 +76,7 @@
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                用户管理
+                {{ t('nav.admin') }}
               </router-link>
               <div class="navbar-user-menu-divider"></div>
               <button class="navbar-user-menu-item navbar-user-logout" @click="logout">
@@ -85,12 +85,12 @@
                   <polyline points="16 17 21 12 16 7"/>
                   <line x1="21" y1="12" x2="9" y2="12"/>
                 </svg>
-                退出登录
+                {{ t('nav.logout') }}
               </button>
             </div>
           </div>
 
-          <router-link v-else to="/login" class="btn btn-primary btn-sm">登录</router-link>
+          <router-link v-else to="/login" class="btn btn-primary btn-sm">{{ t('nav.login') }}</router-link>
         </div>
       </div>
     </div>
@@ -119,6 +119,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from '@/composables/useI18n'
 
 interface NavItem {
   href: string
@@ -139,20 +140,27 @@ const props = withDefaults(defineProps<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { currentLang: i18nLang, setLang: setI18nLang } = useI18n()
 
 const isMobileMenuOpen = ref(false)
 const showUserMenu = ref(false)
 const showLangMenu = ref(false)
-const currentLang = ref('en')
+const currentLang = computed(() => i18nLang.value)
+
+const { t } = useI18n()
 
 const navItems = computed(() => {
-  if (!props.items || !Array.isArray(props.items) || props.items.length === 0) {
-    return [
-      { href: '/', label: 'Home', i18n: 'nav.home' },
-      { href: '/publish', label: 'Publish', i18n: 'nav.publish' }
-    ]
-  }
-  return props.items
+  const items = (!props.items || !Array.isArray(props.items) || props.items.length === 0)
+    ? [
+        { href: '/', label: 'Home', i18n: 'nav.home' },
+        { href: '/publish', label: 'Publish', i18n: 'nav.publish' }
+      ]
+    : props.items
+  
+  return items.map(item => ({
+    ...item,
+    label: item.i18n ? t(item.i18n as any) : item.label
+  }))
 })
 
 function normalizePath(path: string): string {
@@ -191,7 +199,7 @@ function toggleUserMenu() {
 }
 
 function setLang(lang: 'zh' | 'en') {
-  currentLang.value = lang
+  setI18nLang(lang)
   showLangMenu.value = false
 }
 

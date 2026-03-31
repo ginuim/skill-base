@@ -144,6 +144,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
+import { globalToast } from '@/composables/useToast'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -194,9 +195,9 @@ async function saveProfile() {
     await authStore.updateProfile({
       name: profileForm.value.name,
     })
-    alert(t('settings.saveSuccess'))
+    globalToast.success(t('settings.saveSuccess'))
   } catch (err) {
-    alert(t('settings.saveFailed'))
+    globalToast.error(t('settings.saveFailed'))
   } finally {
     isSaving.value = false
   }
@@ -205,17 +206,17 @@ async function saveProfile() {
 async function changePassword() {
   // 校验逻辑
   if (!passwordForm.value.current) {
-    alert(t('settings.noOldPassword'))
+    globalToast.warning(t('settings.noOldPassword'))
     return
   }
 
   if (passwordForm.value.new.length < 6) {
-    alert(t('settings.newPassTooShort'))
+    globalToast.warning(t('settings.newPassTooShort'))
     return
   }
 
   if (passwordForm.value.new !== passwordForm.value.confirm) {
-    alert(t('settings.passMismatch'))
+    globalToast.warning(t('settings.passMismatch'))
     return
   }
 
@@ -226,17 +227,17 @@ async function changePassword() {
       new_password: passwordForm.value.new,
     })
     if (response.ok) {
-      alert(t('settings.changeSuccess'))
+      globalToast.success(t('settings.changeSuccess'))
       passwordForm.value = { current: '', new: '', confirm: '' }
     } else {
-      alert(response.detail || t('settings.changeFailed'))
+      globalToast.error(response.detail || t('settings.changeFailed'))
     }
   } catch (err: any) {
     // 处理旧密码错误的情况
     if (err.data?.error === 'wrong_password') {
-      alert(t('settings.wrongPassword'))
+      globalToast.error(t('settings.wrongPassword'))
     } else {
-      alert(err.message || t('settings.changeFailed'))
+      globalToast.error(err.message || t('settings.changeFailed'))
     }
   } finally {
     isChangingPassword.value = false

@@ -94,6 +94,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
+import { globalToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
@@ -147,7 +148,7 @@ async function generateCode() {
     // 启动倒计时
     startTimer()
   } catch (err) {
-    alert(t('cliCode.genFailed'))
+    globalToast.error(t('cliCode.genFailed'))
   } finally {
     isLoading.value = false
   }
@@ -188,7 +189,7 @@ async function copyCode() {
     }, 2000)
   } catch (error) {
     // 降级方案
-    alert(t('cliCode.copiedToast'))
+    globalToast.info(t('cliCode.copiedToast'))
   }
 }
 </script>

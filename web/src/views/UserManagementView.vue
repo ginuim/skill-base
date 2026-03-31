@@ -415,6 +415,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usersApi, type User } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
+import { globalToast } from '@/composables/useToast'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -440,7 +441,7 @@ async function fetchUsers() {
     const response = await usersApi.list()
     users.value = response.users
   } catch (err: any) {
-    alert(t('admin.fetchError') + ': ' + err.message)
+    globalToast.error(t('admin.fetchError') + ': ' + err.message)
   } finally {
     isLoading.value = false
   }
@@ -523,9 +524,9 @@ async function handleAddUser() {
     await usersApi.create(addForm.value)
     await fetchUsers()
     closeAddModal()
-    alert(t('admin.addSuccess'))
+    globalToast.success(t('admin.addSuccess'))
   } catch (err: any) {
-    alert(t('admin.addError') + ': ' + err.message)
+    globalToast.error(t('admin.addError') + ': ' + err.message)
   } finally {
     isAdding.value = false
   }
@@ -590,9 +591,9 @@ async function handleEditUser() {
 
     await fetchUsers()
     closeEditModal()
-    alert(t('admin.editSuccess'))
+    globalToast.success(t('admin.editSuccess'))
   } catch (err: any) {
-    alert(t('admin.editError') + ': ' + err.message)
+    globalToast.error(t('admin.editError') + ': ' + err.message)
   } finally {
     isEditing.value = false
   }
