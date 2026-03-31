@@ -1232,35 +1232,6 @@ function handleEscKey(e: KeyboardEvent) {
   color: white;
 }
 
-.modal-footer .btn-secondary:hover {
-  background-color: #27272a;
-}
-
-.modal-footer .btn-primary {
-  background-color: rgba(0, 255, 163, 0.1);
-  border: 1px solid #00E592;
-  color: #00FFA3;
-}
-
-.modal-footer .btn-primary:hover {
-  background-color: rgba(0, 255, 163, 0.2);
-}
-
-.modal-footer .btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.modal-footer .btn-danger {
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
-  color: #f87171;
-}
-
-.modal-footer .btn-danger:hover {
-  background-color: rgba(239, 68, 68, 0.2);
-}
-
 .modal-footer .btn-danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;

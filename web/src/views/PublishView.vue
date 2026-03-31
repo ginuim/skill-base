@@ -409,31 +409,9 @@ async function handlePublish() {
   border-radius: 0.75rem;
 }
 
-.btn-primary {
-  background-color: transparent !important;
-  border: 1px solid #00E592 !important;
-  color: #00FFA3 !important;
-  box-shadow: 0 0 15px rgba(0,255,163,0.1) !important;
-  font-family: 'JetBrains Mono', monospace;
-}
-.btn-primary:hover {
-  background-color: rgba(0,255,163,0.1) !important;
-  box-shadow: 0 0 20px rgba(0,255,163,0.2) !important;
-  color: #00FFA3 !important;
-}
 .btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-.btn-secondary {
-  background-color: transparent !important;
-  border: 1px solid #27272a !important;
-  color: #e4e4e7 !important;
-  font-family: 'JetBrains Mono', monospace;
-}
-.btn-secondary:hover {
-  background-color: #27272a !important;
-  color: #fff !important;
 }
 
 input[type="text"],

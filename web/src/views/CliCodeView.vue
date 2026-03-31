@@ -210,29 +210,6 @@ async function copyCode() {
   color: #a1a1aa;
 }
 
-.btn-primary {
-  background-color: transparent;
-  border: 1px solid #00E592;
-  color: #00FFA3;
-  box-shadow: 0 0 15px rgba(0,255,163,0.1);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: rgba(0,255,163,0.1);
-  box-shadow: 0 0 20px rgba(0,255,163,0.2);
-}
-
-.btn-secondary {
-  background-color: transparent;
-  border: 1px solid #27272a;
-  color: #e4e4e7;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #27272a;
-  color: #fff;
-}
-
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

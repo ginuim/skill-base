@@ -30,7 +30,7 @@
     </div>
 
     <!-- 面包屑 -->
-    <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
+    <div v-if="skillsStore.skills.length > 0" class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
       <span class="text-neon-400">~</span>
       <span class="opacity-50">/</span>
       <span class="text-white">skills</span>
@@ -56,7 +56,13 @@
           <p v-if="searchQuery" class="empty-state-text">{{ t('index.noResults', { q: searchQuery }) }}</p>
           <template v-else>
             <p class="empty-state-text">{{ t('index.noSkills') }}</p>
-            <router-link to="/publish" class="btn btn-primary">{{ t('index.publishBtn') }}</router-link>
+            <router-link to="/publish" class="btn btn-primary mt-6">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mr-1">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              {{ t('index.publishBtn') }}
+            </router-link>
           </template>
         </div>
       </template>

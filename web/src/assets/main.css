@@ -46,15 +46,62 @@ body {
 }
 
 /* Button styles */
-.btn-primary {
-  background-color: transparent;
-  border: 1px solid #00E592;
-  color: #00FFA3;
-  box-shadow: 0 0 15px rgba(0,255,163,0.1);
+.btn, .btn-primary, .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 1px solid transparent;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-decoration: none;
 }
+
+.btn-primary {
+  background-color: rgba(0, 255, 163, 0.05);
+  border-color: #00FFA3;
+  color: #00FFA3;
+  box-shadow: 0 0 15px rgba(0, 255, 163, 0.1);
+}
+
 .btn-primary:hover {
-  background-color: rgba(0,255,163,0.1);
-  box-shadow: 0 0 20px rgba(0,255,163,0.2);
+  background-color: #00FFA3;
+  color: #09090b;
+  box-shadow: 0 0 25px rgba(0, 255, 163, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border-color: #27272a;
+  color: #a1a1aa;
+}
+
+.btn-secondary:hover {
+  background-color: #27272a;
+  color: #fff;
+}
+
+.btn-danger {
+  background-color: rgba(239, 68, 68, 0.05);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+.btn-danger:hover {
+  background-color: #ef4444;
+  color: #fff;
 }
 
 /* Search bar styles */
