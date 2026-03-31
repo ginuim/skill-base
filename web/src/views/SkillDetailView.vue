@@ -250,7 +250,7 @@
           <!-- Right: Version History -->
           <div class="lg:col-span-2 bg-base-900 border border-base-800 rounded-xl">
             <div
-              class="px-5 py-4 border-b border-base-800 flex items-center justify-between rounded-t-xl cursor-pointer hover:bg-base-950/30 transition-colors"
+              class="px-5 py-4 border-b border-base-800 flex items-center justify-between rounded-t-xl cursor-pointer hover:bg-white/5 transition-colors"
               @click="isVersionHistoryCollapsed = !isVersionHistoryCollapsed"
             >
               <div class="flex items-center gap-2 font-mono font-semibold text-white text-sm">
@@ -278,7 +278,7 @@
                     :class="index === 0 ? 'bg-neon-400 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 group-hover:bg-neon-500'"
                   ></span>
 
-                  <div class="flex items-start justify-between gap-4 p-3 -m-3 rounded-lg transition-all duration-200 group-hover:bg-base-800/50">
+                  <div class="flex items-start justify-between gap-4 p-3 -m-3 rounded-lg transition-all duration-200 group-hover:bg-white/5">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap mb-1">
                         <span
@@ -467,6 +467,67 @@ const isTextFile = computed(() => {
   const ext = '.' + path.split('.').pop()
   const name = path.split('/').pop() || ''
   return TEXT_EXTS.has(ext) || TEXT_FILENAMES.has(name) || TEXT_FILENAMES.has(name.replace(/^\./, ''))
+})
+
+function getLanguage(path: string) {
+  const ext = path.split('.').pop()?.toLowerCase() || ''
+  const langMap: Record<string, string> = {
+    'js': 'javascript',
+    'jsx': 'javascript',
+    'ts': 'typescript',
+    'tsx': 'typescript',
+    'py': 'python',
+    'sh': 'bash',
+    'bash': 'bash',
+    'zsh': 'bash',
+    'json': 'json',
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    'html': 'html',
+    'htm': 'html',
+    'css': 'css',
+    'scss': 'scss',
+    'sql': 'sql',
+    'go': 'go',
+    'rs': 'rust',
+    'java': 'java',
+    'c': 'c',
+    'cpp': 'cpp',
+    'h': 'c',
+    'hpp': 'cpp',
+    'rb': 'ruby',
+    'php': 'php',
+    'swift': 'swift',
+    'kt': 'kotlin',
+    'vue': 'xml',
+    'xml': 'xml',
+    'md': 'markdown',
+    'toml': 'ini',
+    'ini': 'ini',
+    'cfg': 'ini',
+  }
+  return langMap[ext] || 'plaintext'
+}
+
+const highlightedCodeLines = computed(() => {
+  if (!selectedFileContent.value) return []
+  const content = normalizeLineEndings(selectedFileContent.value)
+  const language = isMarkdownFile.value && markdownMode.value === 'source' ? 'markdown' : getLanguage(selectedFilePath.value)
+  
+  let highlighted: string
+  try {
+    highlighted = hljs.highlight(content, { language }).value
+  } catch (err) {
+    // Escape HTML for safety if highlight fails
+    highlighted = content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+  }
+  
+  return highlighted.split('\n')
 })
 
 const renderedMarkdown = computed(() => {

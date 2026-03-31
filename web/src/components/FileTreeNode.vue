@@ -95,7 +95,7 @@ function selectFile() {
 .file-tree-item:hover,
 .file-tree-item.selected {
   color: #00FFA3;
-  background-color: rgba(0, 255, 163, 0.05);
+  background-color: rgba(0, 255, 163, 0.1);
 }
 
 .file-tree-item .name {

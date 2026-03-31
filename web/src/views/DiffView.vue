@@ -119,7 +119,7 @@
               v-for="(change, index) in changedFiles" 
               :key="change.file"
               @click="selectChangedFile(change.file, index)"
-              class="flex items-center gap-3 px-4 py-3 border-b border-base-800 cursor-pointer hover:bg-base-950 transition-colors"
+              class="flex items-center gap-3 px-4 py-3 border-b border-base-800 cursor-pointer hover:bg-white/5 transition-colors"
               :class="{ 'bg-neon-400/5': selectedFileIndex === index }"
             >
               <span 

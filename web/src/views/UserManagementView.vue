@@ -105,7 +105,7 @@
               v-else
               v-for="user in paginatedUsers"
               :key="user.id"
-              class="border-t border-base-800 hover:bg-neon-400/5 transition-colors"
+              class="border-t border-base-800 hover:bg-white/5 transition-colors"
             >
               <td class="px-4 py-4 font-mono text-white">{{ user.username }}</td>
               <td class="px-4 py-4 font-mono text-white">{{ user.name || '-' }}</td>
