@@ -25,11 +25,7 @@ COPY --from=builder /app/static ./static
 
 # 2. Install backend production dependencies
 COPY package.json ./
-# better-sqlite3 requires build tools for native compilation on Alpine
-RUN apk add --no-cache python3 make g++ && \
-    npm install -g pnpm && \
-    pnpm install --prod && \
-    apk del python3 make g++
+RUN npm install --production
 
 # 3. Copy backend source code
 COPY src/ ./src/
