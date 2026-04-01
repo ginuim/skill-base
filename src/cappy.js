@@ -1,8 +1,9 @@
 const readline = require('readline');
 
 class CappyMascot {
-  constructor(port) {
+  constructor(port, basePath = '/') {
     this.port = port;
+    this.basePath = basePath;
     this.frameTimer = null;
     this.sceneTimer = null;
     this.lastRenderHeight = 0;
@@ -224,7 +225,7 @@ class CappyMascot {
     const lines = [
       ...this.buildBubble(message),
       ...frame.sprite.map((line) => `  ${this.colors[frame.color]}${line}${this.colors.reset}`),
-      `  ${this.colors.soft}port ${this.port}  |  Cappy on duty${this.colors.reset}`
+      `  ${this.colors.soft}http://localhost:${this.port}${this.basePath}  |  Cappy on duty${this.colors.reset}`
     ];
 
     this.clearRender();

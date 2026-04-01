@@ -14,6 +14,8 @@ let port = 8000;
 let host = '0.0.0.0';
 let dataDir = null;
 let basePath = '/';
+let enableCappy = true;
+let debug = false;
 
 for (let i = 0; i < args.length; i++) {
   if ((args[i] === '-p' || args[i] === '--port') && args[i + 1]) {
@@ -28,6 +30,10 @@ for (let i = 0; i < args.length; i++) {
   } else if (args[i] === '--base-path' && args[i + 1]) {
     basePath = args[i + 1];
     i++;
+  } else if (args[i] === '--no-cappy') {
+    enableCappy = false;
+  } else if (args[i] === '-v' || args[i] === '--verbose') {
+    debug = true;
   } else if (args[i] === '--help') {
     console.log(`
 Skill Base - 内网轻量版 Skill 管理平台
@@ -40,6 +46,8 @@ Options:
   -h, --host <host>       指定监听地址 (默认: 0.0.0.0)
   -d, --data-dir <path>   指定数据目录 (默认: 包内 data/)
   --base-path <path>      指定部署前缀 (默认: /，例如: /skills/)
+  --no-cappy              禁用 Cappy 水豚吉祥物
+  -v, --verbose           启用调试信息
   --help                  显示帮助信息
   --version               显示版本号
 
@@ -50,6 +58,7 @@ Examples:
   npx skill-base -d ./data             # 数据存储到当前目录的 data 文件夹
   npx skill-base -d . -p 3000          # 数据存储到当前目录
   npx skill-base --base-path /skills/  # 部署在子路径下
+  npx skill-base --no-cappy            # 禁用吉祥物
 `);
     process.exit(0);
   } else if (args[i] === '--version') {
@@ -63,6 +72,8 @@ Examples:
 process.env.PORT = port;
 process.env.HOST = host;
 process.env.APP_BASE_PATH = basePath;
+process.env.ENABLE_CAPPY = enableCappy;
+process.env.DEBUG = debug;
 
 // 设置数据目录
 if (dataDir) {

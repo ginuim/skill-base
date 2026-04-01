@@ -1,11 +1,21 @@
 const fs = require('fs');
 const path = require('path');
+
+const isDebug = process.env.DEBUG === 'true';
+
 const fastify = require('fastify')({
-  logger: false,
+  logger: isDebug,
   // 设置 body 大小限制为 100MB（支持大 zip 上传）
   bodyLimit: 100 * 1024 * 1024
 });
 const CappyMascot = require('./cappy');
+
+if (isDebug) {
+  console.log('DEBUG: Debug mode is enabled.');
+  console.log('DEBUG: PORT:', process.env.PORT);
+  console.log('DEBUG: HOST:', process.env.HOST);
+  console.log('DEBUG: APP_BASE_PATH:', process.env.APP_BASE_PATH);
+}
 
 // 1. 规范化部署前缀 (APP_BASE_PATH)
 let APP_BASE_PATH = process.env.APP_BASE_PATH || '/';
@@ -32,15 +42,18 @@ function renderSpaHtml() {
 // 主启动函数
 async function start() {
   try {
+    if (isDebug) console.log('DEBUG: Registering core plugins...');
     // 1. 注册插件
     // @fastify/cors — 允许跨域
     await fastify.register(require('@fastify/cors'), {
       origin: true,
       credentials: true
     });
+    if (isDebug) console.log('DEBUG: Registered @fastify/cors');
 
     // @fastify/cookie — Cookie 支持
     await fastify.register(require('@fastify/cookie'));
+    if (isDebug) console.log('DEBUG: Registered @fastify/cookie');
 
     // @fastify/multipart — 文件上传支持
     await fastify.register(require('@fastify/multipart'), {
@@ -48,6 +61,7 @@ async function start() {
         fileSize: 100 * 1024 * 1024  // 100MB
       }
     });
+    if (isDebug) console.log('DEBUG: Registered @fastify/multipart');
 
     // 必须在 static 之前：index:false 时「目录 + 尾斜杠」会走 send 的 403，不会落到 notFoundHandler
     fastify.route({
@@ -69,17 +83,21 @@ async function start() {
       wildcard: true,
       index: false
     });
+    if (isDebug) console.log('DEBUG: Registered @fastify/static at', STATIC_ROOT);
 
     // 2. 注册自定义中间件
+    if (isDebug) console.log('DEBUG: Registering custom middlewares...');
     // 错误处理
     await fastify.register(require('./middleware/error'));
     // 认证（注册 authenticate、createSession 等装饰器）
     await fastify.register(require('./middleware/auth'));
     // 管理员权限（注册 requireAdmin 装饰器）
     await fastify.register(require('./middleware/admin'));
+    if (isDebug) console.log('DEBUG: Custom middlewares registered.');
 
     // 3. 注册 API 路由
     const API_PREFIX = (APP_BASE_PATH + 'api/v1').replace(/\/+/g, '/');
+    if (isDebug) console.log('DEBUG: Registering API routes with prefix:', API_PREFIX);
 
     // 健康检查接口
     fastify.get(`${API_PREFIX}/health`, async () => {
@@ -92,6 +110,7 @@ async function start() {
     await fastify.register(require('./routes/publish'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/collaborators'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/users'), { prefix: `${API_PREFIX}/users` });
+    if (isDebug) console.log('DEBUG: API routes registered.');
 
     // 4. 页面路由 fallback（SPA 风格路由支持）
     fastify.setNotFoundHandler(async (request, reply) => {
@@ -121,33 +140,45 @@ async function start() {
     const PORT = process.env.PORT || 8000;
     const HOST = process.env.HOST || '0.0.0.0';
     
-    // 初始化 Cappy 水豚（必须在 listen 之前注册装饰器）
-    const cappy = new CappyMascot(PORT);
-    fastify.decorate('cappy', cappy);
+    // 默认禁用 Cappy，除非显式设为 'true'
+    const enableCappy = process.env.ENABLE_CAPPY === 'true';
+    let cappy = null;
 
-    // 优雅解耦：通过 Fastify 的全局生命周期钩子来驱动 Cappy 动画，完全不污染业务路由
-    fastify.addHook('onResponse', (request, reply, done) => {
-      // 只有成功请求才触发，不理会报错
-      if (reply.statusCode >= 200 && reply.statusCode < 300) {
-        const method = request.method;
-        const url = request.url.split('?')[0];
+    if (enableCappy) {
+      if (isDebug) console.log('DEBUG: CappyMascot is enabled.');
+      // 初始化 Cappy 水豚（必须在 listen 之前注册装饰器）
+      cappy = new CappyMascot(PORT, APP_BASE_PATH);
+      fastify.decorate('cappy', cappy);
 
-        if (method === 'POST' && url === `${API_PREFIX}/users`) {
-          cappy.action('新用户被添加了。又多了一个打工人，系统依旧稳定。');
-        } else if (method === 'POST' && url === `${API_PREFIX}/skills/publish`) {
-          cappy.action('有新的 Skill/版本 发布了。希望它的代码没有过度设计。');
-        } else if (method === 'GET' && url.match(new RegExp(`^${API_PREFIX}/skills/[^/]+/versions/[^/]+/download/?$`))) {
-          cappy.action('有人拉取了 Skill。代码开始流通，Cappy 觉得很赞。');
+      // 优雅解耦：通过 Fastify 的全局生命周期钩子来驱动 Cappy 动画，完全不污染业务路由
+      fastify.addHook('onResponse', (request, reply, done) => {
+        // 只有成功请求才触发，不理会报错
+        if (reply.statusCode >= 200 && reply.statusCode < 300) {
+          const method = request.method;
+          const url = request.url.split('?')[0];
+
+          if (method === 'POST' && url === `${API_PREFIX}/users`) {
+            cappy.action('新用户被添加了。又多了一个打工人，系统依旧稳定。');
+          } else if (method === 'POST' && url === `${API_PREFIX}/skills/publish`) {
+            cappy.action('有新的 Skill/版本 发布了。希望它的代码没有过度设计。');
+          } else if (method === 'GET' && url.match(new RegExp(`^${API_PREFIX}/skills/[^/]+/versions/[^/]+/download/?$`))) {
+            cappy.action('有人拉取了 Skill。代码开始流通，Cappy 觉得很赞。');
+          }
         }
-      }
-      done();
-    });
+        done();
+      });
+    } else {
+      if (isDebug) console.log('DEBUG: CappyMascot is disabled.');
+      fastify.decorate('cappy', { action: () => {} });
+    }
 
     await fastify.listen({ port: PORT, host: HOST });
-    console.log(`\n📦 Skill Base Engine Initialized.\n`);
+    console.log(`\n📦 Skill Base Engine Initialized at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${APP_BASE_PATH}\n`);
     
-    // 启动 Cappy 守护进程
-    cappy.start();
+    if (enableCappy && cappy) {
+      // 启动 Cappy 守护进程
+      cappy.start();
+    }
   } catch (err) {
     console.error(err);
     process.exit(1);

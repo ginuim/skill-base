@@ -1,6 +1,6 @@
 {
   "name": "skill-base",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Skill Base - 内网轻量版 Skill 管理平台",
   "main": "src/index.js",
   "bin": {
