@@ -80,6 +80,12 @@ async function start() {
 
     // 3. 注册 API 路由
     const API_PREFIX = (APP_BASE_PATH + 'api/v1').replace(/\/+/g, '/');
+
+    // 健康检查接口
+    fastify.get(`${API_PREFIX}/health`, async () => {
+      return { status: 'ok', timestamp: new Date().toISOString() };
+    });
+
     await fastify.register(require('./routes/init'), { prefix: `${API_PREFIX}/init` });
     await fastify.register(require('./routes/auth'), { prefix: `${API_PREFIX}/auth` });
     await fastify.register(require('./routes/skills'), { prefix: `${API_PREFIX}/skills` });
