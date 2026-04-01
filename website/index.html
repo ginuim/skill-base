@@ -7,11 +7,11 @@
   <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-  <div class="landing-page">
+    <div class="landing-page" id="top">
     <!-- Navbar -->
     <nav class="navbar">
       <div class="container">
-        <a href="#" class="nav-logo">$ Skill Base</a>
+        <a href="#top" class="nav-logo">$ Skill Base</a>
         <div class="nav-links">
           <a href="#what-is-skill">Agent Skill</a>
           <a href="#why">为什么需要</a>
@@ -35,7 +35,8 @@
               <span class="highlight">Skill</span> Base
             </h1>
             <p class="hero-subtitle fade-in">
-              专为小团队打造的 AI Agent Skill 私有化管理平台
+              专为小团队打造的 AI Agent Skill 私有化管理平台<br>
+              <span style="font-size: 1rem; color: var(--text-secondary); margin-top: 8px; display: inline-block;">零依赖，一行 npx 命令即可在内网启动</span>
             </p>
             <p class="hero-description fade-in">
               告别跨项目复制粘贴提示词，让你的 Cursor、OpenClaw、Cline 等 AI 助手瞬间掌握团队内部的最佳实践与业务规范。
@@ -75,25 +76,28 @@
       <div class="container">
         <h2 class="section-title fade-in">什么是 Agent Skill？</h2>
         <p class="section-subtitle fade-in">
-          让 AI 助手理解你们团队的编码规范和最佳实践
+          把团队的「潜规则」变成 AI 的「出厂设置」
         </p>
 
         <div class="comparison-grid fade-in">
           <div class="comparison-card before">
             <div class="comparison-label">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> AI 默认写的代码
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：AI 像个刚入职的外包
             </div>
             <div class="comparison-code">
-              <pre><code><span class="comment">// 发送 HTTP 请求</span>
-<span class="keyword">import</span> axios <span class="keyword">from</span> <span class="string">'axios'</span>;
+              <div style="color: var(--text-primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <span style="color: var(--accent-blue)">👩‍💻 开发者：</span>"帮我写个用户登录接口"
+              </div>
+              <pre><code><span class="comment">// 🤖 AI 默写了通用的教科书代码：</span>
+<span class="keyword">import</span> jwt <span class="keyword">from</span> <span class="string">'jsonwebtoken'</span>;
 
-<span class="keyword">const</span> res = <span class="keyword">await</span> axios.<span class="function">get</span>(<span class="string">'/api/users'</span>);
-
-<span class="comment">// 使用通用 UI 组件</span>
-<span class="keyword">import</span> { Button } <span class="keyword">from</span> <span class="string">'antd'</span>;
-
-<span class="comment">// 手写工具函数</span>
-<span class="keyword">const</span> <span class="function">formatDate</span> = (d) => { ... }</code></pre>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="function">login</span> = <span class="keyword">async</span> (req, res) => {
+  <span class="comment">// ❌ 不知道公司用什么统一鉴权</span>
+  <span class="comment">// ❌ 不知道怎么连公司的 Redis</span>
+  <span class="comment">// ❌ 缺少内部审计日志(Audit Log)</span>
+  <span class="keyword">const</span> token = jwt.<span class="function">sign</span>({ id }, <span class="string">'secret'</span>);
+  <span class="keyword">return</span> res.<span class="function">json</span>({ token });
+}</code></pre>
             </div>
           </div>
 
@@ -101,43 +105,47 @@
 
           <div class="comparison-card after">
             <div class="comparison-label">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 有 Skill 后写的代码
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 注入 Skill 后：AI 秒变团队老员工
             </div>
             <div class="comparison-code">
-              <pre><code><span class="comment">// 使用团队内部请求库</span>
-<span class="keyword">import</span> { request } <span class="keyword">from</span> <span class="string">'@company/http'</span>;
+              <div style="color: var(--text-primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <span style="color: var(--accent-blue)">👩‍💻 开发者：</span>"帮我写个用户登录接口"
+              </div>
+              <pre><code><span class="comment">// 🤖 AI 完美适配了公司的业务架构：</span>
+<span class="keyword">import</span> { ssoClient } <span class="keyword">from</span> <span class="string">'@company/sso'</span>;
+<span class="keyword">import</span> { auditLogger } <span class="keyword">from</span> <span class="string">'@core/logger'</span>;
 
-<span class="keyword">const</span> res = <span class="keyword">await</span> request.<span class="function">get</span>(<span class="string">'/api/users'</span>);
-
-<span class="comment">// 使用公司组件库</span>
-<span class="keyword">import</span> { Button } <span class="keyword">from</span> <span class="string">'@company/ui'</span>;
-
-<span class="comment">// 使用已有工具库</span>
-<span class="keyword">import</span> { formatDate } <span class="keyword">from</span> <span class="string">'@company/utils'</span>;</code></pre>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="function">login</span> = <span class="keyword">async</span> (req, res) => {
+  <span class="comment">// ✅ 自动使用了内部 SSO 登录组件</span>
+  <span class="keyword">const</span> user = <span class="keyword">await</span> ssoClient.<span class="function">verify</span>(req.body);
+  <span class="comment">// ✅ 自动按照规范记录了合规日志</span>
+  auditLogger.<span class="function">info</span>(<span class="string">'USER_LOGIN'</span>, user.id);
+  <span class="keyword">return</span> <span class="function">SuccessResponse</span>(user);
+}</code></pre>
             </div>
           </div>
         </div>
 
         <div class="key-points">
           <div class="key-point fade-in">
-            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1"/><path d="M13 21v-2a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v1a1 1 0 0 0 1 1"/><path d="M3 7V5a1 1 0 0 1 1-1h1a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1"/><path d="M7 9h10"/><path d="M17 7V5a1 1 0 0 0-1-1h-1a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1"/></svg></div>
-            <h4>内部请求库</h4>
-            <p>统一使用团队封装的 HTTP 客户端，内置鉴权、重试、日志</p>
+            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <h4>业务上下文</h4>
+            <p>告诉 AI 你们的数据库表前缀、支付网关怎么调、账号权限怎么验证，不再瞎编 API。</p>
           </div>
           <div class="key-point fade-in">
-            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.536 11.293a1 1 0 0 0 0 1.414l2.376 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M2.297 11.293a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L6.088 8.916a1 1 0 0 0-1.414 0z"/><path d="M8.916 17.912a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M8.916 4.674a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L12.707 2.297a1 1 0 0 0-1.414 0z"/></svg></div>
-            <h4>内部组件</h4>
-            <p>优先使用公司设计系统的组件，保持 UI 一致性</p>
+            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <h4>工程与架构规范</h4>
+            <p>从目录结构、变量命名、到组件封装原则，让 AI 写出的代码就像是出自一人之手。</p>
           </div>
           <div class="key-point fade-in">
-            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
-            <h4>内部工具方法</h4>
-            <p>复用已有的工具函数，避免重复造轮子</p>
+            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+            <h4>工作流约定</h4>
+            <p>连 Git Commit 格式、PR 描述模板、Code Review 重点都可以统一定义，一键注入 IDE。</p>
           </div>
         </div>
 
         <div class="conclusion fade-in">
-          <p>Agent Skill 就是让 AI <span class="highlight">按你们团队的规矩</span>写代码</p>
+          <p>Skill Base 就是你们团队的 <span class="highlight">AI 知识库与规范分发中心</span></p>
         </div>
       </div>
     </section>
@@ -166,7 +174,7 @@
             <div class="pain-point-number">痛点 02</div>
             <h3>告别四处复制粘贴</h3>
             <p class="problem">
-              每个项目都要手动复制 .cursorrules 文件，版本混乱，更新困难，团队成员各用各的。
+              要手动共享 skill 文件，版本混乱，更新困难，团队成员各用各的。
             </p>
             <div class="solution">像 npm 一样安装和更新</div>
           </div>
@@ -218,11 +226,6 @@
             <p>每次发布自动生成版本号，支持版本回溯和对比</p>
           </div>
 
-          <div class="feature-card fade-in">
-            <span class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>
-            <h3>双端支持</h3>
-            <p>Web 界面浏览管理，CLI 集成到开发工作流</p>
-          </div>
         </div>
       </div>
     </section>
@@ -257,7 +260,7 @@
                 <button class="code-copy">Copy</button>
               </div>
               <div class="code-body"><span class="comment"># 一行命令启动服务（推荐指定数据目录）</span>
-<span class="command">npx</span> <span class="flag">skill-base</span> <span class="flag">-d</span> ./skill-data <span class="flag">-p</span> 8000
+<span class="keyword">npx</span> <span class="command">skill-base</span> <span class="flag">-d</span> ./skill-data <span class="flag">-p</span> 8000
 
 <span class="comment"># 访问 Web 管理后台</span>
 <span class="output">打开浏览器访问 http://localhost:8000</span>
@@ -278,13 +281,13 @@
                 <button class="code-copy">Copy</button>
               </div>
               <div class="code-body"><span class="comment"># 全局安装 CLI 工具</span>
-<span class="command">npm</span> <span class="flag">install</span> <span class="flag">-g</span> skill-base-cli
+<span class="keyword">npm</span> <span class="command">install</span> <span class="flag">-g</span> skill-base-cli
 
 <span class="comment"># 配置你的 Skill Base 服务器地址</span>
-<span class="command">skb</span> <span class="flag">init</span> <span class="flag">-s</span> <span class="string">http://your-server</span>
+<span class="keyword">skb</span> <span class="command">init</span> <span class="flag">-s</span> <span class="string">http://your-server</span>
 
 <span class="comment"># 登录</span>
-<span class="command">skb</span> <span class="flag">login</span></div>
+<span class="keyword">skb</span> <span class="command">login</span></div>
             </div>
           </div>
 
@@ -299,14 +302,14 @@
                 <button class="code-copy">Copy</button>
               </div>
               <div class="code-body"><span class="comment"># 搜索可用的 Skills</span>
-<span class="command">skb</span> <span class="flag">search</span> <span class="string">react</span>
+<span class="keyword">skb</span> <span class="command">search</span> <span class="string">react</span>
 
 <span class="output">  NAME                 DESCRIPTION
   react-best-practice  React 开发最佳实践
   react-testing        React 测试规范</span>
 
 <span class="comment"># 安装 Skill 到当前项目</span>
-<span class="command">skb</span> <span class="flag">install</span> <span class="string">react-best-practice</span>
+<span class="keyword">skb</span> <span class="command">install</span> <span class="string">react-best-practice</span>
 
 <span class="output">✓ Installed react-best-practice@v20240320.143022</span></div>
             </div>
@@ -323,10 +326,10 @@
                 <button class="code-copy">Copy</button>
               </div>
               <div class="code-body"><span class="comment"># 创建一个新的 Skill 目录</span>
-<span class="command">mkdir</span> my-team-skill && <span class="command">cd</span> my-team-skill
+<span class="keyword">mkdir</span> my-team-skill && <span class="keyword">cd</span> my-team-skill
 
 <span class="comment"># 创建 SKILL.md 文件（必需）</span>
-<span class="command">cat</span> &gt; SKILL.md &lt;&lt; <span class="string">'EOF'</span>
+<span class="keyword">cat</span> &gt; SKILL.md &lt;&lt; <span class="string">'EOF'</span>
 <span class="string"># My Team Coding Standards
 
 这是我们团队的编码规范...
@@ -337,7 +340,7 @@
 EOF</span>
 
 <span class="comment"># 发布到 Skill Base</span>
-<span class="command">skb</span> <span class="flag">publish</span>
+<span class="keyword">skb</span> <span class="command">publish</span>
 
 <span class="output">✓ Published my-team-skill@v20240320.150000</span></div>
             </div>
@@ -354,11 +357,11 @@ EOF</span>
                 <button class="code-copy">Copy</button>
               </div>
               <div class="code-body"><span class="comment"># 安装 Skill 到 Cursor</span>
-<span class="command">skb</span> <span class="flag">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">cursor</span>
+<span class="keyword">skb</span> <span class="command">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">cursor</span>
 <span class="output">✓ Installed to .cursor/skills/my-skill/</span>
 
 <span class="comment"># 安装到 Qoder</span>
-<span class="command">skb</span> <span class="flag">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">qoder</span>
+<span class="keyword">skb</span> <span class="command">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">qoder</span>
 <span class="output">✓ Installed to .qoder/skills/my-skill/</span>
 
 <span class="comment"># 支持的 IDE: cursor, qoder, windsurf, copilot, claude-code, opencode</span></div>
@@ -375,7 +378,7 @@ EOF</span>
       <div class="container">
         <h2 class="section-title fade-in">设计哲学</h2>
         <p class="section-subtitle fade-in">
-          Build to Delete — 为删除而构建
+          Stay Out of the Way — 极简与无侵入
         </p>
 
         <div class="philosophy-grid">
@@ -421,16 +424,16 @@ EOF</span>
   <script>
     // Typewriter Effect for Terminal
     const terminalLines = [
-      { type: 'command', prompt: '~', text: 'npx skill-base -p 8000', delay: 80 },
-      { type: 'output', text: '', delay: 500 },
-      { type: 'output', text: 'Starting Skill Base...', class: 'info', delay: 30 },
+      { type: 'output', text: '# 快速启动服务端', class: 'comment', delay: 30 },
+      { type: 'command', prompt: '~', text: 'npx skill-base -d ./skill-data -p 8000', delay: 80 },
       { type: 'output', text: '', delay: 300 },
-      { type: 'output', text: '✓ Database initialized', class: 'success', delay: 30 },
-      { type: 'output', text: '✓ Routes registered', class: 'success', delay: 30 },
-      { type: 'output', text: '✓ Static files mounted', class: 'success', delay: 30 },
-      { type: 'output', text: '', delay: 200 },
-      { type: 'output', text: 'Server running at http://localhost:8000', class: 'warning', delay: 30 },
-      { type: 'output', text: 'Ready to manage your Agent skills!', class: 'info', delay: 30 }
+      { type: 'output', text: '# 安装客户端', class: 'comment', delay: 30 },
+      { type: 'command', prompt: '~', text: 'npm install -g skill-base-cli', delay: 50 },
+      { type: 'command', prompt: '~', text: 'skb init -s http://your-team-server', delay: 50 },
+      { type: 'output', text: '', delay: 300 },
+      { type: 'output', text: '# 像用 npm 一样管理你的 AI Skills', class: 'comment', delay: 30 },
+      { type: 'command', prompt: '~', text: 'skb search vue', delay: 50 },
+      { type: 'command', prompt: '~', text: 'skb install team-vue-rules --ide cursor', delay: 50 }
     ];
 
     let lineIndex = 0;
