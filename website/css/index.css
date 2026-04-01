@@ -80,6 +80,21 @@ button {
   gap: 8px;
 }
 
+.nav-logo-icon {
+  flex-shrink: 0;
+}
+
+.nav-logo-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-primary);
+}
+
+.nav-logo-text .highlight {
+  color: var(--accent-green);
+}
+
 .nav-links {
   display: flex;
   gap: 32px;

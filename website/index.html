@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="alternate icon" sizes="32x32" href="./favicon-32x32.png">
+  <link rel="alternate icon" sizes="16x16" href="./favicon-16x16.png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="manifest" href="./site.webmanifest">
   <title>Skill Base - AI Agent Skill 私有化管理平台</title>
   <link rel="stylesheet" href="css/index.css">
 </head>
@@ -11,7 +16,14 @@
     <!-- Navbar -->
     <nav class="navbar">
       <div class="container">
-        <a href="#top" class="nav-logo">$ Skill Base</a>
+        <a href="#top" class="nav-logo">
+          <svg class="nav-logo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <span class="nav-logo-text"><span class="highlight">Skill</span> Base</span>
+        </a>
         <div class="nav-links">
           <a href="#what-is-skill">Agent Skill</a>
           <a href="#why">为什么需要</a>
@@ -35,7 +47,7 @@
               <span class="highlight">Skill</span> Base
             </h1>
             <p class="hero-subtitle fade-in">
-              专为小团队打造的 AI Agent Skill 私有化管理平台<br>
+              专为中小团队打造的 AI Agent Skill 私有化管理平台<br>
               <span style="font-size: 1rem; color: var(--text-secondary); margin-top: 8px; display: inline-block;">零依赖，一行 npx 命令即可在内网启动</span>
             </p>
             <p class="hero-description fade-in">
@@ -405,13 +417,19 @@ EOF</span>
       <div class="container">
         <div class="footer-content">
           <div class="footer-logo-section">
-            <span class="nav-logo">$ Skill Base</span>
-            <p>专为小团队打造的 AI Agent Skill 私有化管理平台</p>
+            <span class="nav-logo">
+              <svg class="nav-logo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+              <span class="nav-logo-text"><span class="highlight">Skill</span> Base</span>
+            </span>
+            <p>专为中小团队打造的 AI Agent Skill 私有化管理平台</p>
           </div>
           <div class="footer-links">
-            <a href="https://github.com" target="_blank">GitHub</a>
-            <a href="#features">文档</a>
-            <a href="#philosophy">关于</a>
+            <a href="https://github.com/ginuim/skill-base" target="_blank">GitHub</a>
+            <!-- <a href="#philosophy">关于</a> -->
           </div>
         </div>
         <div class="footer-bottom">
@@ -432,7 +450,6 @@ EOF</span>
       { type: 'command', prompt: '~', text: 'skb init -s http://your-team-server', delay: 50 },
       { type: 'output', text: '', delay: 300 },
       { type: 'output', text: '# 像用 npm 一样管理你的 AI Skills', class: 'comment', delay: 30 },
-      { type: 'command', prompt: '~', text: 'skb search vue', delay: 50 },
       { type: 'command', prompt: '~', text: 'skb install team-vue-rules --ide cursor', delay: 50 }
     ];
 
@@ -545,7 +562,7 @@ EOF</span>
       const heroCopyBtn = document.getElementById('hero-copy-btn');
       if (heroCopyBtn) {
         heroCopyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText('npx skill-base');
+          navigator.clipboard.writeText('npx skill-base -d ./skill-data -p 8000');
           const originalText = heroCopyBtn.innerHTML;
           heroCopyBtn.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>已复制!';
           setTimeout(() => {

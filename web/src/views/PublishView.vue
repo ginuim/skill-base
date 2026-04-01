@@ -658,7 +658,13 @@ select {
   font-family: 'JetBrains Mono', monospace !important;
   background-color: #09090b !important;
   border-color: #27272a !important;
-  color: #fff !important;
+  color: #fafafa !important;
+  -webkit-text-fill-color: #fafafa !important;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #71717a !important;
+  -webkit-text-fill-color: #71717a !important;
 }
 input:focus,
 textarea:focus,
@@ -669,8 +675,16 @@ select:focus {
 input[readonly],
 textarea[readonly] {
   background-color: rgba(9, 9, 11, 0.5) !important;
-  color: #a1a1aa !important;
+  color: #e4e4e7 !important;
+  -webkit-text-fill-color: #e4e4e7 !important;
   border-color: #27272a !important;
+}
+input:disabled,
+textarea:disabled,
+select:disabled {
+  color: #e4e4e7 !important;
+  -webkit-text-fill-color: #e4e4e7 !important;
+  opacity: 1 !important;
 }
 
 .drop-zone {
