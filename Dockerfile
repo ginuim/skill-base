@@ -1,13 +1,36 @@
+# Stage 1: Build frontend (Builder)
+FROM node:20-alpine AS builder
+
+# Install pnpm (required by project build scripts)
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+# Copy package.json and web directory
+COPY package.json ./
+COPY web/ ./web/
+
+# Enter web directory to build (output will be written to ../static)
+WORKDIR /app/web
+RUN pnpm install
+RUN pnpm build
+
+# Stage 2: Final runtime environment
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json .
-RUN npm install --production
+# 1. Copy compiled static assets from build stage
+COPY --from=builder /app/static ./static
 
+# 2. Install server production dependencies
+COPY package.json ./
+RUN npm install -g pnpm && pnpm install --prod
+
+# 3. Copy server source code
 COPY src/ ./src/
-COPY static/ ./static/
 
+# Runtime configuration
 RUN mkdir -p /data
 ENV DATA_DIR=/data
 ENV DATABASE_PATH=/data/skills.db
@@ -15,4 +38,6 @@ ENV PORT=8000
 ENV APP_BASE_PATH=/
 
 EXPOSE 8000
+
+# Startup command
 CMD ["node", "src/index.js"]
