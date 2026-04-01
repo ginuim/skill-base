@@ -1,0 +1,16 @@
+node_modules
+dist
+static
+data
+data2
+*.db
+*.db-journal
+*.db-wal
+.git
+.cursor
+.pnpm-store
+pnpm-lock.yaml
+web/node_modules
+web/dist
+cli/node_modules
+cli/dist
