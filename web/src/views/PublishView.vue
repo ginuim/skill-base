@@ -85,7 +85,7 @@
               <label for="skill-select" class="form-label font-mono text-base-400 mb-2 block">{{ t('publish.selectSkill') }}</label>
               <select
                 id="skill-select"
-                v-model="form.skillId"
+                v-model="selectedExistingId"
                 class="rounded-lg px-4 py-2.5 w-full"
                 :disabled="isPublishing"
               >
@@ -204,12 +204,18 @@ const { t } = useI18n()
 const fileInput = ref<HTMLInputElement>()
 const zipInput = ref<HTMLInputElement>()
 const mySkills = ref<Skill[]>([])
-const selectedFiles = ref<File[]>([])
+
+const selectedFiles = ref<{name: string, size: number}[]>([])
+const selectedZipBlob = ref<Blob | null>(null)
+const selectedFileName = ref('')
+
 const isDragging = ref(false)
 const isPublishing = ref(false)
 const progress = ref(0)
 const progressText = ref('')
 const error = ref('')
+
+const selectedExistingId = ref('') // 下拉框选择的已存在 Skill ID
 
 const form = ref({
   skillId: '',
@@ -218,8 +224,13 @@ const form = ref({
   changelog: '',
 })
 
+const isNewSkill = computed(() => selectedExistingId.value === '')
+
 const canPublish = computed(() => {
-  return form.value.name && selectedFiles.value.length > 0
+  if (isNewSkill.value) {
+    return form.value.name && selectedFiles.value.length > 0
+  }
+  return selectedFiles.value.length > 0
 })
 
 onMounted(async () => {
@@ -231,116 +242,310 @@ onMounted(async () => {
   }
 })
 
+// === 工具函数 ===
+const DESC_MAX = 500
+
+function slugToSkillId(raw: string) {
+  if (!raw || typeof raw !== 'string') return ''
+  let s = raw.trim().replace(/\.zip$/i, '')
+  s = s.toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9\-]+/g, '')
+  s = s.replace(/-+/g, '-').replace(/^-|-$/g, '')
+  if (!s || !/^[a-z0-9\-_]+$/.test(s)) return ''
+  return s
+}
+
+function pickSkillMdPath(paths: string[]) {
+  const matches = paths.filter(p => /(^|\/)SKILL\.md$/i.test(p))
+  if (!matches.length) return null
+  return matches.slice().sort((a, b) => a.length - b.length)[0]
+}
+
+function parseYamlFrontmatterBlock(yaml: string) {
+  const out: Record<string, string> = {}
+  const lines = yaml.split(/\r?\n/)
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i]
+    if (line === undefined) {
+      i += 1
+      continue
+    }
+    const m = line.match(/^([\w-]+):\s*(.*)$/)
+    if (!m || !m[1]) {
+      i += 1
+      continue
+    }
+    const key = m[1]
+    let rest = m[2]?.trimEnd() || ''
+    const blockStarter = ['>', '|', '>-', '>+', '|-', '|+'].includes(rest)
+    if (blockStarter) {
+      i += 1
+      const buf: string[] = []
+      while (i < lines.length) {
+        const L = lines[i]
+        if (L === undefined) break
+        const nextKey = L.match(/^([\w-]+):\s/)
+        if (nextKey && !L.startsWith('  ') && buf.length) break
+        if (L.startsWith('  ') || (L === '' && buf.length)) {
+          buf.push(L.startsWith('  ') ? L.slice(2) : '')
+        } else if (buf.length) break
+        else if (L === '') {
+          i += 1
+          continue
+        } else break
+        i += 1
+      }
+      out[key] = buf.join('\n').trim()
+      continue
+    }
+    out[key] = rest.replace(/^["'](.+)["']$/, '$1').trim()
+    i += 1
+  }
+  return out
+}
+
+function parseSkillMdText(full: string) {
+  let rest = full
+  let name = ''
+  let description = ''
+  const fmMatch = full.match(/^---\r?\n([\s\S]*?)\r?\n---\s*\r?\n?/)
+  if (fmMatch && fmMatch[1]) {
+    const y = parseYamlFrontmatterBlock(fmMatch[1])
+    name = (y.name || '').trim()
+    description = (y.description || '').trim()
+    rest = full.slice(fmMatch[0].length)
+  }
+  if (!name) {
+    const h1 = rest.match(/^#\s+(.+)$/m)
+    if (h1 && h1[1]) name = h1[1].trim()
+  }
+  if (!description) {
+    const afterH1 = rest.replace(/^#\s+.+$/m, '').trim()
+    const para = afterH1.split(/\n\n+/).find((p) => {
+      const t = p.trim()
+      return t && !t.startsWith('#') && !t.startsWith('```')
+    })
+    if (para) description = para.replace(/\s*\n\s*/g, ' ').trim()
+  }
+  if (description.length > DESC_MAX) description = description.slice(0, DESC_MAX)
+  return { name, description }
+}
+
+function applyAutofillFromSkill(slugFromPackage: string, parsed: {name: string, description: string}) {
+  if (slugFromPackage) form.value.skillId = slugFromPackage
+  form.value.name = parsed.name || ''
+  form.value.description = parsed.description || ''
+}
+
+async function readSkillMdFromZipInstance(zip: JSZip, fileList: string[]) {
+  const skillPath = pickSkillMdPath(fileList)
+  if (!skillPath) return null
+  const f = zip.file(skillPath)
+  if (!f) return null
+  return f.async('string')
+}
+
+// === 文件操作事件 ===
+
 function triggerFileInput() {
   fileInput.value?.click()
 }
 
-function handleFileSelect(event: Event) {
+// input directory select
+async function handleFileSelect(event: Event) {
   const target = event.target as HTMLInputElement
-  if (target.files) {
-    selectedFiles.value = Array.from(target.files)
-    extractSkillInfo(target.files)
+  const files = target.files
+  if (!files || files.length === 0) return
+
+  error.value = ''
+  selectedFiles.value = []
+  let totalSize = 0
+
+  const zip = new JSZip()
+  const paths: string[] = []
+
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      if (!file) continue
+      const path = file.webkitRelativePath
+      zip.file(path, file)
+      paths.push(path)
+      selectedFiles.value.push({ name: path, size: file.size })
+      totalSize += file.size
+    }
+
+    if (!pickSkillMdPath(paths)) {
+      error.value = '上传的目录中未找到 SKILL.md 文件'
+      return
+    }
+
+    const skillText = await readSkillMdFromZipInstance(zip, paths)
+    const parsed = skillText != null ? parseSkillMdText(skillText) : { name: '', description: '' }
+    const firstFile = files[0]
+    const rootSlug = firstFile ? slugToSkillId(firstFile.webkitRelativePath.split('/')[0] || '') : ''
+
+    selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
+    selectedFileName.value = 'skill-package.zip'
+
+    applyAutofillFromSkill(rootSlug, parsed)
+  } catch (err: any) {
+    error.value = '处理文件失败: ' + err.message
   }
 }
 
-function handleZipSelect(event: Event) {
+// .zip file select
+async function handleZipSelect(event: Event) {
   const target = event.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    loadZipFile(target.files[0])
+  const file = target.files?.[0]
+  if (!file) return
+
+  error.value = ''
+  if (!file.name.toLowerCase().endsWith('.zip')) {
+    error.value = '请选择 .zip 文件'
+    return
+  }
+
+  const slug = slugToSkillId(file.name)
+  await processZipFile(file, slug)
+  if (zipInput.value) zipInput.value.value = ''
+}
+
+async function processZipFile(file: File, slug: string) {
+  try {
+    const zip = await JSZip.loadAsync(file)
+    const paths: string[] = []
+    zip.forEach((relPath, zf) => {
+      if (!zf.dir) paths.push(relPath)
+    })
+    
+    if (!pickSkillMdPath(paths)) {
+      error.value = 'zip 中未找到 SKILL.md'
+      return
+    }
+
+    const text = await readSkillMdFromZipInstance(zip, paths)
+    const parsed = text != null ? parseSkillMdText(text) : { name: '', description: '' }
+    
+    selectedZipBlob.value = file
+    selectedFileName.value = file.name
+    selectedFiles.value = paths.map(p => ({ name: p, size: 0 }))
+    applyAutofillFromSkill(slug, parsed)
+  } catch (err: any) {
+    error.value = '读取 zip 失败: ' + err.message
   }
 }
 
+// drop zone
 async function handleDrop(event: DragEvent) {
   isDragging.value = false
+  error.value = ''
   const items = event.dataTransfer?.items
-  if (items) {
-    const files: File[] = []
+
+  if (!items || items.length === 0) return
+
+  const first = items[0]
+  if (!first || first.kind !== 'file') {
+    error.value = '请拖拽文件夹或 zip 文件'
+    return
+  }
+
+  const entry = first.webkitGetAsEntry()
+  if (!entry) {
+    error.value = '无法读取拖拽项'
+    return
+  }
+
+  if (entry.isFile && entry.name.toLowerCase().endsWith('.zip')) {
+    const file = await new Promise<File>((resolve, reject) => {
+      ;(entry as FileSystemFileEntry).file(resolve, reject)
+    })
+    const slug = slugToSkillId(file.name)
+    await processZipFile(file, slug)
+    return
+  }
+
+  let rootSlug = ''
+  if (entry.isDirectory) {
+    rootSlug = slugToSkillId(entry.name)
+  }
+
+  const zip = new JSZip()
+  const paths: string[] = []
+  selectedFiles.value = []
+  let totalSize = 0
+
+  try {
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
       if (item && item.kind === 'file') {
-        const file = item.getAsFile()
-        if (file) {
-          if (file.name.endsWith('.zip')) {
-            await loadZipFile(file)
-            return
-          }
-          files.push(file)
+        const e = item.webkitGetAsEntry()
+        if (e) {
+          await traverseEntry(e, zip, '', paths, (size, fullPath) => {
+            selectedFiles.value.push({ name: fullPath, size })
+            totalSize += size
+          })
         }
       }
     }
-    if (files.length > 0) {
-      selectedFiles.value = files
-      extractSkillInfo(files as unknown as FileList)
+
+    if (!pickSkillMdPath(paths)) {
+      error.value = '上传的目录中未找到 SKILL.md 文件'
+      return
     }
+
+    const skillText = await readSkillMdFromZipInstance(zip, paths)
+    const parsed = skillText != null ? parseSkillMdText(skillText) : { name: '', description: '' }
+
+    selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
+    selectedFileName.value = 'skill-package.zip'
+    applyAutofillFromSkill(rootSlug, parsed)
+  } catch (err: any) {
+    error.value = '处理文件失败: ' + err.message
   }
 }
 
-async function loadZipFile(file: File) {
-  try {
-    const zip = await JSZip.loadAsync(file)
-    const files: File[] = []
-    zip.forEach((relativePath, zipEntry) => {
-      if (!zipEntry.dir) {
-        files.push(new File([], zipEntry.name))
-      }
+async function traverseEntry(entry: any, zip: JSZip, path: string, fileList: string[], onFile: (size: number, fullPath: string) => void) {
+  if (entry.isFile) {
+    const file = await new Promise<File>((resolve, reject) => {
+      entry.file(resolve, reject)
     })
-    selectedFiles.value = files
+    const fullPath = path + entry.name
+    zip.file(fullPath, file)
+    fileList.push(fullPath)
+    if (onFile) onFile(file.size, fullPath)
+  } else if (entry.isDirectory) {
+    const dirPath = path + entry.name + '/'
+    const reader = entry.createReader()
+    
+    const entries = await new Promise<any[]>((resolve, reject) => {
+      const results: any[] = []
+      const readEntries = () => {
+        reader.readEntries((items: any[]) => {
+          if (items.length === 0) {
+            resolve(results)
+          } else {
+            results.push(...items)
+            readEntries()
+          }
+        }, reject)
+      }
+      readEntries()
+    })
 
-    const skillMd = zip.file('SKILL.md')
-    if (skillMd) {
-      const content = await skillMd.async('string')
-      parseSkillMd(content, file.name)
+    for (const child of entries) {
+      await traverseEntry(child, zip, dirPath, fileList, onFile)
     }
-  } catch (err) {
-    error.value = t('publish.zipError')
-  }
-}
-
-function parseSkillMd(content: string, fallbackName: string) {
-  const lines = content.split('\n')
-  let name = ''
-  let description = ''
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]?.trim() || ''
-    if (line.startsWith('# ')) {
-      name = line.substring(2).trim()
-    } else if (name && !description && line && !line.startsWith('#')) {
-      description = line
-      break
-    }
-  }
-
-  if (!name) {
-    name = fallbackName.replace(/\.(zip|git|hg)/g, '').replace(/[_-]/g, ' ')
-  }
-
-  form.value.name = name
-  form.value.description = description.substring(0, 500)
-  form.value.skillId = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-}
-
-function extractSkillInfo(files: FileList) {
-  const fileArray = Array.from(files)
-  const firstFile = fileArray[0]
-  const skillMdFile = fileArray.find(f => f.name === 'SKILL.md')
-
-  if (skillMdFile) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const content = e.target?.result as string
-      parseSkillMd(content, firstFile?.webkitRelativePath || firstFile?.name || 'new-skill')
-    }
-    reader.readAsText(skillMdFile)
-  } else {
-    const folderName = firstFile?.webkitRelativePath?.split('/')[0] || firstFile?.name || 'new-skill'
-    form.value.skillId = folderName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-    form.value.name = folderName.replace(/[_-]/g, ' ')
   }
 }
 
 function clearFiles() {
   selectedFiles.value = []
+  selectedZipBlob.value = null
+  selectedFileName.value = ''
+  form.value.skillId = ''
+  form.value.name = ''
+  form.value.description = ''
   if (fileInput.value) fileInput.value.value = ''
   if (zipInput.value) zipInput.value.value = ''
 }
@@ -352,42 +557,75 @@ function formatFileSize(bytes: number): string {
 }
 
 async function handlePublish() {
-  if (!canPublish.value || isPublishing.value) return
+  if (!selectedZipBlob.value || isPublishing.value) return
 
   error.value = ''
+  
+  const skillId = form.value.skillId.trim()
+  if (!skillId) {
+    error.value = '无法从上传包得到 Skill ID，请使用合法文件夹名或 zip 文件名'
+    return
+  }
+  if (!/^[a-z0-9\-_]+$/.test(skillId)) {
+    error.value = 'Skill ID 只能包含小写字母、数字、下划线和连字符'
+    return
+  }
+
+  if (selectedExistingId.value && selectedExistingId.value !== skillId) {
+    error.value = '上传包的 Skill ID 与下拉框所选已有 Skill 不一致，请重新选择或更换压缩包'
+    return
+  }
+
+  if (isNewSkill.value) {
+    const name = form.value.name.trim()
+    if (!name) {
+      error.value = 'SKILL.md 中缺少可用的 Skill 名称'
+      return
+    }
+    const desc = form.value.description.trim()
+    if (!desc) {
+      error.value = 'SKILL.md 中缺少描述'
+      return
+    }
+    if (desc.length > DESC_MAX) {
+      error.value = `描述不能超过 ${DESC_MAX} 字`
+      return
+    }
+  }
+
   isPublishing.value = true
   progress.value = 0
   progressText.value = t('publish.preparing')
 
   try {
-    const zip = new JSZip()
-
-    for (const file of selectedFiles.value) {
-      const path = file.webkitRelativePath || file.name
-      zip.file(path, file)
-    }
-
-    progressText.value = t('publish.compressing')
-    progress.value = 30
-
-    const zipBlob = await zip.generateAsync({ type: 'blob' })
-
     progressText.value = t('publish.uploading')
-    progress.value = 60
+    // 模拟进度条
+    const progressInterval = setInterval(() => {
+      if (progress.value < 90) progress.value += Math.random() * 15
+    }, 200)
 
     const formData = new FormData()
-    formData.append('file', zipBlob, 'skill.zip')
-    if (form.value.skillId) formData.append('skill_id', form.value.skillId)
-    if (form.value.changelog) formData.append('changelog', form.value.changelog)
+    formData.append('zip_file', selectedZipBlob.value, selectedFileName.value)
+    formData.append('skill_id', skillId)
+    
+    if (isNewSkill.value) {
+      formData.append('name', form.value.name.trim())
+      formData.append('description', form.value.description.trim())
+    }
+    
+    if (form.value.changelog.trim()) {
+      formData.append('changelog', form.value.changelog.trim())
+    }
 
     const response = await skillsApi.upload(formData)
+    clearInterval(progressInterval)
 
     progress.value = 100
     progressText.value = t('publish.completed')
 
     setTimeout(() => {
       router.push('/')
-    }, 500)
+    }, 1000)
   } catch (err: any) {
     error.value = err.message || t('publish.uploadFailed')
     isPublishing.value = false

@@ -78,7 +78,7 @@
                 type="text"
                 id="username"
                 v-model="username"
-                placeholder='"admin"'
+                placeholder='admin'
                 autocomplete="username"
                 required
                 minlength="3"
