@@ -654,6 +654,7 @@ section {
 .tabs {
   display: flex;
   gap: 4px;
+  margin-top: 16px;
   margin-bottom: 16px;
   background: var(--bg-card);
   padding: 4px;
@@ -968,4 +969,47 @@ section {
 .fade-in.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ===== Scenario Tabs (New) ===== */
+.scenario-section {
+  margin-top: 40px;
+}
+.scenario-tabs {
+  margin: 0 auto 24px auto;
+  display: flex;
+  justify-content: center;
+  background: var(--bg-card);
+  padding: 6px;
+  border-radius: 12px;
+  width: fit-content;
+  border: 1px solid var(--border-color);
+}
+.scenario-tabs .tab {
+  font-size: 1rem;
+  padding: 10px 24px;
+}
+.scenario-content {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+.scenario-content.active {
+  display: block;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-prompt {
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+.chat-prompt::before {
+  content: '👤 你: ';
+  color: var(--accent-blue);
 }

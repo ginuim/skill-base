@@ -47,11 +47,11 @@
               <span class="highlight">Skill</span> Base
             </h1>
             <p class="hero-subtitle fade-in">
-              专为中小团队打造的 AI Agent Skill 私有化管理平台<br>
-              <span style="font-size: 1rem; color: var(--text-secondary); margin-top: 8px; display: inline-block;">零依赖，一行 npx 命令即可在内网启动</span>
+              跨角色的 AI Agent Skill 私有化知识库<br>
+              <span style="font-size: 1rem; color: var(--text-secondary); margin-top: 8px; display: inline-block;">无论是写需求、撸代码还是周报，让 AI 秒变懂公司业务的老员工</span>
             </p>
             <p class="hero-description fade-in">
-              告别跨项目复制粘贴提示词，让你的 Cursor、OpenClaw、Cline 等 AI 助手瞬间掌握团队内部的最佳实践与业务规范。
+              告别四处复制粘贴"提示词"和"背景设定"。让你的 Cursor、Claude、ChatGPT 瞬间掌握团队专属的业务黑话、产品模板与代码规范，零依赖，一行命令在内网启动。
             </p>
             <div class="hero-cta fade-in">
               <button class="btn copy-btn" id="hero-copy-btn">
@@ -86,78 +86,184 @@
     <!-- What is Agent Skill Section -->
     <section class="what-is-skill" id="what-is-skill">
       <div class="container">
-        <h2 class="section-title fade-in">什么是 Agent Skill？</h2>
+        <h2 class="section-title fade-in">把团队的「潜规则」变成 AI 的「出厂设置」</h2>
         <p class="section-subtitle fade-in">
-          把团队的「潜规则」变成 AI 的「出厂设置」
+          无论是产品、研发还是测试，告别每次对话都要重新教 AI 做事的烦恼
         </p>
 
-        <div class="comparison-grid fade-in">
-          <div class="comparison-card before">
-            <div class="comparison-label">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：AI 像个刚入职的外包
-            </div>
-            <div class="comparison-code">
-              <div style="color: var(--text-primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <span style="color: var(--accent-blue)">👩‍💻 开发者：</span>"帮我写个用户登录接口"
-              </div>
-              <pre><code><span class="comment">// 🤖 AI 默写了通用的教科书代码：</span>
-<span class="keyword">import</span> jwt <span class="keyword">from</span> <span class="string">'jsonwebtoken'</span>;
+        <div class="scenario-section fade-in">
+          <div class="tabs scenario-tabs">
+            <button class="tab active" data-scenario="scenario-dev">👩‍💻 研发编码</button>
+            <button class="tab" data-scenario="scenario-pm">👩‍💼 产品需求</button>
+            <button class="tab" data-scenario="scenario-qa">🕵️ 测试用例</button>
+            <button class="tab" data-scenario="scenario-daily">☕️ 日常办公</button>
+          </div>
 
+          <!-- 研发场景 -->
+          <div id="scenario-dev" class="scenario-content active">
+            <div class="comparison-grid">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：通用教科书代码
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"帮我写个用户登录接口"</div>
+<pre><code><span class="comment">// ❌ 不懂公司统一鉴权与 Redis 封装</span>
+<span class="keyword">import</span> jwt <span class="keyword">from</span> <span class="string">'jsonwebtoken'</span>;
 <span class="keyword">export</span> <span class="keyword">const</span> <span class="function">login</span> = <span class="keyword">async</span> (req, res) => {
-  <span class="comment">// ❌ 不知道公司用什么统一鉴权</span>
-  <span class="comment">// ❌ 不知道怎么连公司的 Redis</span>
-  <span class="comment">// ❌ 缺少内部审计日志(Audit Log)</span>
   <span class="keyword">const</span> token = jwt.<span class="function">sign</span>({ id }, <span class="string">'secret'</span>);
   <span class="keyword">return</span> res.<span class="function">json</span>({ token });
 }</code></pre>
-            </div>
-          </div>
-
-          <div class="comparison-arrow">→</div>
-
-          <div class="comparison-card after">
-            <div class="comparison-label">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 注入 Skill 后：AI 秒变团队老员工
-            </div>
-            <div class="comparison-code">
-              <div style="color: var(--text-primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <span style="color: var(--accent-blue)">👩‍💻 开发者：</span>"帮我写个用户登录接口"
+                </div>
               </div>
-              <pre><code><span class="comment">// 🤖 AI 完美适配了公司的业务架构：</span>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> 注入 Skill 后：秒变老员工
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"帮我写个用户登录接口"</div>
+<pre><code><span class="comment">// ✅ 自动引入内部 SSO 组件与合规日志</span>
 <span class="keyword">import</span> { ssoClient } <span class="keyword">from</span> <span class="string">'@company/sso'</span>;
 <span class="keyword">import</span> { auditLogger } <span class="keyword">from</span> <span class="string">'@core/logger'</span>;
-
 <span class="keyword">export</span> <span class="keyword">const</span> <span class="function">login</span> = <span class="keyword">async</span> (req, res) => {
-  <span class="comment">// ✅ 自动使用了内部 SSO 登录组件</span>
   <span class="keyword">const</span> user = <span class="keyword">await</span> ssoClient.<span class="function">verify</span>(req.body);
-  <span class="comment">// ✅ 自动按照规范记录了合规日志</span>
   auditLogger.<span class="function">info</span>(<span class="string">'USER_LOGIN'</span>, user.id);
   <span class="keyword">return</span> <span class="function">SuccessResponse</span>(user);
 }</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 产品场景 -->
+          <div id="scenario-pm" class="scenario-content">
+            <div class="comparison-grid">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：啰嗦且无重点
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"写一个积分抽奖的 PRD"</div>
+<pre><span class="output">一、背景
+这是一个为了提升活跃度的活动。
+二、功能描述
+1. 用户点击抽奖按钮。
+2. 扣除积分。
+3. 获得奖品。
+（❌ 缺乏埋点要求、异常流、UI规范）</span></pre>
+                </div>
+              </div>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> 注入 Skill 后：标准大厂规范
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"写一个积分抽奖的 PRD"</div>
+<pre><span class="output">【需求编号】ACT-2024
+【目标受众】V3及以上高价值用户（基于业务词典）
+【异常流程】
+- 并发防资损：调用 @Promo/Lock 接口拦截
+【数据埋点要求】
+- 事件名：btn_lottery_click
+- 携带参数：user_id, source_type
+（✅ 自动套用公司 PRD 模板与埋点规范）</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 测试场景 -->
+          <div id="scenario-qa" class="scenario-content">
+            <div class="comparison-grid">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：凭空捏造测试
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"为购物车接口写测试脚本"</div>
+<pre><code><span class="comment">// ❌ 使用了公司没在用的测试框架，且不知道测试账号</span>
+<span class="keyword">import</span> axios <span class="keyword">from</span> <span class="string">'axios'</span>;
+test(<span class="string">'add to cart'</span>, <span class="keyword">async</span> () => {
+  <span class="keyword">const</span> res = <span class="keyword">await</span> axios.post(<span class="string">'http://api/cart'</span>);
+  expect(res.status).toBe(200);
+});</code></pre>
+                </div>
+              </div>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> 注入 Skill 后：精准贴合基建
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"为购物车接口写测试脚本"</div>
+<pre><code><span class="comment">// ✅ 自动使用公司的 Playwright 封装与测试网关</span>
+<span class="keyword">import</span> { apiTest, getMockUser } <span class="keyword">from</span> <span class="string">'@qa/core'</span>;
+apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keyword">async</span> ({ request }) => {
+  <span class="keyword">const</span> user = <span class="keyword">await</span> getMockUser(<span class="string">'VIP'</span>); <span class="comment">// 自动获取环境数据</span>
+  <span class="keyword">const</span> res = <span class="keyword">await</span> request.post(<span class="string">'/gw/api/v2/cart'</span>);
+  expect(res).toHaveCode(<span class="string">'SUCCESS'</span>);
+});</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 日常场景 -->
+          <div id="scenario-daily" class="scenario-content">
+            <div class="comparison-grid">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：流水账式汇报
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"根据这几天的记录帮我写个周报"</div>
+<pre><span class="output">本周工作总结：
+1. 周一开了个会，讨论了首页改版。
+2. 周二写了接口。
+3. 周三修复了几个bug。
+4. 下周计划继续做项目。</span></pre>
+                </div>
+              </div>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> 注入 Skill 后：结构化向上管理
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"根据这几天的记录帮我写个周报"</div>
+<pre><span class="output">🎯 【OKR 对齐进展】
+- 首页改版（O1-KR2）：完成核心接口，进度 60%，符合预期。
+
+🔥 【核心产出与价值】
+- 修复支付链路 3 个 P2 缺陷，预计降低客诉率 5%。
+
+🚧 【风险与求助】
+- UI 走查延迟，可能影响下周三的发版，需协调资源。
+（✅ 自动套用团队 OKR 汇报模板与结构）</span></pre>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="key-points">
           <div class="key-point fade-in">
-            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-            <h4>业务上下文</h4>
-            <p>告诉 AI 你们的数据库表前缀、支付网关怎么调、账号权限怎么验证，不再瞎编 API。</p>
+            <div class="key-point-icon">📚</div>
+            <h4>业务知识黑话库</h4>
+            <p>告诉 AI 公司的专有名词、业务背景、产品线划分。无论哪个岗位的同事在写 Prompt，AI 都能瞬间 Get 到业务上下文。</p>
           </div>
           <div class="key-point fade-in">
-            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-            <h4>工程与架构规范</h4>
-            <p>从目录结构、变量命名、到组件封装原则，让 AI 写出的代码就像是出自一人之手。</p>
+            <div class="key-point-icon">⚙️</div>
+            <h4>工程与基建规范</h4>
+            <p>从代码目录结构、组件封装、到自动化测试的断言写法，把高手的最佳实践沉淀下来，让 AI 严格遵守。</p>
           </div>
           <div class="key-point fade-in">
-            <div class="key-point-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
-            <h4>工作流约定</h4>
-            <p>连 Git Commit 格式、PR 描述模板、Code Review 重点都可以统一定义，一键注入 IDE。</p>
+            <div class="key-point-icon">📝</div>
+            <h4>全职能工作流模板</h4>
+            <p>管理产品 PRD 模板、Git Commit 格式、Code Review 重点、甚至汇报 PPT 结构，一键下发到团队每个人的 IDE 或浏览器中。</p>
           </div>
-        </div>
-
-        <div class="conclusion fade-in">
-          <p>Skill Base 就是你们团队的 <span class="highlight">AI 知识库与规范分发中心</span></p>
         </div>
       </div>
     </section>
@@ -186,9 +292,9 @@
             <div class="pain-point-number">痛点 02</div>
             <h3>告别四处复制粘贴</h3>
             <p class="problem">
-              要手动共享 skill 文件，版本混乱，更新困难，团队成员各用各的。
+              每次换项目、带新人，都要把长长的"系统提示词"和"业务背景"重新发一遍，版本混乱。
             </p>
-            <div class="solution">像 npm 一样安装和更新</div>
+            <div class="solution">像 npm 一样安装和更新团队知识</div>
           </div>
 
           <div class="pain-point fade-in">
@@ -442,14 +548,16 @@ EOF</span>
   <script>
     // Typewriter Effect for Terminal
     const terminalLines = [
-      { type: 'output', text: '# 快速启动服务端', class: 'comment', delay: 30 },
+      { type: 'output', text: '# 启动本地知识库服务', class: 'comment', delay: 30 },
+
       { type: 'command', prompt: '~', text: 'npx skill-base -d ./skill-data -p 8000', delay: 80 },
       { type: 'output', text: '', delay: 300 },
-      { type: 'output', text: '# 安装客户端', class: 'comment', delay: 30 },
+      { type: 'output', text: '# 安装客户端（可选）', class: 'comment', delay: 30 },
       { type: 'command', prompt: '~', text: 'npm install -g skill-base-cli', delay: 50 },
       { type: 'command', prompt: '~', text: 'skb init -s http://your-team-server', delay: 50 },
       { type: 'output', text: '', delay: 300 },
       { type: 'output', text: '# 像用 npm 一样管理你的 AI Skills', class: 'comment', delay: 30 },
+      { type: 'command', prompt: '~', text: 'skb install pm-prd-template', delay: 50 },
       { type: 'command', prompt: '~', text: 'skb install team-vue-rules --ide cursor', delay: 50 }
     ];
 
@@ -540,18 +648,23 @@ EOF</span>
 
     // Tabs
     function initTabs() {
-      const tabs = document.querySelectorAll('.tab');
-      const contents = document.querySelectorAll('.tab-content');
+      // 通用的 Tab 切换逻辑
+      const tabGroups = [
+        { tabs: document.querySelectorAll('.tabs:not(.scenario-tabs) .tab'), contents: document.querySelectorAll('.quick-start .tab-content') },
+        { tabs: document.querySelectorAll('.scenario-tabs .tab'), contents: document.querySelectorAll('.scenario-content') }
+      ];
 
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          const targetId = tab.dataset.tab;
+      tabGroups.forEach(group => {
+        group.tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            const targetId = tab.dataset.tab || tab.dataset.scenario;
 
-          tabs.forEach(t => t.classList.remove('active'));
-          contents.forEach(c => c.classList.remove('active'));
+            group.tabs.forEach(t => t.classList.remove('active'));
+            group.contents.forEach(c => c.classList.remove('active'));
 
-          tab.classList.add('active');
-          document.getElementById(targetId).classList.add('active');
+            tab.classList.add('active');
+            document.getElementById(targetId).classList.add('active');
+          });
         });
       });
     }
