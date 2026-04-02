@@ -120,6 +120,14 @@ const zh: Record<string, string> = {
   'skill.addCollaboratorFailed': '添加协作者失败',
   'skill.removeCollaboratorFailed': '移除协作者失败',
   'skill.deleteFailed': '删除 Skill 失败',
+  'skill.editVersionTitleDesc': '编辑版本介绍',
+  'skill.editVersionTitleChangelog': '编辑更新日志',
+  'skill.editVersionLabelDescription': '版本介绍 (Skill Description)',
+  'skill.editVersionLabelChangelog': '更新日志 (Changelog)',
+  'skill.editVersionPlaceholderDescription': '当前版本的介绍说明...',
+  'skill.editVersionPlaceholderChangelog': '更新日志...',
+  'skill.editVersionSuccess': '更新成功',
+  'skill.editVersionFailed': '更新失败',
 
   // Collaborators
   'collab.modal': '添加协作者',
@@ -486,6 +494,14 @@ const en: Record<string, string> = {
   'skill.addCollaboratorFailed': 'Failed to add collaborator',
   'skill.removeCollaboratorFailed': 'Failed to remove collaborator',
   'skill.deleteFailed': 'Failed to delete skill',
+  'skill.editVersionTitleDesc': 'Edit version description',
+  'skill.editVersionTitleChangelog': 'Edit changelog',
+  'skill.editVersionLabelDescription': 'Description (Skill Description)',
+  'skill.editVersionLabelChangelog': 'Changelog',
+  'skill.editVersionPlaceholderDescription': 'Description for this version...',
+  'skill.editVersionPlaceholderChangelog': 'Changelog...',
+  'skill.editVersionSuccess': 'Updated successfully',
+  'skill.editVersionFailed': 'Update failed',
 
   // Collaborators
   'collab.modal': 'Add Collaborator',

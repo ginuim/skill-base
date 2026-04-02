@@ -90,7 +90,8 @@ async function publishRoutes(fastify, options) {
       version,
       changelog || '',
       zipRelativePath,
-      request.user.id
+      request.user.id,
+      description || ''
     );
 
     // 更新 skill 的最新版本

@@ -43,9 +43,21 @@
             <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
             {{ skill.name }}
           </h1>
-          <p class="text-base-400 text-sm leading-relaxed max-w-5xl mb-6">
-            {{ skill.description || t('state.noDesc') }}
-          </p>
+          <div class="flex items-start justify-between mb-6 group">
+            <p class="text-base-400 text-sm leading-relaxed max-w-5xl whitespace-pre-wrap">
+              {{ currentVersionObj?.description || skill.description || t('state.noDesc') }}
+            </p>
+            <button
+              v-if="canManageCollaborators && currentVersionObj"
+              @click="openEditVersionModal(currentVersionObj, 'description')"
+              class="opacity-0 group-hover:opacity-100 p-1.5 text-base-400 hover:text-neon-400 transition-all flex-shrink-0 bg-base-950 border border-base-800 rounded ml-4"
+              title="Edit Version Info"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+          </div>
 
           <!-- Version Select & Actions -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800">
@@ -280,7 +292,7 @@
                   <!-- Timeline dot -->
                   <span
                     class="absolute -left-[21px] top-2 w-2.5 h-2.5 rounded-full ring-4 ring-base-900 transition-colors"
-                    :class="index === 0 ? 'bg-neon-400 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 group-hover:bg-neon-500'"
+                    :class="v.version === skill.latest_version ? 'bg-neon-400 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 group-hover:bg-neon-500'"
                   ></span>
 
                   <div class="flex items-start justify-between gap-4 p-3 -m-3 rounded-lg transition-all duration-200 group-hover:bg-white/5">
@@ -288,13 +300,13 @@
                       <div class="flex items-center gap-2 flex-wrap mb-1">
                         <span
                           class="text-xs px-2 py-0.5 rounded font-mono border transition-colors"
-                          :class="index === 0 ? 'text-neon-400 border-neon-500/30 bg-neon-400/5' : 'text-base-400 border-base-800 group-hover:text-neon-400 group-hover:border-neon-500/30'"
+                          :class="v.version === skill.latest_version ? 'text-neon-400 border-neon-500/30 bg-neon-400/5' : 'text-base-400 border-base-800 group-hover:text-neon-400 group-hover:border-neon-500/30'"
                         >
                           {{ v.version }}
                         </span>
-                        <span v-if="index === 0" class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>
+                        <span v-if="v.version === skill.latest_version" class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>
                       </div>
-                      <p class="text-sm font-medium mt-2" :class="index === 0 ? 'text-white' : 'text-base-200'">
+                      <p class="text-sm font-medium mt-2" :class="v.version === skill.latest_version ? 'text-white' : 'text-base-200'">
                         {{ v.changelog || t('skill.noChangelog') }}
                       </p>
                       <p class="text-xs text-base-400 mt-1 flex items-center gap-1.5 font-mono">
@@ -303,10 +315,33 @@
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                       <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at) }}</span>
+                      
+                      <button
+                        v-if="canManageCollaborators && v.version !== skill.latest_version"
+                        title="Set as Head"
+                        class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 transition-all"
+                        @click.stop="setHeadVersion(v.version)"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        </svg>
+                      </button>
+
+                      <button
+                        v-if="canManageCollaborators"
+                        title="Edit Version"
+                        class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 transition-all"
+                        @click.stop="openEditVersionModal(v, 'changelog')"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                      </button>
+
                       <button
                         :title="t('skill.download')"
                         class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 hover:shadow-[0_0_10px_rgba(0,255,163,0.15)] transition-all"
-                        @click="downloadVersion(v.version)"
+                        @click.stop="downloadVersion(v.version)"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -382,6 +417,42 @@
         </div>
       </div>
     </div>
+
+    <!-- Edit Version Modal -->
+    <div v-if="showEditVersionModal" class="modal" @click.self="showEditVersionModal = false">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>{{ editVersionMode === 'description' ? t('skill.editVersionTitleDesc') : t('skill.editVersionTitleChangelog') }} ({{ editVersionForm.version }})</h3>
+          <button class="modal-close" @click="showEditVersionModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div v-if="editVersionMode === 'description'" class="form-group">
+            <label>{{ t('skill.editVersionLabelDescription') }}</label>
+            <textarea
+              v-model="editVersionForm.description"
+              :placeholder="t('skill.editVersionPlaceholderDescription')"
+              class="form-input min-h-[100px]"
+            ></textarea>
+          </div>
+          <div v-if="editVersionMode === 'changelog'" class="form-group">
+            <label>{{ t('skill.editVersionLabelChangelog') }}</label>
+            <textarea
+              v-model="editVersionForm.changelog"
+              :placeholder="t('skill.editVersionPlaceholderChangelog')"
+              class="form-input min-h-[100px]"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showEditVersionModal = false">{{ t('btn.cancel') }}</button>
+          <button class="btn btn-primary" @click="submitEditVersion" :disabled="isEditingVersion">
+            <span v-if="isEditingVersion" class="spinner spinner-sm mr-2"></span>
+            {{ t('btn.save') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -390,7 +461,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
-import { versionsApi, type SkillVersion } from '@/services/api'
+import { versionsApi, skillsApi, type SkillVersion } from '@/services/api'
 import { globalToast } from '@/composables/useToast'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -408,6 +479,9 @@ const skill = computed(() => skillsStore.currentSkill)
 // Version management
 const versions = ref<SkillVersion[]>([])
 const currentVersion = ref<string>('')
+const currentVersionObj = computed(() => {
+  return versions.value.find(v => v.version === currentVersion.value)
+})
 const isLoadingZip = ref(false)
 const currentZip = ref<any>(null)
 
@@ -429,6 +503,10 @@ const isInitializing = ref(true)
 const isVersionHistoryCollapsed = ref(false)
 const showAddCollaboratorModal = ref(false)
 const showDeleteModal = ref(false)
+const showEditVersionModal = ref(false)
+const editVersionMode = ref<'description' | 'changelog'>('description')
+const editVersionForm = ref({ version: '', description: '', changelog: '' })
+const isEditingVersion = ref(false)
 const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
 const deleteConfirmInput = ref('')
@@ -791,6 +869,56 @@ function handleEscKey(e: KeyboardEvent) {
     toggleFullscreen()
   }
 }
+
+function openEditVersionModal(v: SkillVersion, mode: 'description' | 'changelog') {
+  editVersionMode.value = mode
+  editVersionForm.value = {
+    version: v.version,
+    description: v.description || skill.value?.description || '',
+    changelog: v.changelog || ''
+  }
+  showEditVersionModal.value = true
+}
+
+async function submitEditVersion() {
+  if (!editVersionForm.value.version) return
+  isEditingVersion.value = true
+  try {
+    const updated = await versionsApi.update(skillId.value, editVersionForm.value.version, {
+      description: editVersionForm.value.description,
+      changelog: editVersionForm.value.changelog
+    })
+    
+    // 更新本地数据
+    const idx = versions.value.findIndex(v => v.version === updated.version)
+    if (idx !== -1) {
+      versions.value[idx] = { ...versions.value[idx], ...updated }
+    }
+    
+    // 如果编辑的是当前选中的版本且也需要更新全局技能信息（可根据需求，如果只编辑版本不需要更新全局）
+    
+    showEditVersionModal.value = false
+    globalToast.success(t('skill.editVersionSuccess'))
+  } catch (err: any) {
+    globalToast.error(err.message || t('skill.editVersionFailed'))
+  } finally {
+    isEditingVersion.value = false
+  }
+}
+
+async function setHeadVersion(version: string) {
+  if (!confirm(`确定将 ${version} 设置为 Head 版本吗？`)) return
+  try {
+    const res = await skillsApi.setHead(skillId.value, version)
+    if (res.ok && skill.value) {
+      skill.value.latest_version = res.latest_version
+      globalToast.success('设置成功')
+    }
+  } catch (err: any) {
+    globalToast.error(err.message || '设置失败')
+  }
+}
+
 
 
 </script>

@@ -2,11 +2,11 @@ const db = require('../database');
 
 const VersionModel = {
   // 创建新版本
-  create(skillId, version, changelog, zipPath, uploaderId) {
+  create(skillId, version, changelog, zipPath, uploaderId, description) {
     const result = db.prepare(`
-      INSERT INTO skill_versions (skill_id, version, changelog, zip_path, uploader_id)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(skillId, version, changelog || '', zipPath, uploaderId);
+      INSERT INTO skill_versions (skill_id, version, changelog, zip_path, uploader_id, description)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(skillId, version, changelog || '', zipPath, uploaderId, description || '');
     return this.findById(result.lastInsertRowid);
   },
 
@@ -51,6 +51,16 @@ const VersionModel = {
       ORDER BY sv.created_at DESC
       LIMIT 1
     `).get(skillId);
+  },
+
+  // 更新版本描述和更新日志
+  update(id, description, changelog) {
+    db.prepare(`
+      UPDATE skill_versions
+      SET description = ?, changelog = ?
+      WHERE id = ?
+    `).run(description, changelog, id);
+    return this.findById(id);
   }
 };
 

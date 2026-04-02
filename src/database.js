@@ -116,6 +116,7 @@ try {
 } catch(e) {}
 try { db.exec("ALTER TABLE users ADD COLUMN created_by INTEGER REFERENCES users(id)"); } catch(e) {}
 try { db.exec("ALTER TABLE users ADD COLUMN name TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE skill_versions ADD COLUMN description TEXT"); } catch(e) {}
 
 // 数据迁移：为已有 Skills 的 owner 插入 skill_collaborators 记录
 const existingSkills = db.prepare('SELECT id, owner_id FROM skills').all();

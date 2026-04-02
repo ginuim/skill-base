@@ -178,6 +178,7 @@ export interface SkillVersion {
   skill_id: number
   version: string
   changelog: string
+  description?: string
   file_count: number
   total_size: number
   created_by: number
@@ -197,6 +198,7 @@ export const skillsApi = {
   update: (id: string, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
   delete: (id: string) => apiDelete(`/skills/${id}`),
   upload: (data: FormData) => apiPost('/skills/publish', data),
+  setHead: (id: string, version: string) => apiPut<{ ok: boolean, skill_id: string, latest_version: string }>(`/skills/${id}/head`, { version }),
 }
 
 // ===== Versions API =====
@@ -204,6 +206,7 @@ export const skillsApi = {
 export const versionsApi = {
   list: (skillId: string) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),
   downloadUrl: (skillId: string, version: string) => `${API_BASE}/skills/${skillId}/versions/${version}/download`,
+  update: (skillId: string, version: string, data: { description?: string; changelog?: string }) => apiPatch<SkillVersion>(`/skills/${skillId}/versions/${version}`, data),
 }
 
 // ===== Collaborators API =====

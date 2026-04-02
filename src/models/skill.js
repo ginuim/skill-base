@@ -40,6 +40,30 @@ const SkillModel = {
     return this.findById(id);
   },
 
+  // 更新 Skill
+  update(id, name, description) {
+    const fields = [];
+    const values = [];
+    if (name !== undefined) {
+      fields.push('name = ?');
+      values.push(name);
+    }
+    if (description !== undefined) {
+      fields.push('description = ?');
+      values.push(description);
+    }
+    if (fields.length === 0) return this.findById(id);
+    
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+    
+    db.prepare(`
+      UPDATE skills SET ${fields.join(', ')} WHERE id = ?
+    `).run(...values);
+    
+    return this.findById(id);
+  },
+
   // 更新 latest_version 和 updated_at
   updateLatestVersion(id, version) {
     db.prepare(`
