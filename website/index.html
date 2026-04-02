@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="alternate icon" sizes="32x32" href="./favicon-32x32.png">
   <link rel="alternate icon" sizes="16x16" href="./favicon-16x16.png">
@@ -15,7 +16,7 @@
 <body>
     <div class="landing-page" id="top">
     <!-- Navbar -->
-    <nav class="navbar">
+    <nav class="navbar" id="site-navbar" aria-label="主导航">
       <div class="container">
         <a href="#top" class="nav-logo">
           <svg class="nav-logo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -25,14 +26,21 @@
           </svg>
           <span class="nav-logo-text"><span class="highlight">Skill</span> Base</span>
         </a>
-        <div class="nav-links">
+        <div class="nav-links" id="nav-menu">
           <a href="#what-is-skill">Agent Skill</a>
           <a href="#why">为什么需要</a>
           <a href="#features">核心特性</a>
           <a href="#quick-start">快速开始</a>
           <a href="#philosophy">设计哲学</a>
         </div>
-        <a href="/skills" class="nav-cta">进入平台 →</a>
+        <div class="nav-actions">
+          <button type="button" class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
+            <span class="nav-mobile-toggle-bar" aria-hidden="true"></span>
+            <span class="nav-mobile-toggle-bar" aria-hidden="true"></span>
+            <span class="nav-mobile-toggle-bar" aria-hidden="true"></span>
+          </button>
+          <a href="/skills" class="nav-cta">进入平台 →</a>
+        </div>
       </div>
     </nav>
 
@@ -669,20 +677,22 @@ EOF</span>
     function initTabs() {
       // 通用的 Tab 切换逻辑
       const tabGroups = [
-        { tabs: document.querySelectorAll('.tabs:not(.scenario-tabs) .tab'), contents: document.querySelectorAll('.quick-start .tab-content') },
-        { tabs: document.querySelectorAll('.scenario-tabs .tab'), contents: document.querySelectorAll('.scenario-content') }
+        { tabs: document.querySelectorAll('.quick-start .tabs .tab'), contents: document.querySelectorAll('.quick-start .tab-content') },
+        { tabs: document.querySelectorAll('.scenario-section .scenario-tabs .tab'), contents: document.querySelectorAll('.scenario-section .scenario-content') }
       ];
 
       tabGroups.forEach(group => {
         group.tabs.forEach(tab => {
           tab.addEventListener('click', () => {
             const targetId = tab.dataset.tab || tab.dataset.scenario;
+            if (!targetId) return;
 
             group.tabs.forEach(t => t.classList.remove('active'));
             group.contents.forEach(c => c.classList.remove('active'));
 
             tab.classList.add('active');
-            document.getElementById(targetId).classList.add('active');
+            const panel = document.getElementById(targetId);
+            if (panel) panel.classList.add('active');
           });
         });
       });
@@ -719,12 +729,38 @@ EOF</span>
       });
     }
 
+    function initMobileNav() {
+      const navbar = document.getElementById('site-navbar');
+      const toggle = document.getElementById('nav-mobile-toggle');
+      const menu = document.getElementById('nav-menu');
+      if (!navbar || !toggle || !menu) return;
+
+      function setOpen(open) {
+        navbar.classList.toggle('nav-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? '关闭导航菜单' : '打开导航菜单');
+      }
+
+      toggle.addEventListener('click', () => {
+        setOpen(!navbar.classList.contains('nav-open'));
+      });
+
+      menu.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener('click', () => setOpen(false));
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setOpen(false);
+      });
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       typeWriter();
       initScrollAnimations();
       initTabs();
       initCopyButtons();
+      initMobileNav();
     });
   </script>
 </body>

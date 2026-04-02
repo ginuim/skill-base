@@ -247,7 +247,7 @@
                 <input
                   type="radio"
                   v-model="addForm.role"
-                  value="user"
+                  value="developer"
                   class="w-4 h-4 accent-neon-400"
                 />
                 <span class="text-white font-mono text-sm">{{ t('admin.roleUser') }}</span>
@@ -325,7 +325,7 @@
                 <input
                   type="radio"
                   v-model="editForm.role"
-                  value="user"
+                  value="developer"
                   class="w-4 h-4 accent-neon-400"
                 />
                 <span class="text-white font-mono text-sm">{{ t('admin.roleUser') }}</span>
@@ -496,11 +496,11 @@ const addForm = ref({
   username: '',
   password: '',
   name: '',
-  role: 'user' as 'admin' | 'user'
+  role: 'developer' as 'admin' | 'developer'
 })
 
 function showAddUserModal() {
-  addForm.value = { username: '', password: '', name: '', role: 'user' }
+  addForm.value = { username: '', password: '', name: '', role: 'developer' }
   showPassword.value = false
   showAddModal.value = true
 }
@@ -542,7 +542,7 @@ const editForm = ref({
   id: 0,
   username: '',
   name: '',
-  role: 'user' as 'admin' | 'user',
+  role: 'developer' as 'admin' | 'developer',
   disabled: false,
   newPassword: ''
 })

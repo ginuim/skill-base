@@ -136,7 +136,7 @@ export interface User {
   username: string
   name: string | null
   email: string | null
-  role: 'admin' | 'user'
+  role: 'admin' | 'developer'
   created_at: string
   disabled?: boolean
 }
