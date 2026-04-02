@@ -10,6 +10,7 @@
   <link rel="manifest" href="./site.webmanifest">
   <title>Skill Base - AI Agent Skill 私有化管理平台</title>
   <link rel="stylesheet" href="css/index.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div class="landing-page" id="top">
@@ -250,17 +251,23 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
 
         <div class="key-points">
           <div class="key-point fade-in">
-            <div class="key-point-icon">📚</div>
+            <div class="key-point-icon">
+              <i data-lucide="book-open"></i>
+            </div>
             <h4>业务知识黑话库</h4>
             <p>告诉 AI 公司的专有名词、业务背景、产品线划分。无论哪个岗位的同事在写 Prompt，AI 都能瞬间 Get 到业务上下文。</p>
           </div>
           <div class="key-point fade-in">
-            <div class="key-point-icon">⚙️</div>
+            <div class="key-point-icon">
+              <i data-lucide="settings"></i>
+            </div>
             <h4>工程与基建规范</h4>
             <p>从代码目录结构、组件封装、到自动化测试的断言写法，把高手的最佳实践沉淀下来，让 AI 严格遵守。</p>
           </div>
           <div class="key-point fade-in">
-            <div class="key-point-icon">📝</div>
+            <div class="key-point-icon">
+              <i data-lucide="file-text"></i>
+            </div>
             <h4>全职能工作流模板</h4>
             <p>管理产品 PRD 模板、Git Commit 格式、Code Review 重点、甚至汇报 PPT 结构，一键下发到团队每个人的 IDE 或浏览器中。</p>
           </div>
@@ -281,7 +288,10 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
         <div class="pain-points">
           <div class="pain-point fade-in">
             <div class="pain-point-number">痛点 01</div>
-            <h3>公共平台不适合存放私有业务</h3>
+            <h3>
+              <i data-lucide="cloud-off" style="vertical-align: middle; margin-right: 4px;"></i>
+              公共平台不适合存放私有业务
+            </h3>
             <p class="problem">
               公司的编码规范、内部 API 文档、业务逻辑不能上传到公共平台，但又需要让 AI 理解这些内容。
             </p>
@@ -290,7 +300,10 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
 
           <div class="pain-point fade-in">
             <div class="pain-point-number">痛点 02</div>
-            <h3>告别四处复制粘贴</h3>
+            <h3>
+              <i data-lucide="copy" style="vertical-align: middle; margin-right: 4px;"></i>
+              告别四处复制粘贴
+            </h3>
             <p class="problem">
               每次换项目、带新人，都要把长长的"系统提示词"和"业务背景"重新发一遍，版本混乱。
             </p>
@@ -299,7 +312,10 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
 
           <div class="pain-point fade-in">
             <div class="pain-point-number">痛点 03</div>
-            <h3>拒绝重型架构</h3>
+            <h3>
+              <i data-lucide="layers" style="vertical-align: middle; margin-right: 4px;"></i>
+              拒绝重型架构
+            </h3>
             <p class="problem">
               不想为了管理几个提示词文件就部署复杂的基础设施，K8s、Docker Compose 太重了。
             </p>
@@ -507,12 +523,12 @@ EOF</span>
 
           <div class="philosophy-item fade-in">
             <h3>极简优先</h3>
-            <p>能用一个文件搞定的，绝不引入两个。SQLite + 单文件部署，就是这么任性。</p>
+            <p>能用一个文件搞定的，绝不引入两个。SQLite 单文件部署，就是这么任性。</p>
           </div>
 
           <div class="philosophy-item fade-in">
             <h3>本地优先</h3>
-            <p>所有数据都在你本地。不想用云？断网也能跑。不想升级？永不更新也能用。</p>
+            <p>所有数据都在你本地。不想用云？内网也能跑。不想升级？永不更新也能用。</p>
           </div>
         </div>
       </div>
@@ -546,6 +562,9 @@ EOF</span>
   </div>
 
   <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
     // Typewriter Effect for Terminal
     const terminalLines = [
       { type: 'output', text: '# 启动本地知识库服务', class: 'comment', delay: 30 },
