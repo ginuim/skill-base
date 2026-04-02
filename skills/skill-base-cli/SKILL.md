@@ -1,80 +1,80 @@
 ---
 name: skill-base-cli
 description: >-
-  skill base 官方客户端命令行工具。调用 skb（Skill Base CLI）命令用于从skill base 搜索、安装、更新、发布skill、以及配置skb。当用户说“发布技能到skill base”、”从skill base下载/更新技能“、“配置skb”、“配置skill-base-cli”时触发。
+  The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install, update, and publish skills from Skill Base, as well as configure skb. Triggered when users say "publish skill to skill base", "download/update skill from skill base", "configure skb", or "configure skill-base-cli".
 keywords:
   - skill-base-cli
   - skb
-  - 安装skill
-  - 发布skill
-  - 更新skill
-  - 搜索skill
-  - 查询skill
+  - install skill
+  - publish skill
+  - update skill
+  - search skill
+  - query skill
 ---
 
-# 用 skb 拉取与发布 Skill
+# Pull and Publish Skills with skb
 
-助手应通过**运行终端命令**完成操作。包名 **`skill-base-cli`**，安装后命令为 **`skb`**。
+Assistants should complete operations by **running terminal commands**. Package name **`skill-base-cli`**, command **`skb`** after installation.
 
-## 何时使用此技能
-- 用户要求使用 `skb` 命令搜索、安装、更新、发布具体的技能。
-- 用户需要配置客户端连接地址（`skb init`）或登录账号（`skb login`）。
-- 用户要**搜索、安装、更新、发布** 要放到私有部署的 skill base 站点的 Skill
+## When to Use This Skill
+- Users request to search, install, update, or publish specific skills using the `skb` command.
+- Users need to configure the client connection address (`skb init`) or log in (`skb login`).
+- Users want to **search, install, update, or publish** Skills to a privately deployed Skill Base site.
 
-## 何时不使用此技能
-- 用户想要部署、启动或维护 Skill Base 服务端本身时（请转用 `skill-base-web-deploy`）。
+## When NOT to Use This Skill
+- Users want to deploy, start, or maintain the Skill Base server itself (use `skill-base-web-deploy` instead).
 
 
-## 环境
+## Environment
 
 - Node.js >= 18
-- 安装：`pnpm add -g skill-base-cli`，或 `npx skill-base-cli <子命令>`
-- 服务器地址：环境变量 **`SKB_BASE_URL`** 优先，否则读 **`~/.skill-base/config.json`**，默认 `http://127.0.0.1:8000`
-- 设置并保存：`skb init --server <站点根 URL>`（不要带 `/api`）
+- Installation: `npm install -g skill-base-cli`, or `npx skill-base-cli <subcommand>`
+- Server address: Environment variable **`SKB_BASE_URL`** takes priority, otherwise reads **`~/.skill-base/config.json`**, default is `http://127.0.0.1:8000`
+- Set and save: `skb init --server <site root URL>` (do not include `/api`)
 
-## 登录与鉴权规则 (重点)
-- **免登录场景**：`search`、`install`、`update`、`init` 常规读操作通常不需要登录，助手**不要**在这些操作前主动要求登录。
-- **必登录场景**：**`skb publish` 必须登录**。
-- **登录流程 (`skb login`)**：
-  1. 终端执行 `skb login`。
-  2. 控制台会输出含 `from=cli` 的登录页面地址，通过浏览器打开登录页。
-  3. 网页登录成功后会提供 **验证码**（形如 `XXXX-XXXX`）。
-  4. 在终端输入该验证码换取 PAT。
-- 登出：`skb logout`。
+## Login and Authentication Rules (Important)
+- **No login required**: `search`, `install`, `update`, `init` and other regular read operations usually do not require login. Assistants **should not** proactively ask users to log in before these operations.
+- **Login required**: **`skb publish` must be logged in**.
+- **Login flow (`skb login`)**:
+  1. Execute `skb login` in the terminal.
+  2. The console will output a login page URL containing `from=cli`, open the login page in a browser.
+  3. After successful web login, a **verification code** (in the format `XXXX-XXXX`) will be provided.
+  4. Enter the verification code in the terminal to exchange for a PAT.
+- Logout: `skb logout`.
 
-## 搜索与安装
+## Search and Install
 
 ```bash
-skb search <关键词>
-skb install <skill_id>              # 最新版
-skb install <skill_id>@<版本号>      # 指定版本，如 v20260327.161122
-skb install <skill_id> -d <目标目录>
+skb search <keyword>
+skb install <skill_id>              # Latest version
+skb install <skill_id>@<version>    # Specific version, e.g., v20260327.161122
+skb install <skill_id> -d <target_directory>
 ```
 
-可选：装到某 IDE 的技能目录，例如 `skb install <skill_id> -i cursor`；需要全局时再 `-g`（仅部分 IDE 支持）。
+Optional: Install to an IDE's skill directory, e.g., `skb install <skill_id> -i cursor`; use `-g` for global installation (supported by some IDEs only).
 
-## 更新到最新版skill
+## Update to Latest Skill Version
 
 ```bash
 skb update <skill_id>
-skb update <skill_id> -d <目录>
+skb update <skill_id> -d <directory>
 ```
 
-## 发布
+## Publish
 
-- **skill名称必须能通过/^[\w-]+$/校验，比如skill-base-cli**
-- 在**以 skill名称命名的文件夹**里准备好内容，根目录必须有 **`SKILL.md`**
-- **推荐**SKILL.md使用frontmatter来标记name、description，作为skill名、描述
-- 如果SKILL.md的frontmatter里有name字段，必须和文件夹名保持一致
-- 如果**没有使用frontmatter时**：使用文件夹名作为skill名称；标题下第一段非 `#` 的正文为skill描述（可被 `--description` 覆盖）
-- 在skill目录里执行：`skb publish`；或在任何位置执行 `skb publish <技能文件夹路径>`
-- 常用：`skb publish <路径> --changelog "说明"`
-- 发布完用2句话向用户描述发布结果，不要啰嗦
+- **Skill name must pass `/^[\w-]+$/` validation, e.g., skill-base-cli**
+- Prepare content in a **folder named after the skill**, root directory must contain **`SKILL.md`**
+- **Recommended**: Use frontmatter in SKILL.md to mark name and description as the skill name and description
+- If SKILL.md frontmatter has a name field, it must match the folder name
+- If **no frontmatter is used**: Use the folder name as the skill name; the first paragraph of non-`#` text under the title is the skill description (can be overridden with `--description`)
+- Execute in the skill directory: `skb publish`; or execute from any location: `skb publish <skill_folder_path>`
+- Common usage: `skb publish <path> --changelog "description"`
+- After publishing, describe the result to the user in 2 sentences, no need to be verbose
 
-## 失败时怎么排
+## Troubleshooting Failures
 
-- 先确认 **`SKB_BASE_URL`** 指向用户要用的实例，因为skill-base可以内网部署，以及更改端口号，需要确认地址是否正确
-- 如果用户把skill-base部署到服务器上，大部分服务器需要配置出入端口才能正常访问，需要用户在浏览器中查看地址是否能正常访问
-- 排查是否是网络问题引起的，可以使用ping/telenet来确认
-- 发布失败：先 **`skb login`**；再核对 **`SKB_BASE_URL`**、文件夹名与 frontmatter **`name`** 是否一致且符合 `[\w-]+`、`SKILL.md` 与网络
-- 安装失败：用 **`skb search`** 核对 `skill_id`；不确定版本时用 `skb install <skill_id>` 装最新
+- First confirm **`SKB_BASE_URL`** points to the instance the user wants to use, as skill-base can be deployed internally and ports can be changed, verify the address is correct
+- If the user deployed skill-base on a server, most servers need inbound/outbound port configuration to be accessible, users need to check if the address is accessible in the browser
+- Check if it's a network issue, can use ping/telnet to confirm
+- Publish failure: First **`skb login`**; then verify **`SKB_BASE_URL`**, folder name and frontmatter **`name`** are consistent and match `[\w-]+`, check `SKILL.md` and network
+- Install failure: Use **`skb search`** to verify `skill_id`; when unsure of version, use `skb install <skill_id>` to install latest

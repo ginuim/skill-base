@@ -1,7 +1,7 @@
 {
   "name": "skill-base",
-  "version": "2.0.11",
-  "description": "Skill Base - 内网轻量版 Skill 管理平台",
+  "version": "2.0.12",
+  "description": "Skill Base - 私有部署的轻量级 Skill 管理平台",
   "main": "src/index.js",
   "bin": {
     "skill-base": "./bin/skill-base.js"

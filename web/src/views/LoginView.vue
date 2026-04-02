@@ -112,8 +112,12 @@ onMounted(async () => {
 
   const isAuth = await authStore.fetchUser()
   if (isAuth) {
-    const redirect = route.query.redirect as string || '/'
-    router.push(redirect)
+    if (route.query.from === 'cli') {
+      router.push('/cli-code?from=cli')
+    } else {
+      const redirect = route.query.redirect as string || '/'
+      router.push(redirect)
+    }
   }
 })
 

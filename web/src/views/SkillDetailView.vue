@@ -731,8 +731,14 @@ function goToDiff() {
   // 默认对比最新两个版本
   const versionA = versions.value[1]?.version || ''
   const versionB = versions.value[0]?.version || ''
-  const url = `/diff?id=${encodeURIComponent(skillId.value)}&version_a=${encodeURIComponent(versionA)}&version_b=${encodeURIComponent(versionB)}`
-  window.open(url, '_blank')
+  router.push({
+    path: '/diff',
+    query: {
+      id: skillId.value,
+      version_a: versionA,
+      version_b: versionB
+    }
+  })
 }
 
 async function submitAddCollaborator() {
