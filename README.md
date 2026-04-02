@@ -9,6 +9,18 @@
 
 ---
 
+## 界面预览
+
+![Skill Base 首页](docs/images/skill-base-home.png)
+
+*首页：浏览与检索团队 Skill*
+
+![Skill 详情页](docs/images/skill-detail.png)
+
+*Skill 详情：版本与内容*
+
+---
+
 ## 🤔 什么是 Agent Skill？
 
 在 AI 辅助开发时代，AI 虽然懂通用代码，但**不懂你们公司的业务上下文**。

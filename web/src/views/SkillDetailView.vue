@@ -872,31 +872,41 @@ function handleEscKey(e: KeyboardEvent) {
 
 function openEditVersionModal(v: SkillVersion, mode: 'description' | 'changelog') {
   editVersionMode.value = mode
-  editVersionForm.value = {
-    version: v.version,
-    description: v.description || skill.value?.description || '',
-    changelog: v.changelog || ''
+  if (mode === 'description') {
+    editVersionForm.value = {
+      version: v.version,
+      description: skill.value?.description ?? '',
+      changelog: ''
+    }
+  } else {
+    editVersionForm.value = {
+      version: v.version,
+      description: v.description || '',
+      changelog: v.changelog || ''
+    }
   }
   showEditVersionModal.value = true
 }
 
 async function submitEditVersion() {
-  if (!editVersionForm.value.version) return
+  if (editVersionMode.value === 'changelog' && !editVersionForm.value.version) return
+
   isEditingVersion.value = true
   try {
-    const updated = await versionsApi.update(skillId.value, editVersionForm.value.version, {
-      description: editVersionForm.value.description,
-      changelog: editVersionForm.value.changelog
-    })
-    
-    // 更新本地数据
-    const idx = versions.value.findIndex(v => v.version === updated.version)
-    if (idx !== -1) {
-      versions.value[idx] = { ...versions.value[idx], ...updated }
+    if (editVersionMode.value === 'description') {
+      await skillsStore.updateSkill(skillId.value, { description: editVersionForm.value.description })
+    } else {
+      const prev = versions.value.find(v => v.version === editVersionForm.value.version)
+      const updated = await versionsApi.update(skillId.value, editVersionForm.value.version, {
+        description: prev?.description,
+        changelog: editVersionForm.value.changelog
+      })
+      const idx = versions.value.findIndex(v => v.version === updated.version)
+      if (idx !== -1) {
+        versions.value[idx] = { ...versions.value[idx], ...updated }
+      }
     }
-    
-    // 如果编辑的是当前选中的版本且也需要更新全局技能信息（可根据需求，如果只编辑版本不需要更新全局）
-    
+
     showEditVersionModal.value = false
     globalToast.success(t('skill.editVersionSuccess'))
   } catch (err: any) {
