@@ -93,6 +93,16 @@ export function apiPut<T = any>(path: string, body?: any): Promise<T> {
 }
 
 /**
+ * PATCH 请求
+ */
+export function apiPatch<T = any>(path: string, body?: any): Promise<T> {
+  return api<T>(path, {
+    method: 'PATCH',
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  })
+}
+
+/**
  * DELETE 请求
  */
 export function apiDelete<T = any>(path: string): Promise<T> {
@@ -137,8 +147,10 @@ export interface User {
   name: string | null
   email: string | null
   role: 'admin' | 'developer'
+  /** 账号状态；列表/详情接口返回，登录响应可能省略 */
+  status?: 'active' | 'disabled'
   created_at: string
-  disabled?: boolean
+  updated_at?: string | null
 }
 
 export const authApi = {
@@ -208,8 +220,10 @@ export const usersApi = {
   list: () => apiGet<{ users: User[] }>('/users'),
   create: (data: { username: string; password: string; name?: string; email?: string; role?: string }) =>
     apiPost<User>('/users', data),
-  update: (id: number, data: { name?: string; email?: string; role?: string }) =>
-    apiPut<User>(`/users/${id}`, data),
+  update: (id: number, data: { name?: string; email?: string; role?: string; status?: string }) =>
+    apiPatch<User>(`/users/${id}`, data),
+  resetPassword: (id: number, new_password: string) =>
+    apiPost(`/users/${id}/reset-password`, { new_password }),
   delete: (id: number) => apiDelete(`/users/${id}`),
 }
 

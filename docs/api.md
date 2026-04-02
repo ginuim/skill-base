@@ -295,14 +295,142 @@
 
 ---
 
+## 用户模块 `/api/v1/users`
+
+管理员相关接口需 **管理员** 权限（`requireAdmin`）。部署时若配置了 `base-path`（如 `/sb`），则完整路径为 `{base-path}/api/v1/users`。
+
+### 1. 用户搜索（协作者等）
+
+**GET** `/api/v1/users/search`
+
+**认证:** 需要 Session（普通登录用户即可）
+
+**查询参数:**
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `q` | string | 必填，至少 1 个字符 |
+
+**响应:** `{ "users": [ { "id", "username", "name", "status" } ] }`（仅返回 `status` 为 `active` 的用户）
+
+---
+
+### 2. 用户列表
+
+**GET** `/api/v1/users`
+
+**认证:** 管理员
+
+**查询参数:**
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `q` | string | 可选，用户名或姓名模糊搜索 |
+| `status` | string | 可选，`active` / `disabled` |
+| `page` | number | 可选，默认 `1` |
+| `limit` | number | 可选，默认 `20`，最大 `100` |
+
+**响应:**
+```json
+{
+  "users": [],
+  "total": 0,
+  "page": 1,
+  "limit": 20
+}
+```
+
+---
+
+### 3. 创建用户
+
+**POST** `/api/v1/users`
+
+**认证:** 管理员
+
+**请求体:**
+```json
+{
+  "username": "string",
+  "password": "string",
+  "name": "string",
+  "role": "developer"
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `username` / `password` | 必填；密码至少 6 位 |
+| `name` | 可选 |
+| `role` | 可选，默认 `developer`；取值仅 `admin` 或 `developer` |
+
+**响应:** `201`，`{ "ok": true, "user": { ... } }`
+
+---
+
+### 4. 用户详情
+
+**GET** `/api/v1/users/:user_id`
+
+**认证:** 管理员
+
+**响应:** 含 `id`, `username`, `name`, `role`, `status`, `created_at`, `updated_at`；若有创建者则含 `created_by: { id, username }`。
+
+---
+
+### 5. 更新用户
+
+**PATCH** `/api/v1/users/:user_id`
+
+**认证:** 管理员
+
+**说明:** 使用 **PATCH**，不要使用 PUT（未注册会返回 `404`）。
+
+**请求体（至少提供其一）:**
+```json
+{
+  "name": "string",
+  "role": "admin",
+  "status": "active"
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `role` | `admin` 或 `developer` |
+| `status` | `active` 或 `disabled` |
+
+管理员不能禁用自己的账号，也不能把自己的角色降为 `developer`。
+
+**响应:** `{ "ok": true, "user": { ... } }`
+
+---
+
+### 6. 重置密码
+
+**POST** `/api/v1/users/:user_id/reset-password`
+
+**认证:** 管理员
+
+**请求体:**
+```json
+{
+  "new_password": "string"
+}
+```
+
+密码至少 6 位。**响应:** `{ "ok": true, "message": "Password has been reset" }`
+
+---
+
 ## 数据模型
 
 ### User
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `id` | string | 用户 ID |
+| `id` | number | 用户 ID |
 | `username` | string | 用户名 |
-| `role` | string | 角色 |
+| `name` | string | 显示名（可选） |
+| `role` | string | `admin` 或 `developer`（普通平台用户为 `developer`） |
+| `status` | string | `active` 或 `disabled` |
 
 ### Skill
 | 字段 | 类型 | 说明 |

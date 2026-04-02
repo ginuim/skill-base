@@ -69,3 +69,15 @@ npx skill-base -p 8000
 - 异步函数使用 async/await
 - 错误处理通过 Fastify error handler
 - 前端使用原生 DOM API，无框架依赖
+
+## Documentation Checklist
+
+完成任何功能开发或修改后，必须检查并更新以下文档：
+
+- [ ] **README.md** - 项目主文档，检查功能说明、使用示例是否需要更新
+- [ ] **skill-base-cli** - CLI Skill 包，检查命令参数、使用流程是否变化
+- [ ] **skill-base-web-deploy** - Web 部署 Skill 包，检查部署步骤、配置说明是否变化
+- [ ] **docs/cli.md** - CLI 详细文档，检查命令参考、示例是否需要同步
+- [ ] **AGENTS.md** - 本文件，检查开发规范、注意事项是否需要补充
+
+> 💡 **文档优先原则**：代码改动完成后，应当立即更新相关文档，确保文档与代码保持同步。

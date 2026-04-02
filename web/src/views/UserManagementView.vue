@@ -125,8 +125,8 @@
                 </span>
               </td>
               <td class="px-4 py-4 font-mono">
-                <span :class="user.disabled ? 'text-red-400' : 'text-neon-400'">
-                  {{ user.disabled ? t('admin.disabled') : t('admin.active') }}
+                <span :class="user.status === 'disabled' ? 'text-red-400' : 'text-neon-400'">
+                  {{ user.status === 'disabled' ? t('admin.disabled') : t('admin.active') }}
                 </span>
               </td>
               <td class="px-4 py-4 font-mono text-base-400 text-sm">{{ formatDate(user.created_at) }}</td>
@@ -348,7 +348,7 @@
                 <p class="text-xs text-base-500 font-mono mt-1">{{ editForm.disabled ? t('admin.statusDisabled') : t('admin.statusActive') }}</p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="editForm.disabled" class="sr-only peer">
+                <input type="checkbox" :checked="!editForm.disabled" @change="editForm.disabled = !editForm.disabled" class="sr-only peer">
                 <div class="w-12 h-6 bg-base-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-base-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-400 peer-checked:after:bg-base-950"></div>
               </label>
             </div>
@@ -467,9 +467,9 @@ const filteredUsers = computed(() => {
   // 状态筛选
   if (statusFilter.value) {
     if (statusFilter.value === 'active') {
-      result = result.filter(u => !u.disabled)
+      result = result.filter(u => u.status !== 'disabled')
     } else if (statusFilter.value === 'disabled') {
-      result = result.filter(u => u.disabled)
+      result = result.filter(u => u.status === 'disabled')
     }
   }
 
@@ -547,13 +547,13 @@ const editForm = ref({
   newPassword: ''
 })
 
-function showEditUserModal(user: User & { disabled?: boolean }) {
+function showEditUserModal(user: User) {
   editForm.value = {
     id: user.id,
     username: user.username,
     name: user.name || '',
     role: user.role,
-    disabled: user.disabled || false,
+    disabled: user.status === 'disabled',
     newPassword: ''
   }
   showEditPassword.value = false
@@ -581,13 +581,13 @@ async function handleEditUser() {
     // 更新用户基本信息
     await usersApi.update(editForm.value.id, {
       name: editForm.value.name,
-      role: editForm.value.role
+      role: editForm.value.role,
+      status: editForm.value.disabled ? 'disabled' : 'active'
     })
 
     // 如果有新密码，更新密码
     if (editForm.value.newPassword) {
-      // 注意：这里假设有一个重置密码的 API，如果没有需要在 api.ts 中添加
-      // await usersApi.resetPassword(editForm.value.id, editForm.value.newPassword)
+      await usersApi.resetPassword(editForm.value.id, editForm.value.newPassword)
     }
 
     await fetchUsers()
