@@ -16,6 +16,7 @@ let dataDir = null;
 let basePath = '/';
 let enableCappy = true;
 let debug = false;
+let cacheMaxMb = '50';
 
 for (let i = 0; i < args.length; i++) {
   if ((args[i] === '-p' || args[i] === '--port') && args[i + 1]) {
@@ -29,6 +30,9 @@ for (let i = 0; i < args.length; i++) {
     i++;
   } else if (args[i] === '--base-path' && args[i + 1]) {
     basePath = args[i + 1];
+    i++;
+  } else if (args[i] === '--cache-max-mb' && args[i + 1]) {
+    cacheMaxMb = args[i + 1];
     i++;
   } else if (args[i] === '--no-cappy') {
     enableCappy = false;
@@ -46,6 +50,7 @@ Options:
   -h, --host <host>       指定监听地址 (默认: 0.0.0.0)
   -d, --data-dir <path>   指定数据目录 (默认: 包内 data/)
   --base-path <path>      指定部署前缀 (默认: /，例如: /skills/)
+  --cache-max-mb <mb>     指定进程内 LRU 缓存总容量，单位 MB (默认: 50)
   --no-cappy              禁用 Cappy 水豚吉祥物
   -v, --verbose           启用调试信息
   --help                  显示帮助信息
@@ -58,6 +63,7 @@ Examples:
   npx skill-base -d ./data             # 数据存储到当前目录的 data 文件夹
   npx skill-base -d . -p 3000          # 数据存储到当前目录
   npx skill-base --base-path /skills/  # 部署在子路径下
+  npx skill-base --cache-max-mb 100    # 将 LRU 缓存上限调整为 100MB
   npx skill-base --no-cappy            # 禁用吉祥物
 `);
     process.exit(0);
@@ -74,6 +80,7 @@ process.env.HOST = host;
 process.env.APP_BASE_PATH = basePath;
 process.env.ENABLE_CAPPY = enableCappy;
 process.env.DEBUG = debug;
+process.env.CACHE_MAX_MB = cacheMaxMb;
 
 // 设置数据目录
 if (dataDir) {

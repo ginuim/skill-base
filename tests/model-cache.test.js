@@ -24,11 +24,12 @@ function loadFreshModels(dbPath, cacheMaxMb = '50') {
   clearModule('../src/models/user');
 
   const db = require('../src/database');
+  const modelCache = require('../src/utils/model-cache');
   const SkillModel = require('../src/models/skill');
   const VersionModel = require('../src/models/version');
   const UserModel = require('../src/models/user');
 
-  return { db, SkillModel, VersionModel, UserModel };
+  return { db, modelCache, SkillModel, VersionModel, UserModel };
 }
 
 function createFixture() {
@@ -225,6 +226,33 @@ test('rolled back user creation does not leave ghost cache entries', () => {
     assert.throws(() => createAndRollback(), /force rollback/);
     assert.equal(UserModel.findByUsername('ghost-user'), undefined);
     assert.equal(UserModel.findById(1), undefined);
+  } finally {
+    destroyFixture(tempDir);
+  }
+});
+
+test('model cache stats report configured capacity and usage', () => {
+  const { tempDir, dbPath } = createFixture();
+
+  try {
+    const { db, modelCache, SkillModel } = loadFreshModels(dbPath, '1');
+    const { aliceId } = seedUsers(db);
+    db.prepare(`
+      INSERT INTO skills (id, name, description, latest_version, owner_id, created_at, updated_at)
+      VALUES ('skill-a', 'Skill A', 'First skill', 'v1', ?, datetime('now'), datetime('now'))
+    `).run(aliceId);
+
+    SkillModel.findById('skill-a');
+    SkillModel.findById('skill-a');
+    SkillModel.findById('missing-skill');
+
+    const stats = modelCache.getStats();
+
+    assert.equal(stats.maxBytes, 1024 * 1024);
+    assert.equal(stats.entries, 1);
+    assert.equal(stats.hits, 1);
+    assert.equal(stats.misses, 2);
+    assert.ok(stats.totalBytes > 0);
   } finally {
     destroyFixture(tempDir);
   }

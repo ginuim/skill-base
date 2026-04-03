@@ -23,8 +23,9 @@ function uniqueRefs(refs) {
 }
 
 function remember(key, loader, refsBuilder, options = {}) {
-  if (cache.has(key)) {
-    return cache.get(key);
+  const cachedValue = cache.get(key);
+  if (cachedValue !== undefined) {
+    return cachedValue;
   }
 
   const value = loader();

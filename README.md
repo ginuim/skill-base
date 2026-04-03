@@ -90,6 +90,7 @@ npx skill-base -d ./skill-data -p 8000
 npx skill-base                 # 默认启动 (端口 8000, 数据存放在 npm 缓存)
 npx skill-base --host 127.0.0.1 # 仅限本地访问，增强安全性
 npx skill-base --base-path /skills/  # 部署在子路径下 (例如: /skills/)
+npx skill-base --cache-max-mb 100     # 将进程内缓存上限调到 100MB
 ```
 
 **常用环境变量：**
@@ -105,10 +106,13 @@ npx skill-base --base-path /skills/  # 部署在子路径下 (例如: /skills/)
 | `--host` | `-h` | 指定监听地址 | 0.0.0.0 |
 | `--data-dir` | `-d` | 指定数据目录 | 包内 data/ |
 | `--base-path` | - | 指定部署前缀 | / |
+| `--cache-max-mb` | - | 指定进程内 LRU 缓存总容量，单位 MB | 50 |
 | `--no-cappy` | - | 禁用 Cappy 水豚吉祥物 | 启用 |
 | `--verbose` | `-v` | 启用调试日志 | 禁用 |
 | `--help` | - | 显示帮助信息 | - |
 | `--version` | - | 显示版本号 | - |
+
+`GET /api/v1/health` 现在会返回简化的缓存统计，包括是否启用、容量上限、当前条目数、已用字节、命中/未命中与淘汰次数，方便部署后确认缓存是否在工作。
 
 > 🔐 **首次运行须知**：系统启动后，首次访问 Web 端将自动跳转至**初始化页面**，请根据提示设置系统管理员账号与密码。
 

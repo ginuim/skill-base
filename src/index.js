@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { getStats: getCacheStats } = require('./utils/model-cache');
 
 const isDebug = process.env.DEBUG === 'true';
 if (!process.env.CACHE_MAX_MB) {
@@ -105,7 +106,15 @@ async function start() {
 
     // Health
     fastify.get(`${API_PREFIX}/health`, async () => {
-      return { status: 'ok', timestamp: new Date().toISOString() };
+      return {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        cache: {
+          enabled: Number(process.env.CACHE_MAX_MB) > 0,
+          max_mb: Number(process.env.CACHE_MAX_MB),
+          ...getCacheStats()
+        }
+      };
     });
 
     await fastify.register(require('./routes/init'), { prefix: `${API_PREFIX}/init` });
