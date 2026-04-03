@@ -2,10 +2,13 @@ const fs = require('fs');
 const path = require('path');
 
 const isDebug = process.env.DEBUG === 'true';
+if (!process.env.CACHE_MAX_MB) {
+  process.env.CACHE_MAX_MB = '50';
+}
 
 const fastify = require('fastify')({
   logger: isDebug,
-  // 设置 body 大小限制为 100MB（支持大 zip 上传）
+  // 100MB body limit for large zip uploads
   bodyLimit: 100 * 1024 * 1024
 });
 const CappyMascot = require('./cappy');
@@ -15,14 +18,15 @@ if (isDebug) {
   console.log('DEBUG: PORT:', process.env.PORT);
   console.log('DEBUG: HOST:', process.env.HOST);
   console.log('DEBUG: APP_BASE_PATH:', process.env.APP_BASE_PATH);
+  console.log('DEBUG: CACHE_MAX_MB:', process.env.CACHE_MAX_MB);
 }
 
-// 1. 规范化部署前缀 (APP_BASE_PATH)
+// 1. Normalize deploy prefix (APP_BASE_PATH)
 let APP_BASE_PATH = process.env.APP_BASE_PATH || '/';
-// 确保以 / 开头，以 / 结尾
+// Leading /, trailing /
 if (!APP_BASE_PATH.startsWith('/')) APP_BASE_PATH = '/' + APP_BASE_PATH;
 if (!APP_BASE_PATH.endsWith('/')) APP_BASE_PATH = APP_BASE_PATH + '/';
-// 将多个连续斜杠替换为单个
+// Collapse repeated slashes
 APP_BASE_PATH = APP_BASE_PATH.replace(/\/+/g, '/');
 
 const STATIC_ROOT = path.join(__dirname, '../static');
@@ -39,23 +43,23 @@ function renderSpaHtml() {
   return html.replace('<head>', `<head>\n${baseTag}`);
 }
 
-// 主启动函数
+// Main bootstrap
 async function start() {
   try {
     if (isDebug) console.log('DEBUG: Registering core plugins...');
-    // 1. 注册插件
-    // @fastify/cors — 允许跨域
+    // 1. Plugins
+    // @fastify/cors — CORS
     await fastify.register(require('@fastify/cors'), {
       origin: true,
       credentials: true
     });
     if (isDebug) console.log('DEBUG: Registered @fastify/cors');
 
-    // @fastify/cookie — Cookie 支持
+    // @fastify/cookie
     await fastify.register(require('@fastify/cookie'));
     if (isDebug) console.log('DEBUG: Registered @fastify/cookie');
 
-    // @fastify/multipart — 文件上传支持
+    // @fastify/multipart — uploads
     await fastify.register(require('@fastify/multipart'), {
       limits: {
         fileSize: 100 * 1024 * 1024  // 100MB
@@ -63,7 +67,7 @@ async function start() {
     });
     if (isDebug) console.log('DEBUG: Registered @fastify/multipart');
 
-    // 必须在 static 之前：index:false 时「目录 + 尾斜杠」会走 send 的 403，不会落到 notFoundHandler
+    // Before static: with index:false, directory + trailing slash can 403 in send and skip notFoundHandler
     fastify.route({
       method: ['GET', 'HEAD'],
       url: APP_BASE_PATH,
@@ -76,7 +80,7 @@ async function start() {
       }
     });
 
-    // @fastify/static — 静态文件服务（指向 static/ 目录）
+    // @fastify/static — serve static/
     await fastify.register(require('@fastify/static'), {
       root: STATIC_ROOT,
       prefix: APP_BASE_PATH,
@@ -85,21 +89,21 @@ async function start() {
     });
     if (isDebug) console.log('DEBUG: Registered @fastify/static at', STATIC_ROOT);
 
-    // 2. 注册自定义中间件
+    // 2. Custom middleware
     if (isDebug) console.log('DEBUG: Registering custom middlewares...');
-    // 错误处理
+    // Errors
     await fastify.register(require('./middleware/error'));
-    // 认证（注册 authenticate、createSession 等装饰器）
+    // Auth (authenticate, createSession, …)
     await fastify.register(require('./middleware/auth'));
-    // 管理员权限（注册 requireAdmin 装饰器）
+    // Admin (requireAdmin)
     await fastify.register(require('./middleware/admin'));
     if (isDebug) console.log('DEBUG: Custom middlewares registered.');
 
-    // 3. 注册 API 路由
+    // 3. API routes
     const API_PREFIX = (APP_BASE_PATH + 'api/v1').replace(/\/+/g, '/');
     if (isDebug) console.log('DEBUG: Registering API routes with prefix:', API_PREFIX);
 
-    // 健康检查接口
+    // Health
     fastify.get(`${API_PREFIX}/health`, async () => {
       return { status: 'ok', timestamp: new Date().toISOString() };
     });
@@ -112,16 +116,16 @@ async function start() {
     await fastify.register(require('./routes/users'), { prefix: `${API_PREFIX}/users` });
     if (isDebug) console.log('DEBUG: API routes registered.');
 
-    // 4. 页面路由 fallback（SPA 风格路由支持）
+    // 4. SPA fallback for non-API routes
     fastify.setNotFoundHandler(async (request, reply) => {
       const requestPath = request.url.split('?')[0];
 
-      // API 路由返回 JSON 404
+      // API → JSON 404
       if (requestPath.startsWith(API_PREFIX)) {
         return reply.code(404).send({ detail: 'Not found' });
       }
 
-      // 已知静态资源缺失时直接返回 404，别把 HTML 假装成 JS/CSS
+      // Missing assets → 404, not HTML-as-JS/CSS
       if (
         requestPath.startsWith(`${APP_BASE_PATH}assets/`) ||
         requestPath === `${APP_BASE_PATH}favicon.ico`
@@ -129,40 +133,40 @@ async function start() {
         return reply.code(404).send({ detail: 'Not found' });
       }
 
-      // 所有非 API 请求回退到入口 HTML，由前端 Vue Router 处理
+      // Everything else → index HTML (Vue Router)
       return reply.type('text/html; charset=utf-8').send(renderSpaHtml());
     });
 
-    // 5. 确保数据库已初始化
+    // 5. DB init
     require('./database');
 
-    // 6. 启动服务
+    // 6. Listen
     const PORT = process.env.PORT || 8000;
     const HOST = process.env.HOST || '0.0.0.0';
     
-    // 默认禁用 Cappy，除非显式设为 'true'
+    // Cappy off unless ENABLE_CAPPY=true
     const enableCappy = process.env.ENABLE_CAPPY === 'true';
     let cappy = null;
 
     if (enableCappy) {
       if (isDebug) console.log('DEBUG: CappyMascot is enabled.');
-      // 初始化 Cappy 水豚（必须在 listen 之前注册装饰器）
+      // Cappy (decorate before listen)
       cappy = new CappyMascot(PORT, APP_BASE_PATH);
       fastify.decorate('cappy', cappy);
 
-      // 优雅解耦：通过 Fastify 的全局生命周期钩子来驱动 Cappy 动画，完全不污染业务路由
+      // Drive Cappy from onResponse; no route changes
       fastify.addHook('onResponse', (request, reply, done) => {
-        // 只有成功请求才触发，不理会报错
+        // Only 2xx
         if (reply.statusCode >= 200 && reply.statusCode < 300) {
           const method = request.method;
           const url = request.url.split('?')[0];
 
           if (method === 'POST' && url === `${API_PREFIX}/users`) {
-            cappy.action('新用户被添加了。又多了一个打工人，系统依旧稳定。');
+            cappy.action('New user added. Another worker on the roster; the system stays steady.');
           } else if (method === 'POST' && url === `${API_PREFIX}/skills/publish`) {
-            cappy.action('有新的 Skill/版本 发布了。希望它的代码没有过度设计。');
+            cappy.action('New skill or version published. Hope the code stays simple.');
           } else if (method === 'GET' && url.match(new RegExp(`^${API_PREFIX}/skills/[^/]+/versions/[^/]+/download/?$`))) {
-            cappy.action('有人拉取了 Skill。代码开始流通，Cappy 觉得很赞。');
+            cappy.action('Someone downloaded a skill. Code is moving—Cappy approves.');
           }
         }
         done();
@@ -176,7 +180,7 @@ async function start() {
     console.log(`\n📦 Skill Base Engine Initialized at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${APP_BASE_PATH}\n`);
     
     if (enableCappy && cappy) {
-      // 启动 Cappy 守护进程
+      // Start Cappy loop
       cappy.start();
     }
   } catch (err) {

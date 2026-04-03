@@ -1,9 +1,18 @@
 const db = require('../database');
+const modelCache = require('../utils/model-cache');
+
+function queryById(id) {
+  return db.prepare('SELECT id, username, name, role, status, created_at, updated_at FROM users WHERE id = ?').get(id);
+}
 
 const UserModel = {
   // 根据 ID 查询用户
   findById(id) {
-    return db.prepare('SELECT id, username, name, role, status, created_at, updated_at FROM users WHERE id = ?').get(id);
+    return modelCache.remember(
+      modelCache.keys.userBasic(id),
+      () => queryById(id),
+      modelCache.refs.user
+    );
   },
 
   // 根据用户名查询（含 password_hash，用于登录验证）
@@ -14,7 +23,8 @@ const UserModel = {
   // 创建用户
   create(username, passwordHash, role = 'developer') {
     const result = db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)').run(username, passwordHash, role);
-    return this.findById(result.lastInsertRowid);
+    modelCache.invalidateUser(result.lastInsertRowid);
+    return queryById(result.lastInsertRowid);
   },
 
   // 列出用户（支持分页和搜索）
@@ -51,6 +61,9 @@ const UserModel = {
     const result = db.prepare(
       "UPDATE users SET username = ?, updated_at = datetime('now') WHERE id = ?"
     ).run(username, id);
+    if (result.changes > 0) {
+      modelCache.invalidateUser(id);
+    }
     return result.changes > 0;
   },
 
@@ -59,6 +72,9 @@ const UserModel = {
     const result = db.prepare(
       "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
     ).run(passwordHash, id);
+    if (result.changes > 0) {
+      modelCache.invalidateUser(id);
+    }
     return result.changes > 0;
   },
 
@@ -81,6 +97,9 @@ const UserModel = {
     params.push(id);
     
     const result = db.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).run(...params);
+    if (result.changes > 0) {
+      modelCache.invalidateUser(id);
+    }
     return result.changes > 0;
   },
 
@@ -89,6 +108,9 @@ const UserModel = {
     const result = db.prepare(
       "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
     ).run(passwordHash, id);
+    if (result.changes > 0) {
+      modelCache.invalidateUser(id);
+    }
     return result.changes > 0;
   },
 
@@ -123,6 +145,9 @@ const UserModel = {
     params.push(id);
     
     const result = db.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).run(...params);
+    if (result.changes > 0) {
+      modelCache.invalidateUser(id);
+    }
     return result.changes > 0;
   }
 };

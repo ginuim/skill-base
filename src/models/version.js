@@ -1,4 +1,5 @@
 const db = require('../database');
+const modelCache = require('../utils/model-cache');
 
 const VersionModel = {
   // 创建新版本
@@ -7,6 +8,7 @@ const VersionModel = {
       INSERT INTO skill_versions (skill_id, version, changelog, zip_path, uploader_id, description)
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(skillId, version, changelog || '', zipPath, uploaderId, description || '');
+    modelCache.invalidateSkill(skillId);
     return this.findById(result.lastInsertRowid);
   },
 
@@ -22,44 +24,60 @@ const VersionModel = {
 
   // 根据 skill_id 和 version 查询
   findByVersion(skillId, version) {
-    return db.prepare(`
-      SELECT sv.*, u.username as uploader_username, u.name as uploader_name
-      FROM skill_versions sv
-      LEFT JOIN users u ON sv.uploader_id = u.id
-      WHERE sv.skill_id = ? AND sv.version = ?
-    `).get(skillId, version);
+    return modelCache.remember(
+      modelCache.keys.skillVersion(skillId, version),
+      () => db.prepare(`
+        SELECT sv.*, u.username as uploader_username, u.name as uploader_name
+        FROM skill_versions sv
+        LEFT JOIN users u ON sv.uploader_id = u.id
+        WHERE sv.skill_id = ? AND sv.version = ?
+      `).get(skillId, version),
+      modelCache.refs.version
+    );
   },
 
   // 列出某 Skill 的所有版本（按创建时间倒序）
   listBySkillId(skillId) {
-    return db.prepare(`
-      SELECT sv.*, u.username as uploader_username, u.name as uploader_name
-      FROM skill_versions sv
-      LEFT JOIN users u ON sv.uploader_id = u.id
-      WHERE sv.skill_id = ?
-      ORDER BY sv.created_at DESC
-    `).all(skillId);
+    return modelCache.remember(
+      modelCache.keys.skillVersions(skillId),
+      () => db.prepare(`
+        SELECT sv.*, u.username as uploader_username, u.name as uploader_name
+        FROM skill_versions sv
+        LEFT JOIN users u ON sv.uploader_id = u.id
+        WHERE sv.skill_id = ?
+        ORDER BY sv.created_at DESC, sv.id DESC
+      `).all(skillId),
+      (versions) => modelCache.refs.versionList(skillId, versions)
+    );
   },
 
   // 获取某 Skill 的最新版本
   getLatest(skillId) {
-    return db.prepare(`
-      SELECT sv.*, u.username as uploader_username, u.name as uploader_name
-      FROM skill_versions sv
-      LEFT JOIN users u ON sv.uploader_id = u.id
-      WHERE sv.skill_id = ?
-      ORDER BY sv.created_at DESC
-      LIMIT 1
-    `).get(skillId);
+    return modelCache.remember(
+      modelCache.keys.skillLatest(skillId),
+      () => db.prepare(`
+        SELECT sv.*, u.username as uploader_username, u.name as uploader_name
+        FROM skill_versions sv
+        LEFT JOIN users u ON sv.uploader_id = u.id
+        WHERE sv.skill_id = ?
+        ORDER BY sv.created_at DESC, sv.id DESC
+        LIMIT 1
+      `).get(skillId),
+      modelCache.refs.version
+    );
   },
 
   // 更新版本描述和更新日志
   update(id, description, changelog) {
+    const existing = this.findById(id);
     db.prepare(`
       UPDATE skill_versions
       SET description = ?, changelog = ?
       WHERE id = ?
     `).run(description, changelog, id);
+    if (existing) {
+      modelCache.invalidateSkill(existing.skill_id);
+    }
     return this.findById(id);
   }
 };

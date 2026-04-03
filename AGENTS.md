@@ -63,6 +63,12 @@ npm start
 npx skill-base -p 8000
 ```
 
+## Runtime Notes
+
+- 进程内提供基于 LRU 的只读模型缓存，用于 `skill`、`version` 和 `user` 基础信息读取。
+- 缓存总容量通过环境变量 `CACHE_MAX_MB` 控制，默认 `50`（MB）。
+- 任何涉及 Skill/Version/User 的写路径都应在数据库写入成功后显式失效相关缓存，不要尝试做“通用 SQL 缓存”。
+
 ## Code Style
 
 - 使用 CommonJS 模块系统

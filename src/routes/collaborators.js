@@ -1,6 +1,7 @@
 const db = require('../database');
 const { canManageSkill } = require('../utils/permission');
 const UserModel = require('../models/user');
+const { invalidateSkill } = require('../utils/model-cache');
 
 async function collaboratorsRoutes(fastify, options) {
 
@@ -84,6 +85,7 @@ async function collaboratorsRoutes(fastify, options) {
     const result = db.prepare(
       'INSERT INTO skill_collaborators (skill_id, user_id, role, created_by) VALUES (?, ?, ?, ?)'
     ).run(skill_id, targetUser.id, 'collaborator', request.user.id);
+    invalidateSkill(skill_id);
     
     return reply.code(201).send({
       ok: true,
@@ -129,6 +131,7 @@ async function collaboratorsRoutes(fastify, options) {
     
     db.prepare('DELETE FROM skill_collaborators WHERE skill_id = ? AND user_id = ?')
       .run(skill_id, parseInt(user_id));
+    invalidateSkill(skill_id);
     
     return reply.send({ ok: true, message: 'Collaborator removed' });
   });
@@ -192,6 +195,7 @@ async function collaboratorsRoutes(fastify, options) {
     });
     
     transferTx();
+    invalidateSkill(skill_id);
     
     return reply.send({
       ok: true,
@@ -239,6 +243,7 @@ async function collaboratorsRoutes(fastify, options) {
     });
     
     deleteSkillTx();
+    invalidateSkill(skill_id);
     
     // 删除文件系统中的文件
     const fs = require('fs');

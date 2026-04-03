@@ -21,13 +21,13 @@ class CappyMascot {
       reset: '\x1b[0m'
     };
 
-    // 数据很简单：scene 决定人格，frame 决定动作，message 决定台词。
+    // Scenes: personality + frames + messages.
     this.scenes = {
       intro: {
         frameDelay: 240,
         loops: 1,
         messages: [
-          `Skill Base 正在热机，端口 ${port} 已点亮。`
+          `Skill Base is warming up; port ${port} is live.`
         ],
         frames: [
           { color: 'warm', sprite: this.createSprite('o o', '___', 'paw') },
@@ -40,10 +40,10 @@ class CappyMascot {
         frameDelay: 320,
         loops: 4,
         messages: [
-          `Cappy 正在看着 ${port} 号端口发呆。`,
-          '一切正常。没有过度设计，就没有运行时焦虑。',
-          '技能仓库很安静，直白的代码才能带来这种安宁。',
-          '系统稳定。Cappy 鄙视无谓的复杂度。'
+          `Cappy is staring at port ${port}.`,
+          'All quiet. No over-engineering, no runtime anxiety.',
+          'The skill library is calm. Straightforward code brings that peace.',
+          'System stable. Cappy despises pointless complexity.'
         ],
         frames: [
           { color: 'warm', sprite: this.createSprite('o o', '___', 'still') },
@@ -56,8 +56,8 @@ class CappyMascot {
         frameDelay: 180,
         loops: 2,
         messages: [
-          '缓慢地眨了下眼。不是摸鱼，是在进行低成本巡检。',
-          '与其写一堆监控脚本，不如把代码写得简单点。'
+          'Slow blink. Not slacking—low-cost patrolling.',
+          'Better to write simple code than to pile on monitoring scripts.'
         ],
         frames: [
           { color: 'warm', sprite: this.createSprite('o o', '___', 'still') },
@@ -70,8 +70,8 @@ class CappyMascot {
         frameDelay: 280,
         loops: 3,
         messages: [
-          '简单的架构才是最好的。真正的稳定性是不需要花哨设计的。',
-          '思考中。直接写代码，比写那些自作聪明的抽象层靠谱多了。'
+          'Simple architecture wins. Real stability needs no fancy design.',
+          'Thinking. Writing code directly beats clever layers of abstraction.'
         ],
         frames: [
           { color: 'cyan', sprite: this.createSprite('o o', '___', 'think-left') },
@@ -84,8 +84,8 @@ class CappyMascot {
         frameDelay: 340,
         loops: 3,
         messages: [
-          '数据结构对了，逻辑自然就像水一样顺畅。',
-          '泡一下就想明白了。别去猜未来的需求，YAGNI。'
+          'Get the data structures right and the logic flows like water.',
+          'Let it soak in. Do not guess future needs—YAGNI.'
         ],
         frames: [
           { color: 'pink', sprite: this.createSprite('^ ^', '~~~', 'steam-left') },
@@ -98,8 +98,8 @@ class CappyMascot {
         frameDelay: 220,
         loops: 4,
         messages: [
-          '短距离散步。确认没有被哪个聪明人搞出过度设计。',
-          '没有多余步骤，只有必要移动。代码也该如此。'
+          'Short walk. Checking no one over-engineered anything.',
+          'No extra steps. Only moves that matter. Code should be the same.'
         ],
         frames: [
           { color: 'cyan', sprite: this.createSprite('o o', '___', 'step-left') },
@@ -111,7 +111,7 @@ class CappyMascot {
         frameDelay: 180,
         loops: 6,
         messages: [
-          '收到任务，Cappy 正在用最直接的方式处理。'
+          'Task received. Cappy is handling it the plain way.'
         ],
         frames: [
           { color: 'cyan', sprite: this.createSprite('> <', '===', 'spark-left') },
@@ -141,7 +141,7 @@ class CappyMascot {
     if (!this.isRunning || this.isStopped) return;
 
     this.playScene('work', {
-      message: message || '有新动作发生了，但卡皮巴拉依然很稳。',
+      message: message || 'Something new happened; Cappy stays steady.',
       onDone: () => this.scheduleNextIdle(600)
     });
   }
@@ -155,10 +155,15 @@ class CappyMascot {
     clearTimeout(this.sceneTimer);
 
     this.clearRender();
+    const goodbyeMsg = 'Cappy is off duty. See you tomorrow.';
+    const gBorder = '─'.repeat(goodbyeMsg.length + 2);
+    const gSeg = goodbyeMsg.length + 1;
+    const gLeft = Math.floor(gSeg / 2);
+    const gRight = gSeg - gLeft;
     const goodbye = [
-      `${this.colors.soft}  ╭──────────────────────────────╮${this.colors.reset}`,
-      `${this.colors.soft}  │ Cappy 下班了，明天继续值守。 │${this.colors.reset}`,
-      `${this.colors.soft}  ╰──────────────┬───────────────╯${this.colors.reset}`,
+      `${this.colors.soft}  ╭${gBorder}╮${this.colors.reset}`,
+      `${this.colors.soft}  │ ${goodbyeMsg} │${this.colors.reset}`,
+      `${this.colors.soft}  ╰${'─'.repeat(gLeft)}┬${'─'.repeat(gRight)}╯${this.colors.reset}`,
       `${this.colors.warm}                 \\${this.colors.reset}`,
       `${this.colors.warm}                  __${this.colors.reset}`,
       `${this.colors.warm}              ___( ; ;)___${this.colors.reset}`,
@@ -251,16 +256,72 @@ class CappyMascot {
   }
 
   buildBubble(message) {
-    const text = this.fit(message, 34);
-    const width = text.length;
-    const line = '─'.repeat(width + 2);
+    const maxLineWidth = 44;
+    const lines = this.wrapText(String(message), maxLineWidth);
+    const innerWidth = Math.max(1, ...lines.map((l) => l.length));
+    const border = '─'.repeat(innerWidth + 2);
+    const body = lines.map(
+      (line) =>
+        `${this.colors.soft}  │ ${line.padEnd(innerWidth)} │${this.colors.reset}`
+    );
 
     return [
-      `${this.colors.soft}  ╭${line}╮${this.colors.reset}`,
-      `${this.colors.soft}  │ ${text} │${this.colors.reset}`,
-      `${this.colors.soft}  ╰${line}╯${this.colors.reset}`,
+      `${this.colors.soft}  ╭${border}╮${this.colors.reset}`,
+      ...body,
+      `${this.colors.soft}  ╰${border}╯${this.colors.reset}`,
       `${this.colors.soft}         \\${this.colors.reset}`
     ];
+  }
+
+  wrapText(text, maxWidth) {
+    const normalized = text.replace(/\r\n/g, '\n').trim();
+    if (!normalized.length) return [''];
+
+    const paragraphs = normalized.split('\n');
+    const out = [];
+
+    for (const para of paragraphs) {
+      if (!para.trim()) {
+        out.push('');
+        continue;
+      }
+
+      const words = para.split(/\s+/);
+      let line = '';
+
+      const flush = () => {
+        if (line.length) {
+          out.push(line);
+          line = '';
+        }
+      };
+
+      for (const word of words) {
+        if (!word.length) continue;
+
+        if (word.length > maxWidth) {
+          flush();
+          let rest = word;
+          while (rest.length > maxWidth) {
+            out.push(rest.slice(0, maxWidth));
+            rest = rest.slice(maxWidth);
+          }
+          line = rest;
+          continue;
+        }
+
+        const next = line.length ? `${line} ${word}` : word;
+        if (next.length <= maxWidth) {
+          line = next;
+        } else {
+          flush();
+          line = word;
+        }
+      }
+      flush();
+    }
+
+    return out.length ? out : [''];
   }
 
   pickIdleScene() {
@@ -281,14 +342,6 @@ class CappyMascot {
 
   pick(list) {
     return list[Math.floor(Math.random() * list.length)];
-  }
-
-  fit(text, width) {
-    if (text.length <= width) {
-      return text.padEnd(width, ' ');
-    }
-
-    return `${text.slice(0, width - 1)}…`;
   }
 
   randomBetween(min, max) {

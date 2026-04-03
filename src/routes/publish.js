@@ -2,6 +2,7 @@ const fs = require('fs');
 const db = require('../database');
 const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
+const { invalidateSkill } = require('../utils/model-cache');
 const { ensureSkillDir, generateVersionNumber, getZipPath, getZipRelativePath } = require('../utils/zip');
 const { canPublishSkill } = require('../utils/permission');
 
@@ -96,6 +97,7 @@ async function publishRoutes(fastify, options) {
 
     // 更新 skill 的最新版本
     SkillModel.updateLatestVersion(skill_id, version);
+    invalidateSkill(skill_id);
 
     return {
       ok: true,

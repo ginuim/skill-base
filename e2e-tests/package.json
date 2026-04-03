@@ -1,0 +1,17 @@
+{
+  "name": "skill-base-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E tests for Skill Base using Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "codegen": "playwright codegen http://localhost:8000"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0"
+  }
+}
