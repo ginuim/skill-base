@@ -416,6 +416,7 @@ EOF</span>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
+import { copyToClipboard } from '@/utils/clipboard'
 
 onMounted(() => {
   document.body.classList.add('landing-body')
@@ -558,28 +559,32 @@ function initTabs() {
 
 function initCopyButtons() {
   document.querySelectorAll('.code-copy').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const codeBlock = btn.closest('.code-block')
       const codeBody = codeBlock?.querySelector('.code-body')
       if (codeBody) {
         const text = codeBody.textContent || ''
-        navigator.clipboard.writeText(text)
-        btn.textContent = 'Copied!'
-        setTimeout(() => {
-          btn.textContent = 'Copy'
-        }, 1500)
+        const success = await copyToClipboard(text)
+        if (success) {
+          btn.textContent = 'Copied!'
+          setTimeout(() => {
+            btn.textContent = 'Copy'
+          }, 1500)
+        }
       }
     })
   })
 
   const heroCopyBtn = document.getElementById('hero-copy-btn')
   if (heroCopyBtn) {
-    heroCopyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText('npx skill-base')
-      heroCopyBtn.classList.add('copied')
-      setTimeout(() => {
-        heroCopyBtn.classList.remove('copied')
-      }, 1500)
+    heroCopyBtn.addEventListener('click', async () => {
+      const success = await copyToClipboard('npx skill-base')
+      if (success) {
+        heroCopyBtn.classList.add('copied')
+        setTimeout(() => {
+          heroCopyBtn.classList.remove('copied')
+        }, 1500)
+      }
     })
   }
 }

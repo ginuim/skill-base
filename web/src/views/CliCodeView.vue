@@ -94,6 +94,7 @@ import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
+import { copyToClipboard } from '@/utils/clipboard'
 
 const authStore = useAuthStore()
 const { t } = useI18n()
@@ -172,16 +173,14 @@ function updateTimer() {
 async function copyCode() {
   if (!cliCode.value) return
   
-  try {
-    await navigator.clipboard.writeText(cliCode.value)
+  const success = await copyToClipboard(cliCode.value)
+  if (success) {
     copied.value = true
-    
     setTimeout(() => {
       copied.value = false
     }, 2000)
-  } catch (error) {
-    // 降级方案
-    globalToast.info(t('cliCode.copiedToast'))
+  } else {
+    globalToast.error(t('cliCode.copyFailed') || '复制失败')
   }
 }
 </script>
