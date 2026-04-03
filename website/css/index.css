@@ -744,9 +744,15 @@ section {
   margin-top: 10px;
 }
 
+.quick-start-container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
 .quick-start .tabs {
   margin-left: auto;
   margin-right: auto;
+  justify-content: center;
 }
 
 .tabs {
