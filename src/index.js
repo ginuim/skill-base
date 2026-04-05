@@ -13,13 +13,36 @@ const fastify = require('fastify')({
   bodyLimit: 100 * 1024 * 1024
 });
 const CappyMascot = require('./cappy');
+const appLanguage = CappyMascot.detectSystemLanguage();
+
+function pickMessage(message) {
+  if (typeof message === 'string') return message;
+  if (!message || typeof message !== 'object') return '';
+  return message[appLanguage] || message.en || message.zh || '';
+}
+
+function infoLog(message, ...args) {
+  console.log(pickMessage(message), ...args);
+}
+
+function debugLog(message, ...args) {
+  if (!isDebug) return;
+  console.log(`DEBUG: ${pickMessage(message)}`, ...args);
+}
+
+function errorLog(message, ...args) {
+  console.error(pickMessage(message), ...args);
+}
 
 if (isDebug) {
-  console.log('DEBUG: Debug mode is enabled.');
-  console.log('DEBUG: PORT:', process.env.PORT);
-  console.log('DEBUG: HOST:', process.env.HOST);
-  console.log('DEBUG: APP_BASE_PATH:', process.env.APP_BASE_PATH);
-  console.log('DEBUG: CACHE_MAX_MB:', process.env.CACHE_MAX_MB);
+  debugLog({
+    zh: '调试模式已启用。',
+    en: 'Debug mode is enabled.'
+  });
+  debugLog({ zh: '端口:', en: 'PORT:' }, process.env.PORT);
+  debugLog({ zh: '主机:', en: 'HOST:' }, process.env.HOST);
+  debugLog({ zh: '应用基础路径:', en: 'APP_BASE_PATH:' }, process.env.APP_BASE_PATH);
+  debugLog({ zh: '缓存上限（MB）:', en: 'CACHE_MAX_MB:' }, process.env.CACHE_MAX_MB);
 }
 
 // 1. Normalize deploy prefix (APP_BASE_PATH)
@@ -47,18 +70,21 @@ function renderSpaHtml() {
 // Main bootstrap
 async function start() {
   try {
-    if (isDebug) console.log('DEBUG: Registering core plugins...');
+    debugLog({
+      zh: '正在注册核心插件...',
+      en: 'Registering core plugins...'
+    });
     // 1. Plugins
     // @fastify/cors — CORS
     await fastify.register(require('@fastify/cors'), {
       origin: true,
       credentials: true
     });
-    if (isDebug) console.log('DEBUG: Registered @fastify/cors');
+    debugLog({ zh: '已注册 @fastify/cors', en: 'Registered @fastify/cors' });
 
     // @fastify/cookie
     await fastify.register(require('@fastify/cookie'));
-    if (isDebug) console.log('DEBUG: Registered @fastify/cookie');
+    debugLog({ zh: '已注册 @fastify/cookie', en: 'Registered @fastify/cookie' });
 
     // @fastify/multipart — uploads
     await fastify.register(require('@fastify/multipart'), {
@@ -66,7 +92,7 @@ async function start() {
         fileSize: 100 * 1024 * 1024  // 100MB
       }
     });
-    if (isDebug) console.log('DEBUG: Registered @fastify/multipart');
+    debugLog({ zh: '已注册 @fastify/multipart', en: 'Registered @fastify/multipart' });
 
     // Before static: with index:false, directory + trailing slash can 403 in send and skip notFoundHandler
     fastify.route({
@@ -88,21 +114,33 @@ async function start() {
       wildcard: true,
       index: false
     });
-    if (isDebug) console.log('DEBUG: Registered @fastify/static at', STATIC_ROOT);
+    debugLog(
+      { zh: '已注册 @fastify/static，目录为', en: 'Registered @fastify/static at' },
+      STATIC_ROOT
+    );
 
     // 2. Custom middleware
-    if (isDebug) console.log('DEBUG: Registering custom middlewares...');
+    debugLog({
+      zh: '正在注册自定义中间件...',
+      en: 'Registering custom middlewares...'
+    });
     // Errors
     await fastify.register(require('./middleware/error'));
     // Auth (authenticate, createSession, …)
     await fastify.register(require('./middleware/auth'));
     // Admin (requireAdmin)
     await fastify.register(require('./middleware/admin'));
-    if (isDebug) console.log('DEBUG: Custom middlewares registered.');
+    debugLog({
+      zh: '自定义中间件已注册。',
+      en: 'Custom middlewares registered.'
+    });
 
     // 3. API routes
     const API_PREFIX = (APP_BASE_PATH + 'api/v1').replace(/\/+/g, '/');
-    if (isDebug) console.log('DEBUG: Registering API routes with prefix:', API_PREFIX);
+    debugLog(
+      { zh: '正在注册 API 路由，前缀为:', en: 'Registering API routes with prefix:' },
+      API_PREFIX
+    );
 
     // Health
     fastify.get(`${API_PREFIX}/health`, async () => {
@@ -123,7 +161,7 @@ async function start() {
     await fastify.register(require('./routes/publish'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/collaborators'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/users'), { prefix: `${API_PREFIX}/users` });
-    if (isDebug) console.log('DEBUG: API routes registered.');
+    debugLog({ zh: 'API 路由已注册。', en: 'API routes registered.' });
 
     // 4. SPA fallback for non-API routes
     fastify.setNotFoundHandler(async (request, reply) => {
@@ -158,9 +196,9 @@ async function start() {
     let cappy = null;
 
     if (enableCappy) {
-      if (isDebug) console.log('DEBUG: CappyMascot is enabled.');
+      debugLog({ zh: 'CappyMascot 已启用。', en: 'CappyMascot is enabled.' });
       // Cappy (decorate before listen)
-      cappy = new CappyMascot(PORT, APP_BASE_PATH);
+      cappy = new CappyMascot(PORT, APP_BASE_PATH, appLanguage);
       fastify.decorate('cappy', cappy);
 
       // Drive Cappy from onResponse; no route changes
@@ -171,29 +209,44 @@ async function start() {
           const url = request.url.split('?')[0];
 
           if (method === 'POST' && url === `${API_PREFIX}/users`) {
-            cappy.action('New user added. Another worker on the roster; the system stays steady.');
+            cappy.action({
+              zh: '新用户已添加。又多一个人干活，系统依旧稳定。',
+              en: 'New user added. Another worker on the roster; the system stays steady.'
+            });
           } else if (method === 'POST' && url === `${API_PREFIX}/skills/publish`) {
-            cappy.action('New skill or version published. Hope the code stays simple.');
+            cappy.action({
+              zh: '新的 Skill 或版本已发布。希望代码继续保持简单。',
+              en: 'New skill or version published. Hope the code stays simple.'
+            });
           } else if (method === 'GET' && url.match(new RegExp(`^${API_PREFIX}/skills/[^/]+/versions/[^/]+/download/?$`))) {
-            cappy.action('Someone downloaded a skill. Code is moving—Cappy approves.');
+            cappy.action({
+              zh: '有人下载了一个 Skill。代码开始流动了，Cappy 认可。',
+              en: 'Someone downloaded a skill. Code is moving—Cappy approves.'
+            });
           }
         }
         done();
       });
     } else {
-      if (isDebug) console.log('DEBUG: CappyMascot is disabled.');
+      debugLog({ zh: 'CappyMascot 已禁用。', en: 'CappyMascot is disabled.' });
       fastify.decorate('cappy', { action: () => {} });
     }
 
     await fastify.listen({ port: PORT, host: HOST });
-    console.log(`\n📦 Skill Base Engine Initialized at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${APP_BASE_PATH}\n`);
+    infoLog({
+      zh: `\n📦 Skill Base 引擎已启动： http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${APP_BASE_PATH}\n`,
+      en: `\n📦 Skill Base Engine Initialized at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${APP_BASE_PATH}\n`
+    });
     
     if (enableCappy && cappy) {
       // Start Cappy loop
       cappy.start();
     }
   } catch (err) {
-    console.error(err);
+    errorLog(
+      { zh: 'Skill Base 启动失败。', en: 'Skill Base failed to start.' },
+      err
+    );
     process.exit(1);
   }
 }
