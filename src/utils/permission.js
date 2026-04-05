@@ -1,14 +1,14 @@
 const db = require('../database');
 
 /**
- * 检查用户是否有 Skill 的指定权限
- * @param {object} user - request.user 对象
+ * Check if user has specified permission for a Skill
+ * @param {object} user - request.user object
  * @param {string} skillId - Skill ID
  * @param {string} requiredRole - 'owner' | 'collaborator' | 'any'
  * @returns {boolean}
  */
 function hasSkillPermission(user, skillId, requiredRole = 'any') {
-  // 管理员拥有所有权限
+  // Admin has all permissions
   if (user.role === 'admin') return true;
   
   const collaborator = db.prepare(
@@ -18,21 +18,21 @@ function hasSkillPermission(user, skillId, requiredRole = 'any') {
   if (!collaborator) return false;
   if (requiredRole === 'any') return true;
   if (requiredRole === 'owner') return collaborator.role === 'owner';
-  if (requiredRole === 'collaborator') return true; // owner 也有 collaborator 权限
+  if (requiredRole === 'collaborator') return true; // owner also has collaborator permission
   return false;
 }
 
 /**
- * 检查用户是否可以发布 Skill
+ * Check if user can publish Skill
  */
 function canPublishSkill(user, skillId) {
   const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skillId);
-  if (!skill) return true;  // 新 Skill，任何登录用户都可创建
+  if (!skill) return true;  // New Skill, any logged-in user can create
   return hasSkillPermission(user, skillId, 'any');
 }
 
 /**
- * 检查用户是否可以管理协作者/删除 Skill
+ * Check if user can manage collaborators / delete Skill
  */
 function canManageSkill(user, skillId) {
   return hasSkillPermission(user, skillId, 'owner');

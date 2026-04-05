@@ -2,21 +2,21 @@ const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
-// 数据库文件路径，支持环境变量配置
+// Database file path, supports environment variable configuration
 const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '../data/skills.db');
 
-// 创建数据库连接
+// Create database connection
 const db = new Database(dbPath);
 
-// 开启 WAL 模式提升并发性能
+// Enable WAL mode for better concurrency performance
 db.pragma('journal_mode = WAL');
 
-// 开启外键约束
+// Enable foreign key constraints
 db.pragma('foreign_keys = ON');
 
-// 建表 SQL
+// Table creation SQL
 const createTablesSql = `
--- 用户表
+-- Users table
 CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     username      TEXT UNIQUE NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- CLI 临时验证码表
+-- CLI temporary auth code table
 CREATE TABLE IF NOT EXISTS cli_auth_codes (
     code          TEXT PRIMARY KEY,
     user_id       INTEGER NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS cli_auth_codes (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 长效访问令牌表 (PAT)
+-- Personal Access Token table (PAT)
 CREATE TABLE IF NOT EXISTS personal_access_tokens (
     token         TEXT PRIMARY KEY,
     user_id       INTEGER NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS personal_access_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Skill 主表
+-- Skill main table
 CREATE TABLE IF NOT EXISTS skills (
     id            TEXT PRIMARY KEY,
     name          TEXT NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS skills (
     FOREIGN KEY (owner_id) REFERENCES users(id)
 );
 
--- 版本表
+-- Version table
 CREATE TABLE IF NOT EXISTS skill_versions (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     skill_id     TEXT NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS skill_versions (
     UNIQUE(skill_id, version)
 );
 
--- Skill 协作者表
+-- Skill collaborators table
 CREATE TABLE IF NOT EXISTS skill_collaborators (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     skill_id      TEXT NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS skill_collaborators (
     UNIQUE(skill_id, user_id)
 );
 
--- Session 表（可选，通过 SESSION_STORE=sqlite 启用）
+-- Session table (optional, enabled via SESSION_STORE=sqlite)
 CREATE TABLE IF NOT EXISTS sessions (
     session_id    TEXT PRIMARY KEY,
     user_id       INTEGER NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 索引
+-- Indexes
 CREATE INDEX IF NOT EXISTS idx_versions_skill_id ON skill_versions(skill_id);
 CREATE INDEX IF NOT EXISTS idx_cli_codes_user ON cli_auth_codes(user_id);
 CREATE INDEX IF NOT EXISTS idx_pat_tokens_user ON personal_access_tokens(user_id);
@@ -104,12 +104,12 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
 `;
 
-// 执行建表语句
+// Execute table creation statements
 db.exec(createTablesSql);
 
-// 安全地添加新字段（如果不存在）
+// Safely add new columns (if not exists)
 try { db.exec("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'"); } catch(e) {}
-// SQLite 不支持带 CURRENT_TIMESTAMP 默认值的 ALTER TABLE，需要分两步
+// SQLite does not support ALTER TABLE with CURRENT_TIMESTAMP default, requires two steps
 try { 
   db.exec("ALTER TABLE users ADD COLUMN updated_at DATETIME"); 
   db.exec("UPDATE users SET updated_at = datetime('now') WHERE updated_at IS NULL");
@@ -118,7 +118,7 @@ try { db.exec("ALTER TABLE users ADD COLUMN created_by INTEGER REFERENCES users(
 try { db.exec("ALTER TABLE users ADD COLUMN name TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE skill_versions ADD COLUMN description TEXT"); } catch(e) {}
 
-// 数据迁移：为已有 Skills 的 owner 插入 skill_collaborators 记录
+// Data migration: insert skill_collaborators record for existing Skills owners
 const existingSkills = db.prepare('SELECT id, owner_id FROM skills').all();
 const insertCollaborator = db.prepare(`
   INSERT OR IGNORE INTO skill_collaborators (skill_id, user_id, role, created_by)

@@ -2,12 +2,12 @@ const fp = require('fastify-plugin');
 const db = require('../database');
 const { generateSessionId } = require('../utils/crypto');
 
-// Session 存储模式：'memory' | 'sqlite'，通过环境变量配置
+// Session storage mode: 'memory' | 'sqlite', configured via environment variable
 const SESSION_STORE = process.env.SESSION_STORE || 'memory';
-// Session 过期时间（默认 7 天）
+// Session expiration time (default 7 days)
 const SESSION_EXPIRES_DAYS = parseInt(process.env.SESSION_EXPIRES_DAYS || '7', 10);
 
-// ============ 内存存储实现 ============
+// ============ Memory storage implementation ============
 const memorySessions = new Map();
 
 const memoryStore = {
@@ -20,7 +20,7 @@ const memoryStore = {
   get(sessionId) {
     const session = memorySessions.get(sessionId);
     if (!session) return null;
-    // 检查过期
+    // Check expiration
     if (Date.now() > session.expiresAt) {
       memorySessions.delete(sessionId);
       return null;
@@ -30,7 +30,7 @@ const memoryStore = {
   destroy(sessionId) {
     memorySessions.delete(sessionId);
   },
-  // 清理过期 Session
+  // Clean up expired sessions
   cleanup() {
     const now = Date.now();
     for (const [id, session] of memorySessions) {
@@ -41,7 +41,7 @@ const memoryStore = {
   }
 };
 
-// ============ SQLite 存储实现 ============
+// ============ SQLite storage implementation ============
 const sqliteStore = {
   create(userId) {
     const sessionId = generateSessionId();
@@ -62,32 +62,32 @@ const sqliteStore = {
   destroy(sessionId) {
     db.prepare('DELETE FROM sessions WHERE session_id = ?').run(sessionId);
   },
-  // 清理过期 Session
+  // Clean up expired sessions
   cleanup() {
     db.prepare("DELETE FROM sessions WHERE expires_at <= datetime('now')").run();
   }
 };
 
-// 根据配置选择存储实现
+// Select storage implementation based on configuration
 const sessionStore = SESSION_STORE === 'sqlite' ? sqliteStore : memoryStore;
 
-// 启动时清理一次过期 Session
+// Clean up expired sessions on startup
 sessionStore.cleanup();
 
-// 定期清理过期 Session（每小时）
+// Periodically clean up expired sessions (every hour)
 setInterval(() => sessionStore.cleanup(), 60 * 60 * 1000);
 
-// 认证中间件装饰器 —— 注册为 Fastify 的 decorate + preHandler
-// 用法：在路由中通过 { preHandler: [fastify.authenticate] } 使用
+// Authentication middleware decorator - registered as Fastify's decorate + preHandler
+// Usage: use via { preHandler: [fastify.authenticate] } in routes
 async function authPlugin(fastify, options) {
-  // 将 sessionStore 暴露出去供路由使用
+  // Expose sessionStore for routes to use
   fastify.decorate('sessionStore', sessionStore);
   fastify.decorate('createSession', (userId) => sessionStore.create(userId));
   fastify.decorate('destroySession', (sessionId) => sessionStore.destroy(sessionId));
 
-  // 认证装饰器
+  // Authentication decorator
   fastify.decorate('authenticate', async function(request, reply) {
-    // 1. 先尝试 Cookie Session
+    // 1. Try Cookie Session first
     const sessionId = request.cookies?.session_id;
     if (sessionId) {
       const session = sessionStore.get(sessionId);
@@ -97,7 +97,7 @@ async function authPlugin(fastify, options) {
           return reply.code(401).send({
             ok: false,
             error: 'account_disabled',
-            detail: '账号已被禁用'
+            detail: 'Account has been disabled'
           });
         }
         request.user = user;
@@ -105,7 +105,7 @@ async function authPlugin(fastify, options) {
       }
     }
 
-    // 2. 再尝试 Bearer Token（PAT）
+    // 2. Then try Bearer Token (PAT)
     const authHeader = request.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
@@ -116,24 +116,24 @@ async function authPlugin(fastify, options) {
           return reply.code(401).send({
             ok: false,
             error: 'account_disabled',
-            detail: '账号已被禁用'
+            detail: 'Account has been disabled'
           });
         }
-        // 更新 last_used_at
+        // Update last_used_at
         db.prepare('UPDATE personal_access_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE token = ?').run(token);
         request.user = user;
         return;
       }
     }
 
-    // 3. 未认证
+    // 3. Not authenticated
     reply.code(401).send({ detail: 'Authentication required' });
   });
 
-  // 可选认证（不强制，有则解析）
+  // Optional authentication (not enforced, parse if present)
   fastify.decorate('optionalAuth', async function(request, reply) {
     try {
-      // 复用 authenticate 逻辑，但不抛错
+      // Reuse authenticate logic but don't throw error
       const sessionId = request.cookies?.session_id;
       if (sessionId) {
         const session = sessionStore.get(sessionId);

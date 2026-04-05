@@ -1,24 +1,24 @@
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
-// 密码哈希（10 rounds）
+// Password hash (10 rounds)
 function hashPassword(password) {
   return bcrypt.hashSync(password, 10);
 }
 
-// 验证密码
+// Verify password
 function verifyPassword(password, hash) {
   return bcrypt.compareSync(password, hash);
 }
 
-// 生成 PAT Token，格式：sk-base-{uuid去掉横线}
+// Generate PAT Token, format: sk-base-{uuid without dashes}
 function generatePAT() {
   return 'sk-base-' + uuidv4().replace(/-/g, '');
 }
 
-// 生成 CLI 验证码，格式：XXXX-XXXX（大写字母+数字）
+// Generate CLI verification code, format: XXXX-XXXX (uppercase letters + numbers)
 function generateCliCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 排除易混淆字符
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing characters
   let code = '';
   for (let i = 0; i < 8; i++) {
     if (i === 4) code += '-';
@@ -27,7 +27,7 @@ function generateCliCode() {
   return code;
 }
 
-// 生成 Session ID
+// Generate Session ID
 function generateSessionId() {
   return uuidv4();
 }

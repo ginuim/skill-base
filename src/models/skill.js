@@ -11,7 +11,7 @@ function queryById(id) {
 }
 
 const SkillModel = {
-  // 根据 ID 查询 Skill（附带 owner 信息）
+  // Find Skill by ID (includes owner info)
   findById(id) {
     return modelCache.remember(
       modelCache.keys.skill(id),
@@ -20,7 +20,7 @@ const SkillModel = {
     );
   },
 
-  // 搜索/列出 Skills（支持关键词搜索 name 或 description）
+  // Search/List Skills (supports keyword search on name or description)
   search(query) {
     const normalizedQuery = query ? String(query) : '';
     return modelCache.remember(
@@ -48,7 +48,7 @@ const SkillModel = {
     );
   },
 
-  // 创建新 Skill
+  // Create new Skill
   create(id, name, description, ownerId) {
     db.prepare(`
       INSERT INTO skills (id, name, description, owner_id)
@@ -58,7 +58,7 @@ const SkillModel = {
     return queryById(id);
   },
 
-  // 更新 Skill
+  // Update Skill
   update(id, name, description) {
     const fields = [];
     const values = [];
@@ -83,7 +83,7 @@ const SkillModel = {
     return queryById(id);
   },
 
-  // 更新 latest_version 和 updated_at
+  // Update latest_version and updated_at
   updateLatestVersion(id, version) {
     db.prepare(`
       UPDATE skills SET latest_version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
@@ -91,7 +91,7 @@ const SkillModel = {
     modelCache.invalidateSkill(id);
   },
 
-  // 检查 Skill 是否存在
+  // Check if Skill exists
   exists(id) {
     return modelCache.remember(
       modelCache.keys.skillExists(id),

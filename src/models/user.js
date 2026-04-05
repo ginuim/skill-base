@@ -6,7 +6,7 @@ function queryById(id) {
 }
 
 const UserModel = {
-  // 根据 ID 查询用户
+  // Find user by ID
   findById(id) {
     return modelCache.remember(
       modelCache.keys.userBasic(id),
@@ -15,19 +15,19 @@ const UserModel = {
     );
   },
 
-  // 根据用户名查询（含 password_hash，用于登录验证）
+  // Find user by username (includes password_hash for login verification)
   findByUsername(username) {
     return db.prepare('SELECT * FROM users WHERE username = ?').get(username);
   },
 
-  // 创建用户
+  // Create user
   create(username, passwordHash, role = 'developer') {
     const result = db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)').run(username, passwordHash, role);
     modelCache.invalidateUser(result.lastInsertRowid);
     return queryById(result.lastInsertRowid);
   },
 
-  // 列出用户（支持分页和搜索）
+  // List users (supports pagination and search)
   list({ q, status, page = 1, limit = 20 } = {}) {
     let sql = 'SELECT id, username, name, role, status, created_at, updated_at FROM users WHERE 1=1';
     let countSql = 'SELECT COUNT(*) as total FROM users WHERE 1=1';
@@ -56,7 +56,7 @@ const UserModel = {
     return { users, total, page, limit };
   },
 
-  // 更新用户名
+  // Update username
   updateUsername(id, username) {
     const result = db.prepare(
       "UPDATE users SET username = ?, updated_at = datetime('now') WHERE id = ?"
@@ -67,7 +67,7 @@ const UserModel = {
     return result.changes > 0;
   },
 
-  // 更新密码
+  // Update password
   updatePassword(id, passwordHash) {
     const result = db.prepare(
       "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
@@ -78,7 +78,7 @@ const UserModel = {
     return result.changes > 0;
   },
 
-  // 更新用户（管理员用）
+  // Update user (for admin use)
   update(id, fields) {
     const allowed = ['role', 'status', 'username', 'name'];
     const sets = [];
@@ -103,7 +103,7 @@ const UserModel = {
     return result.changes > 0;
   },
 
-  // 重置密码（管理员用）
+  // Reset password (for admin use)
   resetPassword(id, passwordHash) {
     const result = db.prepare(
       "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
@@ -114,7 +114,7 @@ const UserModel = {
     return result.changes > 0;
   },
 
-  // 查询用户详情（含创建者信息）
+  // Find user details (includes creator info)
   findByIdWithCreator(id) {
     return db.prepare(`
       SELECT u.id, u.username, u.name, u.role, u.status, u.created_at, u.updated_at,
@@ -125,7 +125,7 @@ const UserModel = {
     `).get(id);
   },
 
-  // 更新用户名和姓名
+  // Update username and name
   updateProfile(id, { username, name }) {
     const sets = [];
     const params = [];

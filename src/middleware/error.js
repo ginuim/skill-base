@@ -1,9 +1,9 @@
-// Fastify 错误处理插件
+// Fastify error handler plugin
 async function errorHandler(fastify, options) {
   fastify.setErrorHandler(function (error, request, reply) {
     const statusCode = error.statusCode || 500;
     
-    // 记录错误日志
+    // Log error
     if (statusCode >= 500) {
       request.log.error(error);
     } else {
@@ -16,8 +16,8 @@ async function errorHandler(fastify, options) {
     });
   });
 
-  // 注意: 404 处理统一在 index.js 中的 setNotFoundHandler 设置
-  // 包含 API 路由返回 JSON 404 和页面路由返回对应 HTML 的逻辑
+  // Note: 404 handling is unified in setNotFoundHandler in index.js
+  // Includes logic for returning JSON 404 for API routes and corresponding HTML for page routes
 }
 
 module.exports = errorHandler;

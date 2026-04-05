@@ -3,7 +3,7 @@ const UserModel = require('../models/user');
 const { verifyPassword, hashPassword, generateCliCode, generatePAT } = require('../utils/crypto');
 
 async function authRoutes(fastify, options) {
-  // POST /login - 用户登录
+  // POST /login - User login
   fastify.post('/login', async (request, reply) => {
     const { username, password } = request.body || {};
 
@@ -11,7 +11,7 @@ async function authRoutes(fastify, options) {
       return reply.code(400).send({ detail: 'Username and password are required' });
     }
 
-    // 查找用户
+    // Find user
     const user = UserModel.findByUsername(username);
     if (!user) {
       return reply.code(401).send({ detail: 'Invalid username or password' });
@@ -38,7 +38,7 @@ async function authRoutes(fastify, options) {
     return { ok: true, user: { id: user.id, username: user.username, name: user.name || null, role: user.role } };
   });
 
-  // POST /logout - 用户登出
+  // POST /logout - User logout
   fastify.post('/logout', async (request, reply) => {
     const sessionId = request.cookies?.session_id;
     if (sessionId) {
@@ -48,14 +48,14 @@ async function authRoutes(fastify, options) {
     return { ok: true };
   });
 
-  // POST /cli-code/generate - 生成 CLI 验证码
+  // POST /cli-code/generate - Generate CLI verification code
   fastify.post('/cli-code/generate', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const code = generateCliCode();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-    // 写入 cli_auth_codes 表
+    // Write to cli_auth_codes table
     db.prepare(`
       INSERT INTO cli_auth_codes (code, user_id, expires_at, used)
       VALUES (?, ?, ?, FALSE)
@@ -64,7 +64,7 @@ async function authRoutes(fastify, options) {
     return { ok: true, code, expires_at: expiresAt };
   });
 
-  // POST /cli-code/verify - 验证 CLI 验证码
+  // POST /cli-code/verify - Verify CLI verification code
   fastify.post('/cli-code/verify', async (request, reply) => {
     const { code } = request.body || {};
 
@@ -72,7 +72,7 @@ async function authRoutes(fastify, options) {
       return reply.code(400).send({ detail: 'Code is required' });
     }
 
-    // 查找验证码：未使用且未过期
+    // Find verification code: unused and not expired
     const codeRecord = db.prepare(`
       SELECT * FROM cli_auth_codes
       WHERE code = ? AND used = FALSE AND expires_at > datetime('now')
@@ -82,17 +82,17 @@ async function authRoutes(fastify, options) {
       return reply.code(401).send({ detail: 'Invalid or expired code' });
     }
 
-    // 标记为已使用
+    // Mark as used
     db.prepare('UPDATE cli_auth_codes SET used = TRUE WHERE code = ?').run(code);
 
-    // 生成 PAT
+    // Generate PAT
     const token = generatePAT();
     db.prepare(`
       INSERT INTO personal_access_tokens (token, user_id, description)
       VALUES (?, ?, ?)
     `).run(token, codeRecord.user_id, 'CLI generated token');
 
-    // 获取用户信息
+    // Get user info
     const user = UserModel.findById(codeRecord.user_id);
 
     return {
@@ -102,31 +102,31 @@ async function authRoutes(fastify, options) {
     };
   });
 
-  // GET /me - 获取当前用户信息
+  // GET /me - Get current user info
   fastify.get('/me', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     return request.user;
   });
 
-  // PATCH /me - 更新个人信息（用户名和姓名）
+  // PATCH /me - Update personal info (username and name)
   fastify.patch('/me', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const { username, name } = request.body || {};
 
-    // 至少需要提供一个字段
+    // At least one field must be provided
     if (username === undefined && name === undefined) {
       return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'At least one field must be provided' });
     }
 
-    // 验证用户名
+    // Validate username
     if (username !== undefined) {
       if (typeof username !== 'string' || username.trim().length === 0) {
         return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Username cannot be empty' });
       }
       const trimmed = username.trim();
-      // 检查用户名是否已存在（排除自己）
+      // Check if username already exists (exclude self)
       const existing = UserModel.findByUsername(trimmed);
       if (existing && existing.id !== request.user.id) {
         return reply.code(400).send({ ok: false, error: 'username_exists', detail: 'Username already exists' });
@@ -142,7 +142,7 @@ async function authRoutes(fastify, options) {
     return reply.send({ ok: true, user: updated });
   });
 
-  // POST /me/change-password - 修改密码
+  // POST /me/change-password - Change password
   fastify.post('/me/change-password', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
@@ -156,7 +156,7 @@ async function authRoutes(fastify, options) {
       return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'New password must be at least 6 characters' });
     }
 
-    // 验证旧密码 - 需要获取含密码的用户信息
+    // Verify old password - need to get user info with password
     const user = UserModel.findByUsername(request.user.username);
 
     if (!verifyPassword(old_password, user.password_hash)) {

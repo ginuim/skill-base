@@ -2,7 +2,7 @@ const db = require('../database');
 const modelCache = require('../utils/model-cache');
 
 const VersionModel = {
-  // 创建新版本
+  // Create new version
   create(skillId, version, changelog, zipPath, uploaderId, description) {
     const result = db.prepare(`
       INSERT INTO skill_versions (skill_id, version, changelog, zip_path, uploader_id, description)
@@ -12,7 +12,7 @@ const VersionModel = {
     return this.findById(result.lastInsertRowid);
   },
 
-  // 根据 ID 查询版本
+  // Find version by ID
   findById(id) {
     return db.prepare(`
       SELECT sv.*, u.username as uploader_username, u.name as uploader_name
@@ -22,7 +22,7 @@ const VersionModel = {
     `).get(id);
   },
 
-  // 根据 skill_id 和 version 查询
+  // Find by skill_id and version
   findByVersion(skillId, version) {
     return modelCache.remember(
       modelCache.keys.skillVersion(skillId, version),
@@ -36,7 +36,7 @@ const VersionModel = {
     );
   },
 
-  // 列出某 Skill 的所有版本（按创建时间倒序）
+  // List all versions of a Skill (sorted by created_at descending)
   listBySkillId(skillId) {
     return modelCache.remember(
       modelCache.keys.skillVersions(skillId),
@@ -51,7 +51,7 @@ const VersionModel = {
     );
   },
 
-  // 获取某 Skill 的最新版本
+  // Get the latest version of a Skill
   getLatest(skillId) {
     return modelCache.remember(
       modelCache.keys.skillLatest(skillId),
@@ -67,7 +67,7 @@ const VersionModel = {
     );
   },
 
-  // 更新版本描述和更新日志
+  // Update version description and changelog
   update(id, description, changelog) {
     const existing = this.findById(id);
     db.prepare(`

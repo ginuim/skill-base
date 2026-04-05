@@ -5,11 +5,11 @@ const { invalidateSkill } = require('../utils/model-cache');
 
 async function collaboratorsRoutes(fastify, options) {
 
-  // GET /:skill_id/collaborators - 获取协作者列表（公开）
+  // GET /:skill_id/collaborators - Get collaborators list (public)
   fastify.get('/:skill_id/collaborators', async (request, reply) => {
     const { skill_id } = request.params;
     
-    // 检查 Skill 是否存在
+    // Check if Skill exists
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
@@ -42,25 +42,25 @@ async function collaboratorsRoutes(fastify, options) {
     return reply.send({ skill_id, collaborators: result });
   });
 
-  // POST /:skill_id/collaborators - 添加协作者（owner/admin）
+  // POST /:skill_id/collaborators - Add collaborator (owner/admin)
   fastify.post('/:skill_id/collaborators', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const { skill_id } = request.params;
     const { user_id, username } = request.body || {};
     
-    // 检查 Skill 是否存在
+    // Check if Skill exists
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
-    // 权限检查
+    // Permission check
     if (!canManageSkill(request.user, skill_id)) {
       return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
     
-    // 查找目标用户
+    // Find target user
     let targetUser;
     if (user_id) {
       targetUser = UserModel.findById(parseInt(user_id));
@@ -72,7 +72,7 @@ async function collaboratorsRoutes(fastify, options) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
-    // 检查是否已是协作者
+    // Check if already a collaborator
     const existing = db.prepare(
       'SELECT id FROM skill_collaborators WHERE skill_id = ? AND user_id = ?'
     ).get(skill_id, targetUser.id);
@@ -81,7 +81,7 @@ async function collaboratorsRoutes(fastify, options) {
       return reply.code(400).send({ ok: false, error: 'already_collaborator', detail: 'User is already a collaborator' });
     }
     
-    // 添加协作者
+    // Add collaborator
     const result = db.prepare(
       'INSERT INTO skill_collaborators (skill_id, user_id, role, created_by) VALUES (?, ?, ?, ?)'
     ).run(skill_id, targetUser.id, 'collaborator', request.user.id);
@@ -98,24 +98,24 @@ async function collaboratorsRoutes(fastify, options) {
     });
   });
 
-  // DELETE /:skill_id/collaborators/:user_id - 移除协作者（owner/admin）
+  // DELETE /:skill_id/collaborators/:user_id - Remove collaborator (owner/admin)
   fastify.delete('/:skill_id/collaborators/:user_id', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const { skill_id, user_id } = request.params;
     
-    // 检查 Skill 是否存在
+    // Check if Skill exists
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
-    // 权限检查
+    // Permission check
     if (!canManageSkill(request.user, skill_id)) {
       return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
     
-    // 检查协作者记录
+    // Check collaborator record
     const collaborator = db.prepare(
       'SELECT id, role FROM skill_collaborators WHERE skill_id = ? AND user_id = ?'
     ).get(skill_id, parseInt(user_id));
@@ -124,7 +124,7 @@ async function collaboratorsRoutes(fastify, options) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Collaborator not found' });
     }
     
-    // 不能移除所有者
+    // Cannot remove owner
     if (collaborator.role === 'owner') {
       return reply.code(400).send({ ok: false, error: 'cannot_remove_owner', detail: 'Cannot remove the owner' });
     }
@@ -136,7 +136,7 @@ async function collaboratorsRoutes(fastify, options) {
     return reply.send({ ok: true, message: 'Collaborator removed' });
   });
 
-  // POST /:skill_id/transfer-ownership - 转移所有权（owner/admin，事务）
+  // POST /:skill_id/transfer-ownership - Transfer ownership (owner/admin, transaction)
   fastify.post('/:skill_id/transfer-ownership', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
@@ -147,13 +147,13 @@ async function collaboratorsRoutes(fastify, options) {
       return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'New owner must be specified' });
     }
     
-    // 检查 Skill 并获取当前所有者
+    // Check Skill and get current owner
     const skill = db.prepare('SELECT id, owner_id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
-    // 权限检查
+    // Permission check
     if (!canManageSkill(request.user, skill_id)) {
       return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
@@ -164,23 +164,23 @@ async function collaboratorsRoutes(fastify, options) {
       return reply.code(400).send({ ok: false, error: 'same_owner', detail: 'New owner is the same as current owner' });
     }
     
-    // 检查新所有者是否存在
+    // Check if new owner exists
     const newOwner = UserModel.findById(newOwnerId);
     if (!newOwner) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
-    // 事务操作
+    // Transaction operation
     const transferTx = db.transaction(() => {
-      // 1. 更新 skills 表 owner_id
+      // 1. Update skills table owner_id
       db.prepare('UPDATE skills SET owner_id = ?, updated_at = datetime("now") WHERE id = ?')
         .run(newOwnerId, skill_id);
       
-      // 2. 原所有者降级为 collaborator
+      // 2. Demote original owner to collaborator
       db.prepare('UPDATE skill_collaborators SET role = "collaborator" WHERE skill_id = ? AND user_id = ?')
         .run(skill_id, skill.owner_id);
       
-      // 3. 新所有者升级为 owner（如不存在则新增）
+      // 3. Promote new owner to owner (insert if not exists)
       const existing = db.prepare(
         'SELECT id FROM skill_collaborators WHERE skill_id = ? AND user_id = ?'
       ).get(skill_id, newOwnerId);
@@ -204,14 +204,14 @@ async function collaboratorsRoutes(fastify, options) {
     });
   });
 
-  // DELETE /:skill_id - 删除 Skill（owner/admin，需 confirm 参数，事务）
+  // DELETE /:skill_id - Delete Skill (owner/admin, requires confirm parameter, transaction)
   fastify.delete('/:skill_id', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const { skill_id } = request.params;
     const { confirm } = request.query;
     
-    // 确认参数校验
+    // Confirm parameter validation
     if (confirm !== skill_id) {
       return reply.code(400).send({
         ok: false,
@@ -220,22 +220,22 @@ async function collaboratorsRoutes(fastify, options) {
       });
     }
     
-    // 检查 Skill 是否存在
+    // Check if Skill exists
     const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     
-    // 权限检查
+    // Permission check
     if (!canManageSkill(request.user, skill_id)) {
       return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
     
-    // 获取版本数量（用于响应）
+    // Get versions count (for response)
     const versionsCount = db.prepare('SELECT COUNT(*) as count FROM skill_versions WHERE skill_id = ?')
       .get(skill_id).count;
     
-    // 事务删除
+    // Transaction delete
     const deleteSkillTx = db.transaction(() => {
       db.prepare('DELETE FROM skill_versions WHERE skill_id = ?').run(skill_id);
       db.prepare('DELETE FROM skill_collaborators WHERE skill_id = ?').run(skill_id);
@@ -245,7 +245,7 @@ async function collaboratorsRoutes(fastify, options) {
     deleteSkillTx();
     invalidateSkill(skill_id);
     
-    // 删除文件系统中的文件
+    // Delete files from filesystem
     const fs = require('fs');
     const path = require('path');
     const { getDataDir } = require('../utils/zip');

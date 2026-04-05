@@ -3,8 +3,8 @@ const { hashPassword } = require('../utils/crypto');
 const db = require('../database');
 
 async function usersRoutes(fastify, options) {
-  // GET /search - 用户搜索（仅需登录，不需要管理员权限）
-  // 注意：必须在 /:user_id 之前注册
+  // GET /search - User search (login required only, no admin permission needed)
+  // Note: Must be registered before /:user_id
   fastify.get('/search', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
@@ -25,11 +25,11 @@ async function usersRoutes(fastify, options) {
     return reply.send({ users });
   });
 
-  // 以下路由都需要管理员权限
+  // Routes below require admin permission
   fastify.register(async function adminRoutes(fastify) {
     fastify.addHook('preHandler', fastify.requireAdmin);
 
-  // GET / - 用户列表
+  // GET / - User list
   fastify.get('/', async (request, reply) => {
     const { q, status, page = 1, limit = 20 } = request.query;
     const result = UserModel.list({
@@ -41,7 +41,7 @@ async function usersRoutes(fastify, options) {
     return reply.send(result);
   });
 
-  // POST / - 创建用户
+  // POST / - Create user
   fastify.post('/', async (request, reply) => {
     const { username, password, role = 'developer', name } = request.body || {};
     
@@ -62,7 +62,7 @@ async function usersRoutes(fastify, options) {
     }
     
     const passwordHash = await hashPassword(password);
-    // 创建用户时记录 created_by
+    // Record created_by when creating user
     const result = db.prepare(
       "INSERT INTO users (username, password_hash, role, name, status, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, datetime('now'), datetime('now'))"
     ).run(username.trim(), passwordHash, role, name || null, request.user.id);
@@ -71,7 +71,7 @@ async function usersRoutes(fastify, options) {
     return reply.code(201).send({ ok: true, user });
   });
 
-  // GET /:user_id - 用户详情
+  // GET /:user_id - User details
   fastify.get('/:user_id', async (request, reply) => {
     const { user_id } = request.params;
     const user = UserModel.findByIdWithCreator(parseInt(user_id));
@@ -97,7 +97,7 @@ async function usersRoutes(fastify, options) {
     return reply.send(result);
   });
 
-  // PATCH /:user_id - 更新用户
+  // PATCH /:user_id - Update user
   fastify.patch('/:user_id', async (request, reply) => {
     const userId = parseInt(request.params.user_id);
     const { role, status, name } = request.body || {};
@@ -144,7 +144,7 @@ async function usersRoutes(fastify, options) {
     return reply.send({ ok: true, user: updated });
   });
 
-  // POST /:user_id/reset-password - 重置密码
+  // POST /:user_id/reset-password - Reset password
   fastify.post('/:user_id/reset-password', async (request, reply) => {
     const userId = parseInt(request.params.user_id);
     const { new_password } = request.body || {};

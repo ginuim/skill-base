@@ -7,7 +7,7 @@ const { ensureSkillDir, generateVersionNumber, getZipPath, getZipRelativePath } 
 const { canPublishSkill } = require('../utils/permission');
 
 async function publishRoutes(fastify, options) {
-  // POST /publish - 发布新版本
+  // POST /publish - Publish new version
   fastify.post('/publish', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
@@ -15,12 +15,12 @@ async function publishRoutes(fastify, options) {
     let zipBuffer = null;
     let zipFilename = null;
 
-    // 解析 multipart 数据
+    // Parse multipart data
     const parts = request.parts();
     for await (const part of parts) {
       if (part.type === 'file') {
         if (part.fieldname === 'zip_file') {
-          // 读取文件到 buffer
+          // Read file into buffer
           const chunks = [];
           for await (const chunk of part.file) {
             chunks.push(chunk);
@@ -33,19 +33,19 @@ async function publishRoutes(fastify, options) {
       }
     }
 
-    // 检查必须的 zip 文件
+    // Check required zip file
     if (!zipBuffer) {
       return reply.code(400).send({ detail: 'zip_file is required' });
     }
 
     const { skill_id, name, description, changelog } = fields;
 
-    // 检查 skill_id
+    // Check skill_id
     if (!skill_id) {
       return reply.code(400).send({ detail: 'skill_id is required' });
     }
 
-    // 检查发布权限
+    // Check publish permission
     if (!canPublishSkill(request.user, skill_id)) {
       return reply.code(403).send({
         ok: false,
@@ -54,15 +54,15 @@ async function publishRoutes(fastify, options) {
       });
     }
 
-    // 检查 skill 是否存在
+    // Check if skill exists
     const skillExists = SkillModel.exists(skill_id);
 
-    // 如果 skill 不存在，需要 name 字段来创建新 skill
+    // If skill does not exist, name field is required to create new skill
     if (!skillExists) {
       if (!name) {
         return reply.code(400).send({ detail: 'name is required for new skill' });
       }
-      // 使用事务创建新 skill 和添加 owner 协作者记录
+      // Use transaction to create new skill and add owner collaborator record
       const createSkillTx = db.transaction(() => {
         SkillModel.create(skill_id, name, description || '', request.user.id);
         db.prepare(
@@ -72,20 +72,20 @@ async function publishRoutes(fastify, options) {
       createSkillTx();
     }
 
-    // 生成版本号
+    // Generate version number
     const version = generateVersionNumber();
 
-    // 确保目录存在
+    // Ensure directory exists
     ensureSkillDir(skill_id);
 
-    // 写入 zip 文件
+    // Write zip file
     const zipPath = getZipPath(skill_id, version);
     fs.writeFileSync(zipPath, zipBuffer);
 
-    // 获取相对路径（存入数据库）
+    // Get relative path (stored in database)
     const zipRelativePath = getZipRelativePath(skill_id, version);
 
-    // 创建版本记录
+    // Create version record
     const versionRecord = VersionModel.create(
       skill_id,
       version,
@@ -95,7 +95,7 @@ async function publishRoutes(fastify, options) {
       description || ''
     );
 
-    // 更新 skill 的最新版本
+    // Update skill's latest version
     SkillModel.updateLatestVersion(skill_id, version);
     invalidateSkill(skill_id);
 

@@ -2,13 +2,13 @@ const bcrypt = require('bcryptjs');
 const db = require('../database');
 
 /**
- * 系统初始化路由
+ * System initialization routes
  * @param {import('fastify').FastifyInstance} fastify
  */
 async function initRoutes(fastify) {
     /**
      * GET /api/v1/init/status
-     * 检查系统是否需要初始化（是否存在管理员用户）
+     * Check if system needs initialization (whether admin user exists)
      */
     fastify.get('/status', async (request, reply) => {
         const adminCount = db.prepare(
@@ -22,11 +22,11 @@ async function initRoutes(fastify) {
 
     /**
      * POST /api/v1/init/setup
-     * 初始化系统管理员账号
+     * Initialize system admin account
      * Body: { username, password }
      */
     fastify.post('/setup', async (request, reply) => {
-        // 检查是否已经初始化
+        // Check if already initialized
         const adminCount = db.prepare(
             "SELECT COUNT(*) as count FROM users WHERE role = 'admin'"
         ).get();
@@ -39,7 +39,7 @@ async function initRoutes(fastify) {
         
         const { username, password } = request.body || {};
         
-        // 验证输入
+        // Validate input
         if (!username || !password) {
             return reply.code(400).send({ 
                 error: 'Username and password are required' 
@@ -58,7 +58,7 @@ async function initRoutes(fastify) {
             });
         }
         
-        // 检查用户名是否已存在
+        // Check if username already exists
         const existingUser = db.prepare(
             'SELECT id FROM users WHERE username = ?'
         ).get(username);
@@ -69,7 +69,7 @@ async function initRoutes(fastify) {
             });
         }
         
-        // 创建管理员账号
+        // Create admin account
         const passwordHash = bcrypt.hashSync(password, 10);
         const result = db.prepare(
             'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)'

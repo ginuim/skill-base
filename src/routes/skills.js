@@ -5,7 +5,7 @@ const VersionModel = require('../models/version');
 const { getZipPath, resolveZipPath } = require('../utils/zip');
 const { canManageSkill } = require('../utils/permission');
 
-// 格式化 skill，将 owner 转为对象
+// Format skill, convert owner to object
 function formatSkill(skill, currentUser) {
   if (!skill) return null;
   const result = {
@@ -41,7 +41,7 @@ function formatSkill(skill, currentUser) {
   return result;
 }
 
-// 格式化 version，将 uploader 转为对象
+// Format version, convert uploader to object
 function formatVersion(version) {
   if (!version) return null;
   return {
@@ -61,7 +61,7 @@ function formatVersion(version) {
 }
 
 async function skillsRoutes(fastify, options) {
-  // GET / - 获取 skills 列表
+  // GET / - Get skills list
   fastify.get('/', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { q } = request.query;
     const skills = SkillModel.search(q);
@@ -73,7 +73,7 @@ async function skillsRoutes(fastify, options) {
     };
   });
 
-  // GET /:skill_id - 获取单个 skill
+  // GET /:skill_id - Get single skill
   fastify.get('/:skill_id', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { skill_id } = request.params;
     const skill = SkillModel.findById(skill_id);
@@ -85,11 +85,11 @@ async function skillsRoutes(fastify, options) {
     return formatSkill(skill, request.user);
   });
 
-  // GET /:skill_id/versions - 获取 skill 的所有版本
+  // GET /:skill_id/versions - Get all versions of a skill
   fastify.get('/:skill_id/versions', async (request, reply) => {
     const { skill_id } = request.params;
 
-    // 先检查 skill 是否存在
+    // First check if skill exists
     if (!SkillModel.exists(skill_id)) {
       return reply.code(404).send({ detail: 'Skill not found' });
     }
@@ -103,7 +103,7 @@ async function skillsRoutes(fastify, options) {
     };
   });
 
-  // GET /:skill_id/versions/:version/download - 下载版本 zip 文件
+  // GET /:skill_id/versions/:version/download - Download version zip file
   fastify.get('/:skill_id/versions/:version/download', async (request, reply) => {
     const { skill_id, version } = request.params;
 
@@ -119,11 +119,11 @@ async function skillsRoutes(fastify, options) {
       return reply.code(404).send({ detail: 'Version not found' });
     }
 
-    // 优先使用数据库里的 zip_path，兼容历史数据；缺失时再回退到规则路径
+    // Prefer using zip_path from database for backward compatibility; fallback to rule-based path if missing
     const zipPath = resolveZipPath(versionRecord.zip_path, skill_id, versionRecord.version);
     const fallbackZipPath = getZipPath(skill_id, versionRecord.version);
 
-    // 检查文件是否存在
+    // Check if file exists
     if (!fs.existsSync(zipPath)) {
       if (!fs.existsSync(fallbackZipPath)) {
         return reply.code(404).send({ detail: 'Version not found' });
@@ -132,7 +132,7 @@ async function skillsRoutes(fastify, options) {
 
     const finalZipPath = fs.existsSync(zipPath) ? zipPath : fallbackZipPath;
 
-    // 设置响应头并返回文件流
+    // Set response headers and return file stream
     const fileName = `${skill_id}-${versionRecord.version}.zip`;
     reply.header('Content-Type', 'application/zip');
     reply.header('Content-Disposition', `attachment; filename="${fileName}"`);
@@ -140,7 +140,7 @@ async function skillsRoutes(fastify, options) {
     return fs.createReadStream(finalZipPath);
   });
 
-  // PUT /:skill_id - 更新 skill 的基本信息
+  // PUT /:skill_id - Update skill basic info
   fastify.put('/:skill_id', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
@@ -159,7 +159,7 @@ async function skillsRoutes(fastify, options) {
     return formatSkill(updated, request.user);
   });
 
-  // PUT /:skill_id/head - 设置 skill 的最新版本 (Head 指针)
+  // PUT /:skill_id/head - Set skill's latest version (Head pointer)
   fastify.put('/:skill_id/head', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
@@ -187,7 +187,7 @@ async function skillsRoutes(fastify, options) {
     return { ok: true, skill_id, latest_version: version };
   });
 
-  // PATCH /:skill_id/versions/:version - 更新指定版本的介绍和日志
+  // PATCH /:skill_id/versions/:version - Update description and changelog for specified version
   fastify.patch('/:skill_id/versions/:version', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
