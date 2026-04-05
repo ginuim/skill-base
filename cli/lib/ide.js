@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { pickMessage } from './i18n.js';
 
 /**
  * IDE configuration map
@@ -108,12 +109,22 @@ export function detectInsideIdeDir(cwd) {
 export function resolveInstallDir(ideId, skillId, isGlobal, cwd) {
   const config = IDE_CONFIGS[ideId];
   if (!config) {
-    throw new Error(`Unsupported IDE: ${ideId}`);
+    throw new Error(
+      pickMessage({
+        zh: `不支持的 IDE: ${ideId}`,
+        en: `Unsupported IDE: ${ideId}`
+      })
+    );
   }
 
   if (isGlobal) {
     if (!config.supportsGlobal) {
-      throw new Error(`${config.name} does not support global installation`);
+      throw new Error(
+        pickMessage({
+          zh: `${config.name} 不支持全局安装`,
+          en: `${config.name} does not support global installation`
+        })
+      );
     }
     return path.join(os.homedir(), config.globalPath);
   }

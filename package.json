@@ -17,7 +17,7 @@
     "dev": "nodemon src/index.js",
     "build": "cd web && pnpm build",
     "web:dev": "cd web && pnpm dev",
-    "test": "node --test tests/**/*.test.js"
+    "test": "node --test tests/**/*.test.js tests/cli/*.test.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
