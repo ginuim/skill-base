@@ -109,11 +109,11 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function deleteSkill(id: string) {
+  async function deleteSkill(id: string, confirm: string) {
     error.value = null
 
     try {
-      await skillsApi.delete(id)
+      await skillsApi.delete(id, confirm)
       skills.value = skills.value.filter(s => s.id !== id)
       if (currentSkill.value?.id === id) {
         currentSkill.value = null

@@ -196,7 +196,7 @@ export const skillsApi = {
   get: (id: string) => apiGet<SkillDetail>(`/skills/${id}`),
   create: (data: { name: string; description: string }) => apiPost<Skill>('/skills', data),
   update: (id: string, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
-  delete: (id: string) => apiDelete(`/skills/${id}`),
+  delete: (id: string, confirm: string) => apiDelete(`/skills/${id}?confirm=${encodeURIComponent(confirm)}`),
   upload: (data: FormData) => apiPost('/skills/publish', data),
   setHead: (id: string, version: string) => apiPut<{ ok: boolean, skill_id: string, latest_version: string }>(`/skills/${id}/head`, { version }),
 }

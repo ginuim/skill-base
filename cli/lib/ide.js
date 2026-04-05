@@ -11,8 +11,8 @@ export const IDE_CONFIGS = {
   cursor: {
     id: 'cursor',
     name: 'Cursor',
-    projectPath: '.cursor/rules',
-    globalPath: '.cursor/rules',
+    projectPath: '.cursor/skills',
+    globalPath: '.cursor/skills',
     supportsGlobal: true,
   },
   copilot: {

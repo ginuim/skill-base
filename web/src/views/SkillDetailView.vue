@@ -847,11 +847,17 @@ async function removeCollaborator(userId: number) {
 }
 
 async function submitDeleteSkill() {
-  if (deleteConfirmInput.value !== String(skill.value?.id)) return
+  const confirmValue = deleteConfirmInput.value.trim()
+  if (confirmValue !== String(skill.value?.id)) return
 
   try {
-    await skillsStore.deleteSkill(skillId.value)
+    const ok = await skillsStore.deleteSkill(skillId.value, confirmValue)
+    if (!ok) {
+      throw new Error(skillsStore.error || t('collab.deleteFailed'))
+    }
+
     showDeleteModal.value = false
+    deleteConfirmInput.value = ''
     router.push('/')
   } catch (err) {
     globalToast.error(t('collab.deleteFailed'))
