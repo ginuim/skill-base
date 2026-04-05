@@ -45,6 +45,10 @@ skb install <skill_id>
 skb install <skill_id>@<version>
 skb install <skill_id> -d ./target-dir
 
+# 查看和管理本地已安装 Skill
+skb list
+skb ls
+
 # 交互式更新 Skill
 skb update <skill_id>
 skb update <skill_id> -d ./target-dir
@@ -67,16 +71,20 @@ skb search vue
 # 3. 安装
 skb install vue-best-practices
 
-# 4. 交互式选择版本和目录进行更新
+# 4. 查看和管理本地已安装 Skill
+skb list
+
+# 5. 交互式选择版本和目录进行更新
 skb update vue-best-practices
 
-# 5. 发布自己的 Skill
+# 6. 发布自己的 Skill
 skb publish ./my-skill --changelog "初始版本"
 ```
 
 ## 更新行为
 
 - `skb install` 会记录 Skill 实际安装到的目录，供后续 `skb update` 使用
+- `skb list` / `skb ls` 会列出本地所有已记录 Skill，并允许继续执行更新、删除本地文件、清除配置记录
 - `skb update <skill_id>` 会先列出版本、changelog、提交人，再列出该 Skill 已记录的安装目录供多选
 - 如果要绕过本地记录，也可以继续使用 `skb update <skill_id> -d <directory>`
 

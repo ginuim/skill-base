@@ -38,6 +38,35 @@ export function listSkillInstalls(skillId) {
     .sort((a, b) => a.installPath.localeCompare(b.installPath));
 }
 
+export function listInstalledSkills() {
+  const installs = loadRegistry();
+  const result = [];
+
+  for (const [skillId, records] of Object.entries(installs)) {
+    const normalizedRecords = Array.isArray(records)
+      ? records.map(normalizeEntry).filter(Boolean)
+      : [];
+
+    if (normalizedRecords.length === 0) {
+      continue;
+    }
+
+    const latestInstalledAt = normalizedRecords
+      .map((record) => record.installedAt || '')
+      .sort()
+      .at(-1) || '';
+
+    result.push({
+      skillId,
+      installCount: normalizedRecords.length,
+      latestInstalledAt,
+      installs: normalizedRecords.sort((a, b) => a.installPath.localeCompare(b.installPath)),
+    });
+  }
+
+  return result.sort((a, b) => a.skillId.localeCompare(b.skillId));
+}
+
 export function rememberSkillInstall({ skillId, installPath, version, ide, isGlobal }) {
   const installs = loadRegistry();
   const records = Array.isArray(installs[skillId]) ? installs[skillId] : [];
@@ -76,4 +105,48 @@ export function pruneMissingSkillInstalls(skillId) {
   }
 
   return existingRecords.sort((a, b) => a.installPath.localeCompare(b.installPath));
+}
+
+export function pruneAllMissingInstalls() {
+  const installs = loadRegistry();
+  const nextInstalls = {};
+
+  for (const [skillId, records] of Object.entries(installs)) {
+    const existingRecords = (Array.isArray(records) ? records : [])
+      .map(normalizeEntry)
+      .filter(Boolean)
+      .filter((record) => fs.existsSync(record.installPath))
+      .sort((a, b) => a.installPath.localeCompare(b.installPath));
+
+    if (existingRecords.length > 0) {
+      nextInstalls[skillId] = existingRecords;
+    }
+  }
+
+  saveRegistry(nextInstalls);
+  return listInstalledSkills();
+}
+
+export function removeSkillInstall(skillId, installPath) {
+  const installs = loadRegistry();
+  const normalizedPath = path.resolve(installPath);
+  const records = Array.isArray(installs[skillId]) ? installs[skillId] : [];
+  const nextRecords = records
+    .map(normalizeEntry)
+    .filter(Boolean)
+    .filter((record) => record.installPath !== normalizedPath);
+
+  if (nextRecords.length > 0) {
+    installs[skillId] = nextRecords;
+  } else {
+    delete installs[skillId];
+  }
+
+  saveRegistry(installs);
+}
+
+export function clearSkillInstalls(skillId) {
+  const installs = loadRegistry();
+  delete installs[skillId];
+  saveRegistry(installs);
 }

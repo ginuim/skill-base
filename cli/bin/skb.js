@@ -6,6 +6,7 @@ import login from '../lib/commands/login.js';
 import logout from '../lib/commands/logout.js';
 import search from '../lib/commands/search.js';
 import install from '../lib/commands/install.js';
+import installed from '../lib/commands/installed.js';
 import update from '../lib/commands/update.js';
 import publish from '../lib/commands/publish.js';
 
@@ -50,6 +51,12 @@ program
   .description('Interactively select version and install directories to update')
   .option('-d, --dir <directory>', 'Explicit parent directory to update (bypass local install records)')
   .action(update);
+
+program
+  .command('list')
+  .alias('ls')
+  .description('Browse locally installed skills and update/delete/clear records')
+  .action(installed);
 
 program
   .command('publish [directory]')

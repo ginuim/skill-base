@@ -162,6 +162,9 @@ skb install team-vue-rules --ide copilot    # 自动生成到 .github/instructio
 # 支持全局安装通用素养规则
 skb install git-commit-rules --ide cursor --global
 
+# 查看本地通过 skb 安装过的所有 Skill，并继续更新/删除/清记录
+skb list
+
 # 更新时可先选版本，再批量勾选已安装目录
 skb update team-vue-rules
 ```
