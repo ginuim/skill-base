@@ -1,13 +1,5 @@
 const readline = require('readline');
-
-function detectSystemLanguage() {
-  try {
-    const locale = Intl.DateTimeFormat().resolvedOptions().locale || '';
-    return locale.toLowerCase().startsWith('zh') ? 'zh' : 'en';
-  } catch {
-    return 'en';
-  }
-}
+const { detectSystemLanguage } = require('./utils/detect-language');
 
 class CappyMascot {
   static detectSystemLanguage() {
