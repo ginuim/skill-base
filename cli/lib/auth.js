@@ -9,7 +9,7 @@ export function loadCredentials() {
     const content = fs.readFileSync(credentialsPath, 'utf-8');
     return JSON.parse(content);
   } catch (err) {
-    // 文件不存在时返回 null
+    // Missing file -> null
     return null;
   }
 }
@@ -17,10 +17,10 @@ export function loadCredentials() {
 export function saveCredentials({ token, username }) {
   const { credentialsDir, credentialsPath } = getConfig();
   
-  // 创建目录（recursive）
+  // Ensure config dir exists
   fs.mkdirSync(credentialsDir, { recursive: true });
   
-  // 写入 JSON
+  // Write credentials JSON
   fs.writeFileSync(credentialsPath, JSON.stringify({ token, username }, null, 2));
 }
 
@@ -30,6 +30,6 @@ export function removeCredentials() {
   try {
     fs.unlinkSync(credentialsPath);
   } catch (err) {
-    // 不存在时静默忽略
+    // Ignore missing file
   }
 }

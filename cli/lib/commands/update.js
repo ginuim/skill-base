@@ -10,7 +10,7 @@ export default async function update(skillId, options) {
   const spinner = ora(`Checking latest version of ${skillId}...`).start();
 
   try {
-    // 获取 Skill 信息
+    // Fetch skill metadata
     const skillInfo = await client.get(`/skills/${encodeURIComponent(skillId)}`);
     const latestVersion = skillInfo.latest_version;
 
@@ -21,7 +21,7 @@ export default async function update(skillId, options) {
 
     spinner.text = `Downloading ${skillId}@${latestVersion}...`;
 
-    // 直接下载最新版本（由于没有本地版本跟踪，每次都执行更新）
+    // Always fetch latest (no local version tracking)
     const result = await downloadAndExtract(skillId, latestVersion, targetDir);
     spinner.succeed(chalk.green(`Updated ${result.skillId} to ${result.version}`));
   } catch (err) {

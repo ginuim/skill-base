@@ -10,7 +10,7 @@ async function handleResponse(response) {
         message = data.detail;
       }
     } catch (e) {
-      // 无法解析 JSON，使用默认消息
+      // JSON parse failed; keep default message
     }
     throw new Error(message);
   }
@@ -53,7 +53,7 @@ export function createClient() {
     },
 
     async postForm(path, formData) {
-      // 使用原生 FormData，让 fetch 自动设置 Content-Type（含 boundary）
+      // Native FormData so fetch sets Content-Type with boundary
       const response = await fetch(`${apiUrl}${path}`, {
         method: 'POST',
         headers: {
@@ -79,7 +79,7 @@ export function createClient() {
             message = data.detail;
           }
         } catch (e) {
-          // 无法解析 JSON，使用默认消息
+          // JSON parse failed; keep default message
         }
         throw new Error(message);
       }

@@ -9,55 +9,55 @@ import { createClient } from '../api.js';
 import { detectInsideIdeDir, resolveInstallDir, getIdeChoices, getSupportedIdeIds, IDE_CONFIGS } from '../ide.js';
 
 /**
- * 下载并解压 Skill 到指定目录
+ * Download and extract a skill into targetDir
  * @param {string} skillId - Skill ID
- * @param {string} version - 版本号（或 'latest'）
- * @param {string} targetDir - 目标目录
+ * @param {string} version - Version or 'latest'
+ * @param {string} targetDir - Destination directory
  * @returns {Promise<{skillId: string, version: string, targetDir: string}>}
  */
 export async function downloadAndExtract(skillId, version, targetDir) {
   const client = createClient();
 
-  // 先获取 Skill 信息确认存在
+  // Fetch skill metadata to verify it exists
   const skillInfo = await client.get(`/skills/${encodeURIComponent(skillId)}`);
 
-  // 如果是 latest，使用实际版本号
+  // Resolve 'latest' to concrete version
   const actualVersion = version === 'latest' ? skillInfo.latest_version : version;
 
   if (!actualVersion) {
     throw new Error(`Skill ${skillId} has no available version`);
   }
 
-  // 下载 zip
+  // Download zip
   const response = await client.download(
     `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(actualVersion)}/download`
   );
 
-  // 获取 ArrayBuffer 并写入临时文件
+  // Write response to a temp zip file
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   
   const tmpZip = path.join(os.tmpdir(), `skb-${skillId}-${actualVersion}-${Date.now()}.zip`);
   fs.writeFileSync(tmpZip, buffer);
 
-  // 确保目标目录存在
+  // Ensure target dir exists
   fs.mkdirSync(targetDir, { recursive: true });
 
-  // 解压
+  // Extract
   await extract(tmpZip, { dir: path.resolve(targetDir) });
 
-  // 清理临时文件
+  // Remove temp zip
   try {
     fs.unlinkSync(tmpZip);
   } catch (e) {
-    // 忽略清理失败
+    // Ignore cleanup errors
   }
 
   return { skillId, version: actualVersion, targetDir };
 }
 
 export default async function install(target, options) {
-  // 解析 target: skillId@version 或 skillId
+  // Parse target: skillId@version or skillId
   let skillId, version;
   if (target.includes('@')) {
     const parts = target.split('@');
@@ -70,14 +70,14 @@ export default async function install(target, options) {
 
   let targetDir;
 
-  // 如果用户通过 -d 手动指定了目录，走原有逻辑
+  // User passed -d: use plain directory install
   if (options.dir) {
     targetDir = options.dir;
   } else {
-    // IDE 安装流程
+    // IDE-based install
     let ideId = options.ide;
 
-    // 交互式选择 IDE
+    // Interactive IDE picker
     if (!ideId) {
       const ideChoices = [
         ...getIdeChoices(),
@@ -91,7 +91,7 @@ export default async function install(target, options) {
       });
 
       if (response.ide === undefined) {
-        // 用户按了 Ctrl+C
+        // User cancelled (e.g. Ctrl+C)
         console.log(chalk.yellow('\n已取消安装'));
         process.exit(0);
       }
@@ -99,24 +99,24 @@ export default async function install(target, options) {
       ideId = response.ide;
     }
 
-    // 选择了"当前目录"
+    // Chose "current directory"
     if (ideId === '_cwd') {
       targetDir = process.cwd();
     } else {
-      // 校验 IDE 标识符
+      // Validate IDE id
       if (!getSupportedIdeIds().includes(ideId)) {
         console.log(chalk.red(`不支持的 IDE: ${ideId}`));
         console.log(chalk.yellow(`支持的 IDE: ${getSupportedIdeIds().join(', ')}`));
         process.exit(1);
       }
 
-      // 检查全局安装支持
+      // Global install must be supported by IDE
       if (options.global && !IDE_CONFIGS[ideId].supportsGlobal) {
         console.log(chalk.red(`${IDE_CONFIGS[ideId].name} 不支持全局安装`));
         process.exit(1);
       }
 
-      // 检测是否在 IDE skill 目录内
+      // Warn if already inside an IDE skill dir
       const insideIde = detectInsideIdeDir(process.cwd());
       if (insideIde) {
         const { confirm } = await prompts({
@@ -131,7 +131,7 @@ export default async function install(target, options) {
         }
       }
 
-      // 计算安装路径
+      // Resolve install path
       targetDir = resolveInstallDir(ideId, skillId, options.global || false, process.cwd());
     }
   }
@@ -143,7 +143,7 @@ export default async function install(target, options) {
     const displayPath = options.global ? result.targetDir : path.relative(process.cwd(), path.join(result.targetDir, skillId)) || path.join(result.targetDir, skillId);
     spinner.succeed(chalk.green(`Installed ${result.skillId} ${result.version} → ${displayPath}`));
   } catch (err) {
-    // 根据错误类型给出更友好的提示
+    // Friendlier errors for common failures
     if (err.message === 'Skill not found' || err.message.includes('HTTP 404')) {
       spinner.fail(chalk.red(`Skill '${skillId}' not found`));
       console.log();

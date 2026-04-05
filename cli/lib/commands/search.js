@@ -15,16 +15,16 @@ export default async function search(keyword) {
       return;
     }
 
-    // 表格展示
+    // Table output
     const skills = result.skills;
     
-    // 计算列宽
+    // Column widths
     const idWidth = Math.max(4, ...skills.map(s => s.id.length));
     const nameWidth = Math.max(6, ...skills.map(s => s.name.length));
     const versionWidth = Math.max(8, ...skills.map(s => (s.latest_version || '-').length));
     const descWidth = 40;
 
-    // 表头
+    // Header row
     const header = [
       'ID'.padEnd(idWidth),
       'Name'.padEnd(nameWidth),
@@ -39,7 +39,7 @@ export default async function search(keyword) {
     console.log(separator);
 
     for (const skill of skills) {
-      // 截断描述到 40 字符
+      // Truncate description to 40 chars
       let desc = skill.description || '';
       if (desc.length > descWidth) {
         desc = desc.slice(0, descWidth - 3) + '...';

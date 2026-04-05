@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 
 /**
- * IDE 配置映射表
+ * IDE configuration map
  * @type {Object.<string, {id: string, name: string, projectPath: string, globalPath: string|null, supportsGlobal: boolean}>}
  */
 export const IDE_CONFIGS = {
@@ -58,13 +58,13 @@ export const IDE_CONFIGS = {
   },
 };
 
-/** 项目根目录标志文件/目录列表 */
+/** Marker files/dirs that indicate a project root */
 const PROJECT_MARKERS = ['.git', 'package.json', 'pyproject.toml', 'go.mod', 'Cargo.toml', 'pom.xml'];
 
 /**
- * 向上遍历目录，寻找项目根目录
- * @param {string} cwd - 当前工作目录
- * @returns {string} 项目根目录路径，找不到时返回 cwd
+ * Walk up from cwd to find the project root directory
+ * @param {string} cwd - Current working directory
+ * @returns {string} Project root path, or cwd if none found
  */
 export function findProjectRoot(cwd) {
   let dir = path.resolve(cwd);
@@ -81,9 +81,9 @@ export function findProjectRoot(cwd) {
 }
 
 /**
- * 检测当前目录是否位于某个 IDE 的 skill 目录内
- * @param {string} cwd - 当前工作目录
- * @returns {Object|null} 匹配的 IDE 配置对象，或 null
+ * Detect whether cwd is inside an IDE skill/rules directory
+ * @param {string} cwd - Current working directory
+ * @returns {Object|null} Matching IDE config, or null
  */
 export function detectInsideIdeDir(cwd) {
   const normalized = cwd.replace(/\\/g, '/');
@@ -97,13 +97,13 @@ export function detectInsideIdeDir(cwd) {
 }
 
 /**
- * 根据参数计算最终安装路径
- * @param {string} ideId - IDE 标识符
- * @param {string} skillId - Skill 标识符（本函数不使用，但保留参数以便扩展）
- * @param {boolean} isGlobal - 是否全局安装
- * @param {string} cwd - 当前工作目录
- * @returns {string} 安装目录路径（不包含 skillId 子目录）
- * @throws {Error} 当 IDE 不支持或全局安装不支持时
+ * Resolve the install directory from IDE and global/project flags
+ * @param {string} ideId - IDE identifier
+ * @param {string} skillId - Skill id (unused; kept for future extension)
+ * @param {boolean} isGlobal - Install to global IDE config vs project
+ * @param {string} cwd - Current working directory
+ * @returns {string} Install directory (parent path, not including skillId subfolder)
+ * @throws {Error} If IDE is unknown or global install is not supported
  */
 export function resolveInstallDir(ideId, skillId, isGlobal, cwd) {
   const config = IDE_CONFIGS[ideId];
@@ -123,8 +123,8 @@ export function resolveInstallDir(ideId, skillId, isGlobal, cwd) {
 }
 
 /**
- * 获取 IDE 选择列表（用于 prompts 库 select 类型）
- * @returns {Array<{title: string, value: string}>} IDE 选项列表
+ * Build IDE choices for prompts (select type)
+ * @returns {Array<{title: string, value: string}>}
  */
 export function getIdeChoices() {
   return Object.values(IDE_CONFIGS).map(config => ({
@@ -134,8 +134,8 @@ export function getIdeChoices() {
 }
 
 /**
- * 获取所有支持的 IDE id 数组
- * @returns {string[]} IDE id 数组
+ * List all supported IDE ids
+ * @returns {string[]}
  */
 export function getSupportedIdeIds() {
   return Object.keys(IDE_CONFIGS);

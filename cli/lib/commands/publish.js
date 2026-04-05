@@ -9,12 +9,12 @@ import { parse as parseYaml } from 'yaml';
 import { loadCredentials } from '../auth.js';
 import { createClient } from '../api.js';
 
-/** skill id：字母、数字、下划线、连字符（与文档 /^[\\w-]+$/ 一致） */
+/** skill id: letters, digits, underscore, hyphen (matches /^[\\w-]+$/ in docs) */
 const SKILL_ID_RE = /^[\w-]+$/;
 
 /**
- * 在文件夹名与 frontmatter 的 name 之间选取 skill_id：须至少其一符合 SKILL_ID_RE；
- * 若两者都符合则必须相同，否则报错。
+ * Resolve skill_id from folder basename vs frontmatter name: at least one must match SKILL_ID_RE;
+ * if both match they must be equal or we throw.
  */
 export function resolveSkillId(folderBasename, frontmatterName) {
   const f = String(folderBasename ?? '').trim();
@@ -76,7 +76,7 @@ function parseBodyHeading(body) {
 }
 
 /**
- * 解析 SKILL.md：YAML frontmatter（若有）+ 正文第一个 # 标题与首段描述。
+ * Parse SKILL.md: optional YAML frontmatter + first # heading and first paragraph in body.
  */
 function parseSkillMd(content) {
   const { fmYaml, body } = splitFrontmatter(content);
@@ -105,10 +105,10 @@ function parseSkillMd(content) {
 }
 
 /**
- * 将文件夹打包为 zip
- * @param {string} dirPath - 要打包的目录路径
- * @param {string} outputPath - 输出的 zip 文件路径
- * @param {string} dirName - zip 包内的目录名称（顶层文件夹）
+ * Zip a directory
+ * @param {string} dirPath - Source directory
+ * @param {string} outputPath - Output zip path
+ * @param {string} dirName - Top-level folder name inside the zip
  */
 function zipDirectory(dirPath, outputPath, dirName) {
   return new Promise((resolve, reject) => {
