@@ -7,6 +7,7 @@ import extract from 'extract-zip';
 import prompts from 'prompts';
 import { createClient } from '../api.js';
 import { detectInsideIdeDir, resolveInstallDir, getIdeChoices, getSupportedIdeIds, IDE_CONFIGS } from '../ide.js';
+import { rememberSkillInstall } from '../installs.js';
 
 /**
  * Download and extract a skill into targetDir
@@ -69,6 +70,7 @@ export default async function install(target, options) {
   }
 
   let targetDir;
+  let selectedIdeId = null;
 
   // User passed -d: use plain directory install
   if (options.dir) {
@@ -98,6 +100,8 @@ export default async function install(target, options) {
 
       ideId = response.ide;
     }
+
+    selectedIdeId = ideId === '_cwd' ? '' : ideId;
 
     // Chose "current directory"
     if (ideId === '_cwd') {
@@ -140,7 +144,15 @@ export default async function install(target, options) {
 
   try {
     const result = await downloadAndExtract(skillId, version, targetDir);
-    const displayPath = options.global ? result.targetDir : path.relative(process.cwd(), path.join(result.targetDir, skillId)) || path.join(result.targetDir, skillId);
+    const installPath = path.join(result.targetDir, skillId);
+    rememberSkillInstall({
+      skillId: result.skillId,
+      installPath,
+      version: result.version,
+      ide: selectedIdeId,
+      isGlobal: options.global || false,
+    });
+    const displayPath = path.relative(process.cwd(), installPath) || installPath;
     spinner.succeed(chalk.green(`Installed ${result.skillId} ${result.version} → ${displayPath}`));
   } catch (err) {
     // Friendlier errors for common failures

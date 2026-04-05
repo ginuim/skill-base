@@ -47,8 +47,8 @@ program
 
 program
   .command('update <skill_id>')
-  .description('Update a Skill to the latest version')
-  .option('-d, --dir <directory>', 'Target directory for extraction', process.cwd())
+  .description('Interactively select version and install directories to update')
+  .option('-d, --dir <directory>', 'Explicit parent directory to update (bypass local install records)')
   .action(update);
 
 program

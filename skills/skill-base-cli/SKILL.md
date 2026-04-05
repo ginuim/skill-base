@@ -53,12 +53,16 @@ skb install <skill_id> -d <target_directory>
 
 Optional: Install to an IDE's skill directory, e.g., `skb install <skill_id> -i cursor`; use `-g` for global installation (supported by some IDEs only).
 
-## Update to Latest Skill Version
+## Update Installed Skills
 
 ```bash
 skb update <skill_id>
 skb update <skill_id> -d <directory>
 ```
+
+- `skb install` records the local install path, version, and timestamp in `~/.skill-base/config.json`
+- `skb update <skill_id>` first shows the available versions with changelog and uploader, then lets the user multi-select one or more recorded install directories to update together
+- `skb update <skill_id> -d <directory>` still works as an explicit one-off update for `<directory>/<skill_id>`
 
 ## Publish
 

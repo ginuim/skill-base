@@ -30,7 +30,7 @@ export SKB_BASE_URL=https://api.example.com
 | `skb logout` | 登出并清除本地凭证 |
 | `skb search <keyword>` | 搜索 Skill |
 | `skb install <target>` | 安装 Skill |
-| `skb update <skill_id>` | 更新 Skill 到最新版本 |
+| `skb update <skill_id>` | 交互式选择版本并批量更新已记录的安装目录 |
 | `skb publish <directory>` | 发布新版本 |
 
 ---
@@ -106,15 +106,22 @@ skb install vue-best-practices -d ./my-skills
 
 ### update
 
-更新 Skill 到最新版本。
+交互式选择目标版本，并批量更新该 Skill 已记录的安装目录。
 
 ```bash
 skb update <skill_id>
+skb update <skill_id> -d <directory>
 ```
 
 **参数：**
 - `skill_id` - Skill ID
-- `-d, --dir <directory>` - 指定解压目标目录（默认为当前目录）
+- `-d, --dir <directory>` - 显式指定父目录，直接更新 `<directory>/<skill_id>`，不读取本地安装记录
+
+**行为说明：**
+- `skb install` 成功后，会把该 Skill 的安装目录、版本、时间写入 `~/.skill-base/config.json`
+- `skb update <skill_id>` 会先列出该 Skill 的版本、changelog、提交人，再让你勾选需要统一更新的安装目录
+- 多选列表里支持直接选择“全部目录”
+- 旧的手工安装目录如果从未被新版 CLI 记录过，不会自动出现在列表里；这种情况请先重新安装一次，或临时使用 `-d`
 
 **示例：**
 ```bash
