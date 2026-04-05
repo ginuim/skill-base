@@ -157,6 +157,17 @@
               ></textarea>
             </div>
 
+            <!-- 解析成功提示 -->
+            <div
+              v-if="parseNotice"
+              class="parse-success"
+              role="status"
+              aria-live="polite"
+            >
+              <div class="parse-success-title">{{ t('publish.parseSuccessTitle') }}</div>
+              <div class="parse-success-text">{{ parseNotice }}</div>
+            </div>
+
             <!-- 错误信息 -->
             <div v-if="error" class="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               {{ error }}
@@ -196,6 +207,7 @@ import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { skillsApi } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
+import { globalToast } from '@/composables/useToast'
 import type { Skill } from '@/services/api'
 
 const router = useRouter()
@@ -214,6 +226,7 @@ const isPublishing = ref(false)
 const progress = ref(0)
 const progressText = ref('')
 const error = ref('')
+const parseNotice = ref('')
 
 const selectedExistingId = ref('') // 下拉框选择的已存在 Skill ID
 
@@ -337,6 +350,21 @@ function applyAutofillFromSkill(slugFromPackage: string, parsed: {name: string, 
   form.value.description = parsed.description || ''
 }
 
+function clearParseNotice() {
+  parseNotice.value = ''
+}
+
+function showParseSuccessNotice() {
+  parseNotice.value = t('publish.parseSuccessDetail', {
+    count: selectedFiles.value.length,
+    skillId: form.value.skillId || '-',
+    name: form.value.name || '-',
+  })
+  globalToast.success(t('publish.parseSuccessToast', {
+    skillId: form.value.skillId || '-',
+  }))
+}
+
 async function readSkillMdFromZipInstance(zip: JSZip, fileList: string[]) {
   const skillPath = pickSkillMdPath(fileList)
   if (!skillPath) return null
@@ -358,6 +386,7 @@ async function handleFileSelect(event: Event) {
   if (!files || files.length === 0) return
 
   error.value = ''
+  clearParseNotice()
   selectedFiles.value = []
   let totalSize = 0
 
@@ -389,6 +418,7 @@ async function handleFileSelect(event: Event) {
     selectedFileName.value = 'skill-package.zip'
 
     applyAutofillFromSkill(rootSlug, parsed)
+    showParseSuccessNotice()
   } catch (err: any) {
     error.value = '处理文件失败: ' + err.message
   }
@@ -401,6 +431,7 @@ async function handleZipSelect(event: Event) {
   if (!file) return
 
   error.value = ''
+  clearParseNotice()
   if (!file.name.toLowerCase().endsWith('.zip')) {
     error.value = '请选择 .zip 文件'
     return
@@ -431,6 +462,7 @@ async function processZipFile(file: File, slug: string) {
     selectedFileName.value = file.name
     selectedFiles.value = paths.map(p => ({ name: p, size: 0 }))
     applyAutofillFromSkill(slug, parsed)
+    showParseSuccessNotice()
   } catch (err: any) {
     error.value = '读取 zip 失败: ' + err.message
   }
@@ -440,6 +472,7 @@ async function processZipFile(file: File, slug: string) {
 async function handleDrop(event: DragEvent) {
   isDragging.value = false
   error.value = ''
+  clearParseNotice()
   const items = event.dataTransfer?.items
 
   if (!items || items.length === 0) return
@@ -500,6 +533,7 @@ async function handleDrop(event: DragEvent) {
     selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
     selectedFileName.value = 'skill-package.zip'
     applyAutofillFromSkill(rootSlug, parsed)
+    showParseSuccessNotice()
   } catch (err: any) {
     error.value = '处理文件失败: ' + err.message
   }
@@ -543,6 +577,7 @@ function clearFiles() {
   selectedFiles.value = []
   selectedZipBlob.value = null
   selectedFileName.value = ''
+  clearParseNotice()
   form.value.skillId = ''
   form.value.name = ''
   form.value.description = ''
@@ -804,6 +839,27 @@ select:disabled {
   font-size: 0.75rem;
   color: #64748b;
   font-family: 'JetBrains Mono', monospace;
+}
+
+.parse-success {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(0, 255, 163, 0.3);
+  background: rgba(0, 255, 163, 0.08);
+}
+
+.parse-success-title {
+  color: #00FFA3;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.375rem;
+}
+
+.parse-success-text {
+  color: #d4d4d8;
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
 
 .progress-container {
