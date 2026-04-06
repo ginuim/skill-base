@@ -43,6 +43,18 @@ function buildTargetInstalls(skillId, options) {
   return pruneMissingSkillInstalls(skillId);
 }
 
+export function resolveImplicitSelectedInstalls(installs, options) {
+  if (options?.dir) {
+    return installs;
+  }
+
+  if (installs.length === 1) {
+    return installs;
+  }
+
+  return null;
+}
+
 function installDescription(item) {
   const verPart = item.version
     ? pickMessage({ zh: `当前版本 ${item.version}`, en: `Current version ${item.version}` })
@@ -127,8 +139,8 @@ export default async function update(skillId, options) {
       process.exit(1);
     }
 
-    let selectedInstalls = installs;
-    if (!options?.dir) {
+    let selectedInstalls = resolveImplicitSelectedInstalls(installs, options);
+    if (!selectedInstalls) {
       const installAnswer = await prompts({
         type: 'multiselect',
         name: 'installPaths',
