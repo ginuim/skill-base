@@ -1,100 +1,102 @@
 # Skill Base CLI
 
-命令行工具，用于搜索、安装、更新和发布 AI Agent Skills。
+**Language:** English | [中文](README.zh.md)
 
-## 安装
+Command-line tool to search, install, update, and publish AI Agent Skills.
+
+## Installation
 
 ```bash
 npm install -g skill-base-cli
 ```
 
-或使用 npx 直接运行：
+Or run directly with npx:
 
 ```bash
 npx skill-base-cli <command>
 ```
 
-## 环境配置
+## Configuration
 
-CLI 默认连接 `http://localhost:8000`，可通过环境变量修改：
+The CLI defaults to `http://localhost:8000`. Override with:
 
 ```bash
 export SKB_BASE_URL=https://your-skill-base-server.com
 ```
 
-## 命令
+## Commands
 
-### 认证
+### Authentication
 
 ```bash
-# 登录
+# Log in
 skb login
 
-# 登出
+# Log out
 skb logout
 ```
 
-### Skill 管理
+### Skill management
 
 ```bash
-# 搜索 Skill
+# Search for skills
 skb search <keyword>
 
-# 安装 Skill
+# Install a skill
 skb install <skill_id>
 skb install <skill_id>@<version>
 skb install <skill_id> -d ./target-dir
 
-# 查看和管理本地已安装 Skill
+# List and manage locally installed skills
 skb list
 skb ls
 
-# 交互式更新 Skill
+# Interactive update
 skb update <skill_id>
 skb update <skill_id> -d ./target-dir
 
-# 发布 Skill
+# Publish a skill
 skb publish <directory>
 skb publish <directory> --name "Skill Name" --description "Description"
-skb publish <directory> --changelog "版本说明"
+skb publish <directory> --changelog "Release notes"
 ```
 
-## 快速开始
+## Quick start
 
 ```bash
-# 1. 登录
+# 1. Log in
 skb login
 
-# 2. 搜索
+# 2. Search
 skb search vue
 
-# 3. 安装
+# 3. Install
 skb install vue-best-practices
 
-# 4. 查看和管理本地已安装 Skill
+# 4. List and manage local skills
 skb list
 
-# 5. 交互式选择版本和目录进行更新
+# 5. Interactively pick version and directory to update
 skb update vue-best-practices
 
-# 6. 发布自己的 Skill
-skb publish ./my-skill --changelog "初始版本"
+# 6. Publish your own skill
+skb publish ./my-skill --changelog "Initial release"
 ```
 
-## 更新行为
+## Update behavior
 
-- `skb install` 会记录 Skill 实际安装到的目录，供后续 `skb update` 使用
-- `skb list` / `skb ls` 会列出本地所有已记录 Skill，并允许继续执行更新、删除本地文件、清除配置记录
-- `skb update <skill_id>` 会先列出版本、changelog、提交人，再列出该 Skill 已记录的安装目录供多选
-- 如果要绕过本地记录，也可以继续使用 `skb update <skill_id> -d <directory>`
+- `skb install` records where each skill was installed for later `skb update`
+- `skb list` / `skb ls` lists all recorded skills and lets you update, remove local files, or clear the record
+- `skb update <skill_id>` shows versions, changelog, and author, then lists recorded install directories for multi-select
+- To ignore local records, use `skb update <skill_id> -d <directory>`
 
-## 发布要求
+## Publish requirements
 
-- 目录必须包含 `SKILL.md` 文件
-- 文件夹名称将作为 `skill_id`
-- `name` 和 `description` 可从 SKILL.md 自动提取
+- The directory must contain a `SKILL.md` file
+- The folder name becomes `skill_id`
+- `name` and `description` can be extracted from `SKILL.md` automatically
 
-## 系统要求
+## Requirements
 
 - Node.js >= 18.0.0
 
