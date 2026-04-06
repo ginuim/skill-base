@@ -7,7 +7,11 @@
 > 不要再把 Agent Skills 塞进代码仓库了。
 > Skill Base 是一个面向中小团队的 Agent Skill 私有分发平台：一个轻量服务端，加一个 `skb` CLI，把团队规范从仓库里剥出来，统一分发给 Cursor、Claude Code、Qoder、OpenCode、Windsurf 等工具。
 
-## 它解决的不是“存文件”，而是团队分发
+<p align="center">
+  <img src="docs/images/demo.gif" alt="Skill Base 运行演示" />
+</p>
+
+## Skill Base 解决的不是“存文件”，而是团队分发
 
 很多团队已经在写 Skill，但常见做法还是把它们扔进项目里的 `.cursor/skills`、`.claude/skills`、`.github/instructions`，再靠 Git 同步。这个办法一开始很省事，团队一变大就开始恶心人。
 
@@ -212,6 +216,14 @@ description: "Internal Vue3 admin best practices. Triggers on requests to create
 如果省略 frontmatter，系统会自动使用第一个 `#` 标题作为名称，标题后的第一段作为描述。但说实话，还是老老实实写上 `name` 和 `description`，别靠猜。
 
 ## Web 端能做什么
+
+<p align="center">
+  <img src="docs/images/skill-base-home.png" alt="Skill Base Web 首页" width="720" />
+</p>
+
+<p align="center">
+  <img src="docs/images/skill-detail.png" alt="Skill Base 技能详情页" width="720" />
+</p>
 
 对于不想碰命令行的同事，Web 端可以直接完成这些事：
 
