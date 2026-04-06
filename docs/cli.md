@@ -1,101 +1,99 @@
 # Skill Base CLI 使用说明
 
-Skill Base CLI 是 Skill Base 平台的命令行管理工具，用于搜索、安装、更新和发布 Skill。
+`skb` 是 Skill Base 的官方命令行客户端，用来搜索、安装、更新、发布团队 Skill。
+
+它真正有价值的地方，不是“能下载文件”，而是会记住 Skill 被装到了哪些 IDE 目录里，后续可以继续批量更新、删除和清理记录。
 
 ## 安装
 
 ```bash
-npm install -g skill-base-cli
+pnpm add -g skill-base-cli
 ```
 
-或者使用 npx：
+也可以直接临时执行：
 
 ```bash
 npx skill-base-cli <command>
 ```
 
-## 环境配置
+## 初始化
 
-CLI 默认连接 `http://localhost:8000`，可通过环境变量修改：
+CLI 默认连接 `http://localhost:8000`。推荐先执行一次初始化，把服务地址写入本地配置：
 
 ```bash
-export SKB_BASE_URL=https://api.example.com
+skb init -s https://skill.example.com
+```
+
+你也可以用环境变量覆盖：
+
+```bash
+export SKB_BASE_URL=https://skill.example.com
 ```
 
 ## 命令概览
 
-| 命令 | 描述 |
+| 命令 | 说明 |
 |------|------|
-| `skb login` | 登录获取访问令牌 |
+| `skb init` | 初始化 CLI 配置，设置服务地址 |
+| `skb login` | 登录并获取本地凭证 |
 | `skb logout` | 登出并清除本地凭证 |
 | `skb search <keyword>` | 搜索 Skill |
-| `skb install <target>` | 安装 Skill |
-| `skb list` | 查看并管理本地已记录的 Skill |
-| `skb update <skill_id>` | 交互式选择版本并批量更新已记录的安装目录 |
-| `skb publish <directory>` | 发布新版本 |
+| `skb install <target>` | 安装 Skill，支持 `name@version` |
+| `skb list` / `skb ls` | 浏览本地已记录的 Skill，并继续更新/删除/清记录 |
+| `skb update <skill_id>` | 选择版本并更新本地安装目录 |
+| `skb publish [directory]` | 发布当前目录或指定目录中的 Skill |
 
----
+## 登录与凭证
 
-## 认证命令
-
-### login
-
-登录并获取 CLI 访问令牌。
+### `skb login`
 
 ```bash
 skb login
 ```
 
-**流程：**
-1. 在浏览器中打开登录页面
-2. 登录后获取 8 位 CLI 验证码（格式：XXXX-XXXX）
-3. 在终端输入验证码完成登录
+流程：
 
-**凭证存储：**
-登录凭证保存在 `~/.skill-base/credentials.json`
+1. CLI 打开浏览器登录页
+2. 登录后获取 8 位验证码
+3. 回到终端输入验证码完成登录
 
-### logout
+本地凭证保存在 `~/.skill-base/credentials.json`。
 
-登出并删除本地凭证。
+### `skb logout`
 
 ```bash
 skb logout
 ```
 
----
+会清除本地登录凭证。
 
-## Skill 管理命令
+## 搜索与安装
 
-### search
+### `skb search <keyword>`
 
-搜索 Skill。
-
-```bash
-skb search <keyword>
-```
-
-**示例：**
 ```bash
 skb search vue
 skb search "react component"
 ```
 
-### install
-
-安装指定 Skill。
+### `skb install <target>`
 
 ```bash
 skb install <skill_id>
 skb install <skill_id>@<version>
 ```
 
-**参数：**
-- `target` - Skill ID 或 `skill_id@version` 格式
-- `-d, --dir <directory>` - 指定解压目标目录（默认为当前目录）
+参数：
 
-**示例：**
+- `target`：Skill ID，或 `skill_id@version`
+- `-d, --dir <directory>`：直接安装到指定目录
+- `-i, --ide <ide>`：按 IDE 规则自动选择目标目录
+- `-g, --global`：安装到全局 IDE 配置目录，仅部分 IDE 支持
+
+示例：
+
 ```bash
-# 安装最新版本
+# 安装最新版
 skb install vue-best-practices
 
 # 安装指定版本
@@ -103,163 +101,195 @@ skb install vue-best-practices@v20260115.120000
 
 # 安装到指定目录
 skb install vue-best-practices -d ./my-skills
+
+# 自动安装到当前项目的 IDE 目录
+skb install team-vue-rules --ide cursor
+skb install team-vue-rules --ide claude-code
+skb install team-vue-rules --ide qoder
+skb install team-vue-rules --ide opencode
+skb install team-vue-rules --ide copilot
+
+# 安装到全局 IDE 目录
+skb install git-commit-rules --ide cursor --global
 ```
 
-**本地记录：**
-- `skb install` 成功后，会把 Skill ID、安装目录、版本、时间写入 `~/.skill-base/config.json`
-- 这些记录会被 `skb list`、`skb ls` 和 `skb update` 复用
+当前内置支持的 IDE：
 
-### list
+- `cursor`
+- `claude-code`
+- `copilot`
+- `windsurf`
+- `qoder`
+- `qoderwork`
+- `opencode`
 
-查看并管理本地通过 `skb` 安装过的 Skill。
+安装成功后，CLI 会把这些信息记录到本地：
+
+- Skill ID
+- 安装路径
+- 当前版本
+- 安装时间
+- IDE 类型
+- 是否为全局安装
+
+这些记录会被 `skb list` 和 `skb update` 复用。
+
+## 查看和管理本地安装
+
+### `skb list`
 
 ```bash
 skb list
 skb ls
 ```
 
-**支持操作：**
-- 从列表中选择某个已安装 Skill
-- 查看该 Skill 当前记录的安装目录
+这个命令会按 Skill 聚合展示本地记录，并允许你继续做这些事情：
+
+- 查看某个 Skill 当前记录的安装目录
 - 进入更新流程
-- 删除一个或多个本地安装目录，并同步移除记录
-- 只清除某个 Skill 的本地配置记录，不删除磁盘文件
+- 删除一个或多个本地安装目录，并同步删除记录
+- 只清空记录，不删除磁盘文件
 
-### update
+别小看这个命令。没有这层本地记录，所谓“批量更新”就是空话。
 
-交互式选择目标版本，并批量更新该 Skill 已记录的安装目录。
+## 更新 Skill
+
+### `skb update <skill_id>`
 
 ```bash
 skb update <skill_id>
 skb update <skill_id> -d <directory>
 ```
 
-**参数：**
-- `skill_id` - Skill ID
-- `-d, --dir <directory>` - 显式指定父目录，直接更新 `<directory>/<skill_id>`，不读取本地安装记录
+参数：
 
-**行为说明：**
-- `skb install` 成功后，会把该 Skill 的安装目录、版本、时间写入 `~/.skill-base/config.json`
-- `skb list` / `skb ls` 会按 Skill 聚合展示所有本地记录，并在进入某个 Skill 后提供更新、删除、清配置三类操作
-- `skb update <skill_id>` 会先列出该 Skill 的版本、changelog、提交人，再让你勾选需要统一更新的安装目录
-- 多选列表里支持直接选择“全部目录”
-- 旧的手工安装目录如果从未被新版 CLI 记录过，不会自动出现在列表里；这种情况请先重新安装一次，或临时使用 `-d`
+- `skill_id`：要更新的 Skill ID
+- `-d, --dir <directory>`：显式指定父目录，直接更新 `<directory>/<skill_id>`，跳过本地记录
 
-**示例：**
+行为说明：
+
+- `skb update <skill_id>` 会先拉取版本列表，让你选择目标版本
+- 如果本地只记录了一个安装目录，CLI 会直接更新，不再多问一遍
+- 如果记录了多个安装目录，CLI 会列出目录让你勾选，支持“全部目录”
+- 如果这个 Skill 从未被新版 CLI 记录过，命令不会猜路径；要么先重新 `install` 一次，要么临时传 `-d`
+
+示例：
+
 ```bash
 skb update vue-best-practices
-skb update vue-best-practices -d ./my-skills
+skb update vue-best-practices -d ./.cursor/skills
 ```
 
----
+## 发布 Skill
 
-## 发布命令
-
-### publish
-
-发布 Skill 新版本。
+### `skb publish [directory]`
 
 ```bash
-skb publish <directory>
-```
-
-**参数：**
-- `directory` - Skill 文件夹路径
-- `--name <name>` - Skill 名称（默认从 SKILL.md 提取）
-- `--description <desc>` - Skill 描述（默认从 SKILL.md 提取）
-- `--changelog <log>` - 版本变更日志（默认："更新版本"）
-
-**要求：**
-- 必须先登录
-- 目录必须包含 `SKILL.md` 文件
-- 文件夹名称将作为 `skill_id`
-
-**示例：**
-```bash
-# 基本发布
+skb publish
 skb publish ./my-skill
-
-# 指定名称和描述
-skb publish ./my-skill --name "My Skill" --description "A useful skill"
-
-# 添加变更日志
-skb publish ./my-skill --changelog "修复 bug，优化性能"
 ```
 
-**SKILL.md 解析规则：**
-- `name`：取第一个 `#` 标题
-- `description`：取标题后的第一段非空文本（前 200 字符）
+参数：
 
----
+- `[directory]`：Skill 目录路径，省略时默认当前目录
+- `--name <name>`：显式指定 Skill 名称
+- `--description <desc>`：显式指定 Skill 描述
+- `--changelog <log>`：版本更新说明，默认是 `更新版本`
 
-## 完整使用示例
+要求：
 
-### 首次使用
+- 必须先登录
+- 目录中必须包含 `SKILL.md`
+- 目录名会作为 `skill_id`
+
+示例：
 
 ```bash
-# 1. 登录
+# 发布当前目录
+skb publish --changelog "补充接口鉴权规范"
+
+# 发布指定目录
+skb publish ./my-skill --changelog "修复提示词冲突"
+
+# 显式覆盖名称和描述
+skb publish ./my-skill --name "My Skill" --description "A useful skill"
+```
+
+## `SKILL.md` 解析规则
+
+Skill Base 发布的是一个包含 `SKILL.md` 的目录。
+
+如果你写了 frontmatter，CLI 和服务端会优先使用它；如果没写，则按下面的退化规则解析：
+
+- `name`：取第一个 `#` 标题
+- `description`：取标题后的第一段非空文本
+
+最小示例：
+
+```markdown
+---
+name: team-vue3-admin
+description: "Internal Vue3 admin best practices. Triggers on requests to create Vue admin pages, use ProTable, ProForm, or internal request utilities."
+---
+
+# 内部 Vue3 管理后台最佳实践
+
+研发一部的中后台规范，覆盖表单、表格、请求封装和时间格式化。
+```
+
+## 完整流程示例
+
+### 首次接入
+
+```bash
+# 1. 配置服务地址
+skb init -s http://your-team-server
+
+# 2. 登录
 skb login
 
-# 2. 搜索需要的 Skill
+# 3. 搜索并安装
 skb search vue
+skb install team-vue-rules --ide cursor
 
-# 3. 安装
-skb install vue-best-practices
+# 4. 后续统一更新
+skb update team-vue-rules
 
-# 4. 查看并管理本地已安装的 Skill
+# 5. 查看本地记录
 skb list
-
-# 5. 按技能版本批量更新
-skb update vue-best-practices
 ```
 
-### 发布自己的 Skill
+### 发布并分发新版本
 
 ```bash
-# 1. 创建 Skill 目录
-mkdir my-awesome-skill
-cd my-awesome-skill
+# 1. 修改本地 Skill
+# 2. 发布新版本
+skb publish ./my-awesome-skill --changelog "新增报表组件规范"
 
-# 2. 编写 SKILL.md
-cat > SKILL.md << 'EOF'
-# My Awesome Skill
-
-这是一个非常有用的 Skill，可以帮助你...
-
-## 使用方法
-
-...
-EOF
-
-# 3. 添加其他文件
-# ...
-
-# 4. 返回上级目录并发布
-cd ..
-skb publish ./my-awesome-skill --changelog "初始版本"
+# 3. 其他同事更新本地安装目录
+skb update my-awesome-skill
 ```
-
----
 
 ## 故障排除
 
 ### 登录失败
-- 确认验证码格式正确（8位，如 `8A2B-9C4F`）
-- 检查验证码是否已过期
-- 确认 `SKB_BASE_URL` 配置正确
 
-### 安装/更新失败
-- 检查网络连接
-- 确认 Skill ID 拼写正确
-- 确认有权限访问该 Skill
+- 确认验证码格式正确
+- 检查验证码是否已过期
+- 确认服务地址配置正确
+
+### 安装或更新失败
+
+- 检查 Skill ID 是否拼写正确
+- 确认当前账号有权限访问该 Skill
+- 如果是历史手工安装目录，先重新 `skb install` 一次，或者临时使用 `-d`
 
 ### 发布失败
-- 确认已登录：`skb login`
-- 确认目录包含 `SKILL.md`
-- 检查 Skill ID 是否已被他人使用
 
----
+- 确认已先执行 `skb login`
+- 确认目录包含 `SKILL.md`
+- 检查目录名是否和预期的 `skill_id` 一致
 
 ## 系统要求
 
-- Node.js >= 18.0.0
+- Node.js >= 18
