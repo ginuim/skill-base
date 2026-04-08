@@ -48,6 +48,10 @@
           <a href="#features"><span class="i18n-zh">核心特性</span><span class="i18n-en">Features</span></a>
           <a href="#quick-start"><span class="i18n-zh">快速开始</span><span class="i18n-en">Quick start</span></a>
           <a href="#philosophy"><span class="i18n-zh">设计哲学</span><span class="i18n-en">Philosophy</span></a>
+          <div class="nav-mobile-lang">
+            <button type="button" class="nav-lang-btn" data-set-lang="zh" lang="zh-CN">中文</button>
+            <button type="button" class="nav-lang-btn" data-set-lang="en" lang="en">EN</button>
+          </div>
         </div>
         <div class="nav-actions">
           <div class="nav-lang" role="group" aria-label="Language">
@@ -94,7 +98,7 @@
                 </svg>
                 npx skill-base
               </button>
-              <a href="#what-is-skill" class="btn btn-secondary"><span class="i18n-zh">了解更多 ↓</span><span class="i18n-en">Learn more ↓</span></a>
+              <a href="https://www.producthunt.com/products/skill-base?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-skill-base" target="_blank" rel="noopener noreferrer" class="hero-product-hunt-link"><img alt="Skill Base - A simple, privately deployable agent skills distribution hub | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1119415&amp;theme=light&amp;t=1775723222148" class="hero-product-hunt-img"></a>
             </div>
           </div>
 
@@ -857,6 +861,14 @@ EOF</span>
           updateNavAria();
           lucide.createIcons();
           runTerminalTypewriter();
+          
+          // 移动端切换语言后自动关闭菜单
+          var navbar = document.getElementById('site-navbar');
+          if (navbar && navbar.classList.contains('nav-open')) {
+            navbar.classList.remove('nav-open');
+            var toggle = document.getElementById('nav-mobile-toggle');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+          }
         });
       });
     }

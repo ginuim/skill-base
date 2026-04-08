@@ -1,6 +1,6 @@
 {
   "name": "skill-base-cli",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Skill Base CLI - 命令行工具，用于搜索、安装、更新和发布 AI Agent Skills",
   "type": "module",
   "bin": {
@@ -13,13 +13,13 @@
     "cli",
     "skill-base"
   ],
-  "author": "",
+  "author": "ginuim",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ginuim/skill-base.git"
   },
-  "homepage": "https://github.com/ginuim/skill-base#readme",
+  "homepage": "https://skillbase.reaidea.com",
   "files": [
     "bin",
     "lib"

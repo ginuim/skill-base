@@ -1,16 +1,25 @@
 {
   "name": "skill-base",
-  "version": "2.0.21",
-  "description": "Skill Base - 私有部署的轻量级 Skill 管理平台",
+  "version": "2.0.27",
+  "description": "Skill Base - A lightweight, privately deployable agent skills distribution hub",
   "main": "src/index.js",
   "bin": {
     "skill-base": "./bin/skill-base.js"
   },
+  "author": "ginuim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ginuim/skill-base.git"
+  },
+  "homepage": "https://skillbase.reaidea.com",
   "files": [
     "bin",
     "src",
     "static",
-    "data/.gitkeep"
+    "README.md",
+    "data/.gitkeep",
+    "docs/README.zh.md"
   ],
   "scripts": {
     "start": "node src/index.js",

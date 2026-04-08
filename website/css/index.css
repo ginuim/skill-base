@@ -95,6 +95,22 @@ button {
   margin-right: 4px;
 }
 
+.nav-mobile-lang {
+  display: none;
+  padding: 16px 24px;
+  gap: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .nav-lang {
+    display: none;
+  }
+  .nav-mobile-lang {
+    display: flex;
+  }
+}
+
 .nav-lang-btn {
   padding: 6px 10px;
   font-size: 0.8rem;
@@ -324,6 +340,37 @@ html[data-lang="en"] .i18n-zh {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.hero-product-hunt-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hero-product-hunt-img {
+  max-width: 100%;
+  height: auto;
+}
+
+.hero-scroll-indicator {
+  text-align: center;
+  margin-top: 2.5rem;
+}
+
+.hero-scroll-indicator a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.hero-scroll-indicator a:hover,
+.hero-scroll-indicator a:focus {
+  color: var(--accent-green);
 }
 
 .btn {
@@ -1156,6 +1203,12 @@ section {
 
   .hero-cta {
     flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-product-hunt-img {
+    width: 200px;
+    height: auto;
   }
 
   .btn {

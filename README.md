@@ -1,6 +1,6 @@
 # Skill Base
 
-**English** | [中文](README.zh.md)
+**English** | [中文](https://github.com/ginuim/skill-base/raw/main/docs/README.zh.md)
 
 [![npm version](https://img.shields.io/npm/v/skill-base.svg)](https://www.npmjs.com/package/skill-base)
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
@@ -10,7 +10,7 @@
 > Skill Base is a lightweight private distribution platform for Agent Skills for small and medium teams: a minimal server plus an `skb` CLI that pulls team standards out of repos and ships them consistently to Cursor, Claude Code, Qoder, OpenCode, Windsurf, and similar tools.
 
 <p align="center">
-  <img src="docs/images/demo.gif" alt="Skill Base demo" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base demo" />
 </p>
 
 ## Skill Base solves distribution, not “file storage”
@@ -229,11 +229,11 @@ Without frontmatter, the first `#` title becomes the name and the first paragrap
 ## Web UI
 
 <p align="center">
-  <img src="docs/images/skill-base-home.png" alt="Skill Base home" width="720" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/skill-base-home.png" alt="Skill Base home" width="720" />
 </p>
 
 <p align="center">
-  <img src="docs/images/skill-detail.png" alt="Skill detail" width="720" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/skill-detail.png" alt="Skill detail" width="720" />
 </p>
 
 For people who avoid the CLI, the web UI supports:
@@ -301,7 +301,7 @@ git push
 By default, Skill Base shows an ASCII capybara named `Cappy` in the terminal. It does not affect behavior; it is only there to ease a bit of stress during publish, pull, or startup waits.
 
 <p align="center">
-  <img src="docs/images/cappy.gif" alt="Cappy" width="720" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/cappy.gif" alt="Cappy" width="720" />
 </p>
 
 To disable:

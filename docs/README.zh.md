@@ -1,16 +1,16 @@
 # Skill Base
 
-[English](README.md) | **中文**
+[English](../README.md) | **中文**
 
 [![npm version](https://img.shields.io/npm/v/skill-base.svg)](https://www.npmjs.com/package/skill-base)
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE)
 
 > 不要再把 Agent Skills 塞进代码仓库了。
 > Skill Base 是一个面向中小团队的 Agent Skill 私有分发平台：一个轻量服务端，加一个 `skb` CLI，把团队规范从仓库里剥出来，统一分发给 Cursor、Claude Code、Qoder、OpenCode、Windsurf 等工具。
 
 <p align="center">
-  <img src="docs/images/demo.gif" alt="Skill Base 运行演示" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base 运行演示" />
 </p>
 
 ## Skill Base 解决的不是“存文件”，而是团队分发
@@ -229,11 +229,11 @@ description: "Internal Vue3 admin best practices. Triggers on requests to create
 ## Web 端能做什么
 
 <p align="center">
-  <img src="docs/images/skill-base-home.png" alt="Skill Base Web 首页" width="720" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/skill-base-home.png" alt="Skill Base Web 首页" width="720" />
 </p>
 
 <p align="center">
-  <img src="docs/images/skill-detail.png" alt="Skill Base 技能详情页" width="720" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/skill-detail.png" alt="Skill Base 技能详情页" width="720" />
 </p>
 
 对于不想碰命令行的同事，Web 端可以直接完成这些事：
@@ -301,7 +301,7 @@ git push
 Skill Base 默认会在终端里带上一只 ASCII 水豚 `Cappy`。它不影响业务，只负责在你发版、拉取、等待服务启动时缓解一点焦虑。
 
 <p align="center">
-  <img src="docs/images/cappy-cn.gif" alt="Cappy" width="720" />
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/cappy-cn.gif" alt="Cappy" width="720" />
 </p>
 
 如果你不喜欢它，启动时加上：
@@ -322,4 +322,4 @@ npx skill-base --no-cappy
 
 ## 参与贡献
 
-项目基于 [MIT License](LICENSE) 开源，欢迎提交 Issue 和 Pull Request。
+项目基于 [MIT License](../LICENSE) 开源，欢迎提交 Issue 和 Pull Request。
