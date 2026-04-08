@@ -15,11 +15,11 @@ const M = {
     zh: (id) => `Skill ${id} 没有可用版本`,
     en: (id) => `Skill ${id} has no available version`
   },
-  chooseIde: { zh: '选择目标 IDE', en: 'Select target IDE' },
-  cwdChoice: { zh: '当前目录（不使用 IDE 集成）', en: 'Current directory (no IDE integration)' },
+  chooseIde: { zh: '选择目标 Agent', en: 'Select target Agent' },
+  cwdChoice: { zh: '当前目录（不使用 Agent 集成）', en: 'Current directory (no Agent integration)' },
   cancelled: { zh: '\n已取消安装', en: '\nInstall cancelled' },
-  unsupportedIde: { zh: '不支持的 IDE: ', en: 'Unsupported IDE: ' },
-  supportedPrefix: { zh: '支持的 IDE: ', en: 'Supported IDEs: ' },
+  unsupportedIde: { zh: '不支持的 Agent: ', en: 'Unsupported Agent: ' },
+  supportedPrefix: { zh: '支持的 Agent: ', en: 'Supported Agents: ' },
   noGlobal: { zh: ' 不支持全局安装', en: ' does not support global installation' },
   nestedWarn: {
     zh: (name) => `当前目录已在 ${name} 的 skill 目录内，继续安装可能导致嵌套。是否继续？`,

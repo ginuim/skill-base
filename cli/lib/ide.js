@@ -8,6 +8,13 @@ import { pickMessage } from './i18n.js';
  * @type {Object.<string, {id: string, name: string, projectPath: string, globalPath: string|null, supportsGlobal: boolean}>}
  */
 export const IDE_CONFIGS = {
+  universal: {
+    id: 'universal',
+    name: 'Universal (.agents)',
+    projectPath: '.agents/skills',
+    globalPath: '.config/agents/skills',
+    supportsGlobal: true,
+  },
   cursor: {
     id: 'cursor',
     name: 'Cursor',

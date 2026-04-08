@@ -23,7 +23,6 @@ class CappyMascot {
       orange: '\x1b[38;5;214m',
       cyan: '\x1b[38;5;117m',
       pink: '\x1b[38;5;218m',
-      soft: '\x1b[38;5;188m',
       reset: '\x1b[0m'
     };
 
@@ -228,9 +227,9 @@ class CappyMascot {
     const gLeft = Math.floor(gSeg / 2);
     const gRight = gSeg - gLeft;
     const goodbye = [
-      `${this.colors.soft}  ╭${gBorder}╮${this.colors.reset}`,
-      `${this.colors.soft}  │ ${this.padDisplay(goodbyeMsg, goodbyeWidth)} │${this.colors.reset}`,
-      `${this.colors.soft}  ╰${'─'.repeat(gLeft)}┬${'─'.repeat(gRight)}╯${this.colors.reset}`,
+      `  ╭${gBorder}╮`,
+      `  │ ${this.padDisplay(goodbyeMsg, goodbyeWidth)} │`,
+      `  ╰${'─'.repeat(gLeft)}┬${'─'.repeat(gRight)}╯`,
       `${this.colors.warm}                 \\${this.colors.reset}`,
       `${this.colors.warm}                  __${this.colors.reset}`,
       `${this.colors.warm}              ___( ; ;)___${this.colors.reset}`,
@@ -297,7 +296,7 @@ class CappyMascot {
     const lines = [
       ...this.buildBubble(message),
       ...frame.sprite.map((line) => `  ${this.colors[frame.color]}${line}${this.colors.reset}`),
-      `  ${this.colors.soft}http://localhost:${this.port}${this.basePath}  |  ${this.resolveMessage(this.text.footer)}${this.colors.reset}`
+      `  http://localhost:${this.port}${this.basePath}  |  ${this.resolveMessage(this.text.footer)}`
     ];
 
     this.clearRender();
@@ -327,16 +326,13 @@ class CappyMascot {
     const lines = this.wrapText(String(message), maxLineWidth);
     const innerWidth = Math.max(1, ...lines.map((line) => this.getDisplayWidth(line)));
     const border = '─'.repeat(innerWidth + 2);
-    const body = lines.map(
-      (line) =>
-        `${this.colors.soft}  │ ${this.padDisplay(line, innerWidth)} │${this.colors.reset}`
-    );
+    const body = lines.map((line) => `  │ ${this.padDisplay(line, innerWidth)} │`);
 
     return [
-      `${this.colors.soft}  ╭${border}╮${this.colors.reset}`,
+      `  ╭${border}╮`,
       ...body,
-      `${this.colors.soft}  ╰${border}╯${this.colors.reset}`,
-      `${this.colors.soft}         \\${this.colors.reset}`
+      `  ╰${border}╯`,
+      `         \\`
     ];
   }
 
