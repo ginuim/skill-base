@@ -12,8 +12,9 @@
   --accent-amber: #ffb800;
   --border-color: #30363d;
   --gradient-green: linear-gradient(135deg, #00ff88, #00cc6a);
-  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', 'Roboto Mono', Monaco, Consolas, monospace;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: 'Space Grotesk', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --section-padding: 100px 0;
 }
 
@@ -30,6 +31,12 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .nav-logo, .btn, .tab, .terminal-header {
+  font-family: var(--font-heading);
 }
 
 a {
@@ -80,6 +87,53 @@ button {
   flex-shrink: 0;
 }
 
+/* Language switcher (website landing) */
+.nav-lang {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+}
+
+.nav-lang-btn {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  line-height: 1.2;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-lang-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html[data-lang="zh"] .nav-lang-btn[data-set-lang="zh"],
+html[data-lang="en"] .nav-lang-btn[data-set-lang="en"] {
+  color: var(--accent-green);
+  border-color: rgba(0, 255, 136, 0.35);
+  background: var(--accent-green-dim);
+}
+
+.nav-lang-sep {
+  color: var(--border-color);
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+/* Bilingual spans: default show both until data-lang is set; then hide one */
+html[data-lang="zh"] .i18n-en {
+  display: none !important;
+}
+
+html[data-lang="en"] .i18n-zh {
+  display: none !important;
+}
+
 .nav-mobile-toggle {
   display: none;
   flex-direction: column;
@@ -121,7 +175,7 @@ button {
 }
 
 .nav-logo {
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--accent-green);
@@ -164,9 +218,9 @@ button {
   padding: 10px 16px;
   background: var(--gradient-green);
   color: #000;
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 8px;
   transition: all 0.3s ease;
   white-space: nowrap;
@@ -233,18 +287,19 @@ button {
   background: var(--accent-green-dim);
   border: 1px solid rgba(0, 255, 136, 0.2);
   border-radius: 100px;
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.85rem;
+  font-weight: 600;
   color: var(--accent-green);
   margin-bottom: 24px;
 }
 
 .hero h1 {
-  font-size: 4rem;
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: 4.5rem;
+  font-weight: 700;
+  line-height: 1.05;
   margin-bottom: 24px;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .hero h1 .highlight {
@@ -273,9 +328,9 @@ button {
 
 .btn {
   padding: 14px 28px;
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 10px;
   transition: all 0.3s ease;
   display: inline-flex;
@@ -489,9 +544,9 @@ section {
 
 .comparison-label {
   padding: 12px 20px;
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -583,7 +638,8 @@ section {
 .conclusion p {
   font-size: 1.3rem;
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
+  font-weight: 600;
 }
 
 .conclusion .highlight {
@@ -631,8 +687,9 @@ section {
 }
 
 .pain-point-number {
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.85rem;
+  font-weight: 700;
   color: var(--accent-green);
   margin-bottom: 16px;
   display: flex;
@@ -663,8 +720,9 @@ section {
 
 .pain-point .solution {
   color: var(--accent-green);
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.9rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -745,21 +803,27 @@ section {
 }
 
 .quick-start-container {
-  /* 原 640px 过窄，多 Tab + 英文文案会折行；与 .container(1200px) 对齐留边距 */
-  max-width: min(1100px, 100%);
-  margin: 0 auto;
+  /* 命令区固定宽度，切换 Tab 不再随内容伸缩 */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: min(720px, 100%);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .quick-start .tabs {
   margin-left: auto;
   margin-right: auto;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   max-width: 100%;
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
+  box-sizing: border-box;
 }
 
 .quick-start .tabs .tab {
@@ -783,8 +847,9 @@ section {
 
 .tab {
   padding: 12px 24px;
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.9rem;
+  font-weight: 600;
   color: var(--text-secondary);
   background: transparent;
   border: none;
@@ -808,6 +873,8 @@ section {
 
 .tab-content.active {
   display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 .scenario-content {
@@ -824,6 +891,10 @@ section {
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .code-header {
@@ -856,8 +927,9 @@ section {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -875,6 +947,20 @@ section {
   white-space: pre-wrap;
   overflow-x: auto;
   color: var(--text-primary);
+}
+
+/* Quick Start：固定窗口宽度，超长命令换行而非撑宽 */
+.quick-start .code-body {
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.code-body > .i18n-zh,
+.code-body > .i18n-en {
+  display: block;
+  white-space: inherit;
+  min-width: 0;
 }
 
 .code-body .comment { color: #6a737d; }

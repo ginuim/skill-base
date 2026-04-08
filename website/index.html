@@ -2,6 +2,22 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <script>
+    (function () {
+      var k = 'skill-base-website-lang';
+      var v = null;
+      try { v = localStorage.getItem(k); } catch (e) {}
+      var lang = 'en';
+      if (v === 'zh' || v === 'en') {
+        lang = v;
+      } else {
+        var n = (navigator.language || '').toLowerCase();
+        lang = n.indexOf('zh') === 0 ? 'zh' : 'en';
+      }
+      document.documentElement.setAttribute('data-lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a0a">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -9,7 +25,7 @@
   <link rel="alternate icon" sizes="16x16" href="./favicon-16x16.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <link rel="manifest" href="./site.webmanifest">
-  <title>Skill Base - AI Agent Skill 私有化管理平台</title>
+  <title>Skill Base</title>
   <link rel="stylesheet" href="css/index.css">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -28,18 +44,23 @@
         </a>
         <div class="nav-links" id="nav-menu">
           <a href="#what-is-skill">Agent Skill</a>
-          <a href="#why">为什么需要</a>
-          <a href="#features">核心特性</a>
-          <a href="#quick-start">快速开始</a>
-          <a href="#philosophy">设计哲学</a>
+          <a href="#why"><span class="i18n-zh">为什么需要</span><span class="i18n-en">Why Skill Base</span></a>
+          <a href="#features"><span class="i18n-zh">核心特性</span><span class="i18n-en">Features</span></a>
+          <a href="#quick-start"><span class="i18n-zh">快速开始</span><span class="i18n-en">Quick start</span></a>
+          <a href="#philosophy"><span class="i18n-zh">设计哲学</span><span class="i18n-en">Philosophy</span></a>
         </div>
         <div class="nav-actions">
+          <div class="nav-lang" role="group" aria-label="Language">
+            <button type="button" class="nav-lang-btn" data-set-lang="zh" lang="zh-CN">中文</button>
+            <span class="nav-lang-sep" aria-hidden="true">|</span>
+            <button type="button" class="nav-lang-btn" data-set-lang="en" lang="en">EN</button>
+          </div>
           <button type="button" class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
             <span class="nav-mobile-toggle-bar" aria-hidden="true"></span>
             <span class="nav-mobile-toggle-bar" aria-hidden="true"></span>
             <span class="nav-mobile-toggle-bar" aria-hidden="true"></span>
           </button>
-          <a href="/skills" class="nav-cta">进入平台 →</a>
+          <a href="/skills" class="nav-cta"><span class="i18n-zh">进入平台 →</span><span class="i18n-en">Open app →</span></a>
         </div>
       </div>
     </nav>
@@ -50,17 +71,20 @@
         <div class="hero-content">
           <div class="hero-text">
             <div class="hero-badge fade-in">
-              <span>Open Source</span>
+              <span class="i18n-zh">开源</span><span class="i18n-en">Open source</span>
             </div>
             <h1 class="fade-in">
               <span class="highlight">Skill</span> Base
             </h1>
             <p class="hero-subtitle fade-in">
-              跨角色的 AI Agent Skill 私有化知识库<br>
-              <span style="font-size: 1rem; color: var(--text-secondary); margin-top: 8px; display: inline-block;">无论是写需求、撸代码还是周报，让 AI 秒变懂公司业务的老员工</span>
+              <span class="i18n-zh">跨角色的 AI Agent Skill 私有化知识库<br>
+              <span style="font-size: 1rem; color: var(--text-secondary); margin-top: 8px; display: inline-block;">无论是写需求、撸代码还是周报，让 AI 秒变懂公司业务的老员工</span></span>
+              <span class="i18n-en">Private AI Agent Skill knowledge base for every role<br>
+              <span style="font-size: 1rem; color: var(--text-secondary); margin-top: 8px; display: inline-block;">From PRDs to code to weekly reports—make the AI sound like a veteran who knows your business</span></span>
             </p>
             <p class="hero-description fade-in">
-              告别四处复制粘贴"提示词"和"背景设定"。让你的 Cursor、Claude、ChatGPT 瞬间掌握团队专属的业务黑话、产品模板与代码规范，零依赖，一行命令在内网启动。
+              <span class="i18n-zh">告别四处复制粘贴"提示词"和"背景设定"。让你的 Cursor、Claude、ChatGPT 瞬间掌握团队专属的业务黑话、产品模板与代码规范，零依赖，一行命令在内网启动。</span>
+              <span class="i18n-en">Stop copy-pasting prompts and context every time. Give Cursor, Claude, and ChatGPT your team jargon, templates, and standards—zero extra stack, one command on your intranet.</span>
             </p>
             <div class="hero-cta fade-in">
               <button class="btn copy-btn" id="hero-copy-btn">
@@ -70,7 +94,7 @@
                 </svg>
                 npx skill-base
               </button>
-              <a href="#what-is-skill" class="btn btn-secondary">了解更多 ↓</a>
+              <a href="#what-is-skill" class="btn btn-secondary"><span class="i18n-zh">了解更多 ↓</span><span class="i18n-en">Learn more ↓</span></a>
             </div>
           </div>
 
@@ -95,22 +119,23 @@
     <!-- What is Agent Skill Section -->
     <section class="what-is-skill" id="what-is-skill">
       <div class="container">
-        <h2 class="section-title fade-in">把团队的「潜规则」变成 AI 的「出厂设置」</h2>
+        <h2 class="section-title fade-in"><span class="i18n-zh">把团队的「潜规则」变成 AI 的「出厂设置」</span><span class="i18n-en">Turn team “tribal knowledge” into AI defaults</span></h2>
         <p class="section-subtitle fade-in">
-          无论是产品、研发还是测试，告别每次对话都要重新教 AI 做事的烦恼
+          <span class="i18n-zh">无论是产品、研发还是测试，告别每次对话都要重新教 AI 做事的烦恼</span>
+          <span class="i18n-en">PM, engineering, QA—stop re-teaching the AI on every new chat</span>
         </p>
 
         <div class="scenario-section fade-in">
           <div class="tabs scenario-tabs">
-            <button class="tab active" data-scenario="scenario-dev">👩‍💻 研发编码</button>
-            <button class="tab" data-scenario="scenario-pm">👩‍💼 产品需求</button>
-            <button class="tab" data-scenario="scenario-qa">🕵️ 测试用例</button>
-            <button class="tab" data-scenario="scenario-daily">☕️ 日常办公</button>
+            <button class="tab active" data-scenario="scenario-dev"><span class="i18n-zh">👩‍💻 研发编码</span><span class="i18n-en">👩‍💻 Engineering</span></button>
+            <button class="tab" data-scenario="scenario-pm"><span class="i18n-zh">👩‍💼 产品需求</span><span class="i18n-en">👩‍💼 Product</span></button>
+            <button class="tab" data-scenario="scenario-qa"><span class="i18n-zh">🕵️ 测试用例</span><span class="i18n-en">🕵️ QA</span></button>
+            <button class="tab" data-scenario="scenario-daily"><span class="i18n-zh">☕️ 日常办公</span><span class="i18n-en">☕️ Office</span></button>
           </div>
 
           <!-- 研发场景 -->
           <div id="scenario-dev" class="scenario-content active">
-            <div class="comparison-grid">
+            <div class="comparison-grid i18n-zh">
               <div class="comparison-card before">
                 <div class="comparison-label">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：通用教科书代码
@@ -143,11 +168,44 @@
                 </div>
               </div>
             </div>
+            <div class="comparison-grid i18n-en">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Without Skill: generic textbook code
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Write a user login API for me"</div>
+<pre><code><span class="comment">// ❌ No idea about your SSO stack or Redis helpers</span>
+<span class="keyword">import</span> jwt <span class="keyword">from</span> <span class="string">'jsonwebtoken'</span>;
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="function">login</span> = <span class="keyword">async</span> (req, res) => {
+  <span class="keyword">const</span> token = jwt.<span class="function">sign</span>({ id }, <span class="string">'secret'</span>);
+  <span class="keyword">return</span> res.<span class="function">json</span>({ token });
+}</code></pre>
+                </div>
+              </div>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> With Skill: feels like a senior on day one
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Write a user login API for me"</div>
+<pre><code><span class="comment">// ✅ Pulls in internal SSO + audit logging automatically</span>
+<span class="keyword">import</span> { ssoClient } <span class="keyword">from</span> <span class="string">'@company/sso'</span>;
+<span class="keyword">import</span> { auditLogger } <span class="keyword">from</span> <span class="string">'@core/logger'</span>;
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="function">login</span> = <span class="keyword">async</span> (req, res) => {
+  <span class="keyword">const</span> user = <span class="keyword">await</span> ssoClient.<span class="function">verify</span>(req.body);
+  auditLogger.<span class="function">info</span>(<span class="string">'USER_LOGIN'</span>, user.id);
+  <span class="keyword">return</span> <span class="function">SuccessResponse</span>(user);
+}</code></pre>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 产品场景 -->
           <div id="scenario-pm" class="scenario-content">
-            <div class="comparison-grid">
+            <div class="comparison-grid i18n-zh">
               <div class="comparison-card before">
                 <div class="comparison-label">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：啰嗦且无重点
@@ -181,11 +239,45 @@
                 </div>
               </div>
             </div>
+            <div class="comparison-grid i18n-en">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Without Skill: long-winded, no signal
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Write a PRD for a points lottery"</div>
+<pre><span class="output">1. Background
+An activity to boost engagement.
+2. Features
+1) User taps lottery.
+2) Deduct points.
+3) Win a prize.
+(❌ Missing analytics, edge cases, UI rules)</span></pre>
+                </div>
+              </div>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> With Skill: big-tech style structure
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Write a PRD for a points lottery"</div>
+<pre><span class="output">[ID] ACT-2024
+[Audience] V3+ high-value users (from business glossary)
+[Edge cases]
+- Concurrency: call @Promo/Lock to prevent losses
+[Analytics]
+- Event: btn_lottery_click
+- Params: user_id, source_type
+(✅ Uses your PRD template + tracking rules)</span></pre>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 测试场景 -->
           <div id="scenario-qa" class="scenario-content">
-            <div class="comparison-grid">
+            <div class="comparison-grid i18n-zh">
               <div class="comparison-card before">
                 <div class="comparison-label">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：凭空捏造测试
@@ -217,11 +309,43 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
                 </div>
               </div>
             </div>
+            <div class="comparison-grid i18n-en">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Without Skill: made-up tests
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Write tests for the cart API"</div>
+<pre><code><span class="comment">// ❌ Wrong framework; no idea about test accounts</span>
+<span class="keyword">import</span> axios <span class="keyword">from</span> <span class="string">'axios'</span>;
+test(<span class="string">'add to cart'</span>, <span class="keyword">async</span> () => {
+  <span class="keyword">const</span> res = <span class="keyword">await</span> axios.post(<span class="string">'http://api/cart'</span>);
+  expect(res.status).toBe(200);
+});</code></pre>
+                </div>
+              </div>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> With Skill: matches your test stack
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Write tests for the cart API"</div>
+<pre><code><span class="comment">// ✅ Uses your Playwright helpers and test gateway</span>
+<span class="keyword">import</span> { apiTest, getMockUser } <span class="keyword">from</span> <span class="string">'@qa/core'</span>;
+apiTest(<span class="string">'cart — happy path'</span>, <span class="keyword">async</span> ({ request }) => {
+  <span class="keyword">const</span> user = <span class="keyword">await</span> getMockUser(<span class="string">'VIP'</span>); <span class="comment">// env-aware fixtures</span>
+  <span class="keyword">const</span> res = <span class="keyword">await</span> request.post(<span class="string">'/gw/api/v2/cart'</span>);
+  expect(res).toHaveCode(<span class="string">'SUCCESS'</span>);
+});</code></pre>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 日常场景 -->
           <div id="scenario-daily" class="scenario-content">
-            <div class="comparison-grid">
+            <div class="comparison-grid i18n-zh">
               <div class="comparison-card before">
                 <div class="comparison-label">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 没有 Skill：流水账式汇报
@@ -254,6 +378,39 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
                 </div>
               </div>
             </div>
+            <div class="comparison-grid i18n-en">
+              <div class="comparison-card before">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Without Skill: flat status dump
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Turn my notes into a weekly update"</div>
+<pre><span class="output">This week:
+1. Monday: meeting about the homepage.
+2. Tuesday: wrote APIs.
+3. Wednesday: fixed bugs.
+4. Next week: keep going.</span></pre>
+                </div>
+              </div>
+              <div class="comparison-arrow">→</div>
+              <div class="comparison-card after">
+                <div class="comparison-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> With Skill: structured for leadership
+                </div>
+                <div class="comparison-code">
+                  <div class="chat-prompt">"Turn my notes into a weekly update"</div>
+<pre><span class="output">🎯 OKR alignment
+- Homepage redesign (O1-KR2): core APIs done, ~60% on track.
+
+🔥 Outcomes
+- Fixed 3 P2 issues in payments; ~5% fewer support tickets expected.
+
+🚧 Risks / asks
+- UI review slipped; may hit Wed release—need help.
+(✅ Uses your OKR update template)</span></pre>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -262,22 +419,22 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
             <div class="key-point-icon">
               <i data-lucide="book-open"></i>
             </div>
-            <h4>业务知识黑话库</h4>
-            <p>告诉 AI 公司的专有名词、业务背景、产品线划分。无论哪个岗位的同事在写 Prompt，AI 都能瞬间 Get 到业务上下文。</p>
+            <h4><span class="i18n-zh">业务知识黑话库</span><span class="i18n-en">Business context &amp; jargon</span></h4>
+            <p><span class="i18n-zh">告诉 AI 公司的专有名词、业务背景、产品线划分。无论哪个岗位的同事在写 Prompt，AI 都能瞬间 Get 到业务上下文。</span><span class="i18n-en">Teach the model your terms, domains, and product map—so every role gets consistent context in prompts.</span></p>
           </div>
           <div class="key-point fade-in">
             <div class="key-point-icon">
               <i data-lucide="settings"></i>
             </div>
-            <h4>工程与基建规范</h4>
-            <p>从代码目录结构、组件封装、到自动化测试的断言写法，把高手的最佳实践沉淀下来，让 AI 严格遵守。</p>
+            <h4><span class="i18n-zh">工程与基建规范</span><span class="i18n-en">Engineering standards</span></h4>
+            <p><span class="i18n-zh">从代码目录结构、组件封装、到自动化测试的断言写法，把高手的最佳实践沉淀下来，让 AI 严格遵守。</span><span class="i18n-en">Layout, components, test assertions—capture how your best people work and make the AI follow it.</span></p>
           </div>
           <div class="key-point fade-in">
             <div class="key-point-icon">
               <i data-lucide="file-text"></i>
             </div>
-            <h4>全职能工作流模板</h4>
-            <p>管理产品 PRD 模板、Git Commit 格式、Code Review 重点、甚至汇报 PPT 结构，一键下发到团队每个人的 IDE 或浏览器中。</p>
+            <h4><span class="i18n-zh">全职能工作流模板</span><span class="i18n-en">Cross-functional templates</span></h4>
+            <p><span class="i18n-zh">管理产品 PRD 模板、Git Commit 格式、Code Review 重点、甚至汇报 PPT 结构，一键下发到团队每个人的 IDE 或浏览器中。</span><span class="i18n-en">PRDs, commit format, review checklists, slide outlines—ship them to every IDE or browser with one flow.</span></p>
           </div>
         </div>
       </div>
@@ -288,46 +445,46 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
     <!-- Why Skill Base Section -->
     <section class="why-skill-base" id="why">
       <div class="container">
-        <h2 class="section-title fade-in">为什么需要 Skill Base？</h2>
+        <h2 class="section-title fade-in"><span class="i18n-zh">为什么需要 Skill Base？</span><span class="i18n-en">Why Skill Base?</span></h2>
         <p class="section-subtitle fade-in">
-          三个痛点，一个解决方案
+          <span class="i18n-zh">三个痛点，一个解决方案</span><span class="i18n-en">Three pains, one fix</span>
         </p>
 
         <div class="pain-points">
           <div class="pain-point fade-in">
-            <div class="pain-point-number">痛点 01</div>
+            <div class="pain-point-number"><span class="i18n-zh">痛点 01</span><span class="i18n-en">Pain 01</span></div>
             <h3>
               <i data-lucide="cloud-off" style="vertical-align: middle; margin-right: 4px;"></i>
-              公共平台不适合存放私有业务
+              <span class="i18n-zh">公共平台不适合存放私有业务</span><span class="i18n-en">Public hubs are wrong for private IP</span>
             </h3>
             <p class="problem">
-              公司的编码规范、内部 API 文档、业务逻辑不能上传到公共平台，但又需要让 AI 理解这些内容。
+              <span class="i18n-zh">公司的编码规范、内部 API 文档、业务逻辑不能上传到公共平台，但又需要让 AI 理解这些内容。</span><span class="i18n-en">Standards, internal APIs, and domain rules cannot live on a public registry—but models still need them.</span>
             </p>
-            <div class="solution">私有化部署，数据完全掌控</div>
+            <div class="solution"><span class="i18n-zh">私有化部署，数据完全掌控</span><span class="i18n-en">Self-host and keep control</span></div>
           </div>
 
           <div class="pain-point fade-in">
-            <div class="pain-point-number">痛点 02</div>
+            <div class="pain-point-number"><span class="i18n-zh">痛点 02</span><span class="i18n-en">Pain 02</span></div>
             <h3>
               <i data-lucide="copy" style="vertical-align: middle; margin-right: 4px;"></i>
-              告别四处复制粘贴
+              <span class="i18n-zh">告别四处复制粘贴</span><span class="i18n-en">Stop copy-pasting prompts</span>
             </h3>
             <p class="problem">
-              每次换项目、带新人，都要把长长的"系统提示词"和"业务背景"重新发一遍，版本混乱。
+              <span class="i18n-zh">每次换项目、带新人，都要把长长的"系统提示词"和"业务背景"重新发一遍，版本混乱。</span><span class="i18n-en">New project or new hire means resending giant system prompts—versions drift and nobody wins.</span>
             </p>
-            <div class="solution">像 npm 一样安装和更新团队知识</div>
+            <div class="solution"><span class="i18n-zh">像 npm 一样安装和更新团队知识</span><span class="i18n-en">Install and update team knowledge like npm</span></div>
           </div>
 
           <div class="pain-point fade-in">
-            <div class="pain-point-number">痛点 03</div>
+            <div class="pain-point-number"><span class="i18n-zh">痛点 03</span><span class="i18n-en">Pain 03</span></div>
             <h3>
               <i data-lucide="layers" style="vertical-align: middle; margin-right: 4px;"></i>
-              拒绝重型架构
+              <span class="i18n-zh">拒绝重型架构</span><span class="i18n-en">No heavy platform tax</span>
             </h3>
             <p class="problem">
-              不想为了管理几个提示词文件就部署复杂的基础设施，K8s、Docker Compose 太重了。
+              <span class="i18n-zh">不想为了管理几个提示词文件就部署复杂的基础设施，K8s、Docker Compose 太重了。</span><span class="i18n-en">You should not need a full platform just to manage a handful of prompt files.</span>
             </p>
-            <div class="solution">一行 npx 命令即可启动</div>
+            <div class="solution"><span class="i18n-zh">一行 npx 命令即可启动</span><span class="i18n-en">Start with one npx command</span></div>
           </div>
         </div>
       </div>
@@ -338,34 +495,34 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
     <!-- Features Section -->
     <section class="features" id="features">
       <div class="container">
-        <h2 class="section-title fade-in">核心特性</h2>
+        <h2 class="section-title fade-in"><span class="i18n-zh">核心特性</span><span class="i18n-en">Features</span></h2>
         <p class="section-subtitle fade-in">
-          为开发者精心打造的每一个细节
+          <span class="i18n-zh">为开发者精心打造的每一个细节</span><span class="i18n-en">Details that respect your time</span>
         </p>
 
         <div class="features-grid">
           <div class="feature-card fade-in">
             <span class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg></span>
-            <h3>零配置启动</h3>
-            <p>一行命令启动服务，SQLite 自动初始化，开箱即用</p>
+            <h3><span class="i18n-zh">零配置启动</span><span class="i18n-en">Zero-config start</span></h3>
+            <p><span class="i18n-zh">一行命令启动服务，SQLite 自动初始化，开箱即用</span><span class="i18n-en">One command, SQLite bootstraps itself—ready to go</span></p>
           </div>
 
           <div class="feature-card fade-in">
             <span class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></span>
-            <h3>npm 般的体验</h3>
-            <p>search / install / publish，熟悉的工作流，零学习成本</p>
+            <h3><span class="i18n-zh">npm 般的体验</span><span class="i18n-en">npm-like workflow</span></h3>
+            <p><span class="i18n-zh">search / install / publish，熟悉的工作流，零学习成本</span><span class="i18n-en">search / install / publish—the muscle memory you already have</span></p>
           </div>
 
           <div class="feature-card fade-in">
             <span class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-            <h3>私有化安全</h3>
-            <p>完全部署在你的内网，敏感规范不外泄</p>
+            <h3><span class="i18n-zh">私有化安全</span><span class="i18n-en">Private by default</span></h3>
+            <p><span class="i18n-zh">完全部署在你的内网，敏感规范不外泄</span><span class="i18n-en">Runs on your network—sensitive rules stay inside</span></p>
           </div>
 
           <div class="feature-card fade-in">
             <span class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/></svg></span>
-            <h3>版本控制</h3>
-            <p>每次发布自动生成版本号，支持版本回溯和对比</p>
+            <h3><span class="i18n-zh">版本控制</span><span class="i18n-en">Versioning</span></h3>
+            <p><span class="i18n-zh">每次发布自动生成版本号，支持版本回溯和对比</span><span class="i18n-en">Every publish gets a version—diff and roll back when needed</span></p>
           </div>
 
         </div>
@@ -377,19 +534,19 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
     <!-- Quick Start Section -->
     <section class="quick-start" id="quick-start">
       <div class="container">
-        <h2 class="section-title fade-in">快速开始</h2>
+        <h2 class="section-title fade-in"><span class="i18n-zh">快速开始</span><span class="i18n-en">Quick start</span></h2>
         <p class="section-subtitle fade-in">
-          从安装到使用，只需几分钟
+          <span class="i18n-zh">从安装到使用，只需几分钟</span><span class="i18n-en">From install to daily use in minutes</span>
         </p>
 
         <div class="quick-start-container fade-in">
           <div class="tabs">
-            <button class="tab active" data-tab="tab-server">启动服务</button>
-            <button class="tab" data-tab="tab-docker">Docker 部署</button>
-            <button class="tab" data-tab="tab-install">安装 CLI</button>
-            <button class="tab" data-tab="tab-search">搜索安装</button>
-            <button class="tab" data-tab="tab-publish">发布 Skill</button>
-            <button class="tab" data-tab="tab-ide">IDE 集成</button>
+            <button class="tab active" data-tab="tab-server"><span class="i18n-zh">启动服务</span><span class="i18n-en">Run server</span></button>
+            <button class="tab" data-tab="tab-docker"><span class="i18n-zh">Docker 部署</span><span class="i18n-en">Docker</span></button>
+            <button class="tab" data-tab="tab-install"><span class="i18n-zh">安装 CLI</span><span class="i18n-en">Install CLI</span></button>
+            <button class="tab" data-tab="tab-search"><span class="i18n-zh">搜索安装</span><span class="i18n-en">Search &amp; install</span></button>
+            <button class="tab" data-tab="tab-publish"><span class="i18n-zh">发布 Skill</span><span class="i18n-en">Publish</span></button>
+            <button class="tab" data-tab="tab-ide"><span class="i18n-zh">IDE 集成</span><span class="i18n-en">IDE</span></button>
           </div>
 
           <div id="tab-server" class="tab-content active">
@@ -400,16 +557,23 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
                   <span class="code-dot yellow"></span>
                   <span class="code-dot green"></span>
                 </div>
-                <button class="code-copy">Copy</button>
+                <button type="button" class="code-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
               </div>
-              <div class="code-body"><span class="comment"># 一行命令启动服务（推荐指定数据目录）</span>
+              <div class="code-body"><span class="i18n-zh"><span class="comment"># 一行命令启动服务（推荐指定数据目录）</span>
 <span class="keyword">npx</span> <span class="command">skill-base</span> <span class="flag">-d</span> ./skill-data <span class="flag">-p</span> 8000
 
 <span class="comment"># 访问 Web 管理后台</span>
 <span class="output">打开浏览器访问 http://localhost:8000</span>
 
 <span class="comment"># 首次访问将引导设置管理员账号</span>
-<span class="comment"># 通过 Web 界面即可浏览、搜索、下载和发布 Skill</span></div>
+<span class="comment"># 通过 Web 界面即可浏览、搜索、下载和发布 Skill</span></span><span class="i18n-en"><span class="comment"># Start the server (set a data dir)</span>
+<span class="keyword">npx</span> <span class="command">skill-base</span> <span class="flag">-d</span> ./skill-data <span class="flag">-p</span> 8000
+
+<span class="comment"># Open the web console</span>
+<span class="output">http://localhost:8000</span>
+
+<span class="comment"># First visit sets up the admin account</span>
+<span class="comment"># Browse, search, download, and publish Skills</span></span></div>
             </div>
           </div>
 
@@ -421,9 +585,9 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
                   <span class="code-dot yellow"></span>
                   <span class="code-dot green"></span>
                 </div>
-                <button class="code-copy">Copy</button>
+                <button type="button" class="code-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
               </div>
-              <div class="code-body"><span class="comment"># 在包含 Dockerfile 的目录构建镜像</span>
+              <div class="code-body"><span class="i18n-zh"><span class="comment"># 在包含 Dockerfile 的目录构建镜像</span>
 <span class="keyword">docker</span> <span class="command">build</span> <span class="flag">-t</span> skill-base .
 
 <span class="comment"># 运行：持久化挂载到 ./skill-data（不要用仓库内 data/，避免 SQLite 污染工作区）</span>
@@ -435,7 +599,19 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
 <span class="comment"># 可选：部署前缀（与 npx skill-base --base-path 相同，环境变量 APP_BASE_PATH）</span>
 <span class="keyword">docker</span> <span class="command">run</span> <span class="flag">-d</span> <span class="flag">-p</span> 8000:8000 <span class="flag">-v</span> <span class="string">"$(pwd)/skill-data:/data"</span> <span class="flag">-e</span> APP_BASE_PATH=/skills/ <span class="flag">--name</span> skill-base-server skill-base
 
-<span class="comment"># 访问 http://localhost:8000/skills/ ；反代时对外 URL 前缀须与 APP_BASE_PATH 一致</span></div>
+<span class="comment"># 访问 http://localhost:8000/skills/ ；反代时对外 URL 前缀须与 APP_BASE_PATH 一致</span></span><span class="i18n-en"><span class="comment"># Build image in the repo root</span>
+<span class="keyword">docker</span> <span class="command">build</span> <span class="flag">-t</span> skill-base .
+
+<span class="comment"># Run with volume ./skill-data (avoid repo ./data/ for SQLite)</span>
+<span class="keyword">docker</span> <span class="command">run</span> <span class="flag">-d</span> <span class="flag">-p</span> 8000:8000 <span class="flag">-v</span> <span class="string">"$(pwd)/skill-data:/data"</span> <span class="flag">--name</span> skill-base-server skill-base
+
+<span class="comment"># Web console</span>
+<span class="output">http://localhost:8000</span>
+
+<span class="comment"># Optional: base path (same as npx skill-base --base-path, env APP_BASE_PATH)</span>
+<span class="keyword">docker</span> <span class="command">run</span> <span class="flag">-d</span> <span class="flag">-p</span> 8000:8000 <span class="flag">-v</span> <span class="string">"$(pwd)/skill-data:/data"</span> <span class="flag">-e</span> APP_BASE_PATH=/skills/ <span class="flag">--name</span> skill-base-server skill-base
+
+<span class="comment"># Open http://localhost:8000/skills/ — reverse proxy must match APP_BASE_PATH</span></span></div>
             </div>
           </div>
 
@@ -447,16 +623,23 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
                   <span class="code-dot yellow"></span>
                   <span class="code-dot green"></span>
                 </div>
-                <button class="code-copy">Copy</button>
+                <button type="button" class="code-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
               </div>
-              <div class="code-body"><span class="comment"># 全局安装 CLI 工具</span>
+              <div class="code-body"><span class="i18n-zh"><span class="comment"># 全局安装 CLI 工具</span>
 <span class="keyword">npm</span> <span class="command">install</span> <span class="flag">-g</span> skill-base-cli
 
 <span class="comment"># 配置你的 Skill Base 服务器地址</span>
 <span class="keyword">skb</span> <span class="command">init</span> <span class="flag">-s</span> <span class="string">http://your-server</span>
 
 <span class="comment"># 登录</span>
-<span class="keyword">skb</span> <span class="command">login</span></div>
+<span class="keyword">skb</span> <span class="command">login</span></span><span class="i18n-en"><span class="comment"># Install CLI globally</span>
+<span class="keyword">npm</span> <span class="command">install</span> <span class="flag">-g</span> skill-base-cli
+
+<span class="comment"># Point skb at your Skill Base</span>
+<span class="keyword">skb</span> <span class="command">init</span> <span class="flag">-s</span> <span class="string">http://your-server</span>
+
+<span class="comment"># Sign in</span>
+<span class="keyword">skb</span> <span class="command">login</span></span></div>
             </div>
           </div>
 
@@ -468,9 +651,9 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
                   <span class="code-dot yellow"></span>
                   <span class="code-dot green"></span>
                 </div>
-                <button class="code-copy">Copy</button>
+                <button type="button" class="code-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
               </div>
-              <div class="code-body"><span class="comment"># 搜索可用的 Skills</span>
+              <div class="code-body"><span class="i18n-zh"><span class="comment"># 搜索可用的 Skills</span>
 <span class="keyword">skb</span> <span class="command">search</span> <span class="string">react</span>
 
 <span class="output">  NAME                 DESCRIPTION
@@ -480,7 +663,17 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
 <span class="comment"># 安装 Skill 到当前项目</span>
 <span class="keyword">skb</span> <span class="command">install</span> <span class="string">react-best-practice</span>
 
-<span class="output">✓ Installed react-best-practice@v20240320.143022</span></div>
+<span class="output">✓ Installed react-best-practice@v20240320.143022</span></span><span class="i18n-en"><span class="comment"># Search Skills</span>
+<span class="keyword">skb</span> <span class="command">search</span> <span class="string">react</span>
+
+<span class="output">  NAME                 DESCRIPTION
+  react-best-practice  React best practices
+  react-testing        React testing guide</span>
+
+<span class="comment"># Install into the current project</span>
+<span class="keyword">skb</span> <span class="command">install</span> <span class="string">react-best-practice</span>
+
+<span class="output">✓ Installed react-best-practice@v20240320.143022</span></span></div>
             </div>
           </div>
 
@@ -492,9 +685,9 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
                   <span class="code-dot yellow"></span>
                   <span class="code-dot green"></span>
                 </div>
-                <button class="code-copy">Copy</button>
+                <button type="button" class="code-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
               </div>
-              <div class="code-body"><span class="comment"># 创建一个新的 Skill 目录</span>
+              <div class="code-body"><span class="i18n-zh"><span class="comment"># 创建一个新的 Skill 目录</span>
 <span class="keyword">mkdir</span> my-team-skill && <span class="keyword">cd</span> my-team-skill
 
 <span class="comment"># 创建 SKILL.md 文件（必需）</span>
@@ -511,7 +704,24 @@ EOF</span>
 <span class="comment"># 发布到 Skill Base</span>
 <span class="keyword">skb</span> <span class="command">publish</span>
 
-<span class="output">✓ Published my-team-skill@v20240320.150000</span></div>
+<span class="output">✓ Published my-team-skill@v20240320.150000</span></span><span class="i18n-en"><span class="comment"># New Skill folder</span>
+<span class="keyword">mkdir</span> my-team-skill && <span class="keyword">cd</span> my-team-skill
+
+<span class="comment"># SKILL.md is required</span>
+<span class="keyword">cat</span> &gt; SKILL.md &lt;&lt; <span class="string">'EOF'</span>
+<span class="string"># My Team Coding Standards
+
+Team coding standards...
+
+## Naming
+- camelCase for variables
+- PascalCase for components
+EOF</span>
+
+<span class="comment"># Publish to Skill Base</span>
+<span class="keyword">skb</span> <span class="command">publish</span>
+
+<span class="output">✓ Published my-team-skill@v20240320.150000</span></span></div>
             </div>
           </div>
 
@@ -523,9 +733,9 @@ EOF</span>
                   <span class="code-dot yellow"></span>
                   <span class="code-dot green"></span>
                 </div>
-                <button class="code-copy">Copy</button>
+                <button type="button" class="code-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
               </div>
-              <div class="code-body"><span class="comment"># 安装 Skill 到 Cursor</span>
+              <div class="code-body"><span class="i18n-zh"><span class="comment"># 安装 Skill 到 Cursor</span>
 <span class="keyword">skb</span> <span class="command">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">cursor</span>
 <span class="output">✓ Installed to .cursor/skills/my-skill/</span>
 
@@ -533,7 +743,15 @@ EOF</span>
 <span class="keyword">skb</span> <span class="command">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">qoder</span>
 <span class="output">✓ Installed to .qoder/skills/my-skill/</span>
 
-<span class="comment"># 支持的 IDE: cursor, qoder, windsurf, copilot, claude-code, opencode</span></div>
+<span class="comment"># 支持的 IDE: cursor, qoder, windsurf, copilot, claude-code, opencode</span></span><span class="i18n-en"><span class="comment"># Install into Cursor</span>
+<span class="keyword">skb</span> <span class="command">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">cursor</span>
+<span class="output">✓ Installed to .cursor/skills/my-skill/</span>
+
+<span class="comment"># Qoder</span>
+<span class="keyword">skb</span> <span class="command">install</span> <span class="string">my-skill</span> <span class="flag">--ide</span> <span class="string">qoder</span>
+<span class="output">✓ Installed to .qoder/skills/my-skill/</span>
+
+<span class="comment"># IDEs: cursor, qoder, windsurf, copilot, claude-code, opencode</span></span></div>
             </div>
           </div>
         </div>
@@ -545,25 +763,25 @@ EOF</span>
     <!-- Philosophy Section -->
     <section class="philosophy" id="philosophy">
       <div class="container">
-        <h2 class="section-title fade-in">设计哲学</h2>
+        <h2 class="section-title fade-in"><span class="i18n-zh">设计哲学</span><span class="i18n-en">Philosophy</span></h2>
         <p class="section-subtitle fade-in">
-          Stay Out of the Way — 极简与无侵入
+          <span class="i18n-zh">Stay Out of the Way — 极简与无侵入</span><span class="i18n-en">Stay Out of the Way — minimal and invisible</span>
         </p>
 
         <div class="philosophy-grid">
           <div class="philosophy-item fade-in">
-            <h3>纯粹的搬运工</h3>
-            <p>Skill Base 只做一件事：把 Skill 从服务器搬到你的项目里。不做解析，不做转换，原封不动。</p>
+            <h3><span class="i18n-zh">纯粹的搬运工</span><span class="i18n-en">Just a courier</span></h3>
+            <p><span class="i18n-zh">Skill Base 只做一件事：把 Skill 从服务器搬到你的项目里。不做解析，不做转换，原封不动。</span><span class="i18n-en">One job: move Skills from the server to your project. No parsing, no transforms—byte-for-byte.</span></p>
           </div>
 
           <div class="philosophy-item fade-in">
-            <h3>极简优先</h3>
-            <p>能用一个文件搞定的，绝不引入两个。SQLite 单文件部署，就是这么任性。</p>
+            <h3><span class="i18n-zh">极简优先</span><span class="i18n-en">Radical simplicity</span></h3>
+            <p><span class="i18n-zh">能用一个文件搞定的，绝不引入两个。SQLite 单文件部署，就是这么任性。</span><span class="i18n-en">If one file can do it, we do not add a second. SQLite in a single file—deploy and forget.</span></p>
           </div>
 
           <div class="philosophy-item fade-in">
-            <h3>本地优先</h3>
-            <p>所有数据都在你本地。不想用云？内网也能跑。不想升级？永不更新也能用。</p>
+            <h3><span class="i18n-zh">本地优先</span><span class="i18n-en">Local first</span></h3>
+            <p><span class="i18n-zh">所有数据都在你本地。不想用云？内网也能跑。不想升级？永不更新也能用。</span><span class="i18n-en">Your data stays local. No cloud? Run on the intranet. No upgrades? It still works.</span></p>
           </div>
         </div>
       </div>
@@ -582,7 +800,7 @@ EOF</span>
               </svg>
               <span class="nav-logo-text"><span class="highlight">Skill</span> Base</span>
             </span>
-            <p>专为中小团队打造的 AI Agent Skill 私有化管理平台</p>
+            <p><span class="i18n-zh">专为中小团队打造的 AI Agent Skill 私有化管理平台</span><span class="i18n-en">A private Skill hub for small teams—AI agents included</span></p>
           </div>
           <div class="footer-links">
             <a href="https://github.com/ginuim/skill-base" target="_blank">GitHub</a>
@@ -590,20 +808,64 @@ EOF</span>
           </div>
         </div>
         <div class="footer-bottom">
-          <p>Open Source · Made for developers</p>
+          <p><span class="i18n-zh">开源 · 为开发者而生</span><span class="i18n-en">Open source · built for developers</span></p>
         </div>
       </div>
     </footer>
   </div>
 
   <script>
+    var LANG_STORAGE_KEY = 'skill-base-website-lang';
+    var DOC_TITLE = {
+      zh: 'Skill Base - AI Agent Skill 私有化管理平台',
+      en: 'Skill Base - Private AI Agent Skill Platform'
+    };
+
+    function getPageLang() {
+      return document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'zh';
+    }
+
+    function applyDocTitle() {
+      var l = getPageLang();
+      document.title = DOC_TITLE[l] || DOC_TITLE.en;
+    }
+
+    function updateNavAria() {
+      var nav = document.getElementById('site-navbar');
+      var toggle = document.getElementById('nav-mobile-toggle');
+      var lang = getPageLang();
+      if (nav) nav.setAttribute('aria-label', lang === 'en' ? 'Main navigation' : '主导航');
+      var navLang = document.querySelector('.nav-lang');
+      if (navLang) navLang.setAttribute('aria-label', lang === 'en' ? 'Language' : '语言');
+      if (toggle && nav) {
+        var open = nav.classList.contains('nav-open');
+        toggle.setAttribute('aria-label', open
+          ? (lang === 'en' ? 'Close navigation menu' : '关闭导航菜单')
+          : (lang === 'en' ? 'Open navigation menu' : '打开导航菜单'));
+      }
+    }
+
+    function initLangSwitcher() {
+      document.querySelectorAll('.nav-lang-btn[data-set-lang]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var lang = btn.getAttribute('data-set-lang');
+          if (lang !== 'zh' && lang !== 'en') return;
+          try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) {}
+          document.documentElement.setAttribute('data-lang', lang);
+          document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+          applyDocTitle();
+          updateNavAria();
+          lucide.createIcons();
+          runTerminalTypewriter();
+        });
+      });
+    }
+
     // Initialize Lucide Icons
     lucide.createIcons();
 
-    // Typewriter Effect for Terminal
-    const terminalLines = [
+    var TERMINAL_ZH = [
       { type: 'output', text: '# 启动本地知识库服务', class: 'comment', delay: 30 },
-
       { type: 'command', prompt: '~', text: 'npx skill-base -d ./skill-data -p 8000', delay: 80 },
       { type: 'output', text: '', delay: 300 },
       { type: 'output', text: '# 安装客户端（可选）', class: 'comment', delay: 30 },
@@ -615,70 +877,98 @@ EOF</span>
       { type: 'command', prompt: '~', text: 'skb install team-vue-rules --ide cursor', delay: 50 }
     ];
 
-    let lineIndex = 0;
-    let charIndex = 0;
-    let currentLineEl = null;
-    const terminalBody = document.getElementById('hero-terminal-body');
+    var TERMINAL_EN = [
+      { type: 'output', text: '# Start the local Skill server', class: 'comment', delay: 30 },
+      { type: 'command', prompt: '~', text: 'npx skill-base -d ./skill-data -p 8000', delay: 80 },
+      { type: 'output', text: '', delay: 300 },
+      { type: 'output', text: '# Install the CLI (optional)', class: 'comment', delay: 30 },
+      { type: 'command', prompt: '~', text: 'npm install -g skill-base-cli', delay: 50 },
+      { type: 'command', prompt: '~', text: 'skb init -s http://your-team-server', delay: 50 },
+      { type: 'output', text: '', delay: 300 },
+      { type: 'output', text: '# Manage AI Skills like npm packages', class: 'comment', delay: 30 },
+      { type: 'command', prompt: '~', text: 'skb install pm-prd-template', delay: 50 },
+      { type: 'command', prompt: '~', text: 'skb install team-vue-rules --ide cursor', delay: 50 }
+    ];
+
+    var terminalLines = TERMINAL_ZH;
+    var lineIndex = 0;
+    var charIndex = 0;
+    var currentLineEl = null;
+    var terminalBody = document.getElementById('hero-terminal-body');
+    var twToken = 0;
+
+    function syncTerminalLines() {
+      terminalLines = getPageLang() === 'en' ? TERMINAL_EN : TERMINAL_ZH;
+    }
 
     function createLine(lineData) {
-      const lineEl = document.createElement('div');
+      var lineEl = document.createElement('div');
       lineEl.className = 'terminal-line';
 
       if (lineData.type === 'command') {
-        lineEl.innerHTML = `
-          <span class="terminal-prompt">${lineData.prompt} $</span>
-          <span class="terminal-command"></span>
-        `;
+        lineEl.innerHTML =
+          '<span class="terminal-prompt">' + lineData.prompt + ' $</span>' +
+          '<span class="terminal-command"></span>';
       } else {
-        const classList = ['terminal-output'];
+        var classList = ['terminal-output'];
         if (lineData.class) classList.push(lineData.class);
-        lineEl.innerHTML = `<span class="${classList.join(' ')}"></span>`;
+        lineEl.innerHTML = '<span class="' + classList.join(' ') + '"></span>';
       }
 
       return lineEl;
     }
 
-    function typeChar() {
-      if (lineIndex >= terminalLines.length) {
-        const cursorLine = document.createElement('div');
-        cursorLine.className = 'terminal-line';
-        cursorLine.innerHTML = '<span class="terminal-prompt">~ $</span><span class="cursor"></span>';
-        terminalBody.appendChild(cursorLine);
-        return;
-      }
+    function runTerminalTypewriter() {
+      twToken++;
+      var tok = twToken;
+      syncTerminalLines();
+      lineIndex = 0;
+      charIndex = 0;
+      currentLineEl = null;
+      if (terminalBody) terminalBody.innerHTML = '';
 
-      const lineData = terminalLines[lineIndex];
-      if (!lineData) return;
+      function typeChar() {
+        if (tok !== twToken) return;
 
-      if (!currentLineEl) {
-        currentLineEl = createLine(lineData);
-        terminalBody.appendChild(currentLineEl);
-
-        if (!lineData.text) {
-          lineIndex++;
-          currentLineEl = null;
-          setTimeout(typeChar, lineData.delay || 100);
+        if (lineIndex >= terminalLines.length) {
+          var cursorLine = document.createElement('div');
+          cursorLine.className = 'terminal-line';
+          cursorLine.innerHTML = '<span class="terminal-prompt">~ $</span><span class="cursor"></span>';
+          terminalBody.appendChild(cursorLine);
           return;
+        }
+
+        var lineData = terminalLines[lineIndex];
+        if (!lineData) return;
+
+        if (!currentLineEl) {
+          currentLineEl = createLine(lineData);
+          terminalBody.appendChild(currentLineEl);
+
+          if (!lineData.text) {
+            lineIndex++;
+            currentLineEl = null;
+            setTimeout(typeChar, lineData.delay || 100);
+            return;
+          }
+        }
+
+        var textEl = lineData.type === 'command'
+          ? currentLineEl.querySelector('.terminal-command')
+          : currentLineEl.querySelector('.terminal-output');
+
+        if (textEl && charIndex < lineData.text.length) {
+          textEl.textContent += lineData.text[charIndex];
+          charIndex++;
+          setTimeout(typeChar, lineData.delay || 50);
+        } else {
+          lineIndex++;
+          charIndex = 0;
+          currentLineEl = null;
+          setTimeout(typeChar, 150);
         }
       }
 
-      const textEl = lineData.type === 'command'
-        ? currentLineEl.querySelector('.terminal-command')
-        : currentLineEl.querySelector('.terminal-output');
-
-      if (textEl && charIndex < lineData.text.length) {
-        textEl.textContent += lineData.text[charIndex];
-        charIndex++;
-        setTimeout(typeChar, lineData.delay || 50);
-      } else {
-        lineIndex++;
-        charIndex = 0;
-        currentLineEl = null;
-        setTimeout(typeChar, 150);
-      }
-    }
-
-    function typeWriter() {
       setTimeout(typeChar, 800);
     }
 
@@ -752,31 +1042,33 @@ EOF</span>
       }
 
       // Hero copy button
-      const heroCopyBtn = document.getElementById('hero-copy-btn');
+      var heroCopyBtn = document.getElementById('hero-copy-btn');
       if (heroCopyBtn) {
-        heroCopyBtn.addEventListener('click', async () => {
-          const success = await copyToClipboard('npx skill-base -d ./skill-data -p 8000');
+        heroCopyBtn.addEventListener('click', async function () {
+          var success = await copyToClipboard('npx skill-base -d ./skill-data -p 8000');
           if (success) {
-            const originalText = heroCopyBtn.innerHTML;
-            heroCopyBtn.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>已复制!';
-            setTimeout(() => {
-              heroCopyBtn.innerHTML = originalText;
+            var originalHtml = heroCopyBtn.innerHTML;
+            var ok = getPageLang() === 'en' ? 'Copied!' : '已复制!';
+            heroCopyBtn.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + ok;
+            setTimeout(function () {
+              heroCopyBtn.innerHTML = originalHtml;
             }, 2000);
           }
         });
       }
 
-      // Code block copy buttons
-      document.querySelectorAll('.code-copy').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const codeBody = btn.closest('.code-block').querySelector('.code-body');
-          const text = codeBody.textContent;
-          const success = await copyToClipboard(text);
+      // Code block copy buttons (innerText = visible language only)
+      document.querySelectorAll('.code-copy').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var codeBody = btn.closest('.code-block').querySelector('.code-body');
+          var text = (codeBody.innerText != null ? codeBody.innerText : codeBody.textContent) || '';
+          var success = await copyToClipboard(text);
           if (success) {
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            setTimeout(() => {
-              btn.textContent = originalText;
+            var originalHtml = btn.innerHTML;
+            var copied = getPageLang() === 'en' ? 'Copied!' : '已复制!';
+            btn.textContent = copied;
+            setTimeout(function () {
+              btn.innerHTML = originalHtml;
             }, 2000);
           }
         });
@@ -784,33 +1076,39 @@ EOF</span>
     }
 
     function initMobileNav() {
-      const navbar = document.getElementById('site-navbar');
-      const toggle = document.getElementById('nav-mobile-toggle');
-      const menu = document.getElementById('nav-menu');
+      var navbar = document.getElementById('site-navbar');
+      var toggle = document.getElementById('nav-mobile-toggle');
+      var menu = document.getElementById('nav-menu');
       if (!navbar || !toggle || !menu) return;
 
       function setOpen(open) {
         navbar.classList.toggle('nav-open', open);
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        toggle.setAttribute('aria-label', open ? '关闭导航菜单' : '打开导航菜单');
+        var lang = getPageLang();
+        toggle.setAttribute('aria-label', open
+          ? (lang === 'en' ? 'Close navigation menu' : '关闭导航菜单')
+          : (lang === 'en' ? 'Open navigation menu' : '打开导航菜单'));
       }
 
-      toggle.addEventListener('click', () => {
+      toggle.addEventListener('click', function () {
         setOpen(!navbar.classList.contains('nav-open'));
       });
 
-      menu.querySelectorAll('a[href^="#"]').forEach((link) => {
-        link.addEventListener('click', () => setOpen(false));
+      menu.querySelectorAll('a[href^="#"]').forEach(function (link) {
+        link.addEventListener('click', function () { setOpen(false); });
       });
 
-      document.addEventListener('keydown', (e) => {
+      document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') setOpen(false);
       });
     }
 
     // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-      typeWriter();
+    document.addEventListener('DOMContentLoaded', function () {
+      applyDocTitle();
+      updateNavAria();
+      initLangSwitcher();
+      runTerminalTypewriter();
       initScrollAnimations();
       initTabs();
       initCopyButtons();
