@@ -261,6 +261,10 @@ git push
 
 By default, Skill Base shows an ASCII capybara named `Cappy` in the terminal. It does not affect behavior; it is only there to ease a bit of stress during publish, pull, or startup waits.
 
+<p align="center">
+  <img src="docs/images/cappy.gif" alt="Cappy" width="720" />
+</p>
+
 To disable:
 
 ```bash
