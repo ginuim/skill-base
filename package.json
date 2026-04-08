@@ -1,6 +1,6 @@
 {
   "name": "skill-base",
-  "version": "2.0.19",
+  "version": "2.0.21",
   "description": "Skill Base - 私有部署的轻量级 Skill 管理平台",
   "main": "src/index.js",
   "bin": {
@@ -31,6 +31,8 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@remotion/bundler": "^4.0.446",
+    "@remotion/cli": "^4.0.446",
     "nodemon": "^3.0.0"
   },
   "engines": {

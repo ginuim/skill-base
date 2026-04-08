@@ -373,6 +373,12 @@ async function readSkillMdFromZipInstance(zip: JSZip, fileList: string[]) {
   return f.async('string')
 }
 
+/** Safari：直接把 File 塞进 JSZip 再 async('string') 会报 unsupported data；先读成 ArrayBuffer 再写入即可 */
+async function addFileToZip(zip: JSZip, path: string, file: File) {
+  const buf = await file.arrayBuffer()
+  zip.file(path, buf)
+}
+
 // === 文件操作事件 ===
 
 function triggerFileInput() {
@@ -398,7 +404,7 @@ async function handleFileSelect(event: Event) {
       const file = files[i]
       if (!file) continue
       const path = file.webkitRelativePath
-      zip.file(path, file)
+      await addFileToZip(zip, path, file)
       paths.push(path)
       selectedFiles.value.push({ name: path, size: file.size })
       totalSize += file.size
@@ -545,7 +551,7 @@ async function traverseEntry(entry: any, zip: JSZip, path: string, fileList: str
       entry.file(resolve, reject)
     })
     const fullPath = path + entry.name
-    zip.file(fullPath, file)
+    await addFileToZip(zip, fullPath, file)
     fileList.push(fullPath)
     if (onFile) onFile(file.size, fullPath)
   } else if (entry.isDirectory) {
