@@ -47,12 +47,12 @@ const S = {
     en: 'Target directory for extraction'
   },
   installIde: {
-    zh: '目标 IDE（cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode）',
-    en: 'Target IDE (cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode)'
+    zh: '目标 Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode)',
+    en: 'Target Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode)'
   },
   installGlobal: {
-    zh: '安装到全局 IDE 配置目录',
-    en: 'Install to global IDE config directory'
+    zh: '安装到全局 Agent 配置目录',
+    en: 'Install to global Agent config directory'
   },
   update: {
     zh: '交互式选择版本与安装目录以更新',
@@ -114,9 +114,14 @@ program
   .command('install <target>')
   .description(pickMessage(S.install))
   .option('-d, --dir <directory>', pickMessage(S.installDir))
-  .option('-i, --ide <ide>', pickMessage(S.installIde))
+  .option('-i, --ide <agent>', pickMessage(S.installIde))
+  .option('-a, --agent <agent>', pickMessage(S.installIde))
   .option('-g, --global', pickMessage(S.installGlobal), false)
-  .action(install);
+  .action((target, options) => {
+    // Alias --agent to --ide
+    if (options.agent) options.ide = options.agent;
+    return install(target, options);
+  });
 
 program
   .command('update <skill_id>')

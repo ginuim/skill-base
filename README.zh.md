@@ -103,6 +103,7 @@ npx skill-base
 npx skill-base --host 127.0.0.1
 npx skill-base --base-path /skills/
 npx skill-base --cache-max-mb 100
+npx skill-base --session-store sqlite
 ```
 
 常用参数：
@@ -114,6 +115,7 @@ npx skill-base --cache-max-mb 100
 | `--data-dir` | `-d` | 指定数据目录 | 包内 `data/` |
 | `--base-path` | - | 指定部署前缀 | `/` |
 | `--cache-max-mb` | - | 指定进程内 LRU 缓存总容量，单位 MB | `50` |
+| `--session-store` | - | Session 存储类型（`memory` 或 `sqlite`） | `memory` |
 | `--no-cappy` | - | 禁用终端里的 Cappy | 默认启用 |
 | `--verbose` | `-v` | 输出调试日志 | 关闭 |
 
@@ -122,6 +124,13 @@ npx skill-base --cache-max-mb 100
 | 环境变量 | 说明 | 默认值 |
 |------|------|--------|
 | `CACHE_MAX_MB` | 进程内 LRU 缓存总容量上限 | `50` |
+| `SESSION_STORE` | `memory` 或 `sqlite`（见下文 **Session 存储**） | `memory` |
+| `DEBUG` | 设为 `true` 时输出详细日志（与 `--verbose` / `-v` 一致）：启动时的 `DEBUG:` 行以及 Fastify 请求日志 | 关闭 |
+
+#### Session 存储
+
+- **`memory`（默认）：** Session 在进程内存中。**应用进程重启后，所有 Session 都会失效**，用户需要重新登录。Session 的创建/读取/删除**不读写 SQLite**，相比 `sqlite` 能**减少数据库操作**。
+- **`sqlite`：** Session 存在与 `skills.db` 同库的 `sessions` 表中。**重启后 Session 仍在**，多实例部署若**共享同一数据库文件**也可共用 Session；登录态校验等会走 SQLite 读写。
 
 `GET /api/v1/health` 会返回简化缓存统计，方便你确认缓存是否正常工作。
 
@@ -256,6 +265,24 @@ docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
 ```
 
 浏览器访问 `http://localhost:8000/skills/`，接口为 `http://localhost:8000/skills/api/v1/...`。若前面还有反向代理或 HTTPS 终止，请保证对外 URL 前缀与 `APP_BASE_PATH` 一致。
+
+**调试日志：** 镜像入口是 `node src/index.js`，请传入 `-e DEBUG=true`：
+
+```bash
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
+  -e DEBUG=true \
+  --name skill-base-server skill-base
+```
+
+**Session 存储（Docker）：** 需要 SQLite 持久化 Session 时，例如：
+
+```bash
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
+  -e SESSION_STORE=sqlite \
+  --name skill-base-server skill-base
+```
+
+`SESSION_STORE=sqlite` 时，Session 与主库相同，存放在 `skills.db` 的 `sessions` 表中。
 
 ### 备份
 

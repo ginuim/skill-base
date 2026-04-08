@@ -103,6 +103,7 @@ npx skill-base
 npx skill-base --host 127.0.0.1
 npx skill-base --base-path /skills/
 npx skill-base --cache-max-mb 100
+npx skill-base --session-store sqlite
 ```
 
 Common flags:
@@ -114,6 +115,7 @@ Common flags:
 | `--data-dir` | `-d` | Data directory | package `data/` |
 | `--base-path` | - | URL prefix | `/` |
 | `--cache-max-mb` | - | In-process LRU cache size (MB) | `50` |
+| `--session-store` | - | Session storage type (`memory`|`sqlite`) | `memory` |
 | `--no-cappy` | - | Disable terminal Cappy | enabled by default |
 | `--verbose` | `-v` | Debug logging | off |
 
@@ -122,6 +124,13 @@ Environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CACHE_MAX_MB` | In-process LRU cache cap | `50` |
+| `SESSION_STORE` | `memory` or `sqlite` (see **Session storage** below) | `memory` |
+| `DEBUG` | Set to `true` to enable verbose logging (same as `--verbose` / `-v` when using `npx skill-base`): `DEBUG:` lines on startup and Fastify request logging | off |
+
+#### Session storage
+
+- **`memory` (default):** Sessions live in process memory. **Any application restart drops all sessions** (users sign in again). Session create/read/delete **does not touch SQLite**, which **reduces database I/O** versus `sqlite`.
+- **`sqlite`:** Sessions are stored in the `sessions` table alongside `skills.db`. They **survive restarts** and suit **multi-instance** deployments when instances share the same database file; expect SQLite reads/writes for session lifecycle.
 
 `GET /api/v1/health` returns simplified cache stats so you can confirm caching is active.
 
@@ -256,6 +265,24 @@ docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
 ```
 
 Then open `http://localhost:8000/skills/` (APIs live under `http://localhost:8000/skills/api/v1/...`). If you terminate TLS or rewrite paths in a reverse proxy, keep `APP_BASE_PATH` aligned with the public URL prefix.
+
+**Debug logging:** The image runs `node src/index.js` directly, pass `-e DEBUG=true`:
+
+```bash
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
+  -e DEBUG=true \
+  --name skill-base-server skill-base
+```
+
+**Session storage (Docker):** Override the default when you need SQLite-backed sessions:
+
+```bash
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
+  -e SESSION_STORE=sqlite \
+  --name skill-base-server skill-base
+```
+
+With `SESSION_STORE=sqlite`, sessions are stored in the same SQLite database (`skills.db`) in the `sessions` table.
 
 ### Backup
 

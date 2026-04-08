@@ -30,6 +30,7 @@ Skill Base - 内网轻量版 Skill 管理平台
   -d, --data-dir <path>   指定数据目录 (默认: 包内 data/)
   --base-path <path>      指定部署前缀 (默认: /，例如: /skills/)
   --cache-max-mb <mb>     指定进程内 LRU 缓存总容量，单位 MB (默认: 50)
+  --session-store <type>  指定 session 存储类型 (memory|sqlite，默认: memory)
   --no-cappy              禁用 Cappy 水豚吉祥物
   -v, --verbose           启用调试信息
   --help                  显示帮助信息
@@ -43,6 +44,7 @@ Skill Base - 内网轻量版 Skill 管理平台
   npx skill-base -d . -p 3000          # 数据存储到当前目录
   npx skill-base --base-path /skills/  # 部署在子路径下
   npx skill-base --cache-max-mb 100    # 将 LRU 缓存上限调整为 100MB
+  npx skill-base --session-store sqlite # 使用 SQLite 存储 session
   npx skill-base --no-cappy            # 禁用吉祥物
 `,
   en: `
@@ -57,6 +59,7 @@ Options:
   -d, --data-dir <path>   Set the data directory (default: bundled data/)
   --base-path <path>      Set the deploy prefix (default: /, for example: /skills/)
   --cache-max-mb <mb>     Set total in-process LRU cache size in MB (default: 50)
+  --session-store <type>  Set session storage type (memory|sqlite, default: memory)
   --no-cappy              Disable the Cappy mascot
   -v, --verbose           Enable debug logs
   --help                  Show help
@@ -70,6 +73,7 @@ Examples:
   npx skill-base -d . -p 3000          # Store data in the current directory
   npx skill-base --base-path /skills/  # Deploy under a sub path
   npx skill-base --cache-max-mb 100    # Raise LRU cache limit to 100MB
+  npx skill-base --session-store sqlite # Use SQLite for session storage
   npx skill-base --no-cappy            # Disable the mascot
 `
 };
@@ -83,6 +87,7 @@ let basePath = '/';
 let enableCappy = true;
 let debug = false;
 let cacheMaxMb = '50';
+let sessionStore = 'memory';
 
 for (let i = 0; i < args.length; i++) {
   if ((args[i] === '-p' || args[i] === '--port') && args[i + 1]) {
@@ -99,6 +104,16 @@ for (let i = 0; i < args.length; i++) {
     i++;
   } else if (args[i] === '--cache-max-mb' && args[i + 1]) {
     cacheMaxMb = args[i + 1];
+    i++;
+  } else if (args[i] === '--session-store' && args[i + 1]) {
+    sessionStore = args[i + 1];
+    if (sessionStore !== 'memory' && sessionStore !== 'sqlite') {
+      console.error(pickMessage({
+        zh: `错误: --session-store 必须是 'memory' 或 'sqlite'`,
+        en: `Error: --session-store must be 'memory' or 'sqlite'`
+      }));
+      process.exit(1);
+    }
     i++;
   } else if (args[i] === '--no-cappy') {
     enableCappy = false;
@@ -121,6 +136,7 @@ process.env.APP_BASE_PATH = basePath;
 process.env.ENABLE_CAPPY = enableCappy;
 process.env.DEBUG = debug;
 process.env.CACHE_MAX_MB = cacheMaxMb;
+process.env.SESSION_STORE = sessionStore;
 
 // 设置数据目录
 if (dataDir) {
