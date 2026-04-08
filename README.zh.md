@@ -262,7 +262,7 @@ git push
 Skill Base 默认会在终端里带上一只 ASCII 水豚 `Cappy`。它不影响业务，只负责在你发版、拉取、等待服务启动时缓解一点焦虑。
 
 <p align="center">
-  <img src="docs/images/cappy.gif" alt="Cappy" width="720" />
+  <img src="docs/images/cappy-cn.gif" alt="Cappy" width="720" />
 </p>
 
 如果你不喜欢它，启动时加上：
