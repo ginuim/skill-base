@@ -242,8 +242,20 @@ That is what “team edition” means—not everyone must learn Git first.
 
 ```bash
 docker build -t skill-base .
-docker run -d -p 8000:8000 -v "$(pwd)/data:/data" --name skill-base-server skill-base
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" --name skill-base-server skill-base
 ```
+
+Use a dedicated host directory such as `./skill-data` for persistence. Do not bind the repository's bundled `data/` directory when running from source, unless you intentionally want Docker to write SQLite files into your working tree.
+
+**Base path (serve under a URL prefix):** set `APP_BASE_PATH` (same meaning as `npx skill-base --base-path`). Use a path that starts with `/`; a trailing slash is optional—the server normalizes it.
+
+```bash
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
+  -e APP_BASE_PATH=/skills/ \
+  --name skill-base-server skill-base
+```
+
+Then open `http://localhost:8000/skills/` (APIs live under `http://localhost:8000/skills/api/v1/...`). If you terminate TLS or rewrite paths in a reverse proxy, keep `APP_BASE_PATH` aligned with the public URL prefix.
 
 ### Backup
 

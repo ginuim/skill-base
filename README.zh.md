@@ -242,8 +242,20 @@ description: "Internal Vue3 admin best practices. Triggers on requests to create
 
 ```bash
 docker build -t skill-base .
-docker run -d -p 8000:8000 -v "$(pwd)/data:/data" --name skill-base-server skill-base
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" --name skill-base-server skill-base
 ```
+
+持久化目录建议单独用 `./skill-data` 这类宿主机目录。若你是在源码仓库根目录里运行 Docker，别默认把仓库自带的 `data/` 目录挂进去，除非你就是想让 SQLite 文件直接写进当前工作区。
+
+**部署前缀（base path）：** 与 `npx skill-base --base-path` 相同，通过环境变量 `APP_BASE_PATH` 设置。路径需以 `/` 开头；末尾是否带 `/` 均可，服务端会规范化。
+
+```bash
+docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
+  -e APP_BASE_PATH=/skills/ \
+  --name skill-base-server skill-base
+```
+
+浏览器访问 `http://localhost:8000/skills/`，接口为 `http://localhost:8000/skills/api/v1/...`。若前面还有反向代理或 HTTPS 终止，请保证对外 URL 前缀与 `APP_BASE_PATH` 一致。
 
 ### 备份
 

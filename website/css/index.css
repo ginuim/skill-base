@@ -745,7 +745,8 @@ section {
 }
 
 .quick-start-container {
-  max-width: 640px;
+  /* 原 640px 过窄，多 Tab + 英文文案会折行；与 .container(1200px) 对齐留边距 */
+  max-width: min(1100px, 100%);
   margin: 0 auto;
 }
 
@@ -753,6 +754,17 @@ section {
   margin-left: auto;
   margin-right: auto;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.quick-start .tabs .tab {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tabs {

@@ -385,6 +385,7 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
         <div class="quick-start-container fade-in">
           <div class="tabs">
             <button class="tab active" data-tab="tab-server">启动服务</button>
+            <button class="tab" data-tab="tab-docker">Docker 部署</button>
             <button class="tab" data-tab="tab-install">安装 CLI</button>
             <button class="tab" data-tab="tab-search">搜索安装</button>
             <button class="tab" data-tab="tab-publish">发布 Skill</button>
@@ -409,6 +410,32 @@ apiTest(<span class="string">'购物车-正常添加'</span>, <span class="keywo
 
 <span class="comment"># 首次访问将引导设置管理员账号</span>
 <span class="comment"># 通过 Web 界面即可浏览、搜索、下载和发布 Skill</span></div>
+            </div>
+          </div>
+
+          <div id="tab-docker" class="tab-content">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="code-dots">
+                  <span class="code-dot red"></span>
+                  <span class="code-dot yellow"></span>
+                  <span class="code-dot green"></span>
+                </div>
+                <button class="code-copy">Copy</button>
+              </div>
+              <div class="code-body"><span class="comment"># 在包含 Dockerfile 的目录构建镜像</span>
+<span class="keyword">docker</span> <span class="command">build</span> <span class="flag">-t</span> skill-base .
+
+<span class="comment"># 运行：持久化挂载到 ./skill-data（不要用仓库内 data/，避免 SQLite 污染工作区）</span>
+<span class="keyword">docker</span> <span class="command">run</span> <span class="flag">-d</span> <span class="flag">-p</span> 8000:8000 <span class="flag">-v</span> <span class="string">"$(pwd)/skill-data:/data"</span> <span class="flag">--name</span> skill-base-server skill-base
+
+<span class="comment"># 访问 Web 管理后台</span>
+<span class="output">http://localhost:8000</span>
+
+<span class="comment"># 可选：部署前缀（与 npx skill-base --base-path 相同，环境变量 APP_BASE_PATH）</span>
+<span class="keyword">docker</span> <span class="command">run</span> <span class="flag">-d</span> <span class="flag">-p</span> 8000:8000 <span class="flag">-v</span> <span class="string">"$(pwd)/skill-data:/data"</span> <span class="flag">-e</span> APP_BASE_PATH=/skills/ <span class="flag">--name</span> skill-base-server skill-base
+
+<span class="comment"># 访问 http://localhost:8000/skills/ ；反代时对外 URL 前缀须与 APP_BASE_PATH 一致</span></div>
             </div>
           </div>
 
@@ -700,31 +727,58 @@ EOF</span>
 
     // Copy Buttons
     function initCopyButtons() {
+      async function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (err) {}
+        }
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          textArea.style.top = '-9999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+          return successful;
+        } catch (err) {
+          return false;
+        }
+      }
+
       // Hero copy button
       const heroCopyBtn = document.getElementById('hero-copy-btn');
       if (heroCopyBtn) {
-        heroCopyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText('npx skill-base -d ./skill-data -p 8000');
-          const originalText = heroCopyBtn.innerHTML;
-          heroCopyBtn.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>已复制!';
-          setTimeout(() => {
-            heroCopyBtn.innerHTML = originalText;
-          }, 2000);
+        heroCopyBtn.addEventListener('click', async () => {
+          const success = await copyToClipboard('npx skill-base -d ./skill-data -p 8000');
+          if (success) {
+            const originalText = heroCopyBtn.innerHTML;
+            heroCopyBtn.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>已复制!';
+            setTimeout(() => {
+              heroCopyBtn.innerHTML = originalText;
+            }, 2000);
+          }
         });
       }
 
       // Code block copy buttons
       document.querySelectorAll('.code-copy').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const codeBody = btn.closest('.code-block').querySelector('.code-body');
           const text = codeBody.textContent;
-          navigator.clipboard.writeText(text);
-
-          const originalText = btn.textContent;
-          btn.textContent = 'Copied!';
-          setTimeout(() => {
-            btn.textContent = originalText;
-          }, 2000);
+          const success = await copyToClipboard(text);
+          if (success) {
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => {
+              btn.textContent = originalText;
+            }, 2000);
+          }
         });
       });
     }
