@@ -49,15 +49,32 @@
           <a href="#quick-start"><span class="i18n-zh">快速开始</span><span class="i18n-en">Quick start</span></a>
           <a href="#philosophy"><span class="i18n-zh">设计哲学</span><span class="i18n-en">Philosophy</span></a>
           <div class="nav-mobile-lang">
-            <button type="button" class="nav-lang-btn" data-set-lang="zh" lang="zh-CN">中文</button>
-            <button type="button" class="nav-lang-btn" data-set-lang="en" lang="en">EN</button>
+            <div class="nav-lang-dropdown nav-lang-dropdown--in-menu" data-lang-dropdown>
+              <button type="button" class="nav-lang-trigger" id="nav-lang-trigger-mobile" aria-expanded="false" aria-haspopup="listbox" aria-controls="nav-lang-panel-mobile" data-lang-trigger>
+                <span class="nav-lang-current" data-lang-current>中文</span>
+                <svg class="nav-lang-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="nav-lang-panel" id="nav-lang-panel-mobile" role="listbox" hidden>
+                <button type="button" role="option" class="nav-lang-option" data-set-lang="zh" lang="zh-CN">中文</button>
+                <button type="button" role="option" class="nav-lang-option" data-set-lang="en" lang="en">EN</button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="nav-actions">
-          <div class="nav-lang" role="group" aria-label="Language">
-            <button type="button" class="nav-lang-btn" data-set-lang="zh" lang="zh-CN">中文</button>
-            <span class="nav-lang-sep" aria-hidden="true">|</span>
-            <button type="button" class="nav-lang-btn" data-set-lang="en" lang="en">EN</button>
+          <a href="https://github.com/ginuim/skill-base" class="nav-github-star" target="_blank" rel="noopener noreferrer" aria-label="Star Skill Base on GitHub">
+            <svg class="nav-github-star-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span class="nav-github-star-label"><span class="i18n-zh">Star on GitHub</span><span class="i18n-en">Star on GitHub</span></span>
+          </a>
+          <div class="nav-lang nav-lang-dropdown" data-lang-dropdown>
+            <button type="button" class="nav-lang-trigger" id="nav-lang-trigger-desktop" aria-expanded="false" aria-haspopup="listbox" aria-controls="nav-lang-panel-desktop" data-lang-trigger>
+              <span class="nav-lang-current" data-lang-current>中文</span>
+              <svg class="nav-lang-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="nav-lang-panel" id="nav-lang-panel-desktop" role="listbox" hidden>
+              <button type="button" role="option" class="nav-lang-option" data-set-lang="zh" lang="zh-CN">中文</button>
+              <button type="button" role="option" class="nav-lang-option" data-set-lang="en" lang="en">EN</button>
+            </div>
           </div>
           <button type="button" class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
             <span class="nav-mobile-toggle-bar" aria-hidden="true"></span>
@@ -806,10 +823,6 @@ EOF</span>
             </span>
             <p><span class="i18n-zh">专为中小团队打造的 AI Agent Skill 私有化管理平台</span><span class="i18n-en">A private Skill hub for small teams—AI agents included</span></p>
           </div>
-          <div class="footer-links">
-            <a href="https://github.com/ginuim/skill-base" target="_blank">GitHub</a>
-            <!-- <a href="#philosophy">关于</a> -->
-          </div>
         </div>
         <div class="footer-bottom">
           <p><span class="i18n-zh">开源 · 为开发者而生</span><span class="i18n-en">Open source · built for developers</span></p>
@@ -834,13 +847,43 @@ EOF</span>
       document.title = DOC_TITLE[l] || DOC_TITLE.en;
     }
 
+    function closeAllLangDropdowns() {
+      var closed = false;
+      document.querySelectorAll('[data-lang-dropdown].is-open').forEach(function (root) {
+        root.classList.remove('is-open');
+        var trigger = root.querySelector('.nav-lang-trigger');
+        var panel = root.querySelector('.nav-lang-panel');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        if (panel) panel.hidden = true;
+        closed = true;
+      });
+      return closed;
+    }
+
+    function syncLangPickerUI() {
+      var lang = getPageLang();
+      var label = lang === 'zh' ? '中文' : 'EN';
+      document.querySelectorAll('[data-lang-current]').forEach(function (el) {
+        el.textContent = label;
+      });
+      document.querySelectorAll('.nav-lang-option[data-set-lang]').forEach(function (opt) {
+        var isOn = opt.getAttribute('data-set-lang') === lang;
+        opt.setAttribute('aria-selected', isOn ? 'true' : 'false');
+        opt.classList.toggle('is-active', isOn);
+      });
+    }
+
     function updateNavAria() {
       var nav = document.getElementById('site-navbar');
       var toggle = document.getElementById('nav-mobile-toggle');
       var lang = getPageLang();
       if (nav) nav.setAttribute('aria-label', lang === 'en' ? 'Main navigation' : '主导航');
-      var navLang = document.querySelector('.nav-lang');
-      if (navLang) navLang.setAttribute('aria-label', lang === 'en' ? 'Language' : '语言');
+      document.querySelectorAll('[data-lang-trigger]').forEach(function (el) {
+        el.setAttribute('aria-label', lang === 'en' ? 'Language menu' : '语言菜单');
+      });
+      document.querySelectorAll('.nav-lang-panel[role="listbox"]').forEach(function (panel) {
+        panel.setAttribute('aria-label', lang === 'en' ? 'Choose language' : '选择语言');
+      });
       if (toggle && nav) {
         var open = nav.classList.contains('nav-open');
         toggle.setAttribute('aria-label', open
@@ -849,8 +892,51 @@ EOF</span>
       }
     }
 
+    function initLangDropdowns() {
+      document.querySelectorAll('[data-lang-dropdown]').forEach(function (root) {
+        var trigger = root.querySelector('.nav-lang-trigger');
+        var panel = root.querySelector('.nav-lang-panel');
+        if (!trigger || !panel) return;
+
+        trigger.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = root.classList.contains('is-open');
+          if (open) {
+            root.classList.remove('is-open');
+            trigger.setAttribute('aria-expanded', 'false');
+            panel.hidden = true;
+          } else {
+            document.querySelectorAll('[data-lang-dropdown]').forEach(function (other) {
+              if (other !== root && other.classList.contains('is-open')) {
+                other.classList.remove('is-open');
+                var ot = other.querySelector('.nav-lang-trigger');
+                var op = other.querySelector('.nav-lang-panel');
+                if (ot) ot.setAttribute('aria-expanded', 'false');
+                if (op) op.hidden = true;
+              }
+            });
+            root.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+            panel.hidden = false;
+          }
+        });
+      });
+
+      document.addEventListener('click', function (e) {
+        document.querySelectorAll('[data-lang-dropdown]').forEach(function (root) {
+          if (!root.contains(e.target) && root.classList.contains('is-open')) {
+            root.classList.remove('is-open');
+            var t = root.querySelector('.nav-lang-trigger');
+            var p = root.querySelector('.nav-lang-panel');
+            if (t) t.setAttribute('aria-expanded', 'false');
+            if (p) p.hidden = true;
+          }
+        });
+      });
+    }
+
     function initLangSwitcher() {
-      document.querySelectorAll('.nav-lang-btn[data-set-lang]').forEach(function (btn) {
+      document.querySelectorAll('.nav-lang-option[data-set-lang]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           var lang = btn.getAttribute('data-set-lang');
           if (lang !== 'zh' && lang !== 'en') return;
@@ -859,10 +945,11 @@ EOF</span>
           document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
           applyDocTitle();
           updateNavAria();
+          syncLangPickerUI();
+          closeAllLangDropdowns();
           lucide.createIcons();
           runTerminalTypewriter();
-          
-          // 移动端切换语言后自动关闭菜单
+
           var navbar = document.getElementById('site-navbar');
           if (navbar && navbar.classList.contains('nav-open')) {
             navbar.classList.remove('nav-open');
@@ -1111,7 +1198,9 @@ EOF</span>
       });
 
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') setOpen(false);
+        if (e.key !== 'Escape') return;
+        if (closeAllLangDropdowns()) return;
+        setOpen(false);
       });
     }
 
@@ -1119,6 +1208,8 @@ EOF</span>
     document.addEventListener('DOMContentLoaded', function () {
       applyDocTitle();
       updateNavAria();
+      syncLangPickerUI();
+      initLangDropdowns();
       initLangSwitcher();
       runTerminalTypewriter();
       initScrollAnimations();
@@ -1126,6 +1217,14 @@ EOF</span>
       initCopyButtons();
       initMobileNav();
     });
+  </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YZ36TK558L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  
+    gtag('config', 'G-YZ36TK558L');
   </script>
 </body>
 </html>
