@@ -1,5 +1,5 @@
 # Stage 1: Build frontend (Builder)
-FROM node:20-alpine AS builder
+FROM node:20.20.2-alpine3.22 AS builder
 
 # Install pnpm (required for build scripts)
 RUN npm install -g pnpm
@@ -16,7 +16,7 @@ RUN pnpm install
 RUN pnpm run build
 
 # Stage 2: Final runtime environment
-FROM node:20-alpine
+FROM node:20.20.2-alpine3.22
 
 WORKDIR /app
 
