@@ -89,6 +89,7 @@ Backups, migrations, and rollbacks stay simple. Many teams can even version this
 ### 1. Start the server
 
 Requires Node.js >= 18.
+The server now uses `node-sqlite3-wasm` for SQLite access, so `npx skill-base` no longer depends on local `better-sqlite3` native compilation.
 
 ```bash
 npx skill-base -d ./skill-data -p 8000

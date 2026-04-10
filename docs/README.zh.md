@@ -89,6 +89,7 @@ data/
 ### 1. 启动服务端
 
 要求 Node.js >= 18。
+服务端现在使用 `node-sqlite3-wasm` 访问 SQLite，因此执行 `npx skill-base` 时不再依赖本地编译 `better-sqlite3`。
 
 ```bash
 npx skill-base -d ./skill-data -p 8000

@@ -25,7 +25,7 @@ skill-base/
 ## Tech Stack
 
 - **Backend**: Node.js + Fastify
-- **Database**: SQLite (better-sqlite3)
+- **Database**: SQLite (node-sqlite3-wasm)
 - **Frontend**: Vanilla JavaScript + CSS
 - **Storage**: Local filesystem (ZIP archives)
 

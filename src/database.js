@@ -1,12 +1,114 @@
-const Database = require('better-sqlite3');
+const { Database } = require('node-sqlite3-wasm');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
 // Database file path, supports environment variable configuration
 const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '../data/skills.db');
 
-// Create database connection
-const db = new Database(dbPath);
+const DB_CLOSE_KEY = Symbol.for('skill-base.database.close');
+
+function normalizeValue(value) {
+  if (typeof value === 'bigint' && value <= BigInt(Number.MAX_SAFE_INTEGER) && value >= BigInt(Number.MIN_SAFE_INTEGER)) {
+    return Number(value);
+  }
+  return value;
+}
+
+function normalizeRow(row) {
+  if (row === null) return undefined;
+  if (!row || typeof row !== 'object') return row;
+  const normalized = {};
+  for (const [key, value] of Object.entries(row)) {
+    normalized[key] = normalizeValue(value);
+  }
+  return normalized;
+}
+
+function normalizeRows(rows) {
+  return rows.map((row) => normalizeRow(row));
+}
+
+function normalizeRunResult(result) {
+  if (!result || typeof result !== 'object') return result;
+  return {
+    ...result,
+    changes: normalizeValue(result.changes),
+    lastInsertRowid: normalizeValue(result.lastInsertRowid)
+  };
+}
+
+function bindArgs(args) {
+  if (args.length === 0) return undefined;
+  if (args.length === 1) return args[0];
+  return args;
+}
+
+function closeSilently(database) {
+  try {
+    if (database?.isOpen) {
+      database.close();
+    }
+  } catch {
+    // Ignore close errors during reload/shutdown.
+  }
+}
+
+// In tests we reload this module with different DATABASE_PATH values.
+closeSilently(global[DB_CLOSE_KEY]?.database);
+
+const rawDb = new Database(dbPath);
+global[DB_CLOSE_KEY] = { database: rawDb };
+
+function createStatement(sql) {
+  return {
+    get(...args) {
+      return normalizeRow(rawDb.get(sql, bindArgs(args)));
+    },
+    all(...args) {
+      return normalizeRows(rawDb.all(sql, bindArgs(args)));
+    },
+    run(...args) {
+      return normalizeRunResult(rawDb.run(sql, bindArgs(args)));
+    }
+  };
+}
+
+const db = {
+  exec(sql) {
+    return rawDb.exec(sql);
+  },
+  pragma(sql) {
+    return rawDb.exec(`PRAGMA ${sql}`);
+  },
+  prepare(sql) {
+    return createStatement(sql);
+  },
+  transaction(fn) {
+    return (...args) => {
+      rawDb.exec('BEGIN');
+      try {
+        const result = fn(...args);
+        rawDb.exec('COMMIT');
+        return result;
+      } catch (error) {
+        if (rawDb.inTransaction) {
+          rawDb.exec('ROLLBACK');
+        }
+        throw error;
+      }
+    };
+  },
+  close() {
+    closeSilently(rawDb);
+  }
+};
+
+Object.defineProperty(db, 'inTransaction', {
+  enumerable: true,
+  get() {
+    return rawDb.inTransaction;
+  }
+});
 
 // Enable WAL mode for better concurrency performance
 db.pragma('journal_mode = WAL');

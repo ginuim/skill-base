@@ -13,6 +13,7 @@
     "url": "git+https://github.com/ginuim/skill-base.git"
   },
   "homepage": "https://skillbase.reaidea.com",
+  "packageManager": "pnpm@10.28.0",
   "files": [
     "bin",
     "src",
@@ -34,9 +35,9 @@
     "@fastify/multipart": "^9.4.0",
     "@fastify/static": "^9.0.0",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^12.8.0",
     "fastify": "^5.8.4",
     "fastify-plugin": "^5.0.1",
+    "node-sqlite3-wasm": "^0.8.55",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
