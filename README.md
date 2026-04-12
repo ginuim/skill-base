@@ -251,6 +251,11 @@ For people who avoid the CLI, the web UI supports:
 2. View history and changelogs
 3. Download packages
 4. Upload a folder or zip containing `SKILL.md` to publish
+5. Import a **public** GitHub repository by URL or `owner/repo` (Publish page): the server downloads the GitHub zipball, parses `SKILL.md`, and publishes like a normal upload. If the default derived skill id already exists and you are not allowed to publish to it, the UI suggests a `gh-owner-repo` style id you can edit before publishing.
+
+**GitHub import (server):** optional env `GITHUB_TOKEN` or `SKILL_BASE_GITHUB_TOKEN` raises API rate limits; `SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB` caps download size (default `50`); `SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS` adjusts the connectivity probe timeout (default `8000`). The Publish page can call `GET /api/v1/skills/import/github/connectivity` to show whether **the server** can reach GitHub (browser VPN does not help). Private repos are not supported in this flow.
+
+**CLI:** `skb import-github owner/repo` (alias `skb import`) with `--ref`, `--subpath`, `--target`, `--changelog`, and `--dry-run` for preview-only JSON.
 
 That is what “team edition” means—not everyone must learn Git first.
 

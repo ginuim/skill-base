@@ -1,0 +1,7 @@
+# .cursorignore 示例
+node_modules/
+dist/
+build/
+*.log
+.env
+.git/

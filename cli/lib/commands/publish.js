@@ -5,103 +5,28 @@ import { randomBytes } from 'node:crypto';
 import chalk from 'chalk';
 import ora from 'ora';
 import archiver from 'archiver';
-import { parse as parseYaml } from 'yaml';
 import { loadCredentials } from '../auth.js';
 import { createClient } from '../api.js';
 import { pickMessage } from '../i18n.js';
-
-/** skill id: letters, digits, underscore, hyphen (matches /^[\\w-]+$/ in docs) */
-const SKILL_ID_RE = /^[\w-]+$/;
+import { resolveSkillIdCore, parseSkillMd } from '../skill-md.js';
 
 export function resolveSkillId(folderBasename, frontmatterName) {
-  const f = String(folderBasename ?? '').trim();
-  const m =
-    frontmatterName === undefined || frontmatterName === null
-      ? ''
-      : String(frontmatterName).trim();
-
-  const fOk = SKILL_ID_RE.test(f);
-  const mOk = m.length > 0 && SKILL_ID_RE.test(m);
-
-  if (fOk && mOk) {
-    if (f === m) return f;
+  const r = resolveSkillIdCore(folderBasename, frontmatterName);
+  if (r.ok) return r.id;
+  if (r.reason === 'mismatch') {
     throw new Error(
       pickMessage({
-        zh: `skill_id 不一致：文件夹名为 "${f}"，frontmatter 的 name 为 "${m}"，请统一为同一标识`,
-        en: `skill_id mismatch: folder name is "${f}" but frontmatter name is "${m}"; use one identifier`
+        zh: `skill_id 不一致：文件夹名为 "${r.folder}"，frontmatter 的 name 为 "${r.fm}"，请统一为同一标识`,
+        en: `skill_id mismatch: folder name is "${r.folder}" but frontmatter name is "${r.fm}"; use one identifier`
       })
     );
   }
-  if (fOk) return f;
-  if (mOk) return m;
   throw new Error(
     pickMessage({
-      zh: `无效的 skill id：文件夹名 "${f}" 与 frontmatter name "${m || '(无)'}" 须至少其一符合 /^[\\w-]+$/（仅字母、数字、下划线与连字符）`,
-      en: `Invalid skill id: folder name "${f}" and frontmatter name "${m || '(none)'}" — at least one must match /^[\\w-]+$/ (letters, digits, underscore, hyphen)`
+      zh: `无效的 skill id：文件夹名 "${r.folder}" 与 frontmatter name "${r.fm || '(无)'}" 须至少其一符合 /^[\\w-]+$/（仅字母、数字、下划线与连字符）`,
+      en: `Invalid skill id: folder name "${r.folder}" and frontmatter name "${r.fm || '(none)'}" — at least one must match /^[\\w-]+$/ (letters, digits, underscore, hyphen)`
     })
   );
-}
-
-function splitFrontmatter(content) {
-  const s = content.replace(/^\uFEFF/, '');
-  if (!s.startsWith('---')) return { fmYaml: null, body: s };
-  const lines = s.split(/\r?\n/);
-  if (lines[0].trim() !== '---') return { fmYaml: null, body: s };
-  const end = lines.findIndex((line, i) => i > 0 && line.trim() === '---');
-  if (end === -1) return { fmYaml: null, body: s };
-  const fmYaml = lines.slice(1, end).join('\n');
-  const body = lines.slice(end + 1).join('\n');
-  return { fmYaml, body };
-}
-
-function parseBodyHeading(body) {
-  const lines = body.split(/\r?\n/);
-  let name = null;
-  let description = null;
-  let foundTitle = false;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    if (!foundTitle && trimmed.startsWith('# ')) {
-      name = trimmed.slice(2).trim();
-      foundTitle = true;
-      continue;
-    }
-
-    if (foundTitle && trimmed && !trimmed.startsWith('#')) {
-      description = trimmed.slice(0, 200);
-      break;
-    }
-  }
-
-  return { name, description };
-}
-
-function parseSkillMd(content) {
-  const { fmYaml, body } = splitFrontmatter(content);
-  let fm = null;
-  if (fmYaml !== null && fmYaml.trim() !== '') {
-    try {
-      fm = parseYaml(fmYaml);
-      if (fm === null || typeof fm !== 'object') fm = {};
-    } catch {
-      fm = null;
-    }
-  }
-
-  const heading = parseBodyHeading(body);
-  let descriptionFromFm = '';
-  if (fm && fm.description !== undefined && fm.description !== null) {
-    descriptionFromFm = String(fm.description).trim();
-  }
-
-  return {
-    fm,
-    headingTitle: heading.name,
-    headingDescription: heading.description,
-    descriptionFromFm
-  };
 }
 
 function zipDirectory(dirPath, outputPath, dirName) {

@@ -9,6 +9,9 @@ async function handleResponse(response) {
       if (data.detail) {
         message = data.detail;
       }
+      if (data.suggested_skill_id) {
+        message += ` (suggested_skill_id: ${data.suggested_skill_id})`;
+      }
     } catch (e) {
       // JSON parse failed; keep default message
     }

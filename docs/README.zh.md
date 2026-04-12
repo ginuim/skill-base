@@ -251,8 +251,11 @@ description: "Internal Vue3 admin best practices. Triggers on requests to create
 2. 查看历史版本和变更说明
 3. 下载技能包到本地
 4. 上传包含 `SKILL.md` 的目录或 zip 包完成发布
+5. 在发布页用 **公开** GitHub 仓库的完整 URL 或 `owner/repo` 导入：服务端下载 zipball、解析 `SKILL.md` 并按与普通上传相同的规则发版。若推导出的默认 skill id 已被他人占用且你无发布权限，界面会提示并预填建议 id（如 `gh-owner-repo`），可在「目标 Skill ID」中修改后再发布。
 
-这才是“团队版”的关键。不是每个会用 AI 的人都应该先学 Git。
+**GitHub 导入（服务端）：** 可选环境变量 `GITHUB_TOKEN` 或 `SKILL_BASE_GITHUB_TOKEN` 提高 GitHub API 限额；`SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB` 限制下载体积（默认 `50`）；`SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS` 调整连通性探测超时（默认 `8000`）。发布页会请求 `GET /api/v1/skills/import/github/connectivity` 展示**服务端**能否访问 GitHub（浏览器翻墙不能代替服务器出网）。暂不支持私有仓库。
+
+**CLI：**`skb import-github owner/repo`（别名 `skb import`），支持 `--ref`、`--subpath`、`--target`、`--changelog`，以及仅预览的 `--dry-run`。
 
 ## 部署与备份
 

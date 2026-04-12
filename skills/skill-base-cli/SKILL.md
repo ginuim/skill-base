@@ -1,7 +1,7 @@
 ---
 name: skill-base-cli
 description: >-
-  The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install, update, and publish skills from Skill Base, as well as configure skb. Triggered when users say "publish skill to skill base", "download/update skill from skill base", "configure skb", or "configure skill-base-cli".
+  The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install, update, publish, and import-from-GitHub skills from Skill Base, as well as configure skb. Triggered when users say "publish skill to skill base", "import skill from github", "download/update skill from skill base", "configure skb", or "configure skill-base-cli".
 keywords:
   - skill-base-cli
   - skb
@@ -77,6 +77,13 @@ skb ls
 - Execute in the skill directory: `skb publish`; or execute from any location: `skb publish <skill_folder_path>`
 - Common usage: `skb publish <path> --changelog "description"`
 - After publishing, describe the result to the user in 2 sentences, no need to be verbose
+
+## Import from GitHub (public repos, login required)
+
+- `skb import-github owner/repo` or `skb import https://github.com/owner/repo`
+- Same auth as publish (`skb login`)
+- Options: `--ref`, `--subpath`, `--target <skill_id>`, `--changelog`, `--dry-run` (preview JSON only)
+- Server downloads the repo archive; private repos are not supported
 
 ## Troubleshooting Failures
 

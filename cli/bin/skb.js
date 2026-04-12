@@ -9,6 +9,7 @@ import install from '../lib/commands/install.js';
 import installed from '../lib/commands/installed.js';
 import update from '../lib/commands/update.js';
 import publish from '../lib/commands/publish.js';
+import importGithub from '../lib/commands/import-github.js';
 import { pickMessage } from '../lib/i18n.js';
 
 const program = new Command();
@@ -81,6 +82,26 @@ const S = {
   publishChangelog: {
     zh: '版本更新说明',
     en: 'Version changelog'
+  },
+  importGithub: {
+    zh: '从公开 GitHub 仓库导入 Skill 到当前 Skill Base（服务端拉取 zipball）',
+    en: 'Import a skill from a public GitHub repo into this Skill Base (server downloads zipball)'
+  },
+  importGithubRef: {
+    zh: '分支或 tag（默认仓库默认分支）',
+    en: 'Branch or tag (default: repo default branch)'
+  },
+  importGithubSubpath: {
+    zh: '仓库内子目录（monorepo）',
+    en: 'Path inside the repo (monorepo)'
+  },
+  importGithubTarget: {
+    zh: '本站上的目标 skill id（默认用预览推导，冲突时用建议 gh-owner-repo）',
+    en: 'Target skill id on server (default from preview; on conflict uses suggested gh-owner-repo)'
+  },
+  importGithubDryRun: {
+    zh: '仅打印预览 JSON，不发布',
+    en: 'Print preview JSON only, do not publish'
   }
 };
 
@@ -142,5 +163,16 @@ program
   .option('--description <desc>', pickMessage(S.publishDesc))
   .option('--changelog <log>', pickMessage(S.publishChangelog), pickMessage({ zh: '更新版本', en: 'Update version' }))
   .action(publish);
+
+program
+  .command('import-github <source>')
+  .alias('import')
+  .description(pickMessage(S.importGithub))
+  .option('--ref <ref>', pickMessage(S.importGithubRef))
+  .option('--subpath <path>', pickMessage(S.importGithubSubpath))
+  .option('--target <skill_id>', pickMessage(S.importGithubTarget))
+  .option('--changelog <text>', pickMessage(S.publishChangelog))
+  .option('--dry-run', pickMessage(S.importGithubDryRun), false)
+  .action(importGithub);
 
 program.parse();

@@ -191,6 +191,31 @@ export interface SkillDetail extends Skill {
   collaborators: User[]
 }
 
+export interface GithubImportPreview {
+  default_skill_id: string
+  name: string
+  description: string
+  conflict: boolean
+  can_publish: boolean
+  suggested_skill_id: string
+  repo: { owner: string; repo: string }
+  ref: string
+  subpath?: string
+}
+
+export interface GithubImportBody {
+  source: string
+  ref?: string
+  subpath?: string
+  target_skill_id: string
+  changelog?: string
+}
+
+/** GET /skills/import/github/connectivity */
+export type GithubConnectivityResult =
+  | { reachable: true; latency_ms: number; checked_at: string; http_status?: number }
+  | { reachable: false; error: string; detail?: string; checked_at: string }
+
 export const skillsApi = {
   list: (query?: string) => apiGet<{ skills: Skill[] }>(`/skills${query ? `?q=${encodeURIComponent(query)}` : ''}`),
   get: (id: string) => apiGet<SkillDetail>(`/skills/${id}`),
@@ -198,6 +223,14 @@ export const skillsApi = {
   update: (id: string, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
   delete: (id: string, confirm: string) => apiDelete(`/skills/${id}?confirm=${encodeURIComponent(confirm)}`),
   upload: (data: FormData) => apiPost('/skills/publish', data),
+  importGithubConnectivity: () => apiGet<GithubConnectivityResult>('/skills/import/github/connectivity'),
+  importGithubPreview: (body: { source: string; ref?: string; subpath?: string }) =>
+    apiPost<GithubImportPreview>('/skills/import/github/preview', body),
+  importGithub: (body: GithubImportBody) =>
+    apiPost<{ ok: boolean; skill_id: string; version: string; created_at: string }>(
+      '/skills/import/github',
+      body
+    ),
   setHead: (id: string, version: string) => apiPut<{ ok: boolean, skill_id: string, latest_version: string }>(`/skills/${id}/head`, { version }),
 }
 

@@ -48,7 +48,9 @@ skill-base/
 
 所有 API 路由前缀: `/api/v1/`
 
-认证方式: Cookie-based session (`session_token`)
+认证方式: Cookie-based session (`session_token`)；CLI 使用 `Authorization: Bearer` PAT。
+
+公开 GitHub 仓库导入（登录后）：`GET /skills/import/github/connectivity`、`POST /skills/import/github/preview`、`POST /skills/import/github`（JSON）。可选环境变量 `GITHUB_TOKEN` / `SKILL_BASE_GITHUB_TOKEN`、`SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB`、`SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS`。
 
 ## Development Commands
 

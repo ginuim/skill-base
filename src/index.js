@@ -159,6 +159,7 @@ async function start() {
     await fastify.register(require('./routes/auth'), { prefix: `${API_PREFIX}/auth` });
     await fastify.register(require('./routes/skills'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/publish'), { prefix: `${API_PREFIX}/skills` });
+    await fastify.register(require('./routes/import-github'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/collaborators'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/users'), { prefix: `${API_PREFIX}/users` });
     debugLog({ zh: 'API 路由已注册。', en: 'API routes registered.' });

@@ -13,14 +13,118 @@
         <div class="card publish-card relative overflow-hidden p-8">
           <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CMD-PUB</div>
 
-          <h1 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
             <span class="text-neon-400 font-mono font-normal opacity-70">></span>
             <span>{{ t('publish.title') }}</span>
           </h1>
 
+          <div class="publish-mode-tabs" role="tablist" :aria-label="t('publish.modeTablistLabel')">
+            <button
+              type="button"
+              role="tab"
+              :aria-selected="publishMode === 'upload'"
+              class="publish-mode-tab"
+              :class="{ active: publishMode === 'upload' }"
+              @click="setPublishMode('upload')"
+            >
+              {{ t('publish.tabUpload') }}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              :aria-selected="publishMode === 'github'"
+              class="publish-mode-tab"
+              :class="{ active: publishMode === 'github' }"
+              @click="setPublishMode('github')"
+            >
+              {{ t('publish.tabGithub') }}
+            </button>
+          </div>
+
           <form @submit.prevent="handlePublish" class="space-y-6">
+            <!-- GitHub 导入 -->
+            <div v-show="publishMode === 'github'" class="form-group rounded-lg border border-base-800 p-5 space-y-4 bg-base-900/40">
+              <div
+                class="github-connect-banner font-mono text-sm rounded-lg px-4 py-3 border"
+                :class="githubConnectBannerClass"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1 space-y-1">
+                    <p class="font-medium">{{ githubConnectTitle }}</p>
+                    <p v-if="githubConnectDetailLine" class="text-xs opacity-90 break-all">{{ githubConnectDetailLine }}</p>
+                    <p v-if="publishMode === 'github' && githubConnect.state === 'fail'" class="text-xs opacity-80 mt-2">
+                      {{ t('publish.githubConnectHintNetwork') }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="shrink-0 text-xs px-3 py-1.5 rounded-full border border-current/30 hover:bg-white/5 transition-colors"
+                    :disabled="githubConnect.state === 'checking'"
+                    @click="fetchGithubConnectivity"
+                  >
+                    {{ githubConnect.state === 'checking' ? t('publish.githubConnectChecking') : t('publish.githubConnectRetry') }}
+                  </button>
+                </div>
+              </div>
+
+              <label class="form-label font-mono text-neon-400 mb-0 block">{{ t('publish.githubHeading') }}</label>
+              <p class="text-sm text-base-400 font-mono">{{ t('publish.githubHint') }}</p>
+              <input
+                v-model="githubSource"
+                type="text"
+                class="rounded-lg px-4 py-2.5 w-full"
+                :disabled="isPublishing || isPreviewLoading"
+                :placeholder="t('publish.githubSourcePlaceholder')"
+                autocomplete="off"
+              >
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="form-label font-mono text-base-400 mb-1 block text-xs">{{ t('publish.githubRef') }}</label>
+                  <input
+                    v-model="githubRef"
+                    type="text"
+                    class="rounded-lg px-4 py-2.5 w-full"
+                    :disabled="isPublishing || isPreviewLoading"
+                    :placeholder="t('publish.githubRefPlaceholder')"
+                    autocomplete="off"
+                  >
+                </div>
+                <div>
+                  <label class="form-label font-mono text-base-400 mb-1 block text-xs">{{ t('publish.githubSubpath') }}</label>
+                  <input
+                    v-model="githubSubpath"
+                    type="text"
+                    class="rounded-lg px-4 py-2.5 w-full"
+                    :disabled="isPublishing || isPreviewLoading"
+                    :placeholder="t('publish.githubSubpathPlaceholder')"
+                    autocomplete="off"
+                  >
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-3 items-center">
+                <button
+                  type="button"
+                  class="btn btn-secondary px-4 py-2 rounded-lg"
+                  :disabled="isPublishing || isPreviewLoading || !githubSource.trim()"
+                  @click="runGithubPreview"
+                >
+                  {{ isPreviewLoading ? t('publish.githubPreviewing') : t('publish.githubPreview') }}
+                </button>
+                <button
+                  v-if="githubPreview"
+                  type="button"
+                  class="text-sm font-mono text-base-400 hover:text-white underline"
+                  @click="clearGithubImport"
+                >
+                  {{ t('publish.githubClear') }}
+                </button>
+              </div>
+              <p v-if="githubRepoLabel" class="text-xs font-mono text-base-500">{{ githubRepoLabel }}</p>
+              <p v-if="githubConflictMessage" class="text-sm text-amber-400/90 font-mono">{{ githubConflictMessage }}</p>
+            </div>
+
             <!-- 文件上传 -->
-            <div class="form-group">
+            <div v-show="publishMode === 'upload'" class="form-group">
               <label class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.uploadFile') }}</label>
               <div
                 id="drop-zone"
@@ -87,7 +191,7 @@
                 id="skill-select"
                 v-model="selectedExistingId"
                 class="rounded-lg px-4 py-2.5 w-full"
-                :disabled="isPublishing"
+                :disabled="isPublishing || publishMode === 'github'"
               >
                 <option value="">-- {{ t('publish.createNewSkill') }} --</option>
                 <option
@@ -104,17 +208,17 @@
             <!-- Skill 元信息 (只读) -->
             <div class="skill-meta-readonly space-y-4 pt-4 border-t border-base-800">
               <div class="form-group">
-                <label for="skill-id" class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.skillId') }}</label>
+                <label for="skill-id" class="form-label font-mono text-base-400 mb-2 block required">{{ publishMode === 'github' && githubPreview ? t('publish.targetSkillId') : t('publish.skillId') }}</label>
                 <input
                   type="text"
                   id="skill-id"
-                  v-model="form.skillId"
-                  readonly
+                  v-model="activeSkillIdModel"
+                  :readonly="!(publishMode === 'github' && githubPreview)"
                   :placeholder="t('publish.skillIdPlaceholder')"
                   pattern="[a-z0-9\-_]+"
                   class="rounded-lg px-4 py-2.5 w-full"
                 >
-                <p class="form-hint">{{ t('publish.skillIdHint') }}</p>
+                <p class="form-hint">{{ publishMode === 'github' && githubPreview ? t('publish.targetSkillIdHint') : t('publish.skillIdHint') }}</p>
               </div>
 
               <div class="form-group">
@@ -202,13 +306,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { skillsApi } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
-import type { Skill } from '@/services/api'
+import type { Skill, GithubImportPreview } from '@/services/api'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -230,6 +334,23 @@ const parseNotice = ref('')
 
 const selectedExistingId = ref('') // 下拉框选择的已存在 Skill ID
 
+type PublishMode = 'upload' | 'github'
+const publishMode = ref<PublishMode>('upload')
+
+const githubConnect = reactive({
+  state: 'idle' as 'idle' | 'checking' | 'ok' | 'fail',
+  latency_ms: undefined as number | undefined,
+  error: '' as string | undefined,
+  detail: '' as string | undefined,
+})
+
+const githubSource = ref('')
+const githubRef = ref('')
+const githubSubpath = ref('')
+const githubPreview = ref<GithubImportPreview | null>(null)
+const githubTargetId = ref('')
+const isPreviewLoading = ref(false)
+
 const form = ref({
   skillId: '',
   name: '',
@@ -239,9 +360,67 @@ const form = ref({
 
 const isNewSkill = computed(() => selectedExistingId.value === '')
 
+const activeSkillIdModel = computed({
+  get() {
+    if (publishMode.value === 'github' && githubPreview.value) return githubTargetId.value
+    return form.value.skillId
+  },
+  set(v: string) {
+    if (publishMode.value === 'github' && githubPreview.value) githubTargetId.value = v
+    else form.value.skillId = v
+  },
+})
+
+const githubConnectBannerClass = computed(() => {
+  if (githubConnect.state === 'checking') return 'github-connect-checking'
+  if (githubConnect.state === 'ok') return 'github-connect-ok'
+  if (githubConnect.state === 'fail') return 'github-connect-fail'
+  return 'github-connect-idle'
+})
+
+const githubConnectTitle = computed(() => {
+  if (githubConnect.state === 'checking') return t('publish.githubConnectChecking')
+  if (githubConnect.state === 'ok') {
+    return t('publish.githubConnectOk', { ms: githubConnect.latency_ms ?? 0 })
+  }
+  if (githubConnect.state === 'fail') return t('publish.githubConnectFail')
+  return t('publish.githubConnectIdle')
+})
+
+const githubConnectDetailLine = computed(() => {
+  if (githubConnect.state === 'fail' && githubConnect.detail) return githubConnect.detail
+  if (githubConnect.state === 'fail' && githubConnect.error) return githubConnect.error
+  return ''
+})
+
+const githubRepoLabel = computed(() => {
+  const p = githubPreview.value
+  if (!p) return ''
+  const sub = p.subpath ? ` / ${p.subpath}` : ''
+  return `${p.repo.owner}/${p.repo.repo} @ ${p.ref}${sub}`
+})
+
+const githubConflictMessage = computed(() => {
+  const p = githubPreview.value
+  if (!p || !p.conflict) return ''
+  return t('publish.githubConflictHint', {
+    id: p.default_skill_id,
+    suggested: p.suggested_skill_id,
+  })
+})
+
 const canPublish = computed(() => {
+  if (publishMode.value === 'github') {
+    if (!githubPreview.value) return false
+    const tId = githubTargetId.value.trim()
+    if (!/^[a-z0-9\-_]+$/.test(tId)) return false
+    if (githubPreview.value.conflict && tId === githubPreview.value.default_skill_id) return false
+    const mine = mySkills.value.some((s) => s.id === tId)
+    if (!mine && !(form.value.name || '').trim()) return false
+    return true
+  }
   if (isNewSkill.value) {
-    return form.value.name && selectedFiles.value.length > 0
+    return !!(form.value.name && selectedFiles.value.length > 0)
   }
   return selectedFiles.value.length > 0
 })
@@ -254,6 +433,141 @@ onMounted(async () => {
     console.error('Failed to load skills:', err)
   }
 })
+
+function setPublishMode(mode: PublishMode) {
+  if (mode === publishMode.value) return
+  if (mode === 'upload') {
+    clearGithubImport()
+  }
+  publishMode.value = mode
+  if (mode === 'github') {
+    fetchGithubConnectivity()
+  }
+}
+
+async function fetchGithubConnectivity() {
+  githubConnect.state = 'checking'
+  githubConnect.latency_ms = undefined
+  githubConnect.error = undefined
+  githubConnect.detail = undefined
+  try {
+    const r = await skillsApi.importGithubConnectivity()
+    if (r.reachable) {
+      githubConnect.state = 'ok'
+      githubConnect.latency_ms = r.latency_ms
+    } else {
+      githubConnect.state = 'fail'
+      githubConnect.error = r.error
+      githubConnect.detail = r.detail
+    }
+  } catch (e: any) {
+    githubConnect.state = 'fail'
+    githubConnect.error = 'request_failed'
+    githubConnect.detail = e?.message || ''
+  }
+}
+
+function clearGithubImport() {
+  githubPreview.value = null
+  githubTargetId.value = ''
+  githubSource.value = ''
+  githubRef.value = ''
+  githubSubpath.value = ''
+  form.value.skillId = ''
+  form.value.name = ''
+  form.value.description = ''
+  clearParseNotice()
+}
+
+async function runGithubPreview() {
+  const src = githubSource.value.trim()
+  if (!src) return
+  isPreviewLoading.value = true
+  error.value = ''
+  clearParseNotice()
+  try {
+    const body: { source: string; ref?: string; subpath?: string } = { source: src }
+    if (githubRef.value.trim()) body.ref = githubRef.value.trim()
+    if (githubSubpath.value.trim()) body.subpath = githubSubpath.value.trim()
+    const p = await skillsApi.importGithubPreview(body)
+    githubPreview.value = p
+    githubTargetId.value = p.conflict ? p.suggested_skill_id : p.default_skill_id
+    form.value.skillId = githubTargetId.value
+    form.value.name = (p.name || '').trim()
+    form.value.description = (p.description || '').trim().slice(0, DESC_MAX)
+    selectedZipBlob.value = null
+    selectedFileName.value = ''
+    selectedFiles.value = []
+    selectedExistingId.value = ''
+    if (fileInput.value) fileInput.value.value = ''
+    if (zipInput.value) zipInput.value.value = ''
+    globalToast.success(t('publish.githubPreviewOk', { id: githubTargetId.value }))
+  } catch (err: any) {
+    githubPreview.value = null
+    error.value = err.message || t('publish.githubPreviewFailed')
+  } finally {
+    isPreviewLoading.value = false
+  }
+}
+
+async function handleGithubImport() {
+  if (!githubPreview.value) return
+  const skillId = githubTargetId.value.trim()
+  if (!/^[a-z0-9\-_]+$/.test(skillId)) {
+    error.value = t('publish.invalidSkillId')
+    return
+  }
+  if (githubPreview.value.conflict && skillId === githubPreview.value.default_skill_id) {
+    error.value = t('publish.githubMustChangeId')
+    return
+  }
+  const mine = mySkills.value.some((s) => s.id === skillId)
+  if (!mine) {
+    const name = form.value.name.trim()
+    if (!name) {
+      error.value = t('publish.githubNameRequired')
+      return
+    }
+  }
+
+  isPublishing.value = true
+  progress.value = 0
+  progressText.value = t('publish.preparing')
+  error.value = ''
+
+  try {
+    progressText.value = t('publish.uploading')
+    const progressInterval = setInterval(() => {
+      if (progress.value < 90) progress.value += Math.random() * 15
+    }, 200)
+
+    const body = {
+      source: githubSource.value.trim(),
+      target_skill_id: skillId,
+      changelog: form.value.changelog.trim(),
+      ...(githubRef.value.trim() ? { ref: githubRef.value.trim() } : {}),
+      ...(githubSubpath.value.trim() ? { subpath: githubSubpath.value.trim() } : {}),
+    }
+    await skillsApi.importGithub(body)
+    clearInterval(progressInterval)
+    progress.value = 100
+    progressText.value = t('publish.completed')
+    setTimeout(() => {
+      router.push('/')
+    }, 1000)
+  } catch (err: any) {
+    if (err.status === 409 && err.data?.suggested_skill_id) {
+      githubTargetId.value = err.data.suggested_skill_id
+      error.value =
+        (err.message || t('publish.githubConflictPublish')) +
+        ' ' +
+        t('publish.githubSuggestedId', { id: err.data.suggested_skill_id })
+    } else {
+      error.value = err.message || t('publish.uploadFailed')
+    }
+    isPublishing.value = false
+  }
+}
 
 // === 工具函数 ===
 const DESC_MAX = 500
@@ -393,6 +707,8 @@ async function handleFileSelect(event: Event) {
 
   error.value = ''
   clearParseNotice()
+  githubPreview.value = null
+  githubTargetId.value = ''
   selectedFiles.value = []
   let totalSize = 0
 
@@ -438,6 +754,8 @@ async function handleZipSelect(event: Event) {
 
   error.value = ''
   clearParseNotice()
+  githubPreview.value = null
+  githubTargetId.value = ''
   if (!file.name.toLowerCase().endsWith('.zip')) {
     error.value = '请选择 .zip 文件'
     return
@@ -479,6 +797,8 @@ async function handleDrop(event: DragEvent) {
   isDragging.value = false
   error.value = ''
   clearParseNotice()
+  githubPreview.value = null
+  githubTargetId.value = ''
   const items = event.dataTransfer?.items
 
   if (!items || items.length === 0) return
@@ -587,6 +907,8 @@ function clearFiles() {
   form.value.skillId = ''
   form.value.name = ''
   form.value.description = ''
+  githubPreview.value = null
+  githubTargetId.value = ''
   if (fileInput.value) fileInput.value.value = ''
   if (zipInput.value) zipInput.value.value = ''
 }
@@ -598,7 +920,12 @@ function formatFileSize(bytes: number): string {
 }
 
 async function handlePublish() {
-  if (!selectedZipBlob.value || isPublishing.value) return
+  if (isPublishing.value) return
+  if (publishMode.value === 'github') {
+    await handleGithubImport()
+    return
+  }
+  if (!selectedZipBlob.value) return
 
   error.value = ''
   
@@ -608,7 +935,7 @@ async function handlePublish() {
     return
   }
   if (!/^[a-z0-9\-_]+$/.test(skillId)) {
-    error.value = 'Skill ID 只能包含小写字母、数字、下划线和连字符'
+    error.value = t('publish.invalidSkillId')
     return
   }
 
@@ -922,5 +1249,58 @@ select:disabled {
   to {
     transform: rotate(360deg);
   }
+}
+
+.publish-mode-tabs {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 9999px;
+  background-color: #09090b;
+  border: 1px solid #27272a;
+  gap: 2px;
+  margin-bottom: 1.5rem;
+}
+.publish-mode-tab {
+  border: none;
+  border-radius: 9999px;
+  padding: 0.5rem 1.15rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  background: transparent;
+  color: #a1a1aa;
+}
+.publish-mode-tab:hover {
+  color: #e4e4e7;
+}
+.publish-mode-tab.active {
+  background: rgba(0, 255, 163, 0.12);
+  color: #00ffa3;
+  box-shadow: 0 0 0 1px rgba(0, 255, 163, 0.35);
+}
+
+.github-connect-banner {
+  margin-bottom: 0.25rem;
+}
+.github-connect-idle {
+  border-color: #27272a;
+  background: rgba(9, 9, 11, 0.6);
+  color: #a1a1aa;
+}
+.github-connect-checking {
+  border-color: #3f3f46;
+  background: rgba(39, 39, 42, 0.35);
+  color: #a1a1aa;
+}
+.github-connect-ok {
+  border-color: rgba(0, 255, 163, 0.35);
+  background: rgba(0, 255, 163, 0.06);
+  color: #86efac;
+}
+.github-connect-fail {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
 }
 </style>

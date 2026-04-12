@@ -42,6 +42,7 @@ export SKB_BASE_URL=https://skill.example.com
 | `skb list` / `skb ls` | 浏览本地已记录的 Skill，并继续更新/删除/清记录 |
 | `skb update <skill_id>` | 选择版本并更新本地安装目录 |
 | `skb publish [directory]` | 发布当前目录或指定目录中的 Skill |
+| `skb import-github <source>` | 从公开 GitHub 仓库导入 Skill（服务端拉取 zipball）；别名 `skb import` |
 
 ## 登录与凭证
 
@@ -214,6 +215,28 @@ skb publish ./my-skill --changelog "修复提示词冲突"
 # 显式覆盖名称和描述
 skb publish ./my-skill --name "My Skill" --description "A useful skill"
 ```
+
+## 从 GitHub 导入 Skill
+
+### `skb import-github <source>`
+
+```bash
+skb import-github owner/repo
+skb import https://github.com/owner/repo
+skb import owner/repo --dry-run
+skb import-github owner/repo --ref main --subpath packages/my-skill --target my-local-id
+```
+
+参数：
+
+- `source`：`owner/repo` 或 `https://github.com/owner/repo`（也支持 `/tree/...` 指定分支与子路径）
+- `--ref <ref>`：分支或 tag；省略时使用仓库默认分支
+- `--subpath <path>`：monorepo 内 Skill 所在子目录
+- `--target <skill_id>`：写入当前 Skill Base 的 skill id；省略时先用服务端预览：无冲突则用默认推导 id，有冲突则用建议的 `gh-owner-repo` 形式
+- `--changelog <text>`：版本说明
+- `--dry-run`：只请求预览接口并打印 JSON，不执行导入
+
+要求：已登录；仓库需为**公开**（服务端拉取 zipball）。若目标 id 已被他人占用且无发布权限，CLI 会报错并在消息中附带 `suggested_skill_id` 提示。
 
 ## `SKILL.md` 解析规则
 

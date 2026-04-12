@@ -1,6 +1,6 @@
 {
   "name": "skill-base",
-  "version": "2.0.28",
+  "version": "2.0.29",
   "description": "Skill Base - A lightweight, privately deployable agent skills distribution hub",
   "main": "src/index.js",
   "bin": {
@@ -34,11 +34,13 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/multipart": "^9.4.0",
     "@fastify/static": "^9.0.0",
+    "adm-zip": "^0.5.17",
     "bcryptjs": "^2.4.3",
     "fastify": "^5.8.4",
     "fastify-plugin": "^5.0.1",
     "node-sqlite3-wasm": "^0.8.55",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
     "@remotion/bundler": "^4.0.446",
