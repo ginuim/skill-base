@@ -42,15 +42,24 @@
           </div>
 
           <form @submit.prevent="handlePublish" class="space-y-6">
+            <div
+              v-if="error"
+              ref="errorBannerRef"
+              class="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+              role="alert"
+              aria-live="assertive"
+            >
+              {{ error }}
+            </div>
             <!-- GitHub 导入 -->
             <div v-show="publishMode === 'github'" class="form-group rounded-lg border border-base-800 p-5 space-y-4 bg-base-900/40">
               <div
                 class="github-connect-banner font-mono text-sm rounded-lg px-4 py-3 border"
                 :class="githubConnectBannerClass"
               >
-                <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="min-w-0 flex-1 space-y-1">
-                    <p class="font-medium">{{ githubConnectTitle }}</p>
+                    <p class="font-medium leading-snug">{{ githubConnectTitle }}</p>
                     <p v-if="githubConnectDetailLine" class="text-xs opacity-90 break-all">{{ githubConnectDetailLine }}</p>
                     <p v-if="publishMode === 'github' && githubConnect.state === 'fail'" class="text-xs opacity-80 mt-2">
                       {{ t('publish.githubConnectHintNetwork') }}
@@ -272,11 +281,6 @@
               <div class="parse-success-text">{{ parseNotice }}</div>
             </div>
 
-            <!-- 错误信息 -->
-            <div v-if="error" class="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              {{ error }}
-            </div>
-
             <!-- 进度条 -->
             <div v-if="isPublishing" class="progress-container visible">
               <div class="progress-bar-wrapper">
@@ -306,7 +310,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { skillsApi } from '@/services/api'
@@ -330,7 +334,14 @@ const isPublishing = ref(false)
 const progress = ref(0)
 const progressText = ref('')
 const error = ref('')
+const errorBannerRef = ref<HTMLElement | null>(null)
 const parseNotice = ref('')
+
+watch(error, async (msg) => {
+  if (!msg) return
+  await nextTick()
+  errorBannerRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+})
 
 const selectedExistingId = ref('') // 下拉框选择的已存在 Skill ID
 
