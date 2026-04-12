@@ -13,7 +13,6 @@
     "url": "git+https://github.com/ginuim/skill-base.git"
   },
   "homepage": "https://skillbase.reaidea.com",
-  "packageManager": "pnpm@10.28.0",
   "files": [
     "bin",
     "src",
