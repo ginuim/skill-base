@@ -74,8 +74,6 @@ Skill Base 服务端只管理几样东西：
 ```text
 data/
 ├── skills.db
-├── skills.db-shm
-├── skills.db-wal
 └── skills/
     └── <skill-id>/
         ├── v20260406.101500.zip
@@ -89,7 +87,17 @@ data/
 ### 1. 启动服务端
 
 要求 Node.js >= 18。
-服务端现在使用 `node-sqlite3-wasm` 访问 SQLite，因此执行 `npx skill-base` 时不再依赖本地编译 `better-sqlite3`。
+服务端现在使用 `node-sqlite3-wasm` 访问 SQLite，因此日常启动时不再依赖本地编译 `better-sqlite3`。
+如果你是从旧版本升级，而旧版本曾把数据库运行在 WAL 模式，Skill Base 会在首次启动时自动调用随包分发的 `sqlite3` helper 完成迁移，再切换到新的 WASM 驱动继续运行，不需要手工执行迁移命令，也不会丢数据。
+
+当前随包提供的自动迁移 helper 平台：
+
+- macOS `arm64`
+- macOS `x64`
+- Linux `x64`
+- Windows `x64`
+
+如果你的部署平台不在上述列表中，但要升级旧的 WAL 数据库，可在首次启动前设置 `SKILL_BASE_SQLITE3_PATH` 指向本机可执行的 `sqlite3`。
 
 ```bash
 npx skill-base -d ./skill-data -p 8000

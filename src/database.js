@@ -1,11 +1,90 @@
+const { execFileSync } = require('child_process');
 const { Database } = require('node-sqlite3-wasm');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 const path = require('path');
 
 // Database file path, supports environment variable configuration
 const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '../data/skills.db');
 
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
 const DB_CLOSE_KEY = Symbol.for('skill-base.database.close');
+
+function closeSilently(database) {
+  try {
+    if (database?.isOpen) {
+      database.close();
+    }
+  } catch {
+    // Ignore close errors during reload/shutdown.
+  }
+}
+
+function resolveBundledSqlite3Path() {
+  if (process.env.SKILL_BASE_SQLITE3_PATH) {
+    return process.env.SKILL_BASE_SQLITE3_PATH;
+  }
+
+  const platformMap = {
+    darwin: 'darwin',
+    linux: 'linux',
+    win32: 'win32'
+  };
+  const archMap = {
+    arm64: 'arm64',
+    x64: 'x64'
+  };
+
+  const platform = platformMap[process.platform];
+  const arch = archMap[process.arch];
+  if (!platform || !arch) return null;
+
+  const bundledPath = path.join(__dirname, '../vendor/sqlite3', platform, arch, process.platform === 'win32' ? 'sqlite3.exe' : 'sqlite3');
+  return fs.existsSync(bundledPath) ? bundledPath : null;
+}
+
+function resolveMigrationHelperPath() {
+  const bundledPath = resolveBundledSqlite3Path();
+  if (bundledPath) return bundledPath;
+  return 'sqlite3';
+}
+
+/**
+ * better-sqlite3 / 系统 SQLite 默认常用 WAL；node-sqlite3-wasm 的 Node VFS 无法正常打开带 WAL 侧车的库。
+ * 启动前用 sqlite3 helper 自动 checkpoint 并改为 DELETE journal，保证旧库可无缝升级。
+ */
+function tryNormalizeSqliteJournalForWasm(dbFilePath) {
+  if (!fs.existsSync(dbFilePath)) return;
+  const walSidecar = `${dbFilePath}-wal`;
+  const shmSidecar = `${dbFilePath}-shm`;
+  const hasWalSidecar = fs.existsSync(walSidecar) || fs.existsSync(shmSidecar);
+  const helperPath = resolveMigrationHelperPath();
+  try {
+    execFileSync(
+      helperPath,
+      [dbFilePath, 'PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;'],
+      { stdio: 'ignore', timeout: 120_000 }
+    );
+  } catch (err) {
+    if (!hasWalSidecar && !process.env.SKILL_BASE_SQLITE3_PATH && helperPath === 'sqlite3') {
+      return;
+    }
+    throw new Error(
+      'Skill Base 无法自动迁移旧版 SQLite WAL 数据库。' +
+        `\n数据库: ${dbFilePath}` +
+        `\nhelper: ${helperPath}` +
+        '\n请确保当前平台的内置 sqlite3 helper 已随包发布，或手动设置 SKILL_BASE_SQLITE3_PATH 指向可执行 sqlite3。' +
+        `\nUnderlying error: ${err && err.message ? err.message : String(err)}`
+    );
+  }
+}
+
+// In tests we reload this module with different DATABASE_PATH values.
+closeSilently(global[DB_CLOSE_KEY]?.database);
 
 function normalizeValue(value) {
   if (typeof value === 'bigint' && value <= BigInt(Number.MAX_SAFE_INTEGER) && value >= BigInt(Number.MIN_SAFE_INTEGER)) {
@@ -43,18 +122,7 @@ function bindArgs(args) {
   return args;
 }
 
-function closeSilently(database) {
-  try {
-    if (database?.isOpen) {
-      database.close();
-    }
-  } catch {
-    // Ignore close errors during reload/shutdown.
-  }
-}
-
-// In tests we reload this module with different DATABASE_PATH values.
-closeSilently(global[DB_CLOSE_KEY]?.database);
+tryNormalizeSqliteJournalForWasm(dbPath);
 
 const rawDb = new Database(dbPath);
 global[DB_CLOSE_KEY] = { database: rawDb };
@@ -110,8 +178,7 @@ Object.defineProperty(db, 'inTransaction', {
   }
 });
 
-// Enable WAL mode for better concurrency performance
-db.pragma('journal_mode = WAL');
+// node-sqlite3-wasm: keep default DELETE journal (WAL + this VFS breaks on many existing DBs).
 
 // Enable foreign key constraints
 db.pragma('foreign_keys = ON');

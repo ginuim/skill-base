@@ -1,6 +1,6 @@
 {
   "name": "skill-base",
-  "version": "2.0.27",
+  "version": "2.0.28",
   "description": "Skill Base - A lightweight, privately deployable agent skills distribution hub",
   "main": "src/index.js",
   "bin": {
@@ -17,6 +17,7 @@
     "bin",
     "src",
     "static",
+    "vendor/sqlite3",
     "README.md",
     "data/.gitkeep",
     "docs/README.zh.md"

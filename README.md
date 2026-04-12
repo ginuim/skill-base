@@ -74,8 +74,6 @@ If you pass `-d ./data`, the layout looks roughly like:
 ```text
 data/
 ├── skills.db
-├── skills.db-shm
-├── skills.db-wal
 └── skills/
     └── <skill-id>/
         ├── v20260406.101500.zip
@@ -89,7 +87,17 @@ Backups, migrations, and rollbacks stay simple. Many teams can even version this
 ### 1. Start the server
 
 Requires Node.js >= 18.
-The server now uses `node-sqlite3-wasm` for SQLite access, so `npx skill-base` no longer depends on local `better-sqlite3` native compilation.
+The server now uses `node-sqlite3-wasm` for SQLite access, so normal startup no longer depends on local `better-sqlite3` native compilation.
+If you are upgrading from an older release that previously wrote SQLite in WAL mode, Skill Base will automatically migrate the existing database on first start using a bundled `sqlite3` helper, then continue running on the new WASM driver without manual steps or data loss.
+
+Bundled migration helpers are included for:
+
+- macOS `arm64`
+- macOS `x64`
+- Linux `x64`
+- Windows `x64`
+
+If you deploy on another platform and are upgrading an old WAL database, set `SKILL_BASE_SQLITE3_PATH` to a local `sqlite3` executable for the first startup.
 
 ```bash
 npx skill-base -d ./skill-data -p 8000
