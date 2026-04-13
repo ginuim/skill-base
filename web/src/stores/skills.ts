@@ -88,7 +88,7 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  async function updateSkill(id: string, data: { name?: string; description?: string }) {
+  async function updateSkill(id: string, data: { name?: string; description?: string; webhook_url?: string | null }) {
     error.value = null
 
     try {

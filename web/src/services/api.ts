@@ -179,6 +179,8 @@ export interface Skill {
   updated_at: string
   latest_version?: string
   permission?: 'owner' | 'collaborator' | 'user'
+  /** 仅所有者/协作者可见 */
+  webhook_url?: string | null
 }
 
 export interface SkillVersion {
@@ -228,7 +230,8 @@ export const skillsApi = {
   list: (query?: string) => apiGet<{ skills: Skill[] }>(`/skills${query ? `?q=${encodeURIComponent(query)}` : ''}`),
   get: (id: string) => apiGet<SkillDetail>(`/skills/${id}`),
   create: (data: { name: string; description: string }) => apiPost<Skill>('/skills', data),
-  update: (id: string, data: { name?: string; description?: string }) => apiPut<Skill>(`/skills/${id}`, data),
+  update: (id: string, data: { name?: string; description?: string; webhook_url?: string | null }) =>
+    apiPut<Skill>(`/skills/${id}`, data),
   delete: (id: string, confirm: string) => apiDelete(`/skills/${id}?confirm=${encodeURIComponent(confirm)}`),
   upload: (data: FormData) => apiPost('/skills/publish', data),
   importGithubConnectivity: () => apiGet<GithubConnectivityResult>('/skills/import/github/connectivity'),

@@ -255,6 +255,29 @@
                 </div>
               </div>
             </div>
+            <div v-if="skillsStore.isOwner" class="px-5 pb-4 border-t border-base-800 pt-4">
+              <div class="font-mono text-xs text-white/90 mb-1 flex items-center gap-2">
+                <span class="text-neon-400">hook</span>
+                {{ t('skill.webhookTitle') }}
+              </div>
+              <p class="text-[11px] text-base-500 mb-2 leading-relaxed">{{ t('skill.webhookHint') }}</p>
+              <input
+                v-model="webhookDraft"
+                type="url"
+                autocomplete="off"
+                class="w-full bg-base-950 border border-base-800 text-white text-xs font-mono rounded px-3 py-2 mb-2 focus:outline-none focus:border-neon-500"
+                :placeholder="t('skill.webhookPlaceholder')"
+              />
+              <button
+                type="button"
+                class="w-full py-2 text-xs font-mono text-neon-400 border border-neon-500/30 rounded bg-neon-400/5 hover:bg-neon-400/10 transition-colors disabled:opacity-50"
+                :disabled="isSavingWebhook"
+                @click="saveWebhook"
+              >
+                <span v-if="isSavingWebhook" class="spinner spinner-sm inline-block mr-2 align-middle"></span>
+                {{ t('skill.webhookSave') }}
+              </button>
+            </div>
             <!-- Danger Zone -->
             <div v-if="skillsStore.isOwner" class="px-5 pb-5 pt-0">
               <div class="border-t border-base-800 pt-4">
@@ -289,7 +312,7 @@
                 <div class="absolute left-[5px] top-0 bottom-2 w-px bg-base-800"></div>
 
                 <div
-                  v-for="(v, index) in versions"
+                  v-for="v in versions"
                   :key="v.id"
                   class="relative mb-8 last:mb-0 group cursor-pointer"
                 >
@@ -461,7 +484,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
@@ -515,6 +538,32 @@ const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
 const deleteConfirmInput = ref('')
 const isFullscreen = ref(false)
+const webhookDraft = ref('')
+const isSavingWebhook = ref(false)
+
+watch(
+  () => skill.value?.webhook_url,
+  (url) => {
+    webhookDraft.value = url ?? ''
+  },
+  { immediate: true }
+)
+
+async function saveWebhook() {
+  if (!skill.value) return
+  isSavingWebhook.value = true
+  try {
+    const trimmed = webhookDraft.value.trim()
+    await skillsStore.updateSkill(skillId.value, { webhook_url: trimmed ? trimmed : null })
+    globalToast.success(t('skill.webhookSaved'))
+    await skillsStore.fetchSkill(skillId.value)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : t('skill.webhookSaveFailed')
+    globalToast.error(msg)
+  } finally {
+    isSavingWebhook.value = false
+  }
+}
 
 function normalizeLineEndings(content: string) {
   return content.replace(/\r\n?/g, '\n')

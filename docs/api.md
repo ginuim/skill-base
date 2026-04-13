@@ -258,6 +258,66 @@
 
 ---
 
+### 5. 更新 Skill 元数据
+
+**PUT** `/api/v1/skills/:skill_id`
+
+更新名称、描述，以及可选的 **Webhook URL**（用于在 Skill 变更时接收服务端通知）。
+
+**认证:** 需要 Session；更新 `name` / `description` 需对该 Skill 有管理权限。更新 `webhook_url` 仅允许 **所有者或管理员**。
+
+**请求体 (JSON，字段均可选；未出现的字段不修改):**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `name` | string | Skill 名称 |
+| `description` | string | Skill 描述 |
+| `webhook_url` | string \| null | `http` 或 `https` URL，最长 2048；传 `null` 或空字符串表示清空 |
+
+**响应:** 与 **GET** `/api/v1/skills/:skill_id` 结构一致。`webhook_url` 仅当调用者是 **所有者或管理员** 时在 JSON 中返回；协作者和普通访客不返回该字段。
+
+**错误码:**
+- `400` - `webhook_url` 非法（非 http(s)）
+- `403` - 无管理权限
+- `404` - Skill 不存在
+
+---
+
+### 6. Skill Webhook 投递说明
+
+当某 Skill 配置了非空的 `webhook_url` 时，服务端在下列时机 **异步** 向该 URL 发送 **POST**，`Content-Type: application/json`。请求失败（超时、非 2xx 等）**不会**影响 API 主流程，也不会重试。发送前会做最小目标校验：允许 `localhost` / `127.0.0.1` / `::1`，拒绝私有网段、链路本地和常见云元数据地址。
+
+**环境变量:** `SKILL_BASE_WEBHOOK_TIMEOUT_MS` — 单次投递超时毫秒数，默认 `10000`，上限 `60000`。
+
+**请求体结构:**
+
+```json
+{
+  "event": "skill.updated | skill.deleted",
+  "skill_id": "string",
+  "timestamp": "ISO8601",
+  "actor": { "id": 1, "username": "string" },
+  "data": {}
+}
+```
+
+`actor` 在无用户信息时为 `null`。
+
+**`event`: `skill.updated`** — 在以下情况触发，`data` 含 `kind` 区分场景：
+
+| `data.kind` | 触发操作 |
+|-------------|----------|
+| `metadata` | **PUT** `/api/v1/skills/:skill_id` 且 `name` 或 `description` 相对原值有变化 |
+| `version_published` | **POST** `/api/v1/skills/publish` 或 GitHub 导入成功写入新版本；`data` 含 `version`、`created_at` |
+| `head` | **PUT** `/api/v1/skills/:skill_id/head` 修改最新版本指针；`data` 含 `latest_version` |
+| `version_metadata` | **PATCH** `/api/v1/skills/:skill_id/versions/:version` 修改版本说明或 changelog；`data` 含 `version` |
+
+**`event`: `skill.deleted`** — **DELETE** `/api/v1/skills/:skill_id` 在数据库删除成功后投递；`data` 含删除前的 `name`、`versions_count`。
+
+仅修改 `webhook_url` 本身 **不会** 触发 Webhook。
+
+---
+
 ## 发布模块 `/api/v1/skills`
 
 ### 1. 发布新版本

@@ -5,6 +5,7 @@ const VersionModel = require('../models/version');
 const { invalidateSkill } = require('./model-cache');
 const { ensureSkillDir, generateVersionNumber, getZipPath, getZipRelativePath } = require('./zip');
 const { canPublishSkill } = require('./permission');
+const { notifySkillWebhook } = require('./skill-webhook');
 
 /**
  * Persist a new skill version from an in-memory zip (same rules as POST /skills/publish).
@@ -65,6 +66,13 @@ function publishSkillFromZip({ user, skillId, name, description, changelog, zipB
 
   SkillModel.updateLatestVersion(skill_id, version);
   invalidateSkill(skill_id);
+
+  notifySkillWebhook(
+    SkillModel.findById(skill_id),
+    'skill.updated',
+    { kind: 'version_published', version, created_at: versionRecord.created_at },
+    user
+  );
 
   return {
     ok: true,

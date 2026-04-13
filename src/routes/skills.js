@@ -5,6 +5,7 @@ const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
 const { getZipPath, resolveZipPath } = require('../utils/zip');
 const { canManageSkill } = require('../utils/permission');
+const { parseWebhookUrlField, notifySkillWebhook, canViewSkillWebhook } = require('../utils/skill-webhook');
 
 function listCollaboratorUsersForSkillDetail(skillId) {
   const rows = db.prepare(`
@@ -39,7 +40,7 @@ function formatSkill(skill, currentUser) {
   };
 
   if (currentUser) {
-    if (currentUser.id === skill.owner_id) {
+    if (currentUser.role === 'admin' || currentUser.id === skill.owner_id) {
       result.permission = 'owner';
     } else {
       const collab = db.prepare('SELECT role FROM skill_collaborators WHERE skill_id = ? AND user_id = ?').get(skill.id, currentUser.id);
@@ -51,6 +52,10 @@ function formatSkill(skill, currentUser) {
     }
   } else {
     result.permission = 'user';
+  }
+
+  if (canViewSkillWebhook(currentUser, result.permission)) {
+    result.webhook_url = skill.webhook_url || null;
   }
 
   return result;
@@ -162,7 +167,7 @@ async function skillsRoutes(fastify, options) {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const { skill_id } = request.params;
-    const { name, description } = request.body || {};
+    const { name, description, webhook_url: webhookUrlRaw } = request.body || {};
 
     if (!SkillModel.exists(skill_id)) {
       return reply.code(404).send({ detail: 'Skill not found' });
@@ -172,7 +177,27 @@ async function skillsRoutes(fastify, options) {
       return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
     }
 
-    const updated = SkillModel.update(skill_id, name, description);
+    const parsed = parseWebhookUrlField(webhookUrlRaw);
+    if (!parsed.ok) {
+      return reply.code(400).send({ detail: parsed.detail });
+    }
+
+    const prev = SkillModel.findById(skill_id);
+    const webhookColumn = parsed.omit ? undefined : parsed.value;
+    const updated = SkillModel.update(skill_id, name, description, webhookColumn);
+
+    const metaChanged =
+      (name !== undefined && String(name) !== String(prev.name)) ||
+      (description !== undefined && String(description ?? '') !== String(prev.description ?? ''));
+    if (metaChanged) {
+      notifySkillWebhook(
+        updated,
+        'skill.updated',
+        { kind: 'metadata', name: updated.name, description: updated.description },
+        request.user
+      );
+    }
+
     return formatSkill(updated, request.user);
   });
 
@@ -201,6 +226,12 @@ async function skillsRoutes(fastify, options) {
     }
 
     SkillModel.updateLatestVersion(skill_id, version);
+    notifySkillWebhook(
+      SkillModel.findById(skill_id),
+      'skill.updated',
+      { kind: 'head', latest_version: version },
+      request.user
+    );
     return { ok: true, skill_id, latest_version: version };
   });
 
@@ -225,6 +256,12 @@ async function skillsRoutes(fastify, options) {
     }
 
     const updated = VersionModel.update(versionRecord.id, description, changelog);
+    notifySkillWebhook(
+      SkillModel.findById(skill_id),
+      'skill.updated',
+      { kind: 'version_metadata', version },
+      request.user
+    );
     return formatVersion(updated);
   });
 }

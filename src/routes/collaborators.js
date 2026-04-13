@@ -2,6 +2,7 @@ const db = require('../database');
 const { canManageSkill } = require('../utils/permission');
 const UserModel = require('../models/user');
 const { invalidateSkill } = require('../utils/model-cache');
+const { notifySkillWebhook } = require('../utils/skill-webhook');
 
 async function collaboratorsRoutes(fastify, options) {
 
@@ -220,8 +221,8 @@ async function collaboratorsRoutes(fastify, options) {
       });
     }
     
-    // Check if Skill exists
-    const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
+    // Check if Skill exists (name + webhook_url for outbound notify)
+    const skill = db.prepare('SELECT id, name, webhook_url FROM skills WHERE id = ?').get(skill_id);
     if (!skill) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
@@ -244,7 +245,14 @@ async function collaboratorsRoutes(fastify, options) {
     
     deleteSkillTx();
     invalidateSkill(skill_id);
-    
+
+    notifySkillWebhook(
+      skill,
+      'skill.deleted',
+      { name: skill.name, versions_count: versionsCount },
+      request.user
+    );
+
     // Delete files from filesystem
     const fs = require('fs');
     const path = require('path');

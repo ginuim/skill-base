@@ -356,6 +356,7 @@ try {
 try { db.exec("ALTER TABLE users ADD COLUMN created_by INTEGER REFERENCES users(id)"); } catch(e) {}
 try { db.exec("ALTER TABLE users ADD COLUMN name TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE skill_versions ADD COLUMN description TEXT"); } catch(e) {}
+try { db.exec('ALTER TABLE skills ADD COLUMN webhook_url TEXT'); } catch (e) {}
 
 // Data migration: insert skill_collaborators record for existing Skills owners
 const existingSkills = db.prepare('SELECT id, owner_id FROM skills').all();

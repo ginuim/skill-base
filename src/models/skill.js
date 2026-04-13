@@ -58,8 +58,8 @@ const SkillModel = {
     return queryById(id);
   },
 
-  // Update Skill
-  update(id, name, description) {
+  // Update Skill (webhookUrl: undefined = leave column unchanged; null or '' clears)
+  update(id, name, description, webhookUrl) {
     const fields = [];
     const values = [];
     if (name !== undefined) {
@@ -69,6 +69,10 @@ const SkillModel = {
     if (description !== undefined) {
       fields.push('description = ?');
       values.push(description);
+    }
+    if (webhookUrl !== undefined) {
+      fields.push('webhook_url = ?');
+      values.push(webhookUrl);
     }
     if (fields.length === 0) return this.findById(id);
     
