@@ -1,9 +1,25 @@
 const fs = require('fs');
 const path = require('path');
+const db = require('../database');
 const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
 const { getZipPath, resolveZipPath } = require('../utils/zip');
 const { canManageSkill } = require('../utils/permission');
+
+function listCollaboratorUsersForSkillDetail(skillId) {
+  const rows = db.prepare(`
+    SELECT u.id as user_id, u.username, u.name
+    FROM skill_collaborators sc
+    JOIN users u ON sc.user_id = u.id
+    WHERE sc.skill_id = ? AND sc.role = 'collaborator'
+    ORDER BY sc.created_at ASC
+  `).all(skillId);
+  return rows.map((r) => ({
+    id: r.user_id,
+    username: r.username,
+    name: r.name
+  }));
+}
 
 // Format skill, convert owner to object
 function formatSkill(skill, currentUser) {
@@ -26,7 +42,6 @@ function formatSkill(skill, currentUser) {
     if (currentUser.id === skill.owner_id) {
       result.permission = 'owner';
     } else {
-      const db = require('../database');
       const collab = db.prepare('SELECT role FROM skill_collaborators WHERE skill_id = ? AND user_id = ?').get(skill.id, currentUser.id);
       if (collab) {
         result.permission = collab.role;
@@ -82,7 +97,9 @@ async function skillsRoutes(fastify, options) {
       return reply.code(404).send({ detail: 'Skill not found' });
     }
 
-    return formatSkill(skill, request.user);
+    const formatted = formatSkill(skill, request.user);
+    formatted.collaborators = listCollaboratorUsersForSkillDetail(skill_id);
+    return formatted;
   });
 
   // GET /:skill_id/versions - Get all versions of a skill

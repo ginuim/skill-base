@@ -219,7 +219,7 @@ const zh: Record<string, string> = {
   'publish.githubConnectFail': '服务端当前无法访问 GitHub',
   'publish.githubConnectRetry': '重新检测',
   'publish.githubConnectHintNetwork':
-    '若你在中国大陆网络环境，未翻墙时 GitHub 常不可用；导入依赖部署 Skill Base 的服务器能访问 api.github.com。可为运行 Node 的环境配置 HTTP(S) 代理，或设置 GITHUB_TOKEN / SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS。',
+    '导入依赖运行 Skill Base 的服务器能访问 api.github.com。若服务端到 GitHub 网络不通，可为 Node 进程配置 HTTP(S) 代理，或按需设置 GITHUB_TOKEN、SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS。',
   'publish.githubHeading': '从 GitHub 导入',
   'publish.githubHint':
     '支持完整仓库 URL 或 owner/repo；默认拉取默认分支。可填写 ref（分支或 tag）与子路径（monorepo）。',
@@ -630,7 +630,7 @@ const en: Record<string, string> = {
   'publish.githubConnectFail': 'Server cannot reach GitHub right now',
   'publish.githubConnectRetry': 'Check again',
   'publish.githubConnectHintNetwork':
-    'In some regions (e.g. mainland China) GitHub is often blocked without a VPN. Import requires the machine running Skill Base to reach api.github.com. Configure an HTTP(S) proxy for Node, or set GITHUB_TOKEN / SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS as needed.',
+    'Import requires the Skill Base server to reach api.github.com. If connectivity from the server to GitHub is poor or blocked, configure an HTTP(S) proxy for the Node process, or set GITHUB_TOKEN / SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS as needed.',
   'publish.githubHeading': 'Import from GitHub',
   'publish.githubHint':
     'Use a full repo URL or owner/repo; default branch is used unless ref is set. Optional subpath for monorepos.',

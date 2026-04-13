@@ -88,7 +88,7 @@ Backups, migrations, and rollbacks stay simple. Many teams can even version this
 
 Requires Node.js >= 18.
 The server now uses `node-sqlite3-wasm` for SQLite access, so normal startup no longer depends on local `better-sqlite3` native compilation.
-If you are upgrading from an older release that previously wrote SQLite in WAL mode, Skill Base will automatically migrate the existing database on first start using a bundled `sqlite3` helper, then continue running on the new WASM driver without manual steps or data loss.
+If you are upgrading from an older release that previously wrote SQLite in WAL mode, Skill Base will automatically migrate the existing database on first start: it tries the `sqlite3` on your `PATH` first (matches the server libc), then falls back to a bundled `sqlite3` helper, then continues on the WASM driver without manual steps or data loss.
 
 Bundled migration helpers are included for:
 

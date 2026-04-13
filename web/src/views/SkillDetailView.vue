@@ -221,7 +221,7 @@
               </div>
               <!-- Collaborators -->
               <div
-                v-for="collaborator in skill.collaborators"
+                v-for="collaborator in (skill.collaborators || [])"
                 :key="collaborator.id"
                 class="flex items-center justify-between"
               >
@@ -702,6 +702,7 @@ async function loadVersionZip(version: string) {
 
     // Generate file tree
     fileTree.value = generateFileTree(zip)
+    await selectDefaultSkillMdIfPresent(zip)
   } catch (err) {
     console.error('Failed to load version zip:', err)
     fileTree.value = []
@@ -757,25 +758,64 @@ function sortTree(nodes: any[]) {
   })
 }
 
-async function onFileSelect(node: TreeNode) {
-  selectedFilePath.value = node.path
+/** 选路径最浅的 SKILL.md（不区分大小写），与平台约定一致 */
+function findShallowestSkillMdPath(zip: any): string | null {
+  let best: string | null = null
+  let bestDepth = Infinity
+  zip.forEach((relativePath: string, zipEntry: any) => {
+    if (!relativePath || zipEntry.dir) return
+    const parts = relativePath.split('/').filter(Boolean)
+    const leaf = parts[parts.length - 1]
+    if (!leaf || leaf.toLowerCase() !== 'skill.md') return
+    const depth = parts.length
+    if (depth < bestDepth) {
+      bestDepth = depth
+      best = relativePath
+    }
+  })
+  return best
+}
 
+function expandAncestorsForFilePath(nodes: any[], filePath: string) {
+  const segments = filePath.split('/').filter(Boolean)
+  if (segments.length <= 1) return
+  let level: any[] = nodes
+  for (let i = 0; i < segments.length - 1; i++) {
+    const name = segments[i]!
+    const dir = level.find((n: any) => n.type === 'directory' && n.name === name)
+    if (!dir) return
+    dir.isOpen = true
+    level = dir.children || []
+  }
+}
+
+async function selectFileByPath(path: string) {
+  selectedFilePath.value = path
   if (!currentZip.value) return
 
-  const file = currentZip.value.file(node.path)
+  const file = currentZip.value.file(path)
   if (!file) return
 
   try {
     const content = await file.async('string')
     selectedFileContent.value = content
-
-    if (isMarkdownFile.value) {
+    if (path.toLowerCase().endsWith('.md')) {
       markdownMode.value = 'render'
     }
-  } catch (err) {
-    // Binary file
+  } catch {
     selectedFileContent.value = ''
   }
+}
+
+async function selectDefaultSkillMdIfPresent(zip: any) {
+  const path = findShallowestSkillMdPath(zip)
+  if (!path) return
+  expandAncestorsForFilePath(fileTree.value, path)
+  await selectFileByPath(path)
+}
+
+async function onFileSelect(node: TreeNode) {
+  await selectFileByPath(node.path)
 }
 
 function onFolderToggle(node: TreeNode) {

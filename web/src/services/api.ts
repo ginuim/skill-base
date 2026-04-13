@@ -161,6 +161,14 @@ export const authApi = {
 
 // ===== Skills API =====
 
+/** 技能详情里除所有者外的协作者（与 GET /skills/:id 的 collaborators 一致） */
+export interface SkillCollaboratorUser {
+  id: number
+  username: string
+  name: string | null
+  email?: string | null
+}
+
 export interface Skill {
   id: string
   name: string
@@ -188,7 +196,7 @@ export interface SkillVersion {
 
 export interface SkillDetail extends Skill {
   versions: SkillVersion[]
-  collaborators: User[]
+  collaborators?: SkillCollaboratorUser[]
 }
 
 export interface GithubImportPreview {
@@ -244,8 +252,17 @@ export const versionsApi = {
 
 // ===== Collaborators API =====
 
+export interface SkillCollaboratorEntry {
+  id: number
+  user: { id: number; username: string; name: string | null; status?: string }
+  role: 'owner' | 'collaborator'
+  created_at: string
+  created_by?: { id: number; username: string }
+}
+
 export const collaboratorsApi = {
-  list: (skillId: string) => apiGet<{ collaborators: User[] }>(`/skills/${skillId}/collaborators`),
+  list: (skillId: string) =>
+    apiGet<{ skill_id: string; collaborators: SkillCollaboratorEntry[] }>(`/skills/${skillId}/collaborators`),
   add: (skillId: string, username: string) => apiPost(`/skills/${skillId}/collaborators`, { username }),
   remove: (skillId: string, userId: number) => apiDelete(`/skills/${skillId}/collaborators/${userId}`),
 }

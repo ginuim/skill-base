@@ -78,9 +78,9 @@ skb ls
 - Common usage: `skb publish <path> --changelog "description"`
 - After publishing, describe the result to the user in 2 sentences, no need to be verbose
 
-## Import from GitHub (public repos, login required)
+## Import from GitHub (public repos, skill-base login required)
 
-- `skb import-github owner/repo` or `skb import https://github.com/owner/repo`
+- `skb import-github owner/repo` or `skb import https://github.com/owner/repo`,like `https://github.com/anthropics/skills/tree/main/skills/pdf`
 - Same auth as publish (`skb login`)
 - Options: `--ref`, `--subpath`, `--target <skill_id>`, `--changelog`, `--dry-run` (preview JSON only)
 - Server downloads the repo archive; private repos are not supported

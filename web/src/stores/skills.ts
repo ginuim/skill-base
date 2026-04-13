@@ -64,7 +64,7 @@ export const useSkillsStore = defineStore('skills', () => {
 
     try {
       const response = await skillsApi.get(id)
-      currentSkill.value = response
+      currentSkill.value = { ...response, collaborators: response.collaborators ?? [] }
       return true
     } catch (err: any) {
       error.value = err.message || '获取 Skill 详情失败'

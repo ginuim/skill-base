@@ -24,11 +24,7 @@ function closeSilently(database) {
   }
 }
 
-function resolveBundledSqlite3Path() {
-  if (process.env.SKILL_BASE_SQLITE3_PATH) {
-    return process.env.SKILL_BASE_SQLITE3_PATH;
-  }
-
+function getBundledSqlite3ExecutablePath() {
   const platformMap = {
     darwin: 'darwin',
     linux: 'linux',
@@ -47,39 +43,76 @@ function resolveBundledSqlite3Path() {
   return fs.existsSync(bundledPath) ? bundledPath : null;
 }
 
-function resolveMigrationHelperPath() {
-  const bundledPath = resolveBundledSqlite3Path();
-  if (bundledPath) return bundledPath;
-  return 'sqlite3';
+const WAL_NORMALIZE_CLI_SQL = 'PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;';
+
+/** 迁移时优先 PATH 里的 sqlite3（与发行版 libc 一致）；bundled 仅作兜底，避免 glibc/musl 不匹配。 */
+function walMigrationSqlite3Candidates() {
+  const explicit = process.env.SKILL_BASE_SQLITE3_PATH;
+  if (explicit && String(explicit).trim() !== '') {
+    return [String(explicit).trim()];
+  }
+  const candidates = ['sqlite3'];
+  const bundled = getBundledSqlite3ExecutablePath();
+  if (bundled) {
+    candidates.push(bundled);
+  }
+  return candidates;
+}
+
+function hasWalSidecarFiles(dbFilePath) {
+  return fs.existsSync(`${dbFilePath}-wal`) || fs.existsSync(`${dbFilePath}-shm`);
+}
+
+function databaseHeaderIndicatesWalMode(dbFilePath) {
+  try {
+    const header = fs.readFileSync(dbFilePath);
+    if (header.length < 32) return false;
+    if (header.subarray(0, 16).toString('utf8') !== 'SQLite format 3\u0000') {
+      return false;
+    }
+    return header[18] === 2 && header[19] === 2;
+  } catch {
+    return false;
+  }
+}
+
+function shouldAttemptWalMigration(dbFilePath) {
+  return hasWalSidecarFiles(dbFilePath) || databaseHeaderIndicatesWalMode(dbFilePath);
 }
 
 /**
  * better-sqlite3 / 系统 SQLite 默认常用 WAL；node-sqlite3-wasm 的 Node VFS 无法正常打开带 WAL 侧车的库。
- * 启动前用 sqlite3 helper 自动 checkpoint 并改为 DELETE journal，保证旧库可无缝升级。
+ * 用 sqlite3 CLI 做 checkpoint 并改为 DELETE journal。
+ */
+function normalizeJournalWithSqlite3Cli(dbFilePath) {
+  const candidates = walMigrationSqlite3Candidates();
+  const failures = [];
+  for (const helperPath of candidates) {
+    try {
+      execFileSync(helperPath, [dbFilePath, WAL_NORMALIZE_CLI_SQL], { stdio: 'ignore', timeout: 120_000 });
+      return;
+    } catch (err) {
+      failures.push(`${helperPath}: ${err && err.message ? err.message : String(err)}`);
+    }
+  }
+  throw new Error(
+    'Skill Base 无法自动迁移旧版 SQLite WAL 数据库。' +
+      `\n数据库: ${dbFilePath}` +
+      `\n已依次尝试: ${candidates.join(' -> ')}` +
+      '\n请在服务器安装 sqlite3（确保在 PATH 中）或设置 SKILL_BASE_SQLITE3_PATH 指向可执行文件。' +
+      `\n详情: ${failures.join(' | ')}`
+  );
+}
+
+/**
+ * 有 -wal/-shm 时必须先迁出；无侧车时多数已是 DELETE journal，不应每次启动都跑 bundled sqlite3
+ *（部分 Linux 上该二进制可能无法运行，会误杀正常实例）。
+ * 少数「头文件仍是 WAL、但侧车已被 checkpoint 掉」的库，由下方首次 open 失败后再跑一次 CLI 兜底。
  */
 function tryNormalizeSqliteJournalForWasm(dbFilePath) {
   if (!fs.existsSync(dbFilePath)) return;
-  const walSidecar = `${dbFilePath}-wal`;
-  const shmSidecar = `${dbFilePath}-shm`;
-  const hasWalSidecar = fs.existsSync(walSidecar) || fs.existsSync(shmSidecar);
-  const helperPath = resolveMigrationHelperPath();
-  try {
-    execFileSync(
-      helperPath,
-      [dbFilePath, 'PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;'],
-      { stdio: 'ignore', timeout: 120_000 }
-    );
-  } catch (err) {
-    if (!hasWalSidecar && !process.env.SKILL_BASE_SQLITE3_PATH && helperPath === 'sqlite3') {
-      return;
-    }
-    throw new Error(
-      'Skill Base 无法自动迁移旧版 SQLite WAL 数据库。' +
-        `\n数据库: ${dbFilePath}` +
-        `\nhelper: ${helperPath}` +
-        '\n请确保当前平台的内置 sqlite3 helper 已随包发布，或手动设置 SKILL_BASE_SQLITE3_PATH 指向可执行 sqlite3。' +
-        `\nUnderlying error: ${err && err.message ? err.message : String(err)}`
-    );
+  if (shouldAttemptWalMigration(dbFilePath)) {
+    normalizeJournalWithSqlite3Cli(dbFilePath);
   }
 }
 
@@ -124,7 +157,44 @@ function bindArgs(args) {
 
 tryNormalizeSqliteJournalForWasm(dbPath);
 
-const rawDb = new Database(dbPath);
+function openRawDatabaseOrMigrate() {
+  let db;
+  try {
+    db = new Database(dbPath);
+  } catch (err) {
+    if (!fs.existsSync(dbPath)) {
+      throw err;
+    }
+    if (!shouldAttemptWalMigration(dbPath)) {
+      throw err;
+    }
+    normalizeJournalWithSqlite3Cli(dbPath);
+    db = new Database(dbPath);
+  }
+  try {
+    db.exec('SELECT 1');
+    return db;
+  } catch (err) {
+    closeSilently(db);
+    if (!fs.existsSync(dbPath)) {
+      throw new Error('SQLite 数据库文件在启动探测阶段不存在');
+    }
+    if (hasWalSidecarFiles(dbPath)) {
+      throw new Error(
+        '数据库处于 WAL 且仍存在 -wal/-shm 侧车，但当前驱动无法执行 SQL。请确认无其他进程占用该库，或设置 SKILL_BASE_SQLITE3_PATH 使用本机 sqlite3 完成迁移。'
+      );
+    }
+    if (!databaseHeaderIndicatesWalMode(dbPath)) {
+      throw err;
+    }
+    normalizeJournalWithSqlite3Cli(dbPath);
+    db = new Database(dbPath);
+    db.exec('SELECT 1');
+    return db;
+  }
+}
+
+const rawDb = openRawDatabaseOrMigrate();
 global[DB_CLOSE_KEY] = { database: rawDb };
 
 function createStatement(sql) {

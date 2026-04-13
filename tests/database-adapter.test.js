@@ -76,6 +76,10 @@ function createLegacyWalDatabase(dbPath) {
   ]);
 }
 
+function createInvalidDatabaseFile(dbPath) {
+  fs.writeFileSync(dbPath, 'this is not a sqlite database');
+}
+
 function getBundledSqlite3Path() {
   const platformMap = {
     darwin: 'darwin',
@@ -223,6 +227,38 @@ test('database adapter uses bundled sqlite3 helper when PATH has no sqlite3', ()
     if (typeof db.close === 'function') {
       db.close();
     }
+  } finally {
+    destroyFixture(tempDir);
+  }
+});
+
+test('database adapter does not disguise non-sqlite files as WAL migration failures', () => {
+  const { tempDir, dbPath } = createFixture();
+
+  try {
+    createInvalidDatabaseFile(dbPath);
+
+    let error;
+    try {
+      withEnv(
+        {
+          DATABASE_PATH: dbPath
+        },
+        () => {
+          clearModule('../src/database');
+          require('../src/database');
+        }
+      );
+    } catch (caught) {
+      error = caught;
+    }
+
+    assert.ok(error);
+    assert.match(String(error.message || error), /database/i);
+    assert.doesNotMatch(
+      String(error.message || error),
+      /Skill Base 无法自动迁移旧版 SQLite WAL 数据库/
+    );
   } finally {
     destroyFixture(tempDir);
   }
