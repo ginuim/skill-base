@@ -52,17 +52,38 @@ function publishSkillFromZip({ user, skillId, name, description, changelog, zipB
   const version = generateVersionNumber();
   ensureSkillDir(skill_id);
   const zipPath = getZipPath(skill_id, version);
-  fs.writeFileSync(zipPath, zipBuffer);
+  try {
+    fs.writeFileSync(zipPath, zipBuffer, { flag: 'wx' });
+  } catch (error) {
+    if (error && error.code === 'EEXIST') {
+      return {
+        ok: false,
+        status: 409,
+        body: {
+          ok: false,
+          error: 'version_conflict',
+          detail: 'A version with the same timestamp already exists; please retry publish'
+        }
+      };
+    }
+    throw error;
+  }
   const zipRelativePath = getZipRelativePath(skill_id, version);
 
-  const versionRecord = VersionModel.create(
-    skill_id,
-    version,
-    changelog || '',
-    zipRelativePath,
-    user.id,
-    description || ''
-  );
+  let versionRecord;
+  try {
+    versionRecord = VersionModel.create(
+      skill_id,
+      version,
+      changelog || '',
+      zipRelativePath,
+      user.id,
+      description || ''
+    );
+  } catch (error) {
+    fs.rmSync(zipPath, { force: true });
+    throw error;
+  }
 
   SkillModel.updateLatestVersion(skill_id, version);
   invalidateSkill(skill_id);
