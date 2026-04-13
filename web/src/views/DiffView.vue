@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen pt-12 pb-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center py-20">

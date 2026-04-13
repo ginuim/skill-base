@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen pt-12 pb-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
       <!-- Loading State -->
       <div v-if="isInitializing || skillsStore.isLoadingDetail" class="flex items-center justify-center min-h-[70vh]">
@@ -172,13 +172,17 @@
                 <p class="text-sm font-mono">{{ t('skill.selectFile') }}</p>
               </div>
               <div v-else-if="isMarkdownFile && markdownMode === 'render'" class="markdown-body p-6" v-html="renderedMarkdown"></div>
-              <div v-else-if="isMarkdownFile && markdownMode === 'source'" class="code-with-lines">
-                <div class="line-numbers" aria-hidden="true">{{ markdownLineNumbers }}</div>
-                <pre class="md-source-pre"><code>{{ normalizedSelectedFileContent }}</code></pre>
+              <div v-else-if="isMarkdownFile && markdownMode === 'source'" class="code-line-grid">
+                <div v-for="(line, i) in selectedFileLines" :key="i" class="code-line-row">
+                  <span class="line-gutter" aria-hidden="true">{{ i + 1 }}</span>
+                  <code class="line-code">{{ line }}</code>
+                </div>
               </div>
-              <div v-else-if="isTextFile" class="code-with-lines">
-                <div class="line-numbers" aria-hidden="true">{{ fileLineNumbers }}</div>
-                <pre><code ref="codeBlock">{{ normalizedSelectedFileContent }}</code></pre>
+              <div v-else-if="isTextFile" class="code-line-grid">
+                <div v-for="(lineHtml, i) in highlightedCodeLines" :key="i" class="code-line-row">
+                  <span class="line-gutter" aria-hidden="true">{{ i + 1 }}</span>
+                  <code class="line-code line-code-hl" v-html="lineHtml"></code>
+                </div>
               </div>
               <div v-else class="flex flex-col items-center justify-center h-full">
                 <p class="text-base-400 font-mono">{{ t('skill.binaryFile') }}</p>
@@ -457,7 +461,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
@@ -510,16 +514,10 @@ const isEditingVersion = ref(false)
 const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
 const deleteConfirmInput = ref('')
-const codeBlock = ref<HTMLElement | null>(null)
 const isFullscreen = ref(false)
 
 function normalizeLineEndings(content: string) {
   return content.replace(/\r\n?/g, '\n')
-}
-
-function getLineCount(content: string) {
-  if (!content) return 1
-  return normalizeLineEndings(content).split('\n').length
 }
 
 // Text file extensions
@@ -623,14 +621,10 @@ const normalizedSelectedFileContent = computed(() => {
   return normalizeLineEndings(selectedFileContent.value)
 })
 
-const markdownLineNumbers = computed(() => {
-  const lines = getLineCount(selectedFileContent.value)
-  return Array.from({ length: lines }, (_, i) => i + 1).join('\n')
-})
-
-const fileLineNumbers = computed(() => {
-  const lines = getLineCount(selectedFileContent.value)
-  return Array.from({ length: lines }, (_, i) => i + 1).join('\n')
+/** 按 \\n 拆行；与行号一一对应，每行单独容器内 pre-wrap，避免「整列行号 vs 整块 pre 折行」高度错位 */
+const selectedFileLines = computed(() => {
+  if (!selectedFileContent.value) return []
+  return normalizeLineEndings(selectedFileContent.value).split('\n')
 })
 
 onMounted(async () => {
@@ -653,14 +647,6 @@ onMounted(async () => {
 
   // ESC 键退出全屏
   document.addEventListener('keydown', handleEscKey)
-})
-
-watch([() => codeBlock.value, () => normalizedSelectedFileContent.value], ([el]) => {
-  if (el && isTextFile.value && !isMarkdownFile.value) {
-    nextTick(() => {
-      hljs.highlightElement(el)
-    })
-  }
 })
 
 async function loadVersions() {
@@ -1064,79 +1050,58 @@ async function setHeadVersion(version: string) {
   background-color: #09090b;
 }
 
-/* Code with line numbers */
-.code-with-lines {
-  display: flex;
-  align-items: stretch;
+/* 按逻辑行渲染：行号与该行首对齐，长行仅在右侧折行（与常见编辑器换行行为一致） */
+.code-line-grid {
   width: 100%;
   max-width: 100%;
   min-height: 100%;
   box-sizing: border-box;
-  gap: 0.75rem;
+  padding: 1.5rem;
   background-color: #09090b;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
   line-height: 1.6;
 }
 
-.line-numbers {
+.code-line-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 1.6em;
+}
+
+.line-gutter {
   flex-shrink: 0;
+  min-width: 2.5rem;
   text-align: right;
   color: #52525b;
   user-select: none;
+  padding-right: 0.75rem;
+  border-right: 1px solid #27272a;
+  box-sizing: border-box;
+}
+
+.line-code {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  color: #e4e4e7;
+  background: none;
+  border: none;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-  white-space: pre;
-  padding: 1.5rem 0.75rem 1.5rem 1.5rem;
-  border-right: 1px solid #27272a;
-}
-
-.code-with-lines pre {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  padding: 1.5rem !important;
-  border: none !important;
-  background: transparent !important;
-  overflow-x: hidden;
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-}
-
-.code-with-lines pre code {
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
   white-space: pre-wrap;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-/* Markdown source preview */
-.md-source-pre {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  padding: 1.5rem;
+.line-code-hl :deep(.hljs) {
   background: transparent;
-  border: none;
-  overflow-x: hidden;
-  text-align: left;
-}
-
-.md-source-pre code {
-  background: none;
-  border: none;
   padding: 0;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: #e4e4e7;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-break: break-word;
 }
 
 /* Markdown view buttons */
@@ -1163,7 +1128,7 @@ async function setHeadVersion(version: string) {
   border: 1px solid #00E592;
 }
 
-/* Fullscreen mode */
+/* Fullscreen mode：整列阅读宽度上限 800px，水平居中 */
 #file-preview-panel.fullscreen {
   position: fixed;
   top: 0;
@@ -1175,6 +1140,25 @@ async function setHeadVersion(version: string) {
   min-height: 100vh;
   border-radius: 0;
   border: none;
+}
+
+/* 不用 align-items:center，否则 flex-1 的 #file-content 竖向撑不满 */
+#file-preview-panel.fullscreen > div:first-of-type,
+#file-preview-panel.fullscreen > #file-content {
+  max-width: 800px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#file-preview-panel.fullscreen > div:first-of-type {
+  flex-shrink: 0;
+}
+
+#file-preview-panel.fullscreen > #file-content {
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 #file-preview-panel.fullscreen :deep(#file-content) {
@@ -1198,17 +1182,6 @@ async function setHeadVersion(version: string) {
 
 #file-preview-panel.fullscreen .rounded-t-xl {
   border-radius: 0;
-}
-
-/* Fullscreen: cap preview column width for readability */
-#file-preview-panel.fullscreen :deep(#file-content) > .markdown-body,
-#file-preview-panel.fullscreen :deep(#file-content) > .code-with-lines,
-#file-preview-panel.fullscreen :deep(#file-content) > pre {
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 /* Cube Loader */
