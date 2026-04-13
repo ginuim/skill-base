@@ -1000,7 +1000,8 @@ async function setHeadVersion(version: string) {
 
 .markdown-body :deep(pre) code {
   white-space: pre-wrap;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .markdown-body :deep(blockquote) {
   border-left: 4px solid #27272a;
@@ -1027,9 +1028,10 @@ async function setHeadVersion(version: string) {
 .code-with-lines {
   display: flex;
   align-items: stretch;
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  max-width: 100%;
   min-height: 100%;
+  box-sizing: border-box;
   gap: 0.75rem;
   background-color: #09090b;
   font-family: "JetBrains Mono", monospace;
@@ -1057,7 +1059,7 @@ async function setHeadVersion(version: string) {
   padding: 1.5rem !important;
   border: none !important;
   background: transparent !important;
-  overflow-x: auto;
+  overflow-x: hidden;
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
@@ -1067,6 +1069,9 @@ async function setHeadVersion(version: string) {
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Markdown source preview */
@@ -1077,7 +1082,7 @@ async function setHeadVersion(version: string) {
   padding: 1.5rem;
   background: transparent;
   border: none;
-  overflow-x: auto;
+  overflow-x: hidden;
   text-align: left;
 }
 
@@ -1089,7 +1094,9 @@ async function setHeadVersion(version: string) {
   font-size: 0.875rem;
   line-height: 1.6;
   color: #e4e4e7;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Markdown view buttons */
@@ -1153,23 +1160,15 @@ async function setHeadVersion(version: string) {
   border-radius: 0;
 }
 
-/* Fullscreen content width limit */
+/* Fullscreen: cap preview column width for readability */
 #file-preview-panel.fullscreen :deep(#file-content) > .markdown-body,
 #file-preview-panel.fullscreen :deep(#file-content) > .code-with-lines,
 #file-preview-panel.fullscreen :deep(#file-content) > pre {
-  max-width: 120ch;
+  max-width: 800px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
-}
-
-/* Word wrap for code and text content */
-.code-with-lines pre code,
-.md-source-pre code,
-.code-with-lines pre {
-  white-space: pre;
-  word-wrap: normal;
-  overflow-wrap: normal;
+  box-sizing: border-box;
 }
 
 /* Cube Loader */
