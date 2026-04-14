@@ -274,13 +274,13 @@ async function performDiff() {
   selectedFileIndex.value = -1
 
   try {
-    // Download both versions
+    // 使用 /view 拉取 ZIP，与 download 相同内容但不计入下载统计
     const [bufA, bufB] = await Promise.all([
-      fetch(versionsApi.downloadUrl(skillId.value, currentVersionA.value), { credentials: 'include' }).then(r => {
+      fetch(versionsApi.viewUrl(skillId.value, currentVersionA.value), { credentials: 'include' }).then(r => {
         if (!r.ok) throw new Error(`${t('diff.loadFailed')} ${currentVersionA.value}`)
         return r.arrayBuffer()
       }),
-      fetch(versionsApi.downloadUrl(skillId.value, currentVersionB.value), { credentials: 'include' }).then(r => {
+      fetch(versionsApi.viewUrl(skillId.value, currentVersionB.value), { credentials: 'include' }).then(r => {
         if (!r.ok) throw new Error(`${t('diff.loadFailed')} ${currentVersionB.value}`)
         return r.arrayBuffer()
       })
