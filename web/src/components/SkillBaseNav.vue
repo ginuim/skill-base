@@ -8,8 +8,8 @@
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
             <line x1="12" y1="22.08" x2="12" y2="12"/>
           </svg>
-          <span class="font-mono text-neon-400 font-bold drop-shadow-[0_0_8px_rgba(0,255,163,0.4)]">Skill</span>
-          <span class="text-white font-bold">Base</span>
+          <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">Skill</span>
+          <span class="text-fg-strong font-bold">Base</span>
         </router-link>
 
         <div class="sb-nav-links">
@@ -36,6 +36,27 @@
         </button>
 
         <div class="navbar-user">
+          <div class="lang-switcher" :class="{ active: showThemeMenu }">
+            <button type="button" class="lang-switcher-trigger navbar-surface-btn" @click.stop="toggleThemeMenu">
+              <svg v-if="resolved === 'dark'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"/>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+              </svg>
+              <span>{{ themeTriggerLabel }}</span>
+              <svg class="lang-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="lang-switcher-menu min-w-[148px]">
+              <button type="button" class="lang-switcher-option" :class="{ active: preference === 'light' }" @click="setThemePref('light')">{{ t('theme.light') }}</button>
+              <button type="button" class="lang-switcher-option" :class="{ active: preference === 'dark' }" @click="setThemePref('dark')">{{ t('theme.dark') }}</button>
+              <button type="button" class="lang-switcher-option" :class="{ active: preference === 'system' }" @click="setThemePref('system')">{{ t('theme.system') }}</button>
+            </div>
+          </div>
+
           <div class="lang-switcher" :class="{ active: showLangMenu }">
             <button type="button" class="lang-switcher-trigger navbar-surface-btn" @click.stop="toggleLangMenu">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -120,6 +141,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
+import { useTheme } from '@/composables/useTheme'
+import type { ThemePreference } from '@/theme'
 
 interface NavItem {
   href: string
@@ -145,9 +168,16 @@ const { currentLang: i18nLang, setLang: setI18nLang } = useI18n()
 const isMobileMenuOpen = ref(false)
 const showUserMenu = ref(false)
 const showLangMenu = ref(false)
+const showThemeMenu = ref(false)
 const currentLang = computed(() => i18nLang.value)
 
+const { preference, resolved, setPreference } = useTheme()
 const { t } = useI18n()
+
+const themeTriggerLabel = computed(() => {
+  if (preference.value === 'system') return t('theme.systemShort')
+  return resolved.value === 'dark' ? t('theme.darkShort') : t('theme.lightShort')
+})
 
 const navItems = computed(() => {
   const items = (!props.items || !Array.isArray(props.items) || props.items.length === 0)
@@ -184,10 +214,24 @@ function closeMobileMenu() {
   isMobileMenuOpen.value = false
 }
 
+function toggleThemeMenu() {
+  showThemeMenu.value = !showThemeMenu.value
+  if (showThemeMenu.value) {
+    showLangMenu.value = false
+    showUserMenu.value = false
+  }
+}
+
+function setThemePref(p: ThemePreference) {
+  setPreference(p)
+  showThemeMenu.value = false
+}
+
 function toggleLangMenu() {
   showLangMenu.value = !showLangMenu.value
   if (showLangMenu.value) {
     showUserMenu.value = false
+    showThemeMenu.value = false
   }
 }
 
@@ -195,6 +239,7 @@ function toggleUserMenu() {
   showUserMenu.value = !showUserMenu.value
   if (showUserMenu.value) {
     showLangMenu.value = false
+    showThemeMenu.value = false
   }
 }
 
@@ -213,6 +258,7 @@ async function logout() {
 function handleClickOutside() {
   showUserMenu.value = false
   showLangMenu.value = false
+  showThemeMenu.value = false
 }
 
 function handleResize() {
@@ -261,9 +307,13 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
+.sb-nav-brand-skill {
+  filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45));
+}
+
 .sb-nav-brand-icon {
-  color: #00FFA3;
-  filter: drop-shadow(0 0 8px rgba(0, 255, 163, 0.4));
+  color: var(--color-neon-400);
+  filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45));
   flex-shrink: 0;
 }
 
@@ -280,7 +330,7 @@ onUnmounted(() => {
   text-decoration: none;
   font-family: 'JetBrains Mono', monospace;
   transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.875rem;
   padding: 0.35rem 0.6rem;
   border-radius: 0.5rem;
@@ -288,25 +338,25 @@ onUnmounted(() => {
 
 .sb-nav-link:hover,
 .sb-nav-link:focus-visible {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-fg-strong);
+  background: color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
   outline: none;
 }
 
 .sb-nav-link.is-active {
-  color: #ffffff;
-  background: linear-gradient(180deg, rgba(0, 255, 163, 0.08), rgba(255, 255, 255, 0.02));
-  box-shadow: inset 0 0 0 1px rgba(0, 255, 163, 0.12);
+  color: var(--color-fg-strong);
+  background: linear-gradient(180deg, rgba(var(--color-neon-rgb), 0.1), color-mix(in srgb, var(--color-fg-strong) 2%, transparent));
+  box-shadow: inset 0 0 0 1px rgba(var(--color-neon-rgb), 0.18);
 }
 
 .sb-nav-link-prefix {
   min-width: 1.5rem;
-  color: #00FFA3;
+  color: var(--color-neon-400);
 }
 
 .sb-nav-mobile-marker {
   min-width: 1.5rem;
-  color: #00FFA3;
+  color: var(--color-neon-400);
 }
 
 .sb-nav-controls {
@@ -322,19 +372,19 @@ onUnmounted(() => {
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 0.75rem;
-  background: rgba(19, 20, 26, 0.84);
-  color: #e4e4e7;
+  background: color-mix(in srgb, var(--color-base-900) 84%, transparent);
+  color: var(--color-fg);
   transition: all 0.2s ease;
 }
 
 .sb-nav-toggle:hover,
 .sb-nav-toggle:focus-visible {
-  border-color: #00E592;
-  color: #00FFA3;
+  border-color: var(--color-neon-500);
+  color: var(--color-neon-400);
   outline: none;
-  box-shadow: 0 0 0 1px rgba(0, 255, 163, 0.2);
+  box-shadow: 0 0 0 1px rgba(var(--color-neon-rgb), 0.25);
 }
 
 .sb-nav-mobile {
@@ -343,10 +393,10 @@ onUnmounted(() => {
 }
 
 .sb-nav-mobile-panel {
-  border: 1px solid rgba(39, 39, 42, 0.9);
+  border: 1px solid var(--color-base-800);
   border-radius: 1rem;
-  background: linear-gradient(180deg, rgba(19, 20, 26, 0.98), rgba(9, 9, 11, 0.98));
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+  background: color-mix(in srgb, var(--color-base-900) 98%, transparent);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.14);
   overflow: hidden;
 }
 
@@ -360,7 +410,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   padding: 0.875rem 0.9rem;
   border-radius: 0.75rem;
   text-decoration: none;
@@ -371,14 +421,14 @@ onUnmounted(() => {
 
 .sb-nav-mobile-link:hover,
 .sb-nav-mobile-link:focus-visible {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-fg-strong);
+  background: color-mix(in srgb, var(--color-fg-strong) 5%, transparent);
   outline: none;
 }
 
 .sb-nav-mobile-link.is-active {
-  color: #ffffff;
-  background: rgba(0, 255, 163, 0.08);
+  color: var(--color-fg-strong);
+  background: rgba(var(--color-neon-rgb), 0.1);
 }
 
 .navbar-user {
@@ -400,12 +450,12 @@ onUnmounted(() => {
   gap: 5px;
   padding: 6px 10px;
   background: transparent;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
   white-space: nowrap;
   line-height: 1;
@@ -413,19 +463,19 @@ onUnmounted(() => {
 }
 
 .lang-switcher-trigger:hover {
-  border-color: #00e592;
-  color: #00ffa3;
-  background-color: rgba(0, 255, 163, 0.1);
+  border-color: var(--color-neon-500);
+  color: var(--color-neon-400);
+  background-color: rgba(var(--color-neon-rgb), 0.12);
 }
 
 .lang-switcher.active .lang-switcher-trigger {
-  border-color: #00e592;
-  color: #00ffa3;
-  background-color: rgba(0, 255, 163, 0.08);
+  border-color: var(--color-neon-500);
+  color: var(--color-neon-400);
+  background-color: rgba(var(--color-neon-rgb), 0.1);
 }
 
 .lang-switcher.active .lang-switcher-trigger:hover {
-  background-color: rgba(0, 255, 163, 0.1);
+  background-color: rgba(var(--color-neon-rgb), 0.12);
 }
 
 .lang-chevron {
@@ -443,8 +493,8 @@ onUnmounted(() => {
   top: calc(100% + 6px);
   right: 0;
   min-width: 108px;
-  background: #13141a;
-  border: 1px solid #27272a;
+  background: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -466,7 +516,7 @@ onUnmounted(() => {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8125rem;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   transition: background-color 0.2s ease, color 0.2s ease;
   text-align: left;
   white-space: nowrap;
@@ -474,14 +524,14 @@ onUnmounted(() => {
 }
 
 .lang-switcher-option:hover {
-  background-color: rgba(0, 255, 163, 0.12);
-  color: #00FFA3;
+  background-color: rgba(var(--color-neon-rgb), 0.14);
+  color: var(--color-neon-400);
 }
 
 .lang-switcher-option.active {
-  color: #00FFA3;
+  color: var(--color-neon-400);
   font-weight: 600;
-  background-color: rgba(0, 255, 163, 0.05);
+  background-color: rgba(var(--color-neon-rgb), 0.08);
 }
 
 .navbar-user-dropdown {
@@ -494,30 +544,30 @@ onUnmounted(() => {
   gap: 5px;
   padding: 6px 12px;
   background-color: transparent;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 8px;
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.875rem;
   text-decoration: none;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .navbar-user-btn:hover {
-  border-color: #00e592;
-  color: #00ffa3;
-  background-color: rgba(0, 255, 163, 0.1);
+  border-color: var(--color-neon-500);
+  color: var(--color-neon-400);
+  background-color: rgba(var(--color-neon-rgb), 0.12);
 }
 
 .navbar-user-dropdown.active .navbar-user-btn {
-  border-color: #00e592;
-  color: #00ffa3;
-  background-color: rgba(0, 255, 163, 0.08);
+  border-color: var(--color-neon-500);
+  color: var(--color-neon-400);
+  background-color: rgba(var(--color-neon-rgb), 0.1);
 }
 
 .navbar-user-dropdown.active .navbar-user-btn:hover {
-  background-color: rgba(0, 255, 163, 0.1);
+  background-color: rgba(var(--color-neon-rgb), 0.12);
 }
 
 .navbar-user-menu {
@@ -526,8 +576,8 @@ onUnmounted(() => {
   top: calc(100% + 6px);
   right: 0;
   min-width: 200px;
-  background: #13141a;
-  border: 1px solid #27272a;
+  background: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -544,7 +594,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  color: #e4e4e7;
+  color: var(--color-fg);
   font-size: 0.875rem;
   border-radius: 6px;
   cursor: pointer;
@@ -558,8 +608,8 @@ onUnmounted(() => {
 }
 
 .navbar-user-menu-item:hover {
-  background-color: rgba(0, 255, 163, 0.12);
-  color: #00FFA3;
+  background-color: rgba(var(--color-neon-rgb), 0.14);
+  color: var(--color-neon-400);
 }
 
 .navbar-user-logout {
@@ -573,7 +623,7 @@ onUnmounted(() => {
 
 .navbar-user-menu-divider {
   height: 1px;
-  background: #27272a;
+  background: var(--color-base-800);
   margin: 4px 0;
 }
 
@@ -594,15 +644,15 @@ onUnmounted(() => {
 
 .btn-primary {
   background-color: transparent;
-  border: 1px solid #00E592;
-  color: #00FFA3;
-  box-shadow: 0 0 15px rgba(0,255,163,0.1);
+  border: 1px solid var(--color-neon-500);
+  color: var(--color-neon-400);
+  box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.12);
 }
 
 .btn-primary:hover {
-  background-color: rgba(0, 255, 163, 0.1);
-  box-shadow: 0 0 20px rgba(0, 255, 163, 0.2);
-  color: #ffffff;
+  background-color: rgba(var(--color-neon-rgb), 0.12);
+  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.22);
+  color: var(--color-fg-strong);
 }
 
 .btn-sm {

@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
-        <router-link to="/" class="flex items-center gap-2 text-white font-bold text-lg">
+        <router-link to="/" class="flex items-center gap-2 text-fg-strong font-bold text-lg">
           <span class="text-neon-400">$</span> Skill Base
         </router-link>
 
@@ -14,7 +14,7 @@
             :key="item.path"
             :to="item.path"
             class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            :class="$route.path === item.path ? 'text-neon-400 bg-neon-400/10' : 'text-base-400 hover:text-white hover:bg-white/5'"
+            :class="$route.path === item.path ? 'text-neon-400 bg-neon-400/10' : 'text-base-400 hover:text-fg-strong hover:bg-white/5'"
           >
             <span v-if="$route.path === item.path" class="mr-1">./</span>
             {{ item.name }}
@@ -26,7 +26,7 @@
           <!-- Language Toggle -->
           <button
             @click="toggleLang"
-            class="px-3 py-1.5 rounded-lg text-xs font-mono border border-base-800 text-base-400 hover:text-white hover:border-base-700 transition-colors"
+            class="px-3 py-1.5 rounded-lg text-xs font-mono border border-base-800 text-base-400 hover:text-fg-strong hover:border-base-700 transition-colors"
           >
             {{ currentLang === 'zh' ? 'EN' : '中文' }}
           </button>
@@ -35,7 +35,7 @@
           <div class="relative" v-if="authStore.isLoggedIn">
             <button
               @click="showUserMenu = !showUserMenu"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-base-200 hover:text-white hover:bg-white/5 transition-colors"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-base-200 hover:text-fg-strong hover:bg-white/5 transition-colors"
             >
               <span class="w-6 h-6 rounded-full bg-neon-400/20 flex items-center justify-center text-neon-400 text-xs font-bold">
                 {{ authStore.displayName.charAt(0).toUpperCase() }}
@@ -54,7 +54,7 @@
               >
                 <router-link
                   to="/settings"
-                  class="block px-4 py-2 text-sm text-base-200 hover:text-white hover:bg-white/5"
+                  class="block px-4 py-2 text-sm text-base-200 hover:text-fg-strong hover:bg-white/5"
                   @click="showUserMenu = false"
                 >
                   账户设置
@@ -62,7 +62,7 @@
                 <router-link
                   v-if="authStore.isAdmin"
                   to="/admin/users"
-                  class="block px-4 py-2 text-sm text-base-200 hover:text-white hover:bg-white/5"
+                  class="block px-4 py-2 text-sm text-base-200 hover:text-fg-strong hover:bg-white/5"
                   @click="showUserMenu = false"
                 >
                   用户管理
@@ -70,7 +70,7 @@
                 <router-link
                   v-if="authStore.isSuperAdmin"
                   to="/admin/tags"
-                  class="block px-4 py-2 text-sm text-base-200 hover:text-white hover:bg-white/5"
+                  class="block px-4 py-2 text-sm text-base-200 hover:text-fg-strong hover:bg-white/5"
                   @click="showUserMenu = false"
                 >
                   {{ t('nav.tagAdmin') }}

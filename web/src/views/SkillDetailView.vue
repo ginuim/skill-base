@@ -18,7 +18,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-2">{{ t('skill.notFound') }}</h3>
+        <h3 class="text-xl font-semibold text-fg-strong mb-2">{{ t('skill.notFound') }}</h3>
         <p class="text-base-400 mb-6">{{ t('skill.notFoundDesc') }}</p>
         <router-link to="/" class="btn-primary px-6 py-3 rounded-lg">
           {{ t('skill.backToHome') }}
@@ -31,15 +31,15 @@
         <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
           <span class="text-neon-400">~</span>
           <span class="opacity-50">/</span>
-          <router-link to="/" class="hover:text-white transition-colors">{{ t('skill.breadcrumbHome') }}</router-link>
+          <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('skill.breadcrumbHome') }}</router-link>
           <span class="opacity-50">/</span>
-          <span class="text-white">{{ skill.name }}</span>
+          <span class="text-fg-strong">{{ skill.name }}</span>
         </div>
 
         <!-- Skill Info Card -->
         <div id="skill-info" class="card p-6 mb-6 relative overflow-hidden">
           <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ID: {{ skill.id.toString().substring(0, 8) }}</div>
-          <h1 class="text-3xl font-bold text-white mb-3 flex items-center gap-3">
+          <h1 class="text-3xl font-bold text-fg-strong mb-3 flex items-center gap-3">
             <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
             {{ skill.name }}
           </h1>
@@ -102,7 +102,7 @@
               <select
                 v-model="currentVersion"
                 @change="onVersionChange"
-                class="w-full appearance-none bg-base-950 border border-base-800 text-white font-mono text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors cursor-pointer"
+                class="w-full appearance-none bg-base-950 border border-base-800 text-fg-strong font-mono text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors cursor-pointer"
               >
                 <option v-for="(v, index) in versions" :key="v.id" :value="v.version">
                   {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
@@ -126,7 +126,7 @@
               </button>
               <button
                 @click="goToDiff"
-                class="flex items-center justify-center gap-2 bg-transparent text-white border border-base-800 hover:bg-base-800 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
+                class="flex items-center justify-center gap-2 bg-transparent text-fg-strong border border-base-800 hover:bg-base-800 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
@@ -135,7 +135,7 @@
               </button>
               <button
                 @click="downloadCurrentVersion"
-                class="flex items-center justify-center gap-2 bg-transparent border border-neon-500 text-neon-400 hover:bg-neon-400/10 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto shadow-[0_0_15px_rgba(0,255,163,0.1)] hover:shadow-[0_0_20px_rgba(0,255,163,0.2)]"
+                class="skill-btn-neon-glow flex items-center justify-center gap-2 bg-transparent border border-neon-500 text-neon-400 hover:bg-neon-400/10 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -154,7 +154,7 @@
               <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
               <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
               <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
-              <span class="ml-2 text-white/50">ls -la</span>
+              <span class="ml-2 text-fg-strong/50">ls -la</span>
             </div>
             <div id="file-tree" class="p-3 flex-1 overflow-y-auto no-scrollbar font-mono text-sm">
               <div v-if="isLoadingZip" class="flex justify-center py-8">
@@ -180,7 +180,7 @@
           <div id="file-preview-panel" :class="['lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]', { 'fullscreen': isFullscreen }]">
             <div class="px-5 py-3 border-b border-base-800 text-sm font-mono text-base-400 bg-base-950/50 rounded-t-xl flex justify-between items-center">
               <div>
-                <span>cat <span class="text-white/30">{{ selectedFilePath || '<file>' }}</span></span>
+                <span>cat <span class="text-fg-strong/30">{{ selectedFilePath || '<file>' }}</span></span>
               </div>
               <div class="flex items-center gap-3">
                 <div v-if="isMarkdownFile" class="flex gap-2">
@@ -243,14 +243,14 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Left: Collaborators -->
           <div class="bg-base-900 border border-base-800 rounded-xl h-fit">
-            <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-white flex items-center justify-between text-sm">
+            <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-fg-strong flex items-center justify-between text-sm">
               <div class="flex items-center gap-2">
                 <span class="text-neon-400">#</span> {{ t('skill.collaborators') }}
               </div>
               <button
                 v-if="skillsStore.isOwner"
                 @click="showAddCollaboratorModal = true"
-                class="text-xs text-neon-400 hover:text-white transition-colors"
+                class="text-xs text-neon-400 hover:text-fg-strong transition-colors"
               >
                 + {{ t('btn.add') }}
               </button>
@@ -263,7 +263,7 @@
                     {{ (skill.owner?.username || 'U').charAt(0).toUpperCase() }}
                   </span>
                   <div>
-                    <div class="font-medium text-white text-sm">{{ skill.owner?.name || skill.owner?.username }}</div>
+                    <div class="font-medium text-fg-strong text-sm">{{ skill.owner?.name || skill.owner?.username }}</div>
                     <div class="text-xs text-base-400">{{ skill.owner?.email || '' }}</div>
                   </div>
                 </div>
@@ -282,7 +282,7 @@
                     {{ (collaborator.username || 'U').charAt(0).toUpperCase() }}
                   </span>
                   <div>
-                    <div class="font-medium text-white text-sm">{{ collaborator.name || collaborator.username }}</div>
+                    <div class="font-medium text-fg-strong text-sm">{{ collaborator.name || collaborator.username }}</div>
                     <div class="text-xs text-base-400">{{ collaborator.email || '' }}</div>
                   </div>
                 </div>
@@ -304,7 +304,7 @@
               </div>
             </div>
             <div v-if="skillsStore.isOwner" class="px-5 pb-4 border-t border-base-800 pt-4">
-              <div class="font-mono text-xs text-white/90 mb-1 flex items-center gap-2">
+              <div class="font-mono text-xs text-fg-strong/90 mb-1 flex items-center gap-2">
                 <span class="text-neon-400">hook</span>
                 {{ t('skill.webhookTitle') }}
               </div>
@@ -313,7 +313,7 @@
                 v-model="webhookDraft"
                 type="url"
                 autocomplete="off"
-                class="w-full bg-base-950 border border-base-800 text-white text-xs font-mono rounded px-3 py-2 mb-2 focus:outline-none focus:border-neon-500"
+                class="w-full bg-base-950 border border-base-800 text-fg-strong text-xs font-mono rounded px-3 py-2 mb-2 focus:outline-none focus:border-neon-500"
                 :placeholder="t('skill.webhookPlaceholder')"
               />
               <button
@@ -345,7 +345,7 @@
               class="px-5 py-4 border-b border-base-800 flex items-center justify-between rounded-t-xl cursor-pointer hover:bg-white/5 transition-colors"
               @click="isVersionHistoryCollapsed = !isVersionHistoryCollapsed"
             >
-              <div class="flex items-center gap-2 font-mono font-semibold text-white text-sm">
+              <div class="flex items-center gap-2 font-mono font-semibold text-fg-strong text-sm">
                 <span class="text-neon-400">git</span> log
               </div>
               <span class="text-base-400 transition-transform" :class="isVersionHistoryCollapsed ? '-rotate-90' : ''">
@@ -367,7 +367,7 @@
                   <!-- Timeline dot -->
                   <span
                     class="absolute -left-[21px] top-2 w-2.5 h-2.5 rounded-full ring-4 ring-base-900 transition-colors"
-                    :class="v.version === skill.latest_version ? 'bg-neon-400 shadow-[0_0_8px_rgba(0,255,163,0.8)]' : 'bg-base-800 group-hover:bg-neon-500'"
+                    :class="v.version === skill.latest_version ? 'bg-neon-400 skill-timeline-dot-glow' : 'bg-base-800 group-hover:bg-neon-500'"
                   ></span>
 
                   <div class="flex items-start justify-between gap-4 p-3 -m-3 rounded-lg transition-all duration-200 group-hover:bg-white/5">
@@ -381,7 +381,7 @@
                         </span>
                         <span v-if="v.version === skill.latest_version" class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>
                       </div>
-                      <p class="text-sm font-medium mt-2" :class="v.version === skill.latest_version ? 'text-white' : 'text-base-200'">
+                      <p class="text-sm font-medium mt-2" :class="v.version === skill.latest_version ? 'text-fg-strong' : 'text-base-200'">
                         {{ v.changelog || t('skill.noChangelog') }}
                       </p>
                       <p class="text-xs text-base-400 mt-1 flex items-center gap-1.5 font-mono">
@@ -418,7 +418,7 @@
 
                       <button
                         :title="t('skill.download')"
-                        class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 hover:shadow-[0_0_10px_rgba(0,255,163,0.15)] transition-all"
+                        class="skill-icon-btn-neon-hover flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 transition-all"
                         @click.stop="downloadVersion(v.version)"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1207,16 +1207,33 @@ async function setHeadVersion(version: string) {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+.skill-btn-neon-glow {
+  box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.12);
+}
+.skill-btn-neon-glow:hover {
+  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.22);
+}
+.skill-timeline-dot-glow {
+  box-shadow: 0 0 8px rgba(var(--color-neon-rgb), 0.45);
+}
+.skill-icon-btn-neon-hover:hover {
+  box-shadow: 0 0 10px rgba(var(--color-neon-rgb), 0.18);
+}
+
 .card {
-  background-color: #13141a;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.75rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="light"] .card {
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.12);
 }
 
 /* Markdown preview styles */
 .markdown-body {
-  color: #e4e4e7;
+  color: var(--color-fg);
   line-height: 1.8;
   max-width: 100%;
   overflow-wrap: break-word;
@@ -1229,23 +1246,23 @@ async function setHeadVersion(version: string) {
   font-weight: 700;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
-  color: white;
+  color: var(--color-fg-strong);
 }
 
 .markdown-body :deep(h1) { font-size: 1.5rem; }
-.markdown-body :deep(h2) { font-size: 1.25rem; border-bottom: 1px solid #27272a; padding-bottom: 0.3em; }
+.markdown-body :deep(h2) { font-size: 1.25rem; border-bottom: 1px solid var(--color-base-800); padding-bottom: 0.3em; }
 .markdown-body :deep(ul),
 .markdown-body :deep(ol) { padding-left: 2em; margin-bottom: 1em; }
 .markdown-body :deep(li) { margin-bottom: 0.25em; list-style: disc; }
 .markdown-body :deep(p) { margin-bottom: 1em; }
-.markdown-body :deep(a) { color: #00FFA3; text-decoration: underline; text-underline-offset: 4px; }
+.markdown-body :deep(a) { color: var(--color-neon-400); text-decoration: underline; text-underline-offset: 4px; }
 .markdown-body :deep(code) {
-  background-color: #09090b;
+  background-color: var(--color-base-950);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875em;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
 }
 .markdown-body :deep(pre code) {
   background: none;
@@ -1253,8 +1270,8 @@ async function setHeadVersion(version: string) {
   padding: 0;
 }
 .markdown-body :deep(pre) {
-  background-color: #09090b;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-950);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
   padding: 1rem;
   overflow-x: auto;
@@ -1268,9 +1285,9 @@ async function setHeadVersion(version: string) {
   word-break: break-word;
 }
 .markdown-body :deep(blockquote) {
-  border-left: 4px solid #27272a;
+  border-left: 4px solid var(--color-base-800);
   padding-left: 1em;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   margin: 1em 0;
 }
 .markdown-body :deep(table) {
@@ -1280,12 +1297,12 @@ async function setHeadVersion(version: string) {
 }
 .markdown-body :deep(th),
 .markdown-body :deep(td) {
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   padding: 0.5em 1em;
   text-align: left;
 }
 .markdown-body :deep(th) {
-  background-color: #09090b;
+  background-color: var(--color-base-950);
 }
 
 /* 按逻辑行渲染：行号与该行首对齐，长行仅在右侧折行（与常见编辑器换行行为一致） */
@@ -1295,7 +1312,7 @@ async function setHeadVersion(version: string) {
   min-height: 100%;
   box-sizing: border-box;
   padding: 1.5rem;
-  background-color: #09090b;
+  background-color: var(--color-base-950);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
   line-height: 1.6;
@@ -1313,10 +1330,10 @@ async function setHeadVersion(version: string) {
   flex-shrink: 0;
   min-width: 2.5rem;
   text-align: right;
-  color: #52525b;
+  color: var(--color-base-400);
   user-select: none;
   padding-right: 0.75rem;
-  border-right: 1px solid #27272a;
+  border-right: 1px solid var(--color-base-800);
   box-sizing: border-box;
 }
 
@@ -1326,7 +1343,7 @@ async function setHeadVersion(version: string) {
   margin: 0;
   padding: 0;
   text-align: left;
-  color: #e4e4e7;
+  color: var(--color-fg);
   background: none;
   border: none;
   font-family: inherit;
@@ -1347,23 +1364,23 @@ async function setHeadVersion(version: string) {
   padding: 0.25rem 0.625rem;
   font-size: 0.75rem;
   font-family: "JetBrains Mono", monospace;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   background: transparent;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   cursor: pointer;
   border-radius: 0.25rem;
   transition: all 0.2s;
 }
 
 .md-view-btn:hover {
-  color: white;
-  border-color: #a1a1aa;
+  color: var(--color-fg-strong);
+  border-color: var(--color-base-400);
 }
 
 .md-view-btn.is-active {
-  background: rgba(0, 255, 163, 0.1);
-  color: #00FFA3;
-  border: 1px solid #00E592;
+  background: rgba(var(--color-neon-rgb), 0.1);
+  color: var(--color-neon-400);
+  border: 1px solid var(--color-neon-500);
 }
 
 .skill-meta-chip,
@@ -1378,9 +1395,9 @@ async function setHeadVersion(version: string) {
 }
 
 .skill-meta-chip {
-  color: #cbd5e1;
-  background: rgba(9, 9, 11, 0.9);
-  border: 1px solid #27272a;
+  color: var(--color-base-400);
+  background: color-mix(in srgb, var(--color-base-950) 88%, transparent);
+  border: 1px solid var(--color-base-800);
 }
 
 .skill-meta-chip-favorite {
@@ -1396,9 +1413,9 @@ async function setHeadVersion(version: string) {
 }
 
 .skill-meta-chip-action {
-  color: #00FFA3;
-  background: rgba(0, 255, 163, 0.08);
-  border-color: rgba(0, 255, 163, 0.25);
+  color: var(--color-neon-400);
+  background: rgba(var(--color-neon-rgb), 0.08);
+  border-color: rgba(var(--color-neon-rgb), 0.25);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1410,7 +1427,7 @@ async function setHeadVersion(version: string) {
 }
 
 .skill-meta-chip-action:hover {
-  background: rgba(0, 255, 163, 0.14);
+  background: rgba(var(--color-neon-rgb), 0.14);
 }
 
 .skill-meta-chip--favorited:hover {
@@ -1418,9 +1435,9 @@ async function setHeadVersion(version: string) {
 }
 
 .skill-tag-chip {
-  color: #00FFA3;
-  background: rgba(0, 255, 163, 0.08);
-  border: 1px solid rgba(0, 255, 163, 0.2);
+  color: var(--color-neon-400);
+  background: rgba(var(--color-neon-rgb), 0.08);
+  border: 1px solid rgba(var(--color-neon-rgb), 0.2);
 }
 
 .tag-option-row {
@@ -1428,7 +1445,7 @@ async function setHeadVersion(version: string) {
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0;
-  color: #e4e4e7;
+  color: var(--color-fg);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
 }
@@ -1512,7 +1529,7 @@ async function setHeadVersion(version: string) {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #00FFA3;
+  background-color: var(--color-neon-400);
   animation: cube-fold 2.4s infinite linear both;
   transform-origin: 100% 100%;
 }
@@ -1561,9 +1578,9 @@ async function setHeadVersion(version: string) {
   display: inline-block;
   width: 24px;
   height: 24px;
-  border: 3px solid rgba(0, 255, 163, 0.2);
+  border: 3px solid rgba(var(--color-neon-rgb), 0.2);
   border-radius: 50%;
-  border-top-color: #00FFA3;
+  border-top-color: var(--color-neon-400);
   animation: spin 1s linear infinite;
 }
 
@@ -1609,14 +1626,14 @@ async function setHeadVersion(version: string) {
 
 .modal-content {
   position: relative;
-  background-color: #13141a;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.75rem;
   width: 90%;
   max-width: 420px;
   padding: 1.5rem;
-  color: #e4e4e7;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  color: var(--color-fg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
 }
 
 .modal-header {
@@ -1629,20 +1646,20 @@ async function setHeadVersion(version: string) {
 .modal-header h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-fg-strong);
   margin: 0;
 }
 
 .modal-close {
   background: none;
   border: none;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 1.5rem;
   cursor: pointer;
 }
 
 .modal-close:hover {
-  color: white;
+  color: var(--color-fg-strong);
 }
 
 .modal-body {
@@ -1657,16 +1674,16 @@ async function setHeadVersion(version: string) {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
-  color: #a1a1aa;
+  color: var(--color-base-400);
 }
 
 .form-input {
   width: 100%;
   padding: 0.625rem 0.75rem;
-  background-color: #09090b;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-950);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
-  color: white;
+  color: var(--color-fg-strong);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
   box-sizing: border-box;
@@ -1674,8 +1691,8 @@ async function setHeadVersion(version: string) {
 
 .form-input:focus {
   outline: none;
-  border-color: #00E592;
-  box-shadow: 0 0 0 1px #00E592;
+  border-color: var(--color-neon-500);
+  box-shadow: 0 0 0 1px var(--color-neon-500);
 }
 
 .modal-footer {
@@ -1695,8 +1712,8 @@ async function setHeadVersion(version: string) {
 
 .modal-footer .btn-secondary {
   background: transparent;
-  border: 1px solid #27272a;
-  color: white;
+  border: 1px solid var(--color-base-800);
+  color: var(--color-fg-strong);
 }
 
 .modal-footer .btn-danger:disabled {

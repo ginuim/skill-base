@@ -144,12 +144,12 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background-color: #09090b;
+  background-color: var(--color-base-950);
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 64px 64px;
-  color: #e4e4e7;
+  color: var(--color-fg);
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -171,12 +171,12 @@ async function handleLogin() {
 }
 
 .login-brand-icon {
-  color: #00ffa3;
-  filter: drop-shadow(0 0 8px rgba(0, 255, 163, 0.4));
+  color: var(--color-neon-400);
+  filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.4));
 }
 
 .login-brand-text {
-  color: #fff;
+  color: var(--color-fg-strong);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
 }
@@ -184,11 +184,11 @@ async function handleLogin() {
 .login-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 0.75rem;
   padding: 2rem;
-  background: #13141a;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background: var(--color-base-900);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
 }
 
 .login-card-badge {
@@ -197,8 +197,8 @@ async function handleLogin() {
   right: 0;
   padding: 0.25rem 0.5rem;
   border-bottom-left-radius: 0.5rem;
-  background: #27272a;
-  color: #a1a1aa;
+  background: var(--color-base-800);
+  color: var(--color-base-400);
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   opacity: 0.5;
@@ -214,7 +214,7 @@ async function handleLogin() {
   align-items: center;
   gap: 0.75rem;
   margin: 0 0 0.5rem;
-  color: #fff;
+  color: var(--color-fg-strong);
   font-size: 2.25rem;
   line-height: 1;
   font-weight: 700;
@@ -222,14 +222,14 @@ async function handleLogin() {
 }
 
 .login-title-prompt {
-  color: #00ffa3;
+  color: var(--color-neon-400);
   opacity: 0.7;
   font-weight: 400;
 }
 
 .login-subtitle {
   margin: 0;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -260,19 +260,19 @@ async function handleLogin() {
 
 .login-label {
   display: block;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .login-keyword,
 .login-equals {
-  color: #00ffa3;
+  color: var(--color-neon-400);
   opacity: 0.7;
 }
 
 .login-label-name {
-  color: #fff;
+  color: var(--color-fg-strong);
 }
 
 .login-input {
@@ -282,10 +282,10 @@ async function handleLogin() {
   padding: 0 1rem;
   box-sizing: border-box;
   margin: 0;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
-  background: #09090b;
-  color: #fff;
+  background: var(--color-base-950);
+  color: var(--color-fg-strong);
   font-size: 0.875rem;
   line-height: calc(3rem - 2px);
   font-family: 'JetBrains Mono', monospace;
@@ -298,8 +298,8 @@ async function handleLogin() {
 
 .login-input:focus {
   outline: none;
-  border-color: #00e592;
-  box-shadow: 0 0 0 1px #00e592;
+  border-color: var(--color-neon-500);
+  box-shadow: 0 0 0 1px var(--color-neon-500);
 }
 
 .login-input:disabled,
@@ -320,19 +320,19 @@ async function handleLogin() {
   width: 100%;
   min-height: 3rem;
   padding: 0 1.25rem;
-  border: 1px solid #00e592;
+  border: 1px solid var(--color-neon-500);
   border-radius: 0.5rem;
   background: transparent;
-  color: #00ffa3;
+  color: var(--color-neon-400);
   font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  box-shadow: 0 0 15px rgba(0, 255, 163, 0.1);
+  box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.1);
 }
 
 .login-submit:hover:not(:disabled) {
-  background: rgba(0, 255, 163, 0.1);
-  box-shadow: 0 0 20px rgba(0, 255, 163, 0.2);
+  background: rgba(var(--color-neon-rgb), 0.1);
+  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.2);
 }
 
 .login-status {
@@ -341,7 +341,7 @@ async function handleLogin() {
   justify-content: center;
   gap: 0.5rem;
   margin-top: 2rem;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
   text-align: center;
@@ -351,7 +351,7 @@ async function handleLogin() {
   width: 0.375rem;
   height: 0.375rem;
   border-radius: 9999px;
-  background: #00ffa3;
+  background: var(--color-neon-400);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -360,17 +360,17 @@ async function handleLogin() {
 }
 
 .login-container ::selection {
-  background: rgba(0, 255, 163, 0.3);
-  color: #fff;
+  background: rgba(var(--color-neon-rgb), 0.3);
+  color: var(--color-fg-strong);
 }
 
 .spinner {
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(0, 255, 163, 0.3);
+  border: 2px solid rgba(var(--color-neon-rgb), 0.3);
   border-radius: 50%;
-  border-top-color: #00FFA3;
+  border-top-color: var(--color-neon-400);
   animation: spin 1s linear infinite;
   vertical-align: middle;
   margin-right: 8px;
@@ -393,8 +393,8 @@ input.login-input:-webkit-autofill,
 input.login-input:-webkit-autofill:hover,
 input.login-input:-webkit-autofill:focus,
 input.login-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #09090b inset !important;
-  -webkit-text-fill-color: white !important;
+  -webkit-box-shadow: 0 0 0 30px var(--color-base-950) inset !important;
+  -webkit-text-fill-color: var(--color-fg-strong) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -407,5 +407,18 @@ input.login-input:-webkit-autofill:active {
   50% {
     opacity: 0.5;
   }
+}
+</style>
+
+<style>
+html[data-theme="light"] .login-container {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+}
+
+html[data-theme="light"] .login-container ::selection {
+  background: rgba(0, 200, 130, 0.28);
+  color: var(--color-fg-strong);
 }
 </style>

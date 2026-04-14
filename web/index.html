@@ -9,6 +9,18 @@
     <link rel="manifest" href="./site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skill Base</title>
+    <script>
+      (function () {
+        try {
+          var k = 'skill-base-theme'
+          var v = localStorage.getItem(k)
+          var p = v === 'light' || v === 'dark' || v === 'system' ? v : 'dark'
+          var dark = p === 'dark' || (p === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

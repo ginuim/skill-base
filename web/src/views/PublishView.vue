@@ -5,15 +5,15 @@
         <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
           <span class="text-neon-400">~</span>
           <span class="opacity-50">/</span>
-          <router-link to="/" class="hover:text-white transition-colors">home</router-link>
+          <router-link to="/" class="hover:text-fg-strong transition-colors">home</router-link>
           <span class="opacity-50">/</span>
-          <span class="text-white">publish</span>
+          <span class="text-fg-strong">publish</span>
         </div>
 
         <div class="card publish-card relative overflow-hidden p-8">
           <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CMD-PUB</div>
 
-          <h1 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-fg-strong mb-6 flex items-center gap-3">
             <span class="text-neon-400 font-mono font-normal opacity-70">></span>
             <span>{{ t('publish.title') }}</span>
           </h1>
@@ -122,7 +122,7 @@
                 <button
                   v-if="githubPreview"
                   type="button"
-                  class="text-sm font-mono text-base-400 hover:text-white underline"
+                  class="text-sm font-mono text-base-400 hover:text-fg-strong underline"
                   @click="clearGithubImport"
                 >
                   {{ t('publish.githubClear') }}
@@ -1020,10 +1020,14 @@ async function handlePublish() {
 }
 
 .card {
-  background-color: #13141a;
-  border: 1px solid #27272a;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background-color: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border-radius: 0.75rem;
+}
+
+html[data-theme="light"] .card {
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.12);
 }
 
 .btn-primary:disabled {
@@ -1035,41 +1039,41 @@ input[type="text"],
 textarea,
 select {
   font-family: 'JetBrains Mono', monospace !important;
-  background-color: #09090b !important;
-  border-color: #27272a !important;
-  color: #fafafa !important;
-  -webkit-text-fill-color: #fafafa !important;
+  background-color: var(--color-base-950) !important;
+  border-color: var(--color-base-800) !important;
+  color: var(--color-fg-strong) !important;
+  -webkit-text-fill-color: var(--color-fg-strong) !important;
 }
 input::placeholder,
 textarea::placeholder {
-  color: #71717a !important;
-  -webkit-text-fill-color: #71717a !important;
+  color: var(--color-base-400) !important;
+  -webkit-text-fill-color: var(--color-base-400) !important;
 }
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #00FFA3 !important;
-  box-shadow: 0 0 0 1px rgba(0,255,163,0.5) !important;
+  border-color: var(--color-neon-400) !important;
+  box-shadow: 0 0 0 1px rgba(var(--color-neon-rgb), 0.45) !important;
 }
 input[readonly],
 textarea[readonly] {
-  background-color: rgba(9, 9, 11, 0.5) !important;
-  color: #e4e4e7 !important;
-  -webkit-text-fill-color: #e4e4e7 !important;
-  border-color: #27272a !important;
+  background-color: color-mix(in srgb, var(--color-base-950) 50%, transparent) !important;
+  color: var(--color-fg) !important;
+  -webkit-text-fill-color: var(--color-fg) !important;
+  border-color: var(--color-base-800) !important;
 }
 input:disabled,
 textarea:disabled,
 select:disabled {
-  color: #e4e4e7 !important;
-  -webkit-text-fill-color: #e4e4e7 !important;
+  color: var(--color-fg) !important;
+  -webkit-text-fill-color: var(--color-fg) !important;
   opacity: 1 !important;
 }
 
 .drop-zone {
-  border: 1px dashed #27272a;
+  border: 1px dashed var(--color-base-800);
   border-radius: 0.5rem;
-  background-color: #09090b;
+  background-color: var(--color-base-950);
   min-height: 160px;
   display: flex;
   flex-direction: column;
@@ -1080,21 +1084,21 @@ select:disabled {
 }
 .drop-zone:hover,
 .drop-zone.drag-over {
-  border-color: #00FFA3;
-  background-color: rgba(0,255,163,0.02);
+  border-color: var(--color-neon-400);
+  background-color: rgba(var(--color-neon-rgb), 0.04);
 }
 .drop-zone-icon {
-  color: #00FFA3;
+  color: var(--color-neon-400);
   opacity: 0.5;
   margin-bottom: 0.5rem;
 }
 .drop-zone-text {
-  color: #fff;
+  color: var(--color-fg-strong);
   font-size: 0.875rem;
   margin-bottom: 0.25rem;
 }
 .drop-zone-subtitle {
-  color: #00FFA3;
+  color: var(--color-neon-400);
   font-size: 0.75rem;
   cursor: pointer;
   opacity: 0.8;
@@ -1105,7 +1109,7 @@ select:disabled {
 }
 .drop-zone-hint {
   font-size: 0.6875rem;
-  color: #64748b;
+  color: var(--color-base-400);
   margin-top: 1rem;
   max-width: 80%;
   text-align: center;
@@ -1115,7 +1119,7 @@ select:disabled {
   display: flex;
   align-items: center;
   margin: 1.5rem 0;
-  color: #27272a;
+  color: var(--color-base-800);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
 }
@@ -1124,16 +1128,16 @@ select:disabled {
   content: '';
   flex: 1;
   height: 1px;
-  background-color: #27272a;
+  background-color: var(--color-base-800);
 }
 .divider span {
   padding: 0 1rem;
-  color: #64748b;
+  color: var(--color-base-400);
 }
 
 .file-preview {
-  background-color: #09090b;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-950);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
   margin-top: 1rem;
   padding: 1rem;
@@ -1149,10 +1153,10 @@ select:disabled {
   margin-bottom: 0.5rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.875rem;
-  color: #00FFA3;
+  color: var(--color-neon-400);
 }
 .file-preview-clear {
-  color: #a1a1aa;
+  color: var(--color-base-400);
   background: none;
   border: none;
   font-size: 0.75rem;
@@ -1165,13 +1169,13 @@ select:disabled {
 .file-preview-list {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   max-height: 150px;
   overflow-y: auto;
 }
 .file-preview-list .file-item {
   padding: 0.25rem 0;
-  border-bottom: 1px dashed #27272a;
+  border-bottom: 1px dashed var(--color-base-800);
 }
 .file-preview-list .file-item:last-child {
   border-bottom: none;
@@ -1179,21 +1183,21 @@ select:disabled {
 .file-preview-summary {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid #27272a;
+  border-top: 1px solid var(--color-base-800);
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-base-400);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .parse-success {
   padding: 1rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(0, 255, 163, 0.3);
-  background: rgba(0, 255, 163, 0.08);
+  border: 1px solid rgba(var(--color-neon-rgb), 0.3);
+  background: rgba(var(--color-neon-rgb), 0.08);
 }
 
 .parse-success-title {
-  color: #00FFA3;
+  color: var(--color-neon-400);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.875rem;
   font-weight: 700;
@@ -1201,7 +1205,7 @@ select:disabled {
 }
 
 .parse-success-text {
-  color: #d4d4d8;
+  color: var(--color-fg);
   font-size: 0.875rem;
   line-height: 1.6;
 }
@@ -1215,22 +1219,22 @@ select:disabled {
 }
 .progress-bar-wrapper {
   height: 6px;
-  background-color: #09090b;
+  background-color: var(--color-base-950);
   border-radius: 999px;
   overflow: hidden;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
 }
 .progress-bar {
   height: 100%;
-  background-color: #00FFA3;
+  background-color: var(--color-neon-400);
   width: 0%;
   transition: width 0.3s ease;
-  box-shadow: 0 0 10px #00FFA3;
+  box-shadow: 0 0 10px var(--color-neon-400);
 }
 .progress-text {
   margin-top: 0.5rem;
   font-size: 0.75rem;
-  color: #00FFA3;
+  color: var(--color-neon-400);
   text-align: center;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -1238,14 +1242,14 @@ select:disabled {
 .form-hint {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-base-400);
   margin-top: 0.5rem;
 }
 
 .spinner {
-  border: 2px solid rgba(0,255,163,0.3);
+  border: 2px solid rgba(var(--color-neon-rgb),0.3);
   border-radius: 50%;
-  border-top-color: #00FFA3;
+  border-top-color: var(--color-neon-400);
   width: 16px;
   height: 16px;
   animation: spin 1s linear infinite;
@@ -1266,8 +1270,8 @@ select:disabled {
   display: inline-flex;
   padding: 4px;
   border-radius: 9999px;
-  background-color: #09090b;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-950);
+  border: 1px solid var(--color-base-800);
   gap: 2px;
   margin-bottom: 1.5rem;
 }
@@ -1280,33 +1284,33 @@ select:disabled {
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   background: transparent;
-  color: #a1a1aa;
+  color: var(--color-base-400);
 }
 .publish-mode-tab:hover {
-  color: #e4e4e7;
+  color: var(--color-fg);
 }
 .publish-mode-tab.active {
-  background: rgba(0, 255, 163, 0.12);
-  color: #00ffa3;
-  box-shadow: 0 0 0 1px rgba(0, 255, 163, 0.35);
+  background: rgba(var(--color-neon-rgb), 0.12);
+  color: var(--color-neon-400);
+  box-shadow: 0 0 0 1px rgba(var(--color-neon-rgb), 0.35);
 }
 
 .github-connect-banner {
   margin-bottom: 0.25rem;
 }
 .github-connect-idle {
-  border-color: #27272a;
-  background: rgba(9, 9, 11, 0.6);
-  color: #a1a1aa;
+  border-color: var(--color-base-800);
+  background: color-mix(in srgb, var(--color-base-950) 60%, transparent);
+  color: var(--color-base-400);
 }
 .github-connect-checking {
-  border-color: #3f3f46;
-  background: rgba(39, 39, 42, 0.35);
-  color: #a1a1aa;
+  border-color: var(--color-base-700);
+  background: color-mix(in srgb, var(--color-base-800) 35%, transparent);
+  color: var(--color-base-400);
 }
 .github-connect-ok {
-  border-color: rgba(0, 255, 163, 0.35);
-  background: rgba(0, 255, 163, 0.06);
+  border-color: rgba(var(--color-neon-rgb), 0.35);
+  background: rgba(var(--color-neon-rgb), 0.06);
   color: #86efac;
 }
 .github-connect-fail {

@@ -87,15 +87,15 @@ function selectFile() {
   gap: 0.5rem;
   padding: 0.375rem 0.5rem;
   cursor: pointer;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   border-radius: 0.375rem;
   transition: all 0.2s;
 }
 
 .file-tree-item:hover,
 .file-tree-item.selected {
-  color: #00FFA3;
-  background-color: rgba(0, 255, 163, 0.1);
+  color: var(--color-neon-400);
+  background-color: rgba(var(--color-neon-rgb), 0.1);
 }
 
 .file-tree-item .name {
@@ -107,7 +107,7 @@ function selectFile() {
 }
 
 .file-tree-folder > .file-tree-item {
-  color: white;
+  color: var(--color-fg-strong);
 }
 
 .children-list {
@@ -124,6 +124,6 @@ function selectFile() {
   top: 0;
   bottom: 0.75rem;
   width: 1px;
-  background-color: #27272a;
+  background-color: var(--color-base-800);
 }
 </style>

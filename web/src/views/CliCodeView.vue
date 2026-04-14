@@ -5,9 +5,9 @@
       <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
         <span class="text-neon-400">~</span>
         <span class="opacity-50">/</span>
-        <router-link to="/" class="hover:text-white transition-colors">home</router-link>
+        <router-link to="/" class="hover:text-fg-strong transition-colors">home</router-link>
         <span class="opacity-50">/</span>
-        <span class="text-white">cli-code</span>
+        <span class="text-fg-strong">cli-code</span>
       </div>
     </div>
 
@@ -19,7 +19,7 @@
           <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">AUTH-CLI</div>
 
           <div class="cli-code-header mb-8 text-left">
-            <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
               <span class="text-neon-400 font-mono font-normal opacity-70">></span>
               <span>{{ t('cliCode.heading') }}</span>
             </h1>
@@ -199,13 +199,13 @@ async function copyCode() {
 }
 
 .cli-code-value {
-  color: #00FFA3;
-  text-shadow: 0 0 15px rgba(0,255,163,0.3);
+  color: var(--color-neon-400);
+  text-shadow: 0 0 15px rgba(var(--color-neon-rgb),0.3);
 }
 
 .cli-code-hint {
-  background-color: rgba(0,255,163,0.05);
-  border: 1px solid rgba(0,255,163,0.2);
+  background-color: rgba(var(--color-neon-rgb),0.05);
+  border: 1px solid rgba(var(--color-neon-rgb),0.2);
   color: #a1a1aa;
 }
 

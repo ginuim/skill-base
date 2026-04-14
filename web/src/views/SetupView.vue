@@ -281,12 +281,12 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background-color: #09090b;
+  background-color: var(--color-base-950);
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 64px 64px;
-  color: #e4e4e7;
+  color: var(--color-fg);
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -311,18 +311,18 @@ onMounted(() => {
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 0.375rem;
-  background: rgba(9, 9, 11, 0.5);
+  background: color-mix(in srgb, var(--color-base-950) 50%, transparent);
   backdrop-filter: blur(4px);
-  color: #e4e4e7;
+  color: var(--color-fg);
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease;
 }
 
 .lang-switcher-trigger:hover {
-  border-color: #00e592;
-  color: #00ffa3;
+  border-color: var(--color-neon-500);
+  color: var(--color-neon-400);
 }
 
 .lang-chevron {
@@ -339,8 +339,8 @@ onMounted(() => {
   top: 100%;
   right: 0;
   margin-top: 0.5rem;
-  background-color: #13141a;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
   padding: 0.25rem;
   min-width: 100px;
@@ -357,7 +357,7 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   font-size: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   background: transparent;
   border: none;
   border-radius: 0.375rem;
@@ -366,12 +366,12 @@ onMounted(() => {
 }
 
 .lang-switcher-option:hover {
-  color: #fff;
-  background-color: #27272a;
+  color: var(--color-fg-strong);
+  background-color: var(--color-base-800);
 }
 
 .lang-switcher-option.active {
-  color: #00ffa3;
+  color: var(--color-neon-400);
   font-weight: 600;
 }
 
@@ -388,12 +388,12 @@ onMounted(() => {
 }
 
 .setup-brand-icon {
-  color: #00ffa3;
-  filter: drop-shadow(0 0 8px rgba(0, 255, 163, 0.4));
+  color: var(--color-neon-400);
+  filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.4));
 }
 
 .setup-brand-text {
-  color: #fff;
+  color: var(--color-fg-strong);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
 }
@@ -401,11 +401,11 @@ onMounted(() => {
 .setup-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 0.75rem;
   padding: 2rem;
-  background: #13141a;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background: var(--color-base-900);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
 }
 
 .setup-card-badge {
@@ -414,8 +414,8 @@ onMounted(() => {
   right: 0;
   padding: 0.25rem 0.5rem;
   border-bottom-left-radius: 0.5rem;
-  background: #27272a;
-  color: #a1a1aa;
+  background: var(--color-base-800);
+  color: var(--color-base-400);
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   opacity: 0.5;
@@ -431,7 +431,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.75rem;
   margin: 0 0 0.5rem;
-  color: #fff;
+  color: var(--color-fg-strong);
   font-size: 1.5rem;
   line-height: 1;
   font-weight: 700;
@@ -439,14 +439,14 @@ onMounted(() => {
 }
 
 .setup-title-prompt {
-  color: #00ffa3;
+  color: var(--color-neon-400);
   opacity: 0.7;
   font-weight: 400;
 }
 
 .setup-subtitle {
   margin: 0;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -466,10 +466,10 @@ onMounted(() => {
 .setup-success {
   margin-bottom: 1.5rem;
   padding: 0.75rem;
-  border: 1px solid rgba(0, 255, 163, 0.3);
+  border: 1px solid rgba(var(--color-neon-rgb), 0.3);
   border-radius: 0.5rem;
-  background: rgba(0, 255, 163, 0.1);
-  color: #00ffa3;
+  background: rgba(var(--color-neon-rgb), 0.1);
+  color: var(--color-neon-400);
   font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
   overflow-wrap: anywhere;
@@ -489,19 +489,19 @@ onMounted(() => {
 
 .setup-label {
   display: block;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .setup-keyword,
 .setup-equals {
-  color: #00ffa3;
+  color: var(--color-neon-400);
   opacity: 0.7;
 }
 
 .setup-label-name {
-  color: #fff;
+  color: var(--color-fg-strong);
 }
 
 .setup-input {
@@ -511,10 +511,10 @@ onMounted(() => {
   padding: 0 1rem;
   box-sizing: border-box;
   margin: 0;
-  border: 1px solid #27272a;
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
-  background: #09090b;
-  color: #fff;
+  background: var(--color-base-950);
+  color: var(--color-fg-strong);
   font-size: 0.875rem;
   line-height: calc(3rem - 2px);
   font-family: 'JetBrains Mono', monospace;
@@ -527,8 +527,8 @@ onMounted(() => {
 
 .setup-input:focus {
   outline: none;
-  border-color: #00e592;
-  box-shadow: 0 0 0 1px #00e592;
+  border-color: var(--color-neon-500);
+  box-shadow: 0 0 0 1px var(--color-neon-500);
 }
 
 .setup-input:disabled,
@@ -556,20 +556,20 @@ onMounted(() => {
   width: 100%;
   min-height: 3rem;
   padding: 0 1.25rem;
-  border: 1px solid #00e592;
+  border: 1px solid var(--color-neon-500);
   border-radius: 0.5rem;
   background: transparent;
-  color: #00ffa3;
+  color: var(--color-neon-400);
   font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  box-shadow: 0 0 15px rgba(0, 255, 163, 0.1);
+  box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.1);
 }
 
 .setup-submit:hover:not(:disabled) {
-  background: rgba(0, 255, 163, 0.1);
-  box-shadow: 0 0 20px rgba(0, 255, 163, 0.2);
+  background: rgba(var(--color-neon-rgb), 0.1);
+  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.2);
 }
 
 .setup-status {
@@ -578,7 +578,7 @@ onMounted(() => {
   justify-content: center;
   gap: 0.5rem;
   margin-top: 2rem;
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
   text-align: center;
@@ -588,7 +588,7 @@ onMounted(() => {
   width: 0.375rem;
   height: 0.375rem;
   border-radius: 9999px;
-  background: #00ffa3;
+  background: var(--color-neon-400);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -597,8 +597,8 @@ onMounted(() => {
 }
 
 .setup-container ::selection {
-  background: rgba(0, 255, 163, 0.3);
-  color: #fff;
+  background: rgba(var(--color-neon-rgb), 0.3);
+  color: var(--color-fg-strong);
 }
 
 .btn-devtools-icon {
@@ -612,8 +612,8 @@ input.setup-input:-webkit-autofill,
 input.setup-input:-webkit-autofill:hover,
 input.setup-input:-webkit-autofill:focus,
 input.setup-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #09090b inset !important;
-  -webkit-text-fill-color: white !important;
+  -webkit-box-shadow: 0 0 0 30px var(--color-base-950) inset !important;
+  -webkit-text-fill-color: var(--color-fg-strong) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -625,5 +625,18 @@ input.setup-input:-webkit-autofill:active {
   50% {
     opacity: 0.5;
   }
+}
+</style>
+
+<style>
+html[data-theme="light"] .setup-container {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+}
+
+html[data-theme="light"] .setup-container ::selection {
+  background: rgba(0, 200, 130, 0.28);
+  color: var(--color-fg-strong);
 }
 </style>

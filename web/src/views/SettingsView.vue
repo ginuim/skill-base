@@ -5,16 +5,16 @@
       <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
         <span class="text-neon-400">~</span>
         <span class="opacity-50">/</span>
-        <router-link to="/" class="hover:text-white transition-colors">{{ t('nav.home') }}</router-link>
+        <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('nav.home') }}</router-link>
         <span class="opacity-50">/</span>
-        <span class="text-white">{{ t('nav.settings') }}</span>
+        <span class="text-fg-strong">{{ t('nav.settings') }}</span>
       </div>
 
       <div class="skill-card p-8 relative overflow-hidden">
         <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CFG-USER</div>
 
         <div class="mb-8 border-b border-base-800 pb-6">
-          <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
             <span class="text-neon-400 font-mono font-normal opacity-70">></span>
             <span>{{ t('settings.heading') }}</span>
           </h1>
@@ -23,31 +23,31 @@
 
         <!-- 基本信息 -->
         <div class="mb-10">
-          <h2 class="flex items-center gap-2 text-lg font-semibold text-white pb-3 border-b border-base-800 font-mono">
+          <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono">
             <span class="text-neon-400">#</span> {{ t('settings.basicInfo') }}
           </h2>
           <form @submit.prevent="saveProfile" class="space-y-5 mt-6">
             <div>
               <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-white">username</span> <span class="text-neon-400 opacity-70">=</span>
+                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">username</span> <span class="text-neon-400 opacity-70">=</span>
               </label>
               <input
                 type="text"
                 v-model="profileForm.username"
                 disabled
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white opacity-50 cursor-not-allowed"
+                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong opacity-50 cursor-not-allowed"
               />
               <p class="font-mono text-xs text-base-500 mt-1">{{ t('settings.usernameHint') }}</p>
             </div>
             <div>
               <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-white">name</span> <span class="text-neon-400 opacity-70">=</span>
+                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">name</span> <span class="text-neon-400 opacity-70">=</span>
               </label>
               <input
                 type="text"
                 v-model="profileForm.name"
                 :placeholder="t('settings.namePlaceholder')"
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
               />
               <p class="font-mono text-xs text-base-500 mt-1">{{ t('settings.nameHint') }}</p>
             </div>
@@ -66,7 +66,7 @@
 
         <!-- CLI 验证码 -->
         <div class="mb-10">
-          <h2 class="flex items-center gap-2 text-lg font-semibold text-white pb-3 border-b border-base-800 font-mono">
+          <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono">
             <span class="text-neon-400">#</span> {{ t('settings.cliSection') }}
           </h2>
           <div class="mt-6">
@@ -83,42 +83,42 @@
 
         <!-- 修改密码 -->
         <div>
-          <h2 class="flex items-center gap-2 text-lg font-semibold text-white pb-3 border-b border-base-800 font-mono">
+          <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono">
             <span class="text-neon-400">#</span> {{ t('settings.passwordSection') }}
           </h2>
           <form @submit.prevent="changePassword" class="space-y-5 mt-6">
             <div>
               <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-white">current_password</span> <span class="text-neon-400 opacity-70">=</span>
+                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">current_password</span> <span class="text-neon-400 opacity-70">=</span>
               </label>
               <input
                 type="password"
                 v-model="passwordForm.current"
                 required
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
               />
             </div>
             <div>
               <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-white">new_password</span> <span class="text-neon-400 opacity-70">=</span>
+                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">new_password</span> <span class="text-neon-400 opacity-70">=</span>
               </label>
               <input
                 type="password"
                 v-model="passwordForm.new"
                 required
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
               />
               <p class="font-mono text-xs text-base-500 mt-1">{{ t('settings.newPasswordHint') }}</p>
             </div>
             <div>
               <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-white">confirm_password</span> <span class="text-neon-400 opacity-70">=</span>
+                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">confirm_password</span> <span class="text-neon-400 opacity-70">=</span>
               </label>
               <input
                 type="password"
                 v-model="passwordForm.confirm"
                 required
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
               />
             </div>
             <div class="pt-2">

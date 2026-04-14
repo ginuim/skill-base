@@ -15,6 +15,13 @@ const zh: Record<string, string> = {
   'nav.logout': '登出',
   'nav.login': '登录',
 
+  'theme.light': '浅色',
+  'theme.dark': '深色',
+  'theme.system': '跟随系统',
+  'theme.lightShort': '浅色',
+  'theme.darkShort': '深色',
+  'theme.systemShort': '系统',
+
   // Common buttons / labels
   'btn.cancel': '取消',
   'common.cancel': '取消',
@@ -475,6 +482,13 @@ const en: Record<string, string> = {
   'nav.tagAdmin': 'Tags',
   'nav.logout': 'Sign Out',
   'nav.login': 'Sign In',
+
+  'theme.light': 'Light',
+  'theme.dark': 'Dark',
+  'theme.system': 'Match system',
+  'theme.lightShort': 'Light',
+  'theme.darkShort': 'Dark',
+  'theme.systemShort': 'System',
 
   // Common buttons / labels
   'btn.cancel': 'Cancel',

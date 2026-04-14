@@ -117,12 +117,12 @@ defineExpose({
 }
 
 .toast--success {
-  border-color: #00E592;
+  border-color: var(--color-neon-500);
   box-shadow: 0 0 20px rgba(0, 229, 146, 0.15), 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .toast--success .toast__icon {
-  color: #00FFA3;
+  color: var(--color-neon-400);
 }
 
 .toast--error {

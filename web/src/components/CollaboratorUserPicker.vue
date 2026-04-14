@@ -239,8 +239,8 @@ defineExpose({
 
 .form-input:focus {
   outline: none;
-  border-color: #00e592;
-  box-shadow: 0 0 0 1px #00e592;
+  border-color: var(--color-neon-500);
+  box-shadow: 0 0 0 1px var(--color-neon-500);
 }
 
 .collab-suggest-list {
@@ -271,7 +271,7 @@ defineExpose({
 
 .collab-suggest-item:hover,
 .collab-suggest-item.is-active {
-  background: rgba(0, 255, 163, 0.08);
+  background: rgba(var(--color-neon-rgb), 0.08);
 }
 
 .collab-suggest-username {

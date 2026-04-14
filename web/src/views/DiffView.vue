@@ -13,7 +13,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-2">{{ t('diff.loadFailed') }}</h3>
+        <h3 class="text-xl font-semibold text-fg-strong mb-2">{{ t('diff.loadFailed') }}</h3>
         <p class="text-base-400 mb-6">{{ error }}</p>
         <router-link to="/" class="btn-primary px-6 py-3 rounded-lg">
           {{ t('diff.backToHome') }}
@@ -26,11 +26,11 @@
         <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
           <span class="text-neon-400">~</span>
           <span class="opacity-50">/</span>
-          <router-link to="/" class="hover:text-white transition-colors">home</router-link>
+          <router-link to="/" class="hover:text-fg-strong transition-colors">home</router-link>
           <span class="opacity-50">/</span>
-          <router-link :to="`/skills/${skillId}`" class="hover:text-white transition-colors">{{ skill?.name || skillId }}</router-link>
+          <router-link :to="`/skills/${skillId}`" class="hover:text-fg-strong transition-colors">{{ skill?.name || skillId }}</router-link>
           <span class="opacity-50">/</span>
-          <span class="text-white">diff</span>
+          <span class="text-fg-strong">diff</span>
         </div>
 
         <!-- Controls -->
@@ -40,7 +40,7 @@
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
               <span class="text-xs font-mono text-base-400">{{ t('diff.old') }}</span>
-              <select v-model="currentVersionA" class="bg-base-950 border border-base-800 text-white font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
+              <select v-model="currentVersionA" class="bg-base-950 border border-base-800 text-fg-strong font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
                 <option value="">{{ t('diff.selectVersion') }}</option>
                 <option v-for="(v, index) in versions" :key="v.version" :value="v.version">
                   {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
@@ -50,7 +50,7 @@
             <span class="font-mono text-base-600">-></span>
             <div class="flex items-center gap-2">
               <span class="text-xs font-mono text-base-400">{{ t('diff.new') }}</span>
-              <select v-model="currentVersionB" class="bg-base-950 border border-base-800 text-white font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
+              <select v-model="currentVersionB" class="bg-base-950 border border-base-800 text-fg-strong font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
                 <option value="">{{ t('diff.selectVersion') }}</option>
                 <option v-for="(v, index) in versions" :key="v.version" :value="v.version">
                   {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
@@ -77,7 +77,7 @@
               <span class="text-xs font-mono px-2 py-1 rounded bg-base-950 border border-base-800 text-neon-400">
                 {{ currentFilePath || t('diff.allFiles') }}
               </span>
-              <button v-if="currentFilePath" @click="clearFileSelection" class="text-xs text-base-400 hover:text-white">
+              <button v-if="currentFilePath" @click="clearFileSelection" class="text-xs text-base-400 hover:text-fg-strong">
                 {{ t('diff.clearSelection') }}
               </button>
             </div>
@@ -86,14 +86,14 @@
               <button 
                 @click="outputFormat = 'side-by-side'"
                 class="px-4 py-1.5 text-xs font-mono transition-colors"
-                :class="outputFormat === 'side-by-side' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-white'"
+                :class="outputFormat === 'side-by-side' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-fg-strong'"
               >
                 {{ t('diff.split') }}
               </button>
               <button 
                 @click="outputFormat = 'line-by-line'"
                 class="px-4 py-1.5 text-xs font-mono transition-colors border-l border-base-800"
-                :class="outputFormat === 'line-by-line' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-white'"
+                :class="outputFormat === 'line-by-line' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-fg-strong'"
               >
                 {{ t('diff.unifiedView') }}
               </button>
@@ -494,52 +494,71 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.card {
+  background-color: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="light"] .card {
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.12);
+}
+
 .diff-output :deep(.d2h-wrapper) {
-  background-color: #131419;
+  background-color: var(--color-base-900);
 }
 
 .diff-output :deep(.d2h-file-wrapper) {
-  background-color: #131419;
+  background-color: var(--color-base-900);
   border: none;
 }
 
 .diff-output :deep(.d2h-file-header) {
-  background-color: #09090b;
-  border-bottom: 1px solid #27272a;
+  background-color: var(--color-base-950);
+  border-bottom: 1px solid var(--color-base-800);
 }
 
 .diff-output :deep(.d2h-file-name) {
-  color: #00FFA3;
+  color: var(--color-neon-400);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .diff-output :deep(.d2h-tag) {
-  background-color: rgba(0, 255, 163, 0.1);
-  color: #00FFA3;
-  border: 1px solid #00E592;
+  background-color: rgba(var(--color-neon-rgb), 0.1);
+  color: var(--color-neon-400);
+  border: 1px solid var(--color-neon-500);
 }
 
 .diff-output :deep(.d2h-code-wrapper),
 .diff-output :deep(.d2h-diff-table) {
-  background-color: #131419;
+  background-color: var(--color-base-900);
 }
 
 .diff-output :deep(.d2h-code-line),
 .diff-output :deep(.d2h-code-side-line) {
-  background-color: #131419;
-  color: #e4e4e7;
+  background-color: var(--color-base-900);
+  color: var(--color-fg);
 }
 
 .diff-output :deep(.d2h-code-line-ctn) {
-  color: #e4e4e7;
+  color: var(--color-fg);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .diff-output :deep(.d2h-ins) {
-  background-color: rgba(34, 197, 94, 0.15);
+  background-color: rgba(34, 197, 94, 0.18);
 }
 
 .diff-output :deep(.d2h-del) {
+  background-color: rgba(248, 113, 113, 0.18);
+}
+
+html[data-theme="light"] .diff-output :deep(.d2h-ins) {
+  background-color: rgba(34, 197, 94, 0.22);
+}
+
+html[data-theme="light"] .diff-output :deep(.d2h-del) {
   background-color: rgba(248, 113, 113, 0.15);
 }
 
@@ -554,19 +573,19 @@ onMounted(() => {
 }
 
 .diff-output :deep(.d2h-info) {
-  background-color: #09090b;
-  color: #a1a1aa;
-  border-color: #27272a;
+  background-color: var(--color-base-950);
+  color: var(--color-base-400);
+  border-color: var(--color-base-800);
 }
 
 .diff-output :deep(.d2h-code-linenumber),
 .diff-output :deep(.d2h-code-side-linenumber) {
-  background-color: #1a1b23;
-  color: #9ca3af;
-  border-color: #27272a;
+  background-color: var(--color-base-950);
+  color: var(--color-base-400);
+  border-color: var(--color-base-800);
 }
 
 .diff-output :deep(.d2h-cntx) {
-  background-color: #131419;
+  background-color: var(--color-base-900);
 }
 </style>

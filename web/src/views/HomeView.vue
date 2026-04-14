@@ -34,7 +34,7 @@
       <div class="text-sm text-base-400 font-mono flex items-center gap-2">
         <span class="text-neon-400">~</span>
         <span class="opacity-50">/</span>
-        <span class="text-white">skills</span>
+        <span class="text-fg-strong">skills</span>
         <span class="opacity-50 ml-2">ls -la</span>
       </div>
       <div class="flex items-center gap-2">
