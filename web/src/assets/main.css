@@ -13,6 +13,7 @@
 
   --color-neon-400: #00FFA3;
   --color-neon-500: #00E592;
+  --color-pink-400: #ff75b5;
 }
 
 html {
@@ -235,11 +236,57 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 .skill-card-owner {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+.skill-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.skill-card-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #64748b;
+}
+.skill-card-stat--favorited {
+  color: #ff75b5;
+}
+.skill-card-stat--favorited svg path {
+  fill: currentColor;
+}
+
+/* Filter chips */
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: #13141a;
+  border: 1px solid #27272a;
+  border-radius: 9999px;
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-chip:hover {
+  border-color: #3f3f46;
+  color: #fff;
+}
+.filter-chip--active {
+  background: rgba(255, 117, 181, 0.1);
+  border-color: rgba(255, 117, 181, 0.5);
+  color: #ff75b5;
+}
+.filter-chip--active svg path {
+  fill: currentColor;
 }
 
 /* FAB button */

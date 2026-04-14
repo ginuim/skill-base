@@ -87,6 +87,7 @@ async function usersRoutes(fastify, options) {
       name: user.name,
       role: user.role,
       status: user.status,
+      is_super_admin: user.is_super_admin || 0,
       created_at: user.created_at,
       updated_at: user.updated_at
     };
@@ -129,7 +130,13 @@ async function usersRoutes(fastify, options) {
       if (!['active', 'disabled'].includes(status)) {
         return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Status must be active or disabled' });
       }
+      if (status === 'disabled' && !UserModel.canDemoteOrDisableSuperAdmin(userId)) {
+        return reply.code(400).send({ ok: false, error: 'last_super_admin', detail: 'Cannot disable the last super admin' });
+      }
       fields.status = status;
+    }
+    if (role !== undefined && role === 'developer' && !UserModel.canDemoteOrDisableSuperAdmin(userId)) {
+      return reply.code(400).send({ ok: false, error: 'last_super_admin', detail: 'Cannot downgrade the last super admin' });
     }
     if (name !== undefined) {
       fields.name = name;
@@ -162,6 +169,26 @@ async function usersRoutes(fastify, options) {
     UserModel.resetPassword(userId, passwordHash);
     
     return reply.send({ ok: true, message: 'Password has been reset' });
+  });
+
+  // DELETE /:user_id - Delete user
+  fastify.delete('/:user_id', async (request, reply) => {
+    const userId = parseInt(request.params.user_id);
+    const user = UserModel.findById(userId);
+
+    if (!user) {
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
+    }
+
+    if (userId === request.user.id) {
+      return reply.code(400).send({ ok: false, error: 'self_protection', detail: 'Cannot delete your own account' });
+    }
+
+    if (!UserModel.canDeleteSuperAdmin(userId)) {
+      return reply.code(400).send({ ok: false, error: 'last_super_admin', detail: 'Cannot delete the last super admin' });
+    }
+
+    return reply.send({ ok: UserModel.delete(userId) });
   });
   });
 }

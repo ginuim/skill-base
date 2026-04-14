@@ -29,12 +29,27 @@
       </div>
     </div>
 
-    <!-- 面包屑 -->
-    <div v-if="skillsStore.skills.length > 0" class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-      <span class="text-neon-400">~</span>
-      <span class="opacity-50">/</span>
-      <span class="text-white">skills</span>
-      <span class="opacity-50 ml-2">ls -la</span>
+    <!-- 面包屑与过滤器 -->
+    <div v-if="skillsStore.skills.length > 0" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div class="text-sm text-base-400 font-mono flex items-center gap-2">
+        <span class="text-neon-400">~</span>
+        <span class="opacity-50">/</span>
+        <span class="text-white">skills</span>
+        <span class="opacity-50 ml-2">ls -la</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="filter-chip"
+          :class="{ 'filter-chip--active': onlyFavorites }"
+          @click="onlyFavorites = !onlyFavorites"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          {{ t('index.favoriteOnly') }}
+        </button>
+      </div>
     </div>
 
     <!-- Skill 列表 -->
@@ -88,6 +103,27 @@
                 </svg>
                 {{ skill.owner?.name || skill.owner?.username || t('state.unknown') }}
               </span>
+              <span class="skill-card-stats">
+                <span class="skill-card-stat" :title="t('index.downloadCount')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  {{ skill.download_count ?? 0 }}
+                </span>
+                <span
+                  class="skill-card-stat"
+                  :title="skill.is_favorited ? t('index.favorited') : t('index.favorite')"
+                >
+                  <span :class="{ 'skill-card-stat--favorited': skill.is_favorited }">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                  </span>
+                  {{ skill.favorite_count ?? 0 }}
+                </span>
+              </span>
             </div>
             <span>{{ formatDate(skill.updated_at) }}</span>
           </div>
@@ -114,17 +150,25 @@ import { formatDate } from '@/utils/date'
 const skillsStore = useSkillsStore()
 const { t } = useI18n()
 const searchQuery = ref('')
+const onlyFavorites = ref(false)
 const isLoading = ref(true)
 
 const filteredSkills = computed(() => {
-  if (!searchQuery.value) {
-    return skillsStore.skills
+  let result = skillsStore.skills
+
+  if (onlyFavorites.value) {
+    result = result.filter(skill => skill.is_favorited)
   }
-  const query = searchQuery.value.toLowerCase()
-  return skillsStore.skills.filter(skill =>
-    skill.name.toLowerCase().includes(query) ||
-    skill.description.toLowerCase().includes(query)
-  )
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(skill =>
+      skill.name.toLowerCase().includes(query) ||
+      skill.description.toLowerCase().includes(query)
+    )
+  }
+
+  return result
 })
 
 function clearSearch() {

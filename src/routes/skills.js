@@ -3,6 +3,8 @@ const path = require('path');
 const db = require('../database');
 const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
+const FavoriteModel = require('../models/favorite');
+const TagModel = require('../models/tag');
 const { getZipPath, resolveZipPath } = require('../utils/zip');
 const { canManageSkill } = require('../utils/permission');
 const { parseWebhookUrlField, notifySkillWebhook, canViewSkillWebhook } = require('../utils/skill-webhook');
@@ -30,6 +32,9 @@ function formatSkill(skill, currentUser) {
     name: skill.name,
     description: skill.description,
     latest_version: skill.latest_version,
+    favorite_count: skill.favorite_count || 0,
+    download_count: skill.download_count || 0,
+    tags: TagModel.listSkillTags(skill.id),
     owner: {
       id: skill.owner_id,
       username: skill.owner_username,
@@ -54,6 +59,8 @@ function formatSkill(skill, currentUser) {
     result.permission = 'user';
   }
 
+  result.is_favorited = currentUser ? FavoriteModel.isFavorited(currentUser.id, skill.id) : false;
+
   if (canViewSkillWebhook(currentUser, result.permission)) {
     result.webhook_url = skill.webhook_url || null;
   }
@@ -70,6 +77,7 @@ function formatVersion(version) {
     version: version.version,
     changelog: version.changelog,
     description: version.description,
+    download_count: version.download_count || 0,
     zip_path: version.zip_path,
     uploader: {
       id: version.uploader_id,
@@ -81,6 +89,17 @@ function formatVersion(version) {
 }
 
 async function skillsRoutes(fastify, options) {
+  function resolveExistingZipPath(skillId, versionRecord) {
+    const zipPath = resolveZipPath(versionRecord.zip_path, skillId, versionRecord.version);
+    const fallbackZipPath = getZipPath(skillId, versionRecord.version);
+
+    if (!fs.existsSync(zipPath) && !fs.existsSync(fallbackZipPath)) {
+      return null;
+    }
+
+    return fs.existsSync(zipPath) ? zipPath : fallbackZipPath;
+  }
+
   // GET / - Get skills list
   fastify.get('/', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { q } = request.query;
@@ -141,18 +160,13 @@ async function skillsRoutes(fastify, options) {
       return reply.code(404).send({ detail: 'Version not found' });
     }
 
-    // Prefer using zip_path from database for backward compatibility; fallback to rule-based path if missing
-    const zipPath = resolveZipPath(versionRecord.zip_path, skill_id, versionRecord.version);
-    const fallbackZipPath = getZipPath(skill_id, versionRecord.version);
-
-    // Check if file exists
-    if (!fs.existsSync(zipPath)) {
-      if (!fs.existsSync(fallbackZipPath)) {
-        return reply.code(404).send({ detail: 'Version not found' });
-      }
+    const finalZipPath = resolveExistingZipPath(skill_id, versionRecord);
+    if (!finalZipPath) {
+      return reply.code(404).send({ detail: 'Version not found' });
     }
 
-    const finalZipPath = fs.existsSync(zipPath) ? zipPath : fallbackZipPath;
+    SkillModel.incrementDownloadCount(skill_id);
+    VersionModel.incrementDownloadCount(skill_id, versionRecord.version);
 
     // Set response headers and return file stream
     const fileName = `${skill_id}-${versionRecord.version}.zip`;
@@ -160,6 +174,95 @@ async function skillsRoutes(fastify, options) {
     reply.header('Content-Disposition', `attachment; filename="${fileName}"`);
 
     return fs.createReadStream(finalZipPath);
+  });
+
+  // GET /:skill_id/versions/:version/view - View version zip file without counting download
+  fastify.get('/:skill_id/versions/:version/view', async (request, reply) => {
+    const { skill_id, version } = request.params;
+
+    const versionRecord = version === 'latest'
+      ? VersionModel.getLatest(skill_id)
+      : VersionModel.findByVersion(skill_id, version);
+
+    if (!versionRecord) {
+      return reply.code(404).send({ detail: 'Version not found' });
+    }
+
+    const finalZipPath = resolveExistingZipPath(skill_id, versionRecord);
+    if (!finalZipPath) {
+      return reply.code(404).send({ detail: 'Version not found' });
+    }
+
+    const fileName = `${skill_id}-${versionRecord.version}.zip`;
+    reply.header('Content-Type', 'application/zip');
+    reply.header('Content-Disposition', `inline; filename="${fileName}"`);
+
+    return fs.createReadStream(finalZipPath);
+  });
+
+  // POST /:skill_id/favorite - Favorite skill
+  fastify.post('/:skill_id/favorite', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const { skill_id } = request.params;
+
+    if (!SkillModel.exists(skill_id)) {
+      return reply.code(404).send({ detail: 'Skill not found' });
+    }
+
+    FavoriteModel.add(request.user.id, skill_id);
+    const skill = SkillModel.findById(skill_id);
+
+    return {
+      ok: true,
+      skill_id,
+      favorited: true,
+      favorite_count: skill.favorite_count || 0
+    };
+  });
+
+  // DELETE /:skill_id/favorite - Unfavorite skill
+  fastify.delete('/:skill_id/favorite', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const { skill_id } = request.params;
+
+    if (!SkillModel.exists(skill_id)) {
+      return reply.code(404).send({ detail: 'Skill not found' });
+    }
+
+    FavoriteModel.remove(request.user.id, skill_id);
+    const skill = SkillModel.findById(skill_id);
+
+    return {
+      ok: true,
+      skill_id,
+      favorited: false,
+      favorite_count: skill.favorite_count || 0
+    };
+  });
+
+  // PUT /:skill_id/tags - Replace skill tags
+  fastify.put('/:skill_id/tags', {
+    preHandler: [fastify.authenticate]
+  }, async (request, reply) => {
+    const { skill_id } = request.params;
+    const { tag_ids } = request.body || {};
+
+    if (!SkillModel.exists(skill_id)) {
+      return reply.code(404).send({ detail: 'Skill not found' });
+    }
+
+    if (!canManageSkill(request.user, skill_id)) {
+      return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
+    }
+
+    if (tag_ids !== undefined && !Array.isArray(tag_ids)) {
+      return reply.code(400).send({ detail: 'tag_ids must be an array' });
+    }
+
+    const tags = TagModel.replaceSkillTags(skill_id, tag_ids || [], request.user.id);
+    return { ok: true, skill_id, tags };
   });
 
   // PUT /:skill_id - Update skill basic info

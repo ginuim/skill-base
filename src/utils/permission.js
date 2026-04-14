@@ -38,8 +38,13 @@ function canManageSkill(user, skillId) {
   return hasSkillPermission(user, skillId, 'owner');
 }
 
+function isSuperAdmin(user) {
+  return !!user && user.role === 'admin' && Number(user.is_super_admin || 0) === 1;
+}
+
 module.exports = {
   hasSkillPermission,
   canPublishSkill,
-  canManageSkill
+  canManageSkill,
+  isSuperAdmin
 };

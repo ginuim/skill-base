@@ -43,6 +43,28 @@
             <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
             {{ skill.name }}
           </h1>
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <button
+              v-if="authStore.isLoggedIn"
+              type="button"
+              class="skill-meta-chip skill-meta-chip-action"
+              :class="{ 'skill-meta-chip--favorited': skill.is_favorited }"
+              @click="toggleFavorite"
+            >
+              {{ skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite') }}
+            </button>
+            <span class="skill-meta-chip">{{ skill.favorite_count }} {{ t('skill.favoriteCount') }}</span>
+            <span class="skill-meta-chip">{{ skill.download_count }} {{ t('skill.downloadCount') }}</span>
+            <span v-for="tag in skill.tags" :key="tag.id" class="skill-tag-chip">{{ tag.name }}</span>
+            <button
+              v-if="canEditTags"
+              type="button"
+              class="skill-meta-chip skill-meta-chip-action"
+              @click="showEditTagsModal = true"
+            >
+              {{ t('skill.editTags') }}
+            </button>
+          </div>
           <div class="flex items-start justify-between mb-6 group">
             <p class="text-base-400 text-sm leading-relaxed max-w-5xl whitespace-pre-wrap">
               {{ currentVersionObj?.description || skill.description || t('state.noDesc') }}
@@ -341,7 +363,10 @@
                       </p>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                      <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at) }}</span>
+                      <div class="flex flex-col items-end gap-1">
+                        <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at) }}</span>
+                        <span class="text-[10px] text-base-500 font-mono">{{ v.download_count }} {{ t('skill.downloadCount') }}</span>
+                      </div>
                       
                       <button
                         v-if="canManageCollaborators && v.version !== skill.latest_version"
@@ -480,15 +505,51 @@
         </div>
       </div>
     </div>
+
+    <!-- Edit Tags Modal -->
+    <div v-if="showEditTagsModal" class="modal" @click.self="showEditTagsModal = false">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>{{ t('skill.editTags') }}</h3>
+          <button class="modal-close" @click="showEditTagsModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div v-if="allTags.length === 0" class="text-sm text-base-400 font-mono">
+            {{ t('skill.noTags') }}
+          </div>
+          <label
+            v-for="tag in allTags"
+            :key="tag.id"
+            class="tag-option-row"
+          >
+            <input
+              v-model="selectedTagIds"
+              type="checkbox"
+              :value="tag.id"
+            />
+            <span>{{ tag.name }}</span>
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showEditTagsModal = false">{{ t('btn.cancel') }}</button>
+          <button class="btn btn-primary" @click="saveSkillTags" :disabled="isSavingTags">
+            <span v-if="isSavingTags" class="spinner spinner-sm mr-2"></span>
+            {{ t('btn.save') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
-import { versionsApi, skillsApi, type SkillVersion } from '@/services/api'
+import { versionsApi, skillsApi, tagsApi, type SkillVersion, type Tag } from '@/services/api'
 import { globalToast } from '@/composables/useToast'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -497,6 +558,7 @@ import { formatDate, formatDateFull } from '@/utils/date'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const skillsStore = useSkillsStore()
 const { t } = useI18n()
 
@@ -531,20 +593,32 @@ const isVersionHistoryCollapsed = ref(false)
 const showAddCollaboratorModal = ref(false)
 const showDeleteModal = ref(false)
 const showEditVersionModal = ref(false)
+const showEditTagsModal = ref(false)
 const editVersionMode = ref<'description' | 'changelog'>('description')
 const editVersionForm = ref({ version: '', description: '', changelog: '' })
 const isEditingVersion = ref(false)
+const isSavingTags = ref(false)
 const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
 const deleteConfirmInput = ref('')
 const isFullscreen = ref(false)
 const webhookDraft = ref('')
 const isSavingWebhook = ref(false)
+const allTags = ref<Tag[]>([])
+const selectedTagIds = ref<number[]>([])
 
 watch(
   () => skill.value?.webhook_url,
   (url) => {
     webhookDraft.value = url ?? ''
+  },
+  { immediate: true }
+)
+
+watch(
+  () => skill.value?.tags,
+  (tags) => {
+    selectedTagIds.value = (tags || []).map((tag) => tag.id)
   },
   { immediate: true }
 )
@@ -590,6 +664,8 @@ const canManageCollaborators = computed(() => {
   if (!skill.value) return false
   return skill.value.permission === 'owner' || skill.value.permission === 'collaborator'
 })
+
+const canEditTags = computed(() => canManageCollaborators.value)
 
 const isTextFile = computed(() => {
   if (!selectedFilePath.value) return false
@@ -682,6 +758,9 @@ onMounted(async () => {
 
   // Load skill
   await skillsStore.fetchSkill(skillId.value)
+  if (canEditTags.value) {
+    await loadAvailableTags()
+  }
 
   // Load versions
   await loadVersions()
@@ -707,6 +786,15 @@ async function loadVersions() {
   }
 }
 
+async function loadAvailableTags() {
+  try {
+    const response = await tagsApi.list()
+    allTags.value = response.tags || []
+  } catch (err) {
+    globalToast.error(t('skill.tagsLoadFailed'))
+  }
+}
+
 async function onVersionChange() {
   if (currentVersion.value) {
     await loadVersionZip(currentVersion.value)
@@ -719,13 +807,12 @@ async function loadVersionZip(version: string) {
   selectedFileContent.value = ''
 
   try {
-    // Backend returns the ZIP file directly, not a download URL
-    const response = await fetch(versionsApi.downloadUrl(skillId.value, version), {
+    const response = await fetch(versionsApi.viewUrl(skillId.value, version), {
       credentials: 'include'
     })
 
     if (!response.ok) {
-      throw new Error('Failed to download version')
+      throw new Error('Failed to view version')
     }
 
     const zipData = await response.arrayBuffer()
@@ -743,6 +830,31 @@ async function loadVersionZip(version: string) {
     fileTree.value = []
   } finally {
     isLoadingZip.value = false
+  }
+}
+
+async function toggleFavorite() {
+  if (!skill.value) return
+
+  try {
+    await skillsStore.toggleFavorite(skill.value.id, !skill.value.is_favorited)
+  } catch (err: any) {
+    globalToast.error(err.message || t('skill.favoriteFailed'))
+  }
+}
+
+async function saveSkillTags() {
+  if (!skill.value) return
+
+  isSavingTags.value = true
+  try {
+    await skillsStore.replaceSkillTags(skill.value.id, selectedTagIds.value)
+    globalToast.success(t('skill.tagsSaveSuccess'))
+    showEditTagsModal.value = false
+  } catch (err: any) {
+    globalToast.error(err.message || t('skill.tagsSaveFailed'))
+  } finally {
+    isSavingTags.value = false
   }
 }
 
@@ -1175,6 +1287,61 @@ async function setHeadVersion(version: string) {
   background: rgba(0, 255, 163, 0.1);
   color: #00FFA3;
   border: 1px solid #00E592;
+}
+
+.skill-meta-chip,
+.skill-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0.45rem 0.75rem;
+}
+
+.skill-meta-chip {
+  color: #cbd5e1;
+  background: rgba(9, 9, 11, 0.9);
+  border: 1px solid #27272a;
+}
+
+.skill-meta-chip-action {
+  color: #00FFA3;
+  background: rgba(0, 255, 163, 0.08);
+  border-color: rgba(0, 255, 163, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skill-meta-chip--favorited {
+  color: #ff75b5;
+  background: rgba(255, 117, 181, 0.08);
+  border-color: rgba(255, 117, 181, 0.25);
+}
+
+.skill-meta-chip-action:hover {
+  background: rgba(0, 255, 163, 0.14);
+}
+
+.skill-meta-chip--favorited:hover {
+  background: rgba(255, 117, 181, 0.14);
+}
+
+.skill-tag-chip {
+  color: #00FFA3;
+  background: rgba(0, 255, 163, 0.08);
+  border: 1px solid rgba(0, 255, 163, 0.2);
+}
+
+.tag-option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: #e4e4e7;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
 }
 
 /* Fullscreen mode：整列阅读宽度上限 800px，水平居中 */

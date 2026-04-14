@@ -147,10 +147,17 @@ export interface User {
   name: string | null
   email: string | null
   role: 'admin' | 'developer'
+  is_super_admin?: number
   /** 账号状态；列表/详情接口返回，登录响应可能省略 */
   status?: 'active' | 'disabled'
   created_at: string
   updated_at?: string | null
+}
+
+export interface Tag {
+  id: number
+  name: string
+  usage_count?: number
 }
 
 export const authApi = {
@@ -173,7 +180,6 @@ export interface Skill {
   id: string
   name: string
   description: string
-  owner_id: number
   owner: User
   created_at: string
   updated_at: string
@@ -181,11 +187,15 @@ export interface Skill {
   permission?: 'owner' | 'collaborator' | 'user'
   /** 仅所有者/协作者可见 */
   webhook_url?: string | null
+  favorite_count: number
+  download_count: number
+  is_favorited?: boolean
+  tags: Tag[]
 }
 
 export interface SkillVersion {
   id: number
-  skill_id: number
+  skill_id: string
   version: string
   changelog: string
   description?: string
@@ -194,6 +204,7 @@ export interface SkillVersion {
   created_by: number
   uploader?: User
   created_at: string
+  download_count: number
 }
 
 export interface SkillDetail extends Skill {
@@ -242,6 +253,12 @@ export const skillsApi = {
       '/skills/import/github',
       body
     ),
+  favorite: (id: string) =>
+    apiPost<{ ok: boolean; skill_id: string; favorited: boolean; favorite_count: number }>(`/skills/${id}/favorite`),
+  unfavorite: (id: string) =>
+    apiDelete<{ ok: boolean; skill_id: string; favorited: boolean; favorite_count: number }>(`/skills/${id}/favorite`),
+  updateTags: (id: string, tag_ids: number[]) =>
+    apiPut<{ ok: boolean; skill_id: string; tags: Tag[] }>(`/skills/${id}/tags`, { tag_ids }),
   setHead: (id: string, version: string) => apiPut<{ ok: boolean, skill_id: string, latest_version: string }>(`/skills/${id}/head`, { version }),
 }
 
@@ -249,8 +266,16 @@ export const skillsApi = {
 
 export const versionsApi = {
   list: (skillId: string) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),
+  viewUrl: (skillId: string, version: string) => `${API_BASE}/skills/${skillId}/versions/${version}/view`,
   downloadUrl: (skillId: string, version: string) => `${API_BASE}/skills/${skillId}/versions/${version}/download`,
   update: (skillId: string, version: string, data: { description?: string; changelog?: string }) => apiPatch<SkillVersion>(`/skills/${skillId}/versions/${version}`, data),
+}
+
+export const tagsApi = {
+  list: () => apiGet<{ tags: Tag[] }>('/tags'),
+  create: (name: string) => apiPost<{ ok: boolean; tag: Tag }>('/tags', { name }),
+  update: (id: number, name: string) => apiPatch<{ ok: boolean; tag: Tag }>(`/tags/${id}`, { name }),
+  delete: (id: number) => apiDelete<{ ok: boolean }>(`/tags/${id}`),
 }
 
 // ===== Collaborators API =====

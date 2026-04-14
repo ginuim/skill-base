@@ -248,6 +248,33 @@ Object.defineProperty(db, 'inTransaction', {
   }
 });
 
+const migrations = [
+  require('./migrations/005-skill-favorites-tags-downloads-super-admin')
+];
+
+function ensureSchemaMigrationsTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      version TEXT PRIMARY KEY,
+      applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+}
+
+function runMigrations() {
+  ensureSchemaMigrationsTable();
+
+  for (const migration of migrations) {
+    const row = db.prepare('SELECT version FROM schema_migrations WHERE version = ?').get(migration.version);
+    if (row) continue;
+
+    db.transaction(() => {
+      migration.up(db);
+      db.prepare('INSERT INTO schema_migrations (version) VALUES (?)').run(migration.version);
+    })();
+  }
+}
+
 // node-sqlite3-wasm: keep default DELETE journal (WAL + this VFS breaks on many existing DBs).
 
 // Enable foreign key constraints
@@ -357,6 +384,8 @@ try { db.exec("ALTER TABLE users ADD COLUMN created_by INTEGER REFERENCES users(
 try { db.exec("ALTER TABLE users ADD COLUMN name TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE skill_versions ADD COLUMN description TEXT"); } catch(e) {}
 try { db.exec('ALTER TABLE skills ADD COLUMN webhook_url TEXT'); } catch (e) {}
+
+runMigrations();
 
 // Data migration: insert skill_collaborators record for existing Skills owners
 const existingSkills = db.prepare('SELECT id, owner_id FROM skills').all();

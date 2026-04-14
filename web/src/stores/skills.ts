@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { skillsApi, versionsApi, collaboratorsApi, type Skill, type SkillDetail, type SkillVersion } from '@/services/api'
+import { skillsApi, versionsApi, collaboratorsApi, type Skill, type SkillDetail, type SkillVersion, type Tag } from '@/services/api'
 
 export const useSkillsStore = defineStore('skills', () => {
   // State
@@ -39,6 +39,18 @@ export const useSkillsStore = defineStore('skills', () => {
   const currentVersions = computed(() => {
     return currentSkill.value?.versions || []
   })
+
+  function patchSkill(skillId: string, updater: (skill: Skill | SkillDetail) => void) {
+    for (const skill of skills.value) {
+      if (skill.id === skillId) {
+        updater(skill)
+      }
+    }
+
+    if (currentSkill.value?.id === skillId) {
+      updater(currentSkill.value)
+    }
+  }
 
   // Actions
   async function fetchSkills(query?: string) {
@@ -162,6 +174,41 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
+  async function toggleFavorite(skillId: string, shouldFavorite: boolean) {
+    error.value = null
+
+    try {
+      const response = shouldFavorite
+        ? await skillsApi.favorite(skillId)
+        : await skillsApi.unfavorite(skillId)
+
+      patchSkill(skillId, (skill) => {
+        skill.favorite_count = response.favorite_count
+        skill.is_favorited = response.favorited
+      })
+
+      return response
+    } catch (err: any) {
+      error.value = err.message || '收藏 Skill 失败'
+      throw err
+    }
+  }
+
+  async function replaceSkillTags(skillId: string, tagIds: number[]) {
+    error.value = null
+
+    try {
+      const response = await skillsApi.updateTags(skillId, tagIds)
+      patchSkill(skillId, (skill) => {
+        skill.tags = response.tags as Tag[]
+      })
+      return response.tags
+    } catch (err: any) {
+      error.value = err.message || '更新 Skill 标签失败'
+      throw err
+    }
+  }
+
   function setSearchQuery(query: string) {
     searchQuery.value = query
   }
@@ -197,6 +244,8 @@ export const useSkillsStore = defineStore('skills', () => {
     fetchVersions,
     addCollaborator,
     removeCollaborator,
+    toggleFavorite,
+    replaceSkillTags,
     setSearchQuery,
     clearCurrentSkill,
     clearError,

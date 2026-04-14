@@ -35,7 +35,16 @@ async function authRoutes(fastify, options) {
     const sessionId = fastify.createSession(user.id);
     reply.setCookie('session_id', sessionId, { path: '/', httpOnly: true });
 
-    return { ok: true, user: { id: user.id, username: user.username, name: user.name || null, role: user.role } };
+    return {
+      ok: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name || null,
+        role: user.role,
+        is_super_admin: user.is_super_admin || 0
+      }
+    };
   });
 
   // POST /logout - User logout

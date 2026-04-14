@@ -128,9 +128,12 @@
 {
   "id": "string",
   "username": "string",
-  "role": "string"
+  "role": "string",
+  "is_super_admin": 0
 }
 ```
+
+`is_super_admin` 为 `1` 时表示 **超级管理员**（首个迁移的管理员或初始化时创建的首个管理员），可管理全局标签库；普通管理员不能创建/重命名/删除全局标签，但可为所管理的 Skill 分配已有标签。
 
 ---
 
@@ -258,7 +261,22 @@
 
 ---
 
-### 5. 更新 Skill 元数据
+### 5. 预览版本 ZIP（不计下载）
+
+**GET** `/api/v1/skills/:skill_id/versions/:version/view`
+
+返回与 **download** 相同的 ZIP 二进制流，但**不会**增加 Skill 与版本的下载统计。适用于 Web 端内联预览等场景。
+
+**路径参数:** 与 **下载版本文件** 相同；`version` 可使用 `latest`。
+
+**响应:** ZIP 文件流（`Content-Type: application/zip`）
+
+**错误码:**
+- `404` - Version not found
+
+---
+
+### 6. 更新 Skill 元数据
 
 **PUT** `/api/v1/skills/:skill_id`
 
@@ -283,7 +301,7 @@
 
 ---
 
-### 6. Skill Webhook 投递说明
+### 7. Skill Webhook 投递说明
 
 当某 Skill 配置了非空的 `webhook_url` 时，服务端在下列时机 **异步** 向该 URL 发送 **POST**，`Content-Type: application/json`。请求失败（超时、非 2xx 等）**不会**影响 API 主流程，也不会重试。发送前会做最小目标校验：允许 `localhost` / `127.0.0.1` / `::1`，拒绝私有网段、链路本地和常见云元数据地址。
 
@@ -315,6 +333,53 @@
 **`event`: `skill.deleted`** — **DELETE** `/api/v1/skills/:skill_id` 在数据库删除成功后投递；`data` 含删除前的 `name`、`versions_count`。
 
 仅修改 `webhook_url` 本身 **不会** 触发 Webhook。
+
+---
+
+### 8. 收藏 / 取消收藏 Skill
+
+**POST** `/api/v1/skills/:skill_id/favorite` — 当前用户收藏该 Skill（幂等）。
+
+**DELETE** `/api/v1/skills/:skill_id/favorite` — 取消收藏（幂等）。
+
+**认证:** 需要 Session。
+
+**响应示例:**
+```json
+{
+  "ok": true,
+  "skill_id": "string",
+  "favorited": true,
+  "favorite_count": 0
+}
+```
+
+**错误码:**
+- `404` - Skill not found
+
+---
+
+### 9. 替换 Skill 标签
+
+**PUT** `/api/v1/skills/:skill_id/tags`
+
+用全局标签 ID 列表**整体替换**该 Skill 上的标签（非增量）。
+
+**认证:** 需要 Session；需为该 Skill 的 **所有者、协作者或平台管理员**（`canManageSkill`）。
+
+**请求体:**
+```json
+{
+  "tag_ids": [1, 2, 3]
+}
+```
+
+**响应:** `{ "ok": true, "skill_id": "string", "tags": [ { "id": 1, "name": "string" } ] }`
+
+**错误码:**
+- `400` - `tag_ids` 不是数组
+- `403` - 无管理权限
+- `404` - Skill not found
 
 ---
 
@@ -481,6 +546,63 @@
 
 ---
 
+## 标签模块 `/api/v1/tags`
+
+全局标签库由 **超级管理员** 维护；任意已登录用户可 **GET** 列表（供 Skill 详情分配标签时选择）。创建、重命名、删除仅 **超级管理员** 可调用。
+
+### 1. 标签列表（含使用次数）
+
+**GET** `/api/v1/tags`
+
+**认证:** 需要 Session
+
+**响应:**
+```json
+{
+  "tags": [
+    { "id": 1, "name": "string", "usage_count": 0 }
+  ]
+}
+```
+
+---
+
+### 2. 创建标签
+
+**POST** `/api/v1/tags`
+
+**认证:** 需要 Session，且为 **超级管理员**
+
+**请求体:** `{ "name": "string" }`
+
+**响应:** `201`，`{ "ok": true, "tag": { "id", "name", ... } }`
+
+**错误码:**
+- `400` - 名称为空
+- `403` - 非超级管理员
+
+---
+
+### 3. 重命名标签
+
+**PATCH** `/api/v1/tags/:tag_id`
+
+**认证:** 需要 Session，且为 **超级管理员**
+
+**请求体:** `{ "name": "string" }`
+
+---
+
+### 4. 删除标签
+
+**DELETE** `/api/v1/tags/:tag_id`
+
+**认证:** 需要 Session，且为 **超级管理员**
+
+删除后，各 Skill 上的该标签关联会被一并移除。
+
+---
+
 ## 数据模型
 
 ### User
@@ -491,6 +613,7 @@
 | `name` | string | 显示名（可选） |
 | `role` | string | `admin` 或 `developer`（普通平台用户为 `developer`） |
 | `status` | string | `active` 或 `disabled` |
+| `is_super_admin` | number | `1` 为超级管理员，`0` 为否 |
 
 ### Skill
 | 字段 | 类型 | 说明 |
@@ -499,6 +622,10 @@
 | `name` | string | Skill 名称 |
 | `description` | string | Skill 描述 |
 | `latest_version` | string | 最新版本号 |
+| `favorite_count` | number | 被收藏次数 |
+| `download_count` | number | 版本下载累计次数（仅统计 **download** 接口） |
+| `is_favorited` | boolean | 当前登录用户是否已收藏（未登录为 `false`） |
+| `tags` | array | `{ id, name }[]`，全局标签 |
 | `owner` | object | 所有者信息 `{id, username}` |
 | `created_at` | string | 创建时间 |
 | `updated_at` | string | 更新时间 |
@@ -510,6 +637,7 @@
 | `skill_id` | string | 所属 Skill ID |
 | `version` | string | 版本号（格式：`vYYYYMMDD.HHMMSS`） |
 | `changelog` | string | 更新日志 |
+| `download_count` | number | 该版本通过 **download** 接口的下载次数 |
 | `zip_path` | string | ZIP 文件路径 |
 | `uploader` | object | 上传者信息 `{id, username}` |
 | `created_at` | string | 创建时间 |

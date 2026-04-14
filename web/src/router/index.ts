@@ -9,6 +9,7 @@ import CliCodeView from '@/views/CliCodeView.vue'
 import SetupView from '@/views/SetupView.vue'
 import DiffView from '@/views/DiffView.vue'
 import UserManagementView from '@/views/UserManagementView.vue'
+import TagManagementView from '@/views/TagManagementView.vue'
 import { useAuthStore } from '@/stores/auth'
 import { appBasePath } from '@/utils/basePath'
 
@@ -68,11 +69,17 @@ const router = createRouter({
       component: UserManagementView,
       meta: { requiresAuth: true, requiresAdmin: true },
     },
+    {
+      path: '/admin/tags',
+      name: 'tag-management',
+      component: TagManagementView,
+      meta: { requiresAuth: true, requiresSuperAdmin: true },
+    },
   ],
 })
 
 router.beforeEach(async (to) => {
-  if (!to.meta.requiresAuth && !to.meta.requiresAdmin) {
+  if (!to.meta.requiresAuth && !to.meta.requiresAdmin && !to.meta.requiresSuperAdmin) {
     return true
   }
 
@@ -89,6 +96,10 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    return { path: '/' }
+  }
+
+  if (to.meta.requiresSuperAdmin && !authStore.isSuperAdmin) {
     return { path: '/' }
   }
 

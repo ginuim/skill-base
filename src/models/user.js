@@ -2,7 +2,7 @@ const db = require('../database');
 const modelCache = require('../utils/model-cache');
 
 function queryById(id) {
-  return db.prepare('SELECT id, username, name, role, status, created_at, updated_at FROM users WHERE id = ?').get(id);
+  return db.prepare('SELECT id, username, name, role, status, is_super_admin, created_at, updated_at FROM users WHERE id = ?').get(id);
 }
 
 const UserModel = {
@@ -29,7 +29,7 @@ const UserModel = {
 
   // List users (supports pagination and search)
   list({ q, status, page = 1, limit = 20 } = {}) {
-    let sql = 'SELECT id, username, name, role, status, created_at, updated_at FROM users WHERE 1=1';
+    let sql = 'SELECT id, username, name, role, status, is_super_admin, created_at, updated_at FROM users WHERE 1=1';
     let countSql = 'SELECT COUNT(*) as total FROM users WHERE 1=1';
     const params = [];
     const countParams = [];
@@ -80,7 +80,7 @@ const UserModel = {
 
   // Update user (for admin use)
   update(id, fields) {
-    const allowed = ['role', 'status', 'username', 'name'];
+    const allowed = ['role', 'status', 'username', 'name', 'is_super_admin'];
     const sets = [];
     const params = [];
     
@@ -114,15 +114,39 @@ const UserModel = {
     return result.changes > 0;
   },
 
+  delete(id) {
+    const result = db.prepare('DELETE FROM users WHERE id = ?').run(id);
+    if (result.changes > 0) {
+      modelCache.invalidateUser(id);
+    }
+    return result.changes > 0;
+  },
+
   // Find user details (includes creator info)
   findByIdWithCreator(id) {
     return db.prepare(`
-      SELECT u.id, u.username, u.name, u.role, u.status, u.created_at, u.updated_at,
+      SELECT u.id, u.username, u.name, u.role, u.status, u.is_super_admin, u.created_at, u.updated_at,
              c.id as creator_id, c.username as creator_username
       FROM users u
       LEFT JOIN users c ON u.created_by = c.id
       WHERE u.id = ?
     `).get(id);
+  },
+
+  countSuperAdmins() {
+    return db.prepare('SELECT COUNT(*) AS count FROM users WHERE is_super_admin = 1').get().count;
+  },
+
+  canDemoteOrDisableSuperAdmin(id) {
+    const user = db.prepare('SELECT is_super_admin FROM users WHERE id = ?').get(id);
+    if (!user?.is_super_admin) {
+      return true;
+    }
+    return this.countSuperAdmins() > 1;
+  },
+
+  canDeleteSuperAdmin(id) {
+    return this.canDemoteOrDisableSuperAdmin(id);
   },
 
   // Update username and name

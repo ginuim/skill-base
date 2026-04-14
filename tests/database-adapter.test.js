@@ -263,3 +263,82 @@ test('database adapter does not disguise non-sqlite files as WAL migration failu
     destroyFixture(tempDir);
   }
 });
+
+test('database migration adds super admin favorites downloads and tags schema', () => {
+  const { tempDir, dbPath } = createFixture();
+
+  try {
+    const db = loadFreshDatabase(dbPath);
+
+    const userColumns = db.prepare('PRAGMA table_info(users)').all();
+    const skillColumns = db.prepare('PRAGMA table_info(skills)').all();
+    const versionColumns = db.prepare('PRAGMA table_info(skill_versions)').all();
+    const tables = db.prepare(`
+      SELECT name
+      FROM sqlite_master
+      WHERE type = 'table'
+        AND name IN ('schema_migrations', 'skill_favorites', 'tags', 'skill_tags')
+      ORDER BY name ASC
+    `).all();
+
+    assert.ok(userColumns.some((column) => column.name === 'is_super_admin'));
+    assert.ok(skillColumns.some((column) => column.name === 'favorite_count'));
+    assert.ok(skillColumns.some((column) => column.name === 'download_count'));
+    assert.ok(versionColumns.some((column) => column.name === 'download_count'));
+    assert.deepEqual(tables, [
+      { name: 'schema_migrations' },
+      { name: 'skill_favorites' },
+      { name: 'skill_tags' },
+      { name: 'tags' }
+    ]);
+
+    if (typeof db.close === 'function') {
+      db.close();
+    }
+  } finally {
+    destroyFixture(tempDir);
+  }
+});
+
+test('database migration backfills earliest admin as super admin', () => {
+  const { tempDir, dbPath } = createFixture();
+
+  try {
+    execFileSync('sqlite3', [
+      dbPath,
+      `
+        CREATE TABLE users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          password_hash TEXT,
+          role TEXT DEFAULT 'developer',
+          name TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        INSERT INTO users (username, password_hash, role, created_at)
+        VALUES
+          ('first-admin', 'hash', 'admin', '2026-04-01 00:00:00'),
+          ('later-admin', 'hash', 'admin', '2026-04-02 00:00:00');
+      `
+    ]);
+
+    const db = loadFreshDatabase(dbPath);
+    const admins = db.prepare(`
+      SELECT username, is_super_admin
+      FROM users
+      WHERE role = 'admin'
+      ORDER BY created_at ASC, id ASC
+    `).all();
+
+    assert.deepEqual(admins, [
+      { username: 'first-admin', is_super_admin: 1 },
+      { username: 'later-admin', is_super_admin: 0 }
+    ]);
+
+    if (typeof db.close === 'function') {
+      db.close();
+    }
+  } finally {
+    destroyFixture(tempDir);
+  }
+});

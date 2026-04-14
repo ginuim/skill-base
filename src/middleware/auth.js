@@ -80,6 +80,8 @@ setInterval(() => sessionStore.cleanup(), 60 * 60 * 1000);
 // Authentication middleware decorator - registered as Fastify's decorate + preHandler
 // Usage: use via { preHandler: [fastify.authenticate] } in routes
 async function authPlugin(fastify, options) {
+  const authUserColumns = 'id, username, name, role, status, is_super_admin';
+
   // Expose sessionStore for routes to use
   fastify.decorate('sessionStore', sessionStore);
   fastify.decorate('createSession', (userId) => sessionStore.create(userId));
@@ -92,7 +94,7 @@ async function authPlugin(fastify, options) {
     if (sessionId) {
       const session = sessionStore.get(sessionId);
       if (session) {
-        const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(session.userId);
+        const user = db.prepare(`SELECT ${authUserColumns} FROM users WHERE id = ?`).get(session.userId);
         if (!user || user.status === 'disabled') {
           return reply.code(401).send({
             ok: false,
@@ -111,7 +113,7 @@ async function authPlugin(fastify, options) {
       const token = authHeader.slice(7);
       const pat = db.prepare('SELECT user_id FROM personal_access_tokens WHERE token = ?').get(token);
       if (pat) {
-        const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(pat.user_id);
+        const user = db.prepare(`SELECT ${authUserColumns} FROM users WHERE id = ?`).get(pat.user_id);
         if (!user || user.status === 'disabled') {
           return reply.code(401).send({
             ok: false,
@@ -138,7 +140,7 @@ async function authPlugin(fastify, options) {
       if (sessionId) {
         const session = sessionStore.get(sessionId);
         if (session) {
-          const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(session.userId);
+          const user = db.prepare(`SELECT ${authUserColumns} FROM users WHERE id = ?`).get(session.userId);
           if (user && user.status !== 'disabled') { request.user = user; return; }
         }
       }
@@ -147,7 +149,7 @@ async function authPlugin(fastify, options) {
         const token = authHeader.slice(7);
         const pat = db.prepare('SELECT user_id FROM personal_access_tokens WHERE token = ?').get(token);
         if (pat) {
-          const user = db.prepare('SELECT id, username, name, role, status FROM users WHERE id = ?').get(pat.user_id);
+          const user = db.prepare(`SELECT ${authUserColumns} FROM users WHERE id = ?`).get(pat.user_id);
           if (user && user.status !== 'disabled') { request.user = user; return; }
         }
       }

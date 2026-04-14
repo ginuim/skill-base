@@ -67,6 +67,14 @@
                 >
                   用户管理
                 </router-link>
+                <router-link
+                  v-if="authStore.isSuperAdmin"
+                  to="/admin/tags"
+                  class="block px-4 py-2 text-sm text-base-200 hover:text-white hover:bg-white/5"
+                  @click="showUserMenu = false"
+                >
+                  {{ t('nav.tagAdmin') }}
+                </router-link>
                 <div class="border-t border-base-800 my-1"></div>
                 <button
                   @click="logout"
@@ -96,10 +104,12 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from '@/composables/useI18n'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const showUserMenu = ref(false)
 const currentLang = ref('zh')

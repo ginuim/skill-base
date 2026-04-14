@@ -72,7 +72,7 @@ async function initRoutes(fastify) {
         // Create admin account
         const passwordHash = bcrypt.hashSync(password, 10);
         const result = db.prepare(
-            'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)'
+            'INSERT INTO users (username, password_hash, role, is_super_admin) VALUES (?, ?, ?, 1)'
         ).run(username, passwordHash, 'admin');
         
         return {

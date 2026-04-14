@@ -95,6 +95,15 @@ const SkillModel = {
     modelCache.invalidateSkill(id);
   },
 
+  incrementDownloadCount(id) {
+    db.prepare(`
+      UPDATE skills
+      SET download_count = COALESCE(download_count, 0) + 1
+      WHERE id = ?
+    `).run(id);
+    modelCache.invalidateSkill(id);
+  },
+
   // Check if Skill exists
   exists(id) {
     return modelCache.remember(

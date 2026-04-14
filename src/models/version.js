@@ -79,6 +79,16 @@ const VersionModel = {
       modelCache.invalidateSkill(existing.skill_id);
     }
     return this.findById(id);
+  },
+
+  incrementDownloadCount(skillId, version) {
+    db.prepare(`
+      UPDATE skill_versions
+      SET download_count = COALESCE(download_count, 0) + 1
+      WHERE skill_id = ? AND version = ?
+    `).run(skillId, version);
+    modelCache.invalidateSkill(skillId);
+    return this.findByVersion(skillId, version);
   }
 };
 
