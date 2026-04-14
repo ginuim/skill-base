@@ -81,6 +81,19 @@
             </button>
           </div>
 
+          <div v-if="installCliCommand" class="mb-6">
+            <button
+              type="button"
+              class="inline-flex items-start gap-2 text-sm font-mono px-4 py-2 rounded-lg border border-base-800 bg-base-950 text-base-300 hover:text-neon-400 hover:border-neon-500/40 hover:bg-neon-400/5 transition-colors text-left max-w-full break-all"
+              @click="copyInstallCommand"
+            >
+              <svg class="w-4 h-4 shrink-0 opacity-70 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              <span class="min-w-0">{{ installCliCommand }}</span>
+            </button>
+          </div>
+
           <!-- Version Select & Actions -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800">
             <div class="relative w-full sm:flex-1 sm:max-w-md">
@@ -564,6 +577,38 @@ const { t } = useI18n()
 
 const skillId = computed(() => route.params.id as string)
 const skill = computed(() => skillsStore.currentSkill)
+
+const installCliCommand = computed(() => {
+  const id = skill.value?.id?.trim()
+  if (!id) return ''
+  return `skb install ${id}`
+})
+
+async function copyInstallCommand() {
+  const text = installCliCommand.value
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    globalToast.success(t('skill.copyInstallSuccess'))
+  } catch {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.setAttribute('readonly', '')
+    ta.style.position = 'fixed'
+    ta.style.left = '-9999px'
+    document.body.appendChild(ta)
+    ta.select()
+    try {
+      const ok = document.execCommand('copy')
+      if (ok) globalToast.success(t('skill.copyInstallSuccess'))
+      else globalToast.error(t('skill.copyInstallFailed'))
+    } catch {
+      globalToast.error(t('skill.copyInstallFailed'))
+    } finally {
+      document.body.removeChild(ta)
+    }
+  }
+}
 
 // Version management
 const versions = ref<SkillVersion[]>([])
