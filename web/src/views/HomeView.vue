@@ -190,15 +190,20 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 骨架屏样式 */
+/* 骨架屏样式（随 html[data-theme] 变量切换） */
 .skeleton-card {
-  background-color: #13141a;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
   padding: 1.5rem;
   border-radius: 0.75rem;
 }
 .skeleton-title, .skeleton-desc, .skeleton-desc-short, .skeleton-footer {
-  background: linear-gradient(90deg, #13141a 25%, #27272a 50%, #13141a 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-base-900) 25%,
+    var(--color-base-700) 50%,
+    var(--color-base-900) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
   border-radius: 4px;
@@ -218,7 +223,7 @@ onMounted(async () => {
 .empty-state {
   padding: 4rem 1rem;
   text-align: center;
-  color: #64748b;
+  color: var(--color-base-400);
   font-family: 'JetBrains Mono', monospace;
 }
 .empty-state-icon {
@@ -227,7 +232,7 @@ onMounted(async () => {
   opacity: 0.3;
 }
 .empty-state-text {
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
 }

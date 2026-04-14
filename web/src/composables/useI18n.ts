@@ -21,6 +21,8 @@ const zh: Record<string, string> = {
   'theme.lightShort': '浅色',
   'theme.darkShort': '深色',
   'theme.systemShort': '系统',
+  'theme.switchToLight': '切换到浅色模式',
+  'theme.switchToDark': '切换到深色模式',
 
   // Common buttons / labels
   'btn.cancel': '取消',
@@ -489,6 +491,8 @@ const en: Record<string, string> = {
   'theme.lightShort': 'Light',
   'theme.darkShort': 'Dark',
   'theme.systemShort': 'System',
+  'theme.switchToLight': 'Switch to light mode',
+  'theme.switchToDark': 'Switch to dark mode',
 
   // Common buttons / labels
   'btn.cancel': 'Cancel',

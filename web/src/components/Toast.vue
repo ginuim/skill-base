@@ -107,18 +107,28 @@ defineExpose({
   gap: 0.75rem;
   padding: 1rem 1.25rem;
   border-radius: 0.5rem;
-  background: #13141a;
-  border: 1px solid #27272a;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  background: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
   min-width: 300px;
   max-width: 400px;
   pointer-events: auto;
   backdrop-filter: blur(12px);
 }
 
+html[data-theme="light"] .toast {
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
+}
+
 .toast--success {
   border-color: var(--color-neon-500);
-  box-shadow: 0 0 20px rgba(0, 229, 146, 0.15), 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.15), 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="light"] .toast--success {
+  box-shadow:
+    0 0 20px rgba(var(--color-neon-rgb), 0.15),
+    0 10px 40px color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
 }
 
 .toast--success .toast__icon {
@@ -127,7 +137,13 @@ defineExpose({
 
 .toast--error {
   border-color: #ef4444;
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15), 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15), 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="light"] .toast--error {
+  box-shadow:
+    0 0 20px rgba(239, 68, 68, 0.15),
+    0 10px 40px color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
 }
 
 .toast--error .toast__icon {
@@ -136,7 +152,13 @@ defineExpose({
 
 .toast--warning {
   border-color: #f59e0b;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="light"] .toast--warning {
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.15),
+    0 10px 40px color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
 }
 
 .toast--warning .toast__icon {
@@ -145,7 +167,13 @@ defineExpose({
 
 .toast--info {
   border-color: #3b82f6;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="light"] .toast--info {
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.15),
+    0 10px 40px color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
 }
 
 .toast--info .toast__icon {
@@ -171,7 +199,7 @@ defineExpose({
 .toast__message {
   margin: 0;
   font-size: 0.875rem;
-  color: #e4e4e7;
+  color: var(--color-fg);
   line-height: 1.5;
   word-break: break-word;
 }
@@ -183,13 +211,13 @@ defineExpose({
   padding: 0;
   border: none;
   background: transparent;
-  color: #71717a;
+  color: var(--color-base-400);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .toast__close:hover {
-  color: #e4e4e7;
+  color: var(--color-fg-strong);
 }
 
 .toast__close svg {

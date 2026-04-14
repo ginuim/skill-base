@@ -36,26 +36,20 @@
         </button>
 
         <div class="navbar-user">
-          <div class="lang-switcher" :class="{ active: showThemeMenu }">
-            <button type="button" class="lang-switcher-trigger navbar-surface-btn" @click.stop="toggleThemeMenu">
-              <svg v-if="resolved === 'dark'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                <circle cx="12" cy="12" r="4"/>
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-              </svg>
-              <span>{{ themeTriggerLabel }}</span>
-              <svg class="lang-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-            <div class="lang-switcher-menu min-w-[148px]">
-              <button type="button" class="lang-switcher-option" :class="{ active: preference === 'light' }" @click="setThemePref('light')">{{ t('theme.light') }}</button>
-              <button type="button" class="lang-switcher-option" :class="{ active: preference === 'dark' }" @click="setThemePref('dark')">{{ t('theme.dark') }}</button>
-              <button type="button" class="lang-switcher-option" :class="{ active: preference === 'system' }" @click="setThemePref('system')">{{ t('theme.system') }}</button>
-            </div>
-          </div>
+          <button
+            type="button"
+            class="lang-switcher-trigger navbar-surface-btn sb-theme-toggle"
+            :aria-label="themeToggleAria"
+            @click.stop="toggleColorMode"
+          >
+            <svg v-if="resolved === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+          </button>
 
           <div class="lang-switcher" :class="{ active: showLangMenu }">
             <button type="button" class="lang-switcher-trigger navbar-surface-btn" @click.stop="toggleLangMenu">
@@ -142,7 +136,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
 import { useTheme } from '@/composables/useTheme'
-import type { ThemePreference } from '@/theme'
 
 interface NavItem {
   href: string
@@ -168,16 +161,14 @@ const { currentLang: i18nLang, setLang: setI18nLang } = useI18n()
 const isMobileMenuOpen = ref(false)
 const showUserMenu = ref(false)
 const showLangMenu = ref(false)
-const showThemeMenu = ref(false)
 const currentLang = computed(() => i18nLang.value)
 
-const { preference, resolved, setPreference } = useTheme()
+const { resolved, setPreference } = useTheme()
 const { t } = useI18n()
 
-const themeTriggerLabel = computed(() => {
-  if (preference.value === 'system') return t('theme.systemShort')
-  return resolved.value === 'dark' ? t('theme.darkShort') : t('theme.lightShort')
-})
+const themeToggleAria = computed(() =>
+  resolved.value === 'dark' ? t('theme.switchToLight') : t('theme.switchToDark')
+)
 
 const navItems = computed(() => {
   const items = (!props.items || !Array.isArray(props.items) || props.items.length === 0)
@@ -214,24 +205,16 @@ function closeMobileMenu() {
   isMobileMenuOpen.value = false
 }
 
-function toggleThemeMenu() {
-  showThemeMenu.value = !showThemeMenu.value
-  if (showThemeMenu.value) {
-    showLangMenu.value = false
-    showUserMenu.value = false
-  }
-}
-
-function setThemePref(p: ThemePreference) {
-  setPreference(p)
-  showThemeMenu.value = false
+function toggleColorMode() {
+  setPreference(resolved.value === 'dark' ? 'light' : 'dark')
+  showLangMenu.value = false
+  showUserMenu.value = false
 }
 
 function toggleLangMenu() {
   showLangMenu.value = !showLangMenu.value
   if (showLangMenu.value) {
     showUserMenu.value = false
-    showThemeMenu.value = false
   }
 }
 
@@ -239,7 +222,6 @@ function toggleUserMenu() {
   showUserMenu.value = !showUserMenu.value
   if (showUserMenu.value) {
     showLangMenu.value = false
-    showThemeMenu.value = false
   }
 }
 
@@ -258,7 +240,6 @@ async function logout() {
 function handleClickOutside() {
   showUserMenu.value = false
   showLangMenu.value = false
-  showThemeMenu.value = false
 }
 
 function handleResize() {
@@ -308,12 +289,12 @@ onUnmounted(() => {
 }
 
 .sb-nav-brand-skill {
-  filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45));
+  /* filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45)); */
 }
 
 .sb-nav-brand-icon {
   color: var(--color-neon-400);
-  filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45));
+  /* filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45)); */
   flex-shrink: 0;
 }
 
@@ -437,6 +418,14 @@ onUnmounted(() => {
   gap: 1rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
+}
+
+.sb-theme-toggle {
+  padding: 6px 8px;
+}
+
+.sb-theme-toggle svg {
+  display: block;
 }
 
 .lang-switcher {

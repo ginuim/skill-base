@@ -187,26 +187,35 @@ async function copyCode() {
 
 <style scoped>
 .card {
-  background-color: #13141a;
-  border: 1px solid #27272a;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background-color: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
+  box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--color-base-950) 65%, transparent);
   border-radius: 0.75rem;
 }
 
+html[data-theme="light"] .card {
+  box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
+}
+
 .cli-code-display {
-  background-color: #09090b;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-950);
+  border: 1px solid var(--color-base-800);
 }
 
 .cli-code-value {
   color: var(--color-neon-400);
-  text-shadow: 0 0 15px rgba(var(--color-neon-rgb),0.3);
+  /* text-shadow: 0 0 15px rgba(var(--color-neon-rgb),0.3); */
 }
 
 .cli-code-hint {
   background-color: rgba(var(--color-neon-rgb),0.05);
   border: 1px solid rgba(var(--color-neon-rgb),0.2);
-  color: #a1a1aa;
+  color: var(--color-base-400);
+}
+
+.cli-code-loading :deep(.spinner) {
+  border-color: var(--color-base-800);
+  border-top-color: var(--color-neon-400);
 }
 
 .btn:disabled {

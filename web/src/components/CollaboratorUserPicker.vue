@@ -220,7 +220,7 @@ defineExpose({
 
 .collab-picker-hint {
   font-size: 0.75rem;
-  color: #737373;
+  color: var(--color-base-400);
   margin-top: 0.375rem;
   font-family: "JetBrains Mono", monospace;
 }
@@ -228,13 +228,17 @@ defineExpose({
 .form-input {
   width: 100%;
   padding: 0.625rem 0.75rem;
-  background-color: #09090b;
-  border: 1px solid #27272a;
+  background-color: var(--color-base-950);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
-  color: white;
+  color: var(--color-fg-strong);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
   box-sizing: border-box;
+}
+
+.form-input::placeholder {
+  color: var(--color-base-400);
 }
 
 .form-input:focus {
@@ -252,12 +256,16 @@ defineExpose({
   max-height: 220px;
   overflow-y: auto;
   z-index: 20;
-  background: #09090b;
-  border: 1px solid #27272a;
+  background: var(--color-base-950);
+  border: 1px solid var(--color-base-800);
   border-radius: 0.5rem;
   padding: 0.25rem 0;
   list-style: none;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="light"] .collab-suggest-list {
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
 }
 
 .collab-suggest-item {
@@ -276,11 +284,11 @@ defineExpose({
 
 .collab-suggest-username {
   font-family: "JetBrains Mono", monospace;
-  color: #fff;
+  color: var(--color-fg-strong);
 }
 
 .collab-suggest-name {
-  color: #a1a1aa;
+  color: var(--color-base-400);
   font-size: 0.75rem;
 }
 </style>

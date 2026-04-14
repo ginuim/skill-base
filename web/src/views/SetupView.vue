@@ -522,7 +522,7 @@ onMounted(() => {
 }
 
 .setup-input::placeholder {
-  color: rgba(161, 161, 170, 0.5);
+  color: color-mix(in srgb, var(--color-base-400) 55%, transparent);
 }
 
 .setup-input:focus {
@@ -539,7 +539,7 @@ onMounted(() => {
 
 .setup-hint {
   margin: 0.25rem 0 0;
-  color: rgba(161, 161, 170, 0.5);
+  color: color-mix(in srgb, var(--color-base-400) 65%, transparent);
   font-size: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -635,8 +635,16 @@ html[data-theme="light"] .setup-container {
     linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
 }
 
+html[data-theme="light"] .setup-card {
+  box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
+}
+
+html[data-theme="light"] .setup-error {
+  color: #b91c1c;
+}
+
 html[data-theme="light"] .setup-container ::selection {
-  background: rgba(0, 200, 130, 0.28);
+  background: rgba(var(--color-neon-rgb), 0.22);
   color: var(--color-fg-strong);
 }
 </style>
