@@ -298,6 +298,11 @@ export const collaboratorsApi = {
 // ===== Users API =====
 
 export const usersApi = {
+  /** 省略 q 或空字符串：全部活跃用户（服务端上限 2000）；有 q：模糊搜索（上限 100） */
+  search: (q?: string) => {
+    const qs = q != null && q.trim() !== '' ? `?q=${encodeURIComponent(q.trim())}` : ''
+    return apiGet<{ users: User[] }>(`/users/search${qs}`)
+  },
   list: () => apiGet<{ users: User[] }>('/users'),
   create: (data: { username: string; password: string; name?: string; email?: string; role?: string }) =>
     apiPost<User>('/users', data),

@@ -9,19 +9,28 @@ async function usersRoutes(fastify, options) {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const { q } = request.query;
-    
-    if (!q || q.trim().length < 1) {
-      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Search keyword must be at least 1 character' });
+    const trimmed = q != null ? String(q).trim() : '';
+
+    if (!trimmed) {
+      const users = db.prepare(`
+        SELECT id, username, name, status
+        FROM users
+        WHERE status = 'active'
+        ORDER BY username ASC
+        LIMIT 2000
+      `).all();
+      return reply.send({ users });
     }
-    
-    const pattern = `%${q.trim()}%`;
+
+    const pattern = `%${trimmed}%`;
     const users = db.prepare(`
       SELECT id, username, name, status
       FROM users
       WHERE (username LIKE ? OR name LIKE ?) AND status = 'active'
-      LIMIT 10
+      ORDER BY username ASC
+      LIMIT 100
     `).all(pattern, pattern);
-    
+
     return reply.send({ users });
   });
 

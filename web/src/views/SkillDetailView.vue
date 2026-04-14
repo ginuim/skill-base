@@ -47,17 +47,32 @@
             <button
               v-if="authStore.isLoggedIn"
               type="button"
-              class="skill-meta-chip skill-meta-chip-action"
+              class="skill-meta-chip skill-meta-chip-action skill-meta-chip-favorite"
               :class="{ 'skill-meta-chip--favorited': skill.is_favorited }"
+              :aria-label="skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite')"
+              :title="skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite')"
               @click="toggleFavorite"
             >
-              {{ skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite') }}
+              <svg
+                class="skill-favorite-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  :fill="skill.is_favorited ? 'currentColor' : 'none'"
+                  :stroke="skill.is_favorited ? 'none' : 'currentColor'"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
             </button>
             <span class="skill-meta-chip">{{ skill.favorite_count }} {{ t('skill.favoriteCount') }}</span>
             <span class="skill-meta-chip">{{ skill.download_count }} {{ t('skill.downloadCount') }}</span>
             <span v-for="tag in skill.tags" :key="tag.id" class="skill-tag-chip">{{ tag.name }}</span>
             <button
-              v-if="canEditTags"
+              v-if="canEditTags && showTagEditButton"
               type="button"
               class="skill-meta-chip skill-meta-chip-action"
               @click="showEditTagsModal = true"
@@ -83,7 +98,7 @@
 
           <!-- Version Select & Actions -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800">
-            <div class="relative w-full sm:flex-1 sm:max-w-md">
+            <div class="relative w-full sm:flex-1 sm:max-w-[18.2rem]">
               <select
                 v-model="currentVersion"
                 @change="onVersionChange"
@@ -433,14 +448,15 @@
           <button class="modal-close" @click="showAddCollaboratorModal = false">&times;</button>
         </div>
         <div class="modal-body">
-          <div class="form-group">
+          <div class="form-group relative">
             <label>{{ t('collab.usernameLabel') }}</label>
-            <input
+            <CollaboratorUserPicker
+              ref="collaboratorPickerRef"
               v-model="newCollaboratorUsername"
-              type="text"
+              :exclude-user-ids="collaboratorExcludedIdsList"
+              :active="showAddCollaboratorModal"
               :placeholder="t('collab.usernamePlaceholder')"
-              class="form-input"
-              @keyup.enter="submitAddCollaborator"
+              @enter="submitAddCollaborator"
             />
           </div>
         </div>
@@ -565,6 +581,7 @@ import { globalToast } from '@/composables/useToast'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
+import CollaboratorUserPicker from '@/components/CollaboratorUserPicker.vue'
 import { formatDate, formatDateFull } from '@/utils/date'
 
 const route = useRoute()
@@ -637,18 +654,31 @@ const showAddCollaboratorModal = ref(false)
 const showDeleteModal = ref(false)
 const showEditVersionModal = ref(false)
 const showEditTagsModal = ref(false)
+/** 暂时隐藏编辑标签入口，恢复时改为 true */
+const showTagEditButton = false
 const editVersionMode = ref<'description' | 'changelog'>('description')
 const editVersionForm = ref({ version: '', description: '', changelog: '' })
 const isEditingVersion = ref(false)
 const isSavingTags = ref(false)
 const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
+const collaboratorPickerRef = ref<InstanceType<typeof CollaboratorUserPicker> | null>(null)
 const deleteConfirmInput = ref('')
 const isFullscreen = ref(false)
 const webhookDraft = ref('')
 const isSavingWebhook = ref(false)
 const allTags = ref<Tag[]>([])
 const selectedTagIds = ref<number[]>([])
+
+const collaboratorExcludedIdsList = computed(() => {
+  const ids: number[] = []
+  const s = skill.value
+  if (!s) return ids
+  if (s.owner?.id != null) ids.push(s.owner.id)
+  for (const c of s.collaborators || []) ids.push(c.id)
+  if (authStore.user?.id != null) ids.push(authStore.user.id)
+  return ids
+})
 
 watch(
   () => skill.value?.webhook_url,
@@ -1050,16 +1080,20 @@ function goToDiff() {
 }
 
 async function submitAddCollaborator() {
-  if (!newCollaboratorUsername.value) return
+  const name = newCollaboratorUsername.value.trim()
+  if (!name || isAddingCollaborator.value) return
   isAddingCollaborator.value = true
 
   try {
-    await skillsStore.addCollaborator(skillId.value, newCollaboratorUsername.value)
+    const ok = await skillsStore.addCollaborator(skillId.value, name)
+    if (!ok) {
+      globalToast.error(skillsStore.error || t('collab.addFailed'))
+      return
+    }
+    collaboratorPickerRef.value?.rememberRecent(name)
     showAddCollaboratorModal.value = false
     newCollaboratorUsername.value = ''
     globalToast.success(t('collab.addSuccess'))
-  } catch (err) {
-    globalToast.error(t('collab.addFailed'))
   } finally {
     isAddingCollaborator.value = false
   }
@@ -1347,6 +1381,18 @@ async function setHeadVersion(version: string) {
   color: #cbd5e1;
   background: rgba(9, 9, 11, 0.9);
   border: 1px solid #27272a;
+}
+
+.skill-meta-chip-favorite {
+  padding: 0.4rem 0.55rem;
+}
+
+.skill-favorite-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
 }
 
 .skill-meta-chip-action {
