@@ -667,112 +667,35 @@ section {
   margin: 0 auto;
 }
 
-/* ===== OpenClaw / ClawHub guide（幻灯片步骤） ===== */
+/* ===== OpenClaw / ClawHub guide（顶部步骤条 + 面板 + 气泡，对齐演示稿布局） ===== */
 .openclaw-guide .section-subtitle {
   max-width: 720px;
 }
 
-.openclaw-slider {
+.openclaw-wizard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   margin-top: 40px;
-  max-width: 720px;
+  max-width: 900px;
   margin-left: auto;
   margin-right: auto;
 }
 
-.openclaw-viewport {
-  overflow: hidden;
-  width: 100%;
-  border-radius: 12px;
+.openclaw-wizard-inner {
+  flex: 1;
+  min-width: 0;
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   background: var(--bg-card);
+  padding: 28px 24px 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-.openclaw-steps-track {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  transition: transform 0.38s ease;
-  will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .openclaw-steps-track {
-    transition: none;
-  }
-}
-
-.openclaw-step {
-  box-sizing: border-box;
-  min-width: 0;
-  padding: 24px 22px 28px;
-}
-
-.openclaw-step-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-bottom: 12px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  font-family: var(--font-heading);
-  color: var(--accent-green);
-  background: rgba(0, 255, 136, 0.12);
-  border-radius: 8px;
-}
-
-.openclaw-step-title {
-  margin: 0 0 12px;
-  font-weight: 600;
-  font-size: 1.02rem;
-  line-height: 1.5;
-  color: var(--text-primary);
-}
-
-.openclaw-step-title code {
-  font-size: 0.9em;
-  padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-}
-
-.openclaw-step-prompt {
-  margin: 0 0 10px;
-  font-size: 0.95rem;
-  line-height: 1.65;
-  color: var(--text-secondary);
-}
-
-.openclaw-step-note {
-  margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  opacity: 0.95;
-}
-
-.openclaw-step-note code,
-.openclaw-step-prompt code {
-  font-size: 0.9em;
-  padding: 1px 5px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-}
-
-.openclaw-slider-controls {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.openclaw-slider-btn {
+.openclaw-wizard-arrow {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -780,49 +703,287 @@ section {
   height: 44px;
   padding: 0;
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--bg-card);
   color: var(--text-primary);
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, opacity 0.2s;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.openclaw-slider-btn:hover:not(:disabled) {
+.openclaw-wizard-arrow:hover:not(:disabled) {
   border-color: var(--accent-green);
   color: var(--accent-green);
 }
 
-.openclaw-slider-btn:disabled {
+.openclaw-wizard-arrow:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-.openclaw-slider-dots {
+@media (max-width: 520px) {
+  .openclaw-wizard {
+    gap: 8px;
+  }
+
+  .openclaw-wizard-arrow {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* 顶部横向步骤条 */
+.openclaw-step-nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  margin-bottom: 28px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 0;
+  scrollbar-width: thin;
+}
+
+.openclaw-step-nav-item {
+  flex: 1 0 auto;
+  min-width: 52px;
+  max-width: 96px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  padding: 0 2px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.openclaw-step-nav-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 100%;
+  height: 3px;
+  background-color: var(--border-color);
+  z-index: -1;
+  transition: background-color 0.25s ease;
+}
+
+.openclaw-step-nav-item.is-completed:not(:last-child)::after {
+  background-color: var(--accent-green);
+}
+
+.openclaw-step-nav-num {
+  width: 40px;
+  height: 40px;
+  background-color: var(--bg-card);
+  border: 3px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: var(--font-heading);
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  box-sizing: border-box;
 }
 
-.openclaw-dot {
-  width: 10px;
-  height: 10px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+.openclaw-step-nav-label {
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.25;
+  transition: color 0.25s ease;
+}
+
+.openclaw-step-nav-item.is-active .openclaw-step-nav-num {
+  background-color: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #0a0a0a;
+  box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.22);
+}
+
+.openclaw-step-nav-item.is-active .openclaw-step-nav-label {
+  color: var(--accent-green);
+  font-weight: 700;
+}
+
+.openclaw-step-nav-item.is-completed .openclaw-step-nav-num {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+/* 内容区 */
+.openclaw-step-panels {
+  min-height: 200px;
+}
+
+.openclaw-step-panel {
+  display: none;
+  padding: 0 0 8px;
+  animation: openclawPanelIn 0.38s ease forwards;
+}
+
+.openclaw-step-panel.is-active {
+  display: block;
+}
+
+@keyframes openclawPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .openclaw-step-panel {
+    animation: none;
+  }
+}
+
+.openclaw-panel-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  line-height: 1.35;
+}
+
+.openclaw-panel-title code {
+  font-size: 0.88em;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+.openclaw-panel-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+}
+
+/* 对话气泡 */
+.openclaw-wizard .openclaw-step-prompt {
+  position: relative;
+  background: rgba(0, 255, 136, 0.08);
+  color: var(--text-primary);
+  padding: 16px 18px;
+  border-radius: 12px 12px 12px 0;
+  margin: 0 0 18px;
+  font-size: 1rem;
+  line-height: 1.65;
+  font-weight: 500;
+  display: block;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 255, 136, 0.18);
+}
+
+.openclaw-prompt-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.openclaw-prompt-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.openclaw-prompt-copy {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.openclaw-dot:hover {
-  background: rgba(255, 255, 255, 0.35);
+.openclaw-prompt-copy:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
 }
 
-.openclaw-dot.is-active {
-  background: var(--accent-green);
-  transform: scale(1.15);
+@media (max-width: 480px) {
+  .openclaw-prompt-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .openclaw-prompt-copy {
+    align-self: flex-end;
+  }
+}
+
+.openclaw-wizard .openclaw-step-prompt::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-bottom: 12px solid rgba(0, 255, 136, 0.08);
+  border-left: 12px solid transparent;
+}
+
+.openclaw-quote-mark {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--accent-green);
+  margin: 0 2px;
+  opacity: 0.85;
+}
+
+.openclaw-wizard .openclaw-step-note {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  border-left: 4px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.openclaw-wizard .openclaw-step-note code {
+  font-size: 0.88em;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+.openclaw-wizard .openclaw-step-prompt code {
+  font-size: 0.88em;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
 }
 
 /* ===== What is Agent Skill Section ===== */

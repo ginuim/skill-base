@@ -790,50 +790,161 @@ EOF</span>
           <span class="i18n-zh">把下面的话直接发给助手即可（按你的环境替换服务器地址与验证码）</span>
           <span class="i18n-en">Send these lines to your assistant—substitute your server URL and verification code</span>
         </p>
-        <div class="openclaw-slider fade-in" data-openclaw-slider>
-          <div class="openclaw-viewport">
-            <ol class="openclaw-steps openclaw-steps-track" id="openclaw-track">
-              <li class="openclaw-step">
-                <span class="openclaw-step-num" aria-hidden="true">1</span>
-                <p class="openclaw-step-title"><span class="i18n-zh">从 ClawHub 安装 <code>skill-base-cli</code>（对接已有站点）</span><span class="i18n-en">Install <code>skill-base-cli</code> from ClawHub (connect to an existing site)</span></p>
-                <p class="openclaw-step-prompt"><span class="i18n-zh">「到 ClawHub 拉取 <strong>skill-base-cli</strong>，并安装到你的 skills 目录。」</span><span class="i18n-en">“Pull <strong>skill-base-cli</strong> from ClawHub and install it into your skills directory.”</span></p>
-                <p class="openclaw-step-note"><span class="i18n-zh">日常用 <code>skb</code> 搜索、安装、发版、对接团队已部署的 Skill Base 时用；<strong>不必</strong>为了用 CLI 再装服务端部署 Skill。</span><span class="i18n-en">Use when searching, installing, publishing with <code>skb</code>, or connecting to your team’s Skill Base—you <strong>do not</strong> need to deploy the server again just for the CLI.</span></p>
-              </li>
-              <li class="openclaw-step">
-                <span class="openclaw-step-num" aria-hidden="true">2</span>
-                <p class="openclaw-step-title"><span class="i18n-zh">从 ClawHub 安装 <code>skill-base-web-deploy</code>（部署或运维服务端）</span><span class="i18n-en">Install <code>skill-base-web-deploy</code> from ClawHub (run or operate the server)</span></p>
-                <p class="openclaw-step-prompt"><span class="i18n-zh">「到 ClawHub 拉取 <strong>skill-base-web-deploy</strong>，并安装到你的 skills 目录。」</span><span class="i18n-en">“Pull <strong>skill-base-web-deploy</strong> from ClawHub and install it into your skills directory.”</span></p>
+        <div class="openclaw-wizard fade-in" data-openclaw-wizard>
+          <button type="button" class="openclaw-wizard-arrow openclaw-wizard-arrow--prev" id="openclaw-prev" disabled>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="openclaw-wizard-inner">
+            <div class="openclaw-step-nav" id="openclaw-step-nav" role="tablist" aria-label="OpenClaw steps">
+              <button type="button" class="openclaw-step-nav-item is-active" data-openclaw-step="1" role="tab" id="openclaw-tab-1" aria-selected="true" aria-controls="openclaw-panel-1" tabindex="0">
+                <span class="openclaw-step-nav-num" aria-hidden="true">1</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">CLI</span><span class="i18n-en">CLI</span></span>
+              </button>
+              <button type="button" class="openclaw-step-nav-item" data-openclaw-step="2" role="tab" id="openclaw-tab-2" aria-selected="false" aria-controls="openclaw-panel-2" tabindex="-1">
+                <span class="openclaw-step-nav-num" aria-hidden="true">2</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">部署</span><span class="i18n-en">Deploy</span></span>
+              </button>
+              <button type="button" class="openclaw-step-nav-item" data-openclaw-step="3" role="tab" id="openclaw-tab-3" aria-selected="false" aria-controls="openclaw-panel-3" tabindex="-1">
+                <span class="openclaw-step-nav-num" aria-hidden="true">3</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">配置</span><span class="i18n-en">Server</span></span>
+              </button>
+              <button type="button" class="openclaw-step-nav-item" data-openclaw-step="4" role="tab" id="openclaw-tab-4" aria-selected="false" aria-controls="openclaw-panel-4" tabindex="-1">
+                <span class="openclaw-step-nav-num" aria-hidden="true">4</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">搜索</span><span class="i18n-en">Search</span></span>
+              </button>
+              <button type="button" class="openclaw-step-nav-item" data-openclaw-step="5" role="tab" id="openclaw-tab-5" aria-selected="false" aria-controls="openclaw-panel-5" tabindex="-1">
+                <span class="openclaw-step-nav-num" aria-hidden="true">5</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">安装</span><span class="i18n-en">Install</span></span>
+              </button>
+              <button type="button" class="openclaw-step-nav-item" data-openclaw-step="6" role="tab" id="openclaw-tab-6" aria-selected="false" aria-controls="openclaw-panel-6" tabindex="-1">
+                <span class="openclaw-step-nav-num" aria-hidden="true">6</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">更新</span><span class="i18n-en">Update</span></span>
+              </button>
+              <button type="button" class="openclaw-step-nav-item" data-openclaw-step="7" role="tab" id="openclaw-tab-7" aria-selected="false" aria-controls="openclaw-panel-7" tabindex="-1">
+                <span class="openclaw-step-nav-num" aria-hidden="true">7</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">登录</span><span class="i18n-en">Login</span></span>
+              </button>
+              <button type="button" class="openclaw-step-nav-item" data-openclaw-step="8" role="tab" id="openclaw-tab-8" aria-selected="false" aria-controls="openclaw-panel-8" tabindex="-1">
+                <span class="openclaw-step-nav-num" aria-hidden="true">8</span>
+                <span class="openclaw-step-nav-label"><span class="i18n-zh">发布</span><span class="i18n-en">Publish</span></span>
+              </button>
+            </div>
+
+            <div class="openclaw-step-panels">
+              <div class="openclaw-step-panel is-active" id="openclaw-panel-1" role="tabpanel" aria-labelledby="openclaw-tab-1">
+                <div class="openclaw-panel-title"><span class="i18n-zh">从 ClawHub 安装 <code>skill-base-cli</code></span><span class="i18n-en">Install <code>skill-base-cli</code> from ClawHub</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">（对接已有站点）</span><span class="i18n-en">(connect to an existing site)</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">到 ClawHub 拉取 <strong>skill-base-cli</strong>，并安装到你的 skills 目录</span><span class="i18n-en">Pull <strong>skill-base-cli</strong> from ClawHub and install it into your skills directory.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
+                <p class="openclaw-step-note"><span class="i18n-zh">日常用 skb 搜索、安装、发版、对接团队已部署的 Skill Base 时用；<strong>不必</strong>为了用 CLI 再装服务端部署 Skill。</span><span class="i18n-en">Use when searching, installing, publishing with skb, or connecting to your team’s Skill Base—you <strong>do not</strong> need to deploy the server again just for the CLI.</span></p>
+              </div>
+              <div class="openclaw-step-panel" id="openclaw-panel-2" role="tabpanel" aria-labelledby="openclaw-tab-2">
+                <div class="openclaw-panel-title"><span class="i18n-zh">从 ClawHub 安装 <code>skill-base-web-deploy</code></span><span class="i18n-en">Install <code>skill-base-web-deploy</code> from ClawHub</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">（部署或运维服务端）</span><span class="i18n-en">(run or operate the server)</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">到 ClawHub 拉取 <strong>skill-base-web-deploy</strong>，并安装到你的 skills 目录</span><span class="i18n-en">Pull <strong>skill-base-web-deploy</strong> from ClawHub and install it into your skills directory.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
                 <p class="openclaw-step-note"><span class="i18n-zh">仅当需要助手在本机或服务器上<strong>起服务</strong>、Docker、数据目录与备份等<strong>服务端工作</strong>时再装。</span><span class="i18n-en">Install only when you need the assistant to <strong>run the service</strong>, Docker, data paths, backups, and other <strong>server-side</strong> tasks.</span></p>
-              </li>
-              <li class="openclaw-step">
-                <span class="openclaw-step-num" aria-hidden="true">3</span>
-                <p class="openclaw-step-title"><span class="i18n-zh">配置 CLI 指向服务端</span><span class="i18n-en">Point the CLI at your server</span></p>
-                <p class="openclaw-step-prompt"><span class="i18n-zh">「帮我配置 Skill Base，服务器地址是 <strong>https://skill-base-server</strong>。」</span><span class="i18n-en">“Help me configure Skill Base; the server URL is <strong>https://skill-base-server</strong>.”</span></p>
-                <p class="openclaw-step-note"><span class="i18n-zh">换成你的实际站点根 URL，不要带 <code>/api</code>。</span><span class="i18n-en">Use your real site root URL—do not include <code>/api</code>.</span></p>
-              </li>
-              <li class="openclaw-step">
-                <span class="openclaw-step-num" aria-hidden="true">4</span>
-                <p class="openclaw-step-title"><span class="i18n-zh">完成登录</span><span class="i18n-en">Sign in</span></p>
-                <p class="openclaw-step-prompt"><span class="i18n-zh">「帮我 <code>skb login</code>，验证码是 <strong>xxxx-xxxx</strong>。」</span><span class="i18n-en">“Help me run <code>skb login</code>; the verification code is <strong>xxxx-xxxx</strong>.”</span></p>
-                <p class="openclaw-step-note"><span class="i18n-zh">验证码来自浏览器流程或浏览器打开 <code>https://&lt;主机&gt;/cli-code</code>，五分钟有效期。</span><span class="i18n-en">The code comes from the browser flow or opening <code>https://&lt;host&gt;/cli-code</code>; it expires in five minutes.</span></p>
-              </li>
-              <li class="openclaw-step">
-                <span class="openclaw-step-num" aria-hidden="true">5</span>
-                <p class="openclaw-step-title"><span class="i18n-zh">发布</span><span class="i18n-en">Publish</span></p>
-                <p class="openclaw-step-prompt"><span class="i18n-zh">「调用 <code>skb</code>，发布刚写的 skill。」</span><span class="i18n-en">“Use <code>skb</code> to publish the skill I just wrote.”</span></p>
-                <p class="openclaw-step-note"><span class="i18n-zh">需要时可同时说明让助手写 <code>--changelog</code> 文案。</span><span class="i18n-en">Ask for <code>--changelog</code> copy when you need release notes.</span></p>
-              </li>
-            </ol>
+              </div>
+              <div class="openclaw-step-panel" id="openclaw-panel-3" role="tabpanel" aria-labelledby="openclaw-tab-3">
+                <div class="openclaw-panel-title"><span class="i18n-zh">配置 CLI 指向服务端</span><span class="i18n-en">Point the CLI at your server</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">建立与环境的链接</span><span class="i18n-en">Link your environment</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">帮我配置 Skill Base，服务器地址是 <strong>https://skill-base-server</strong></span><span class="i18n-en">Help me configure Skill Base; the server URL is <strong>https://skill-base-server</strong>.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
+                <p class="openclaw-step-note"><span class="i18n-zh">换成你的实际站点 BASE URL。</span><span class="i18n-en">Use your real site base URL.</span></p>
+              </div>
+              <div class="openclaw-step-panel" id="openclaw-panel-4" role="tabpanel" aria-labelledby="openclaw-tab-4">
+                <div class="openclaw-panel-title"><span class="i18n-zh">搜索 Skill</span><span class="i18n-en">Search for a Skill</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">在仓库里查找</span><span class="i18n-en">Find what you need</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">用 skb 搜索 <code>some-skill</code></span><span class="i18n-en">Use skb to search for <code>some-skill</code>.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
+                <p class="openclaw-step-note"><span class="i18n-zh"><strong>一般不需要登录。</strong></span><span class="i18n-en"><strong>Usually no login required.</strong></span></p>
+              </div>
+              <div class="openclaw-step-panel" id="openclaw-panel-5" role="tabpanel" aria-labelledby="openclaw-tab-5">
+                <div class="openclaw-panel-title"><span class="i18n-zh">安装 Skill</span><span class="i18n-en">Install a Skill</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">下载到本地或 IDE</span><span class="i18n-en">Install into your project or IDE</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">用 skb 安装 <code>some-skill</code></span><span class="i18n-en">Use skb to install <code>some-skill</code>.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
+                <p class="openclaw-step-note"><span class="i18n-zh">可用 <code>skill_id@版本</code> 指定版本。<strong>一般不需要登录。</strong></span><span class="i18n-en">Pin a version with <code>skill_id@version</code>. <strong>Usually no login required.</strong></span></p>
+          
+              </div>
+              <div class="openclaw-step-panel" id="openclaw-panel-6" role="tabpanel" aria-labelledby="openclaw-tab-6">
+                <div class="openclaw-panel-title"><span class="i18n-zh">更新 Skill</span><span class="i18n-en">Update a Skill</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">同步到最新版本</span><span class="i18n-en">Stay up to date</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">用 skb 更新 <code>some-skill</code></span><span class="i18n-en">Use skb to update <code>some-skill</code>.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
+                <p class="openclaw-step-note"><span class="i18n-zh"><strong>一般不需要登录。</strong></span><span class="i18n-en"><strong>Usually no login required.</strong></span></p>
+              </div>
+              <div class="openclaw-step-panel" id="openclaw-panel-7" role="tabpanel" aria-labelledby="openclaw-tab-7">
+                <div class="openclaw-panel-title"><span class="i18n-zh">完成登录</span><span class="i18n-en">Sign in</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">身份验证</span><span class="i18n-en">Authentication</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">帮我 skb login，验证码是 <strong>xxxx-xxxx</strong></span><span class="i18n-en">Help me run skb login; the verification code is <strong>xxxx-xxxx</strong>.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
+                <p class="openclaw-step-note"><span class="i18n-zh">验证码需在浏览器打开 <code>https://&lt;主机&gt;/cli-code</code> 获取，五分钟有效期。</span><span class="i18n-en">Obtain the code by opening <code>https://&lt;host&gt;/cli-code</code> in your browser; it expires in five minutes.</span></p>
+              </div>
+              <div class="openclaw-step-panel" id="openclaw-panel-8" role="tabpanel" aria-labelledby="openclaw-tab-8">
+                <div class="openclaw-panel-title"><span class="i18n-zh">发布</span><span class="i18n-en">Publish</span></div>
+                <div class="openclaw-panel-subtitle"><span class="i18n-zh">提交与上线</span><span class="i18n-en">Ship your Skill</span></div>
+                <div class="openclaw-step-prompt">
+                  <div class="openclaw-prompt-row">
+                    <div class="openclaw-prompt-text">
+                      <span class="openclaw-quote-mark" aria-hidden="true">“</span><span class="i18n-zh">调用 skb，发布刚写的 skill</span><span class="i18n-en">Use skb to publish the skill I just wrote.</span><span class="openclaw-quote-mark" aria-hidden="true">”</span>
+                    </div>
+                    <button type="button" class="openclaw-prompt-copy"><span class="i18n-zh">复制</span><span class="i18n-en">Copy</span></button>
+                  </div>
+                </div>
+                <p class="openclaw-step-note">
+                  <span class="i18n-zh"><strong>发布 skill 必须先登录。</strong>可让助手写 <code>changelog</code> 文案。</span>
+                  <span class="i18n-en"><strong>You must sign in before publishing a skill.</strong>Ask for <code>--changelog</code> copy when you need release notes.</span>
+                </p>
+       
+              </div>
+            </div>
           </div>
-          <div class="openclaw-slider-controls">
-            <button type="button" class="openclaw-slider-btn openclaw-slider-btn--prev" id="openclaw-prev" aria-controls="openclaw-track">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <div class="openclaw-slider-dots" id="openclaw-dots" role="tablist" aria-label="OpenClaw steps"></div>
-            <button type="button" class="openclaw-slider-btn openclaw-slider-btn--next" id="openclaw-next" aria-controls="openclaw-track">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
+          <button type="button" class="openclaw-wizard-arrow openclaw-wizard-arrow--next" id="openclaw-next">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
         </div>
       </div>
     </section>
@@ -1015,8 +1126,8 @@ EOF</span>
             var toggle = document.getElementById('nav-mobile-toggle');
             if (toggle) toggle.setAttribute('aria-expanded', 'false');
           }
-          if (typeof window.refreshOpenClawSliderAria === 'function') {
-            window.refreshOpenClawSliderAria();
+          if (typeof window.refreshOpenClawWizardAria === 'function') {
+            window.refreshOpenClawWizardAria();
           }
         });
       });
@@ -1234,77 +1345,99 @@ EOF</span>
           }
         });
       });
+
+      // OpenClaw：复制当前语言的助手提示（不含两侧装饰引号）
+      document.querySelectorAll('.openclaw-prompt-copy').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var lang = getPageLang();
+          var textEl = btn.closest('.openclaw-step-prompt').querySelector('.openclaw-prompt-text .i18n-' + lang);
+          var text = (textEl && (textEl.innerText != null ? textEl.innerText : textEl.textContent) || '').trim();
+          var success = await copyToClipboard(text);
+          if (success) {
+            var originalHtml = btn.innerHTML;
+            var copied = lang === 'en' ? 'Copied!' : '已复制!';
+            btn.textContent = copied;
+            setTimeout(function () {
+              btn.innerHTML = originalHtml;
+            }, 2000);
+          }
+        });
+      });
     }
 
-    function initOpenClawSlider() {
-      var root = document.querySelector('[data-openclaw-slider]');
+    function initOpenClawWizard() {
+      var root = document.querySelector('[data-openclaw-wizard]');
       if (!root) return;
-      var track = root.querySelector('.openclaw-steps-track');
-      var slides = root.querySelectorAll('.openclaw-step');
-      var prev = root.querySelector('.openclaw-slider-btn--prev');
-      var next = root.querySelector('.openclaw-slider-btn--next');
-      var dotsHost = document.getElementById('openclaw-dots');
-      var n = slides.length;
-      if (!track || n === 0) return;
+      var totalSteps = 8;
+      var currentStep = 1;
+      var tabs = root.querySelectorAll('.openclaw-step-nav-item');
+      var panels = root.querySelectorAll('.openclaw-step-panel');
+      var prev = document.getElementById('openclaw-prev');
+      var next = document.getElementById('openclaw-next');
 
-      var slidePct = 100 / n;
-      track.style.width = (n * 100) + '%';
-      slides.forEach(function (sl) {
-        sl.style.flex = '0 0 ' + slidePct + '%';
-        sl.style.width = slidePct + '%';
+      function syncWizardAria() {
+        var lang = getPageLang();
+        if (prev) {
+          prev.setAttribute('aria-label', lang === 'en' ? 'Previous step' : '上一步');
+        }
+        if (next) {
+          next.setAttribute('aria-label', lang === 'en' ? 'Next step' : '下一步');
+        }
+        var nav = document.getElementById('openclaw-step-nav');
+        if (nav) {
+          nav.setAttribute('aria-label', lang === 'en' ? 'OpenClaw steps' : 'OpenClaw 步骤');
+        }
+        var ti;
+        for (ti = 0; ti < tabs.length; ti++) {
+          var stepNum = ti + 1;
+          tabs[ti].setAttribute(
+            'aria-label',
+            lang === 'en' ? ('Step ' + stepNum) : ('第 ' + stepNum + ' 步')
+          );
+        }
+      }
+
+      function updateUI(step) {
+        currentStep = Math.max(1, Math.min(totalSteps, step));
+        var i;
+        for (i = 0; i < tabs.length; i++) {
+          var n = i + 1;
+          var on = n === currentStep;
+          tabs[i].classList.toggle('is-active', on);
+          tabs[i].classList.toggle('is-completed', n < currentStep);
+          tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
+          tabs[i].setAttribute('tabindex', on ? '0' : '-1');
+        }
+        for (i = 0; i < panels.length; i++) {
+          var active = i + 1 === currentStep;
+          panels[i].classList.toggle('is-active', active);
+          panels[i].setAttribute('aria-hidden', active ? 'false' : 'true');
+        }
+        if (prev) prev.disabled = currentStep === 1;
+        if (next) next.disabled = currentStep === totalSteps;
+        syncWizardAria();
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var s = parseInt(tab.getAttribute('data-openclaw-step'), 10);
+          if (!isNaN(s)) updateUI(s);
+        });
       });
 
-      var idx = 0;
-      var dots = [];
-
-      function setDotAria() {
-        var lang = getPageLang();
-        var i;
-        for (i = 0; i < dots.length; i++) {
-          dots[i].setAttribute('aria-label', lang === 'en' ? ('Step ' + (i + 1)) : ('第 ' + (i + 1) + ' 步'));
-        }
-        if (dotsHost) {
-          dotsHost.setAttribute('aria-label', lang === 'en' ? 'OpenClaw steps' : 'OpenClaw 步骤');
-        }
-        if (prev) prev.setAttribute('aria-label', lang === 'en' ? 'Previous step' : '上一步');
-        if (next) next.setAttribute('aria-label', lang === 'en' ? 'Next step' : '下一步');
+      if (prev) {
+        prev.addEventListener('click', function () {
+          if (currentStep > 1) updateUI(currentStep - 1);
+        });
+      }
+      if (next) {
+        next.addEventListener('click', function () {
+          if (currentStep < totalSteps) updateUI(currentStep + 1);
+        });
       }
 
-      function go(target) {
-        idx = Math.max(0, Math.min(n - 1, target));
-        track.style.transform = 'translateX(-' + (idx * slidePct) + '%)';
-        var i;
-        for (i = 0; i < dots.length; i++) {
-          var on = i === idx;
-          dots[i].setAttribute('aria-selected', on ? 'true' : 'false');
-          dots[i].classList.toggle('is-active', on);
-          dots[i].setAttribute('tabindex', on ? '0' : '-1');
-        }
-        if (prev) prev.disabled = idx === 0;
-        if (next) next.disabled = idx === n - 1;
-      }
-
-      if (dotsHost) {
-        dotsHost.innerHTML = '';
-        var d;
-        for (d = 0; d < n; d++) {
-          (function (di) {
-            var b = document.createElement('button');
-            b.type = 'button';
-            b.setAttribute('role', 'tab');
-            b.className = 'openclaw-dot';
-            b.addEventListener('click', function () { go(di); });
-            dotsHost.appendChild(b);
-            dots.push(b);
-          })(d);
-        }
-      }
-
-      setDotAria();
-      if (prev) prev.addEventListener('click', function () { go(idx - 1); });
-      if (next) next.addEventListener('click', function () { go(idx + 1); });
-      go(0);
-      window.refreshOpenClawSliderAria = setDotAria;
+      updateUI(1);
+      window.refreshOpenClawWizardAria = syncWizardAria;
     }
 
     function initMobileNav() {
@@ -1348,7 +1481,7 @@ EOF</span>
       initScrollAnimations();
       initTabs();
       initCopyButtons();
-      initOpenClawSlider();
+      initOpenClawWizard();
       initMobileNav();
     });
   </script>
