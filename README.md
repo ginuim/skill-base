@@ -39,7 +39,7 @@ Send the following to your assistant as-is (replace the server URL and verificat
 
    > From ClawHub, pull **`skill-base-cli`** and install it into your skills directory.
 
-   Use this for day-to-day `skb` search, install, publish, and connecting to a Skill Base your team already runs—you **do not** need to install the server-deploy skill just to use the CLI.
+   Use this for day-to-day skb search, install, publish, and connecting to a Skill Base your team already runs—you **do not** need to install the server-deploy skill just to use the CLI.
 
 2. **Install `skill-base-web-deploy` from ClawHub (deploy or operate the server)**
 
@@ -55,29 +55,29 @@ Send the following to your assistant as-is (replace the server URL and verificat
 
 4. **Search for a Skill**
 
-   > Use `skb` to search for `some-skill`.
+   > Use skb to search for `some-skill`.
 
    **Usually no login required.**
 
 5. **Install a Skill**
 
-   > Use `skb` to install `some-skill`.
+   > Use skb to install `some-skill`.
 
    You can pin a version with `skill_id@version`, or pass `-d` / `--ide` for a target directory or IDE. **Usually no login required.**
 
 6. **Update a Skill**
 
-   > Use `skb` to update `some-skill`.
+   > Use skb to update `some-skill`.
 
-7. **Complete `skb login`**
+7. **Complete skb login**
 
-   > Help me with `skb login`; the verification code is **`xxxx-xxxx`**.
+   > Help me with skb login; the verification code is **`xxxx-xxxx`**.
 
    The code comes from the browser flow or from opening `https://<host>/cli-code` in a browser; it is valid for five minutes.
 
 8. **Publish**
 
-   > Use `skb` to publish the skill I just wrote.
+   > Use skb to publish the skill I just wrote.
 
    You can also ask the assistant to draft `--changelog` copy when needed.
 
