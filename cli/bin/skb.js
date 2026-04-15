@@ -11,8 +11,17 @@ import update from '../lib/commands/update.js';
 import publish from '../lib/commands/publish.js';
 import importGithub from '../lib/commands/import-github.js';
 import { pickMessage } from '../lib/i18n.js';
+import { getSupportedIdeIds } from '../lib/ide.js';
 
 const program = new Command();
+
+function installIdeOptionDescription() {
+  const ids = getSupportedIdeIds().join(' / ');
+  return pickMessage({
+    zh: `目标 Agent（${ids}）`,
+    en: `Target Agent (${ids})`
+  });
+}
 
 const S = {
   rootDesc: {
@@ -46,10 +55,6 @@ const S = {
   installDir: {
     zh: '解压到的目标目录',
     en: 'Target directory for extraction'
-  },
-  installIde: {
-    zh: '目标 Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode / trae / trae-cn)',
-    en: 'Target Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode / trae / trae-cn)'
   },
   installGlobal: {
     zh: '安装到全局 Agent 配置目录',
@@ -135,8 +140,8 @@ program
   .command('install <target>')
   .description(pickMessage(S.install))
   .option('-d, --dir <directory>', pickMessage(S.installDir))
-  .option('-i, --ide <agent>', pickMessage(S.installIde))
-  .option('-a, --agent <agent>', pickMessage(S.installIde))
+  .option('-i, --ide <agent>', installIdeOptionDescription())
+  .option('-a, --agent <agent>', installIdeOptionDescription())
   .option('-g, --global', pickMessage(S.installGlobal), false)
   .action((target, options) => {
     // Alias --agent to --ide

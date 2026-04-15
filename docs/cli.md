@@ -127,6 +127,17 @@ skb install git-commit-rules --ide cursor --global
 - `opencode`
 - `trae`（项目：`<项目根>/.trae/skills`，全局：`~/.trae/skills`）
 - `trae-cn`（项目：`<项目根>/.trae/skills`，全局：`~/.trae-cn/skills`）
+- `openclaw`（`<项目根>/skills`，全局：`~/.openclaw/skills`）
+- `codebuddy`（`<项目根>/.codebuddy/skills`，全局：`~/.codebuddy/skills`）
+- `codex`（`<项目根>/.agents/skills`，全局：`~/.codex/skills`）
+- `iflow-cli`（`<项目根>/.iflow/skills`，全局：`~/.iflow/skills`）
+- `kilo`（`<项目根>/.kilocode/skills`，全局：`~/.kilocode/skills`）
+- `kiro-cli`（`<项目根>/.kiro/skills`，全局：`~/.kiro/skills`）
+- `pi`（`<项目根>/.pi/skills`，全局：`~/.pi/agent/skills`）
+- `qwen-code`（`<项目根>/.qwen/skills`，全局：`~/.qwen/skills`）
+- `roo`（`<项目根>/.roo/skills`，全局：`~/.roo/skills`）
+
+若目标目录下已存在同名 Skill 文件夹，`skb install` 会先询问是否覆盖；确认后会删除旧目录再解压安装。
 
 安装成功后，CLI 会把这些信息记录到本地：
 

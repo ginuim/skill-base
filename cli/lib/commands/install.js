@@ -35,7 +35,11 @@ const M = {
   sol3: { zh: '  3. 若是你的 Skill，请先 `skb publish` 发布', en: '  3. If it is yours, publish with `skb publish` first' },
   tipLatest: { zh: '提示: 使用 `skb install ', en: 'Tip: use `skb install ' },
   tipLatestSuffix: { zh: '` 安装最新版本', en: '` to install the latest' },
-  installFailed: { zh: '安装失败: ', en: 'Install failed: ' }
+  installFailed: { zh: '安装失败: ', en: 'Install failed: ' },
+  overwriteAsk: {
+    zh: (p) => `目标已存在同名目录，是否覆盖？\n${p}`,
+    en: (p) => `A folder with the same skill name already exists. Overwrite?\n${p}`
+  }
 };
 
 function pickFn(obj, arg) {
@@ -149,6 +153,26 @@ export default async function install(target, options) {
 
       targetDir = resolveInstallDir(ideId, skillId, options.global || false, process.cwd());
     }
+  }
+
+  const installPathCandidate = path.join(path.resolve(targetDir), skillId);
+  if (fs.existsSync(installPathCandidate)) {
+    const displayConflict = path.relative(process.cwd(), installPathCandidate) || installPathCandidate;
+    const { confirm: overwrite } = await prompts({
+      type: 'confirm',
+      name: 'confirm',
+      message: pickFn(M.overwriteAsk, displayConflict),
+      initial: false
+    });
+    if (overwrite === undefined) {
+      console.log(chalk.yellow(pickMessage(M.cancelled)));
+      process.exit(0);
+    }
+    if (!overwrite) {
+      console.log(chalk.yellow(pickMessage(M.cancelled)));
+      process.exit(0);
+    }
+    fs.rmSync(installPathCandidate, { recursive: true, force: true });
   }
 
   const verLabel = version !== 'latest' ? `@${version}` : '';

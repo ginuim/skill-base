@@ -51,7 +51,7 @@ Send the following to your assistant as-is (replace the server URL and verificat
 
    > Help me configure Skill Base; the server URL is **`https://skill-base-server`**.
 
-   Use your real site root URL; do not include `/api`.
+   Use your real site root URL.
 
 4. **Search for a Skill**
 
