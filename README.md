@@ -35,11 +35,14 @@ Skill Base does one thing straight: turn Skills into publishable, installable, u
 
 Send the following to your assistant as-is (replace the server URL and verification code for your environment):
 
-1. **Install `skill-base-cli` from ClawHub (use an existing Skill Base site)** — *“From ClawHub, pull **`skill-base-cli`** and install it into your skills directory.”* (Use this for day-to-day `skb` search, install, and publish against a server your team already runs—you **do not** need the server-deploy skill just to use the CLI.)
-2. **Install `skill-base-web-deploy` from ClawHub (deploy or operate the server)** — *“From ClawHub, pull **`skill-base-web-deploy`** and install it into your skills directory.”* (Install this only when you want the assistant to **run the service**, Docker, data-directory layout, backups, and other **server-side** work.)
+1. **Install `skill-base-cli` from ClawHub (use an existing Skill Base site)** — *“From ClawHub, pull **`skill-base-cli`** and install it into your skills directory.”* (Use this for day-to-day `skb` search, install, publish, and connecting to a Skill Base your team already runs—you **do not** need to install the server-deploy skill just to use the CLI.)
+2. **Install `skill-base-web-deploy` from ClawHub (deploy or operate the server)** — *“From ClawHub, pull **`skill-base-web-deploy`** and install it into your skills directory.”* (Install this only when you need the assistant to **run the service** on your machine or a server—Docker, data directory, backups, and other **server-side** work.)
 3. **Point the CLI at your server** — *“Help me configure Skill Base; the server URL is **`https://skill-base-server`**.”* (Use your real site root URL; do not include `/api`.)
-4. **Complete `skb login`** — *“Help me with `skb login`; the verification code is **`xxxx-xxxx`**.”* (The code comes from the browser flow or from opening `https://<host>/cli-code` in a browser; it is valid for five minutes.)
-5. **Publish** — *“Use `skb` to publish the skill I just wrote.”* (You can also ask the assistant to draft `--changelog` copy when needed.)
+4. **Search for a Skill** — *“Use `skb` to search for `some-skill`.”* (**Usually no login required.**)
+5. **Install a Skill** — *“Use `skb` to install `some-skill`.”* (You can pin a version with `skill_id@version`, or pass `-d` / `--ide` for a target directory or IDE.) (**Usually no login required.**)
+6. **Update a Skill** — *“Use `skb` to update `some-skill`.”*
+7. **Complete `skb login`** — *“Help me with `skb login`; the verification code is **`xxxx-xxxx`**.”* (The code comes from the browser flow or from opening `https://<host>/cli-code` in a browser; it is valid for five minutes.)
+8. **Publish** — *“Use `skb` to publish the skill I just wrote.”* (You can also ask the assistant to draft `--changelog` copy when needed.)
 
 This repository maintains two assistant-oriented Skills under `skills/`, both published on **ClawHub**:
 

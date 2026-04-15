@@ -667,6 +667,164 @@ section {
   margin: 0 auto;
 }
 
+/* ===== OpenClaw / ClawHub guide（幻灯片步骤） ===== */
+.openclaw-guide .section-subtitle {
+  max-width: 720px;
+}
+
+.openclaw-slider {
+  margin-top: 40px;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.openclaw-viewport {
+  overflow: hidden;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+.openclaw-steps-track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: transform 0.38s ease;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .openclaw-steps-track {
+    transition: none;
+  }
+}
+
+.openclaw-step {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 24px 22px 28px;
+}
+
+.openclaw-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--accent-green);
+  background: rgba(0, 255, 136, 0.12);
+  border-radius: 8px;
+}
+
+.openclaw-step-title {
+  margin: 0 0 12px;
+  font-weight: 600;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.openclaw-step-title code {
+  font-size: 0.9em;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+.openclaw-step-prompt {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.openclaw-step-note {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  opacity: 0.95;
+}
+
+.openclaw-step-note code,
+.openclaw-step-prompt code {
+  font-size: 0.9em;
+  padding: 1px 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+.openclaw-slider-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.openclaw-slider-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, opacity 0.2s;
+}
+
+.openclaw-slider-btn:hover:not(:disabled) {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.openclaw-slider-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.openclaw-slider-dots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.openclaw-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.openclaw-dot:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.openclaw-dot.is-active {
+  background: var(--accent-green);
+  transform: scale(1.15);
+}
+
 /* ===== What is Agent Skill Section ===== */
 .what-is-skill {
   background: var(--bg-secondary);

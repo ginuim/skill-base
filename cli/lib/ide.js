@@ -64,6 +64,20 @@ export const IDE_CONFIGS = {
     globalPath: '.config/opencode/skills',
     supportsGlobal: true,
   },
+  trae: {
+    id: 'trae',
+    name: 'Trae',
+    projectPath: '.trae/skills',
+    globalPath: '.trae/skills',
+    supportsGlobal: true,
+  },
+  'trae-cn': {
+    id: 'trae-cn',
+    name: 'Trae CN',
+    projectPath: '.trae/skills',
+    globalPath: '.trae-cn/skills',
+    supportsGlobal: true,
+  },
 };
 
 /** Marker files/dirs that indicate a project root */

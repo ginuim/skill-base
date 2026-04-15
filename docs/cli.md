@@ -108,6 +108,8 @@ skb install team-vue-rules --ide cursor
 skb install team-vue-rules --ide claude-code
 skb install team-vue-rules --ide qoder
 skb install team-vue-rules --ide opencode
+skb install team-vue-rules --ide trae
+skb install team-vue-rules --ide trae-cn
 skb install team-vue-rules --ide copilot
 
 # 安装到全局 IDE 目录
@@ -123,6 +125,8 @@ skb install git-commit-rules --ide cursor --global
 - `qoder`
 - `qoderwork`
 - `opencode`
+- `trae`（项目：`<项目根>/.trae/skills`，全局：`~/.trae/skills`）
+- `trae-cn`（项目：`<项目根>/.trae/skills`，全局：`~/.trae-cn/skills`）
 
 安装成功后，CLI 会把这些信息记录到本地：
 

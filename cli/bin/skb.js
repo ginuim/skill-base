@@ -48,8 +48,8 @@ const S = {
     en: 'Target directory for extraction'
   },
   installIde: {
-    zh: '目标 Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode)',
-    en: 'Target Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode)'
+    zh: '目标 Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode / trae / trae-cn)',
+    en: 'Target Agent (universal / cursor / copilot / windsurf / qoder / claude-code / qoderwork / opencode / trae / trae-cn)'
   },
   installGlobal: {
     zh: '安装到全局 Agent 配置目录',

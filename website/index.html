@@ -47,6 +47,7 @@
           <a href="#why"><span class="i18n-zh">为什么需要</span><span class="i18n-en">Why Skill Base</span></a>
           <a href="#features"><span class="i18n-zh">核心特性</span><span class="i18n-en">Features</span></a>
           <a href="#quick-start"><span class="i18n-zh">快速开始</span><span class="i18n-en">Quick start</span></a>
+          <a href="#openclaw"><span class="i18n-zh">OpenClaw 接入</span><span class="i18n-en">OpenClaw</span></a>
           <a href="#philosophy"><span class="i18n-zh">设计哲学</span><span class="i18n-en">Philosophy</span></a>
           <div class="nav-mobile-lang">
             <div class="nav-lang-dropdown nav-lang-dropdown--in-menu" data-lang-dropdown>
@@ -781,6 +782,64 @@ EOF</span>
 
     <div class="section-divider"></div>
 
+    <!-- OpenClaw / ClawHub integration -->
+    <section class="openclaw-guide" id="openclaw">
+      <div class="container">
+        <h2 class="section-title fade-in"><span class="i18n-zh">如何在 OpenClaw 类产品使用 Skill Base？</span><span class="i18n-en">Using Skill Base with OpenClaw-class products</span></h2>
+        <p class="section-subtitle fade-in">
+          <span class="i18n-zh">把下面的话直接发给助手即可（按你的环境替换服务器地址与验证码）</span>
+          <span class="i18n-en">Send these lines to your assistant—substitute your server URL and verification code</span>
+        </p>
+        <div class="openclaw-slider fade-in" data-openclaw-slider>
+          <div class="openclaw-viewport">
+            <ol class="openclaw-steps openclaw-steps-track" id="openclaw-track">
+              <li class="openclaw-step">
+                <span class="openclaw-step-num" aria-hidden="true">1</span>
+                <p class="openclaw-step-title"><span class="i18n-zh">从 ClawHub 安装 <code>skill-base-cli</code>（对接已有站点）</span><span class="i18n-en">Install <code>skill-base-cli</code> from ClawHub (connect to an existing site)</span></p>
+                <p class="openclaw-step-prompt"><span class="i18n-zh">「到 ClawHub 拉取 <strong>skill-base-cli</strong>，并安装到你的 skills 目录。」</span><span class="i18n-en">“Pull <strong>skill-base-cli</strong> from ClawHub and install it into your skills directory.”</span></p>
+                <p class="openclaw-step-note"><span class="i18n-zh">日常用 <code>skb</code> 搜索、安装、发版、对接团队已部署的 Skill Base 时用；<strong>不必</strong>为了用 CLI 再装服务端部署 Skill。</span><span class="i18n-en">Use when searching, installing, publishing with <code>skb</code>, or connecting to your team’s Skill Base—you <strong>do not</strong> need to deploy the server again just for the CLI.</span></p>
+              </li>
+              <li class="openclaw-step">
+                <span class="openclaw-step-num" aria-hidden="true">2</span>
+                <p class="openclaw-step-title"><span class="i18n-zh">从 ClawHub 安装 <code>skill-base-web-deploy</code>（部署或运维服务端）</span><span class="i18n-en">Install <code>skill-base-web-deploy</code> from ClawHub (run or operate the server)</span></p>
+                <p class="openclaw-step-prompt"><span class="i18n-zh">「到 ClawHub 拉取 <strong>skill-base-web-deploy</strong>，并安装到你的 skills 目录。」</span><span class="i18n-en">“Pull <strong>skill-base-web-deploy</strong> from ClawHub and install it into your skills directory.”</span></p>
+                <p class="openclaw-step-note"><span class="i18n-zh">仅当需要助手在本机或服务器上<strong>起服务</strong>、Docker、数据目录与备份等<strong>服务端工作</strong>时再装。</span><span class="i18n-en">Install only when you need the assistant to <strong>run the service</strong>, Docker, data paths, backups, and other <strong>server-side</strong> tasks.</span></p>
+              </li>
+              <li class="openclaw-step">
+                <span class="openclaw-step-num" aria-hidden="true">3</span>
+                <p class="openclaw-step-title"><span class="i18n-zh">配置 CLI 指向服务端</span><span class="i18n-en">Point the CLI at your server</span></p>
+                <p class="openclaw-step-prompt"><span class="i18n-zh">「帮我配置 Skill Base，服务器地址是 <strong>https://skill-base-server</strong>。」</span><span class="i18n-en">“Help me configure Skill Base; the server URL is <strong>https://skill-base-server</strong>.”</span></p>
+                <p class="openclaw-step-note"><span class="i18n-zh">换成你的实际站点根 URL，不要带 <code>/api</code>。</span><span class="i18n-en">Use your real site root URL—do not include <code>/api</code>.</span></p>
+              </li>
+              <li class="openclaw-step">
+                <span class="openclaw-step-num" aria-hidden="true">4</span>
+                <p class="openclaw-step-title"><span class="i18n-zh">完成登录</span><span class="i18n-en">Sign in</span></p>
+                <p class="openclaw-step-prompt"><span class="i18n-zh">「帮我 <code>skb login</code>，验证码是 <strong>xxxx-xxxx</strong>。」</span><span class="i18n-en">“Help me run <code>skb login</code>; the verification code is <strong>xxxx-xxxx</strong>.”</span></p>
+                <p class="openclaw-step-note"><span class="i18n-zh">验证码来自浏览器流程或浏览器打开 <code>https://&lt;主机&gt;/cli-code</code>，五分钟有效期。</span><span class="i18n-en">The code comes from the browser flow or opening <code>https://&lt;host&gt;/cli-code</code>; it expires in five minutes.</span></p>
+              </li>
+              <li class="openclaw-step">
+                <span class="openclaw-step-num" aria-hidden="true">5</span>
+                <p class="openclaw-step-title"><span class="i18n-zh">发布</span><span class="i18n-en">Publish</span></p>
+                <p class="openclaw-step-prompt"><span class="i18n-zh">「调用 <code>skb</code>，发布刚写的 skill。」</span><span class="i18n-en">“Use <code>skb</code> to publish the skill I just wrote.”</span></p>
+                <p class="openclaw-step-note"><span class="i18n-zh">需要时可同时说明让助手写 <code>--changelog</code> 文案。</span><span class="i18n-en">Ask for <code>--changelog</code> copy when you need release notes.</span></p>
+              </li>
+            </ol>
+          </div>
+          <div class="openclaw-slider-controls">
+            <button type="button" class="openclaw-slider-btn openclaw-slider-btn--prev" id="openclaw-prev" aria-controls="openclaw-track">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="openclaw-slider-dots" id="openclaw-dots" role="tablist" aria-label="OpenClaw steps"></div>
+            <button type="button" class="openclaw-slider-btn openclaw-slider-btn--next" id="openclaw-next" aria-controls="openclaw-track">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
     <!-- Philosophy Section -->
     <section class="philosophy" id="philosophy">
       <div class="container">
@@ -955,6 +1014,9 @@ EOF</span>
             navbar.classList.remove('nav-open');
             var toggle = document.getElementById('nav-mobile-toggle');
             if (toggle) toggle.setAttribute('aria-expanded', 'false');
+          }
+          if (typeof window.refreshOpenClawSliderAria === 'function') {
+            window.refreshOpenClawSliderAria();
           }
         });
       });
@@ -1174,6 +1236,77 @@ EOF</span>
       });
     }
 
+    function initOpenClawSlider() {
+      var root = document.querySelector('[data-openclaw-slider]');
+      if (!root) return;
+      var track = root.querySelector('.openclaw-steps-track');
+      var slides = root.querySelectorAll('.openclaw-step');
+      var prev = root.querySelector('.openclaw-slider-btn--prev');
+      var next = root.querySelector('.openclaw-slider-btn--next');
+      var dotsHost = document.getElementById('openclaw-dots');
+      var n = slides.length;
+      if (!track || n === 0) return;
+
+      var slidePct = 100 / n;
+      track.style.width = (n * 100) + '%';
+      slides.forEach(function (sl) {
+        sl.style.flex = '0 0 ' + slidePct + '%';
+        sl.style.width = slidePct + '%';
+      });
+
+      var idx = 0;
+      var dots = [];
+
+      function setDotAria() {
+        var lang = getPageLang();
+        var i;
+        for (i = 0; i < dots.length; i++) {
+          dots[i].setAttribute('aria-label', lang === 'en' ? ('Step ' + (i + 1)) : ('第 ' + (i + 1) + ' 步'));
+        }
+        if (dotsHost) {
+          dotsHost.setAttribute('aria-label', lang === 'en' ? 'OpenClaw steps' : 'OpenClaw 步骤');
+        }
+        if (prev) prev.setAttribute('aria-label', lang === 'en' ? 'Previous step' : '上一步');
+        if (next) next.setAttribute('aria-label', lang === 'en' ? 'Next step' : '下一步');
+      }
+
+      function go(target) {
+        idx = Math.max(0, Math.min(n - 1, target));
+        track.style.transform = 'translateX(-' + (idx * slidePct) + '%)';
+        var i;
+        for (i = 0; i < dots.length; i++) {
+          var on = i === idx;
+          dots[i].setAttribute('aria-selected', on ? 'true' : 'false');
+          dots[i].classList.toggle('is-active', on);
+          dots[i].setAttribute('tabindex', on ? '0' : '-1');
+        }
+        if (prev) prev.disabled = idx === 0;
+        if (next) next.disabled = idx === n - 1;
+      }
+
+      if (dotsHost) {
+        dotsHost.innerHTML = '';
+        var d;
+        for (d = 0; d < n; d++) {
+          (function (di) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.setAttribute('role', 'tab');
+            b.className = 'openclaw-dot';
+            b.addEventListener('click', function () { go(di); });
+            dotsHost.appendChild(b);
+            dots.push(b);
+          })(d);
+        }
+      }
+
+      setDotAria();
+      if (prev) prev.addEventListener('click', function () { go(idx - 1); });
+      if (next) next.addEventListener('click', function () { go(idx + 1); });
+      go(0);
+      window.refreshOpenClawSliderAria = setDotAria;
+    }
+
     function initMobileNav() {
       var navbar = document.getElementById('site-navbar');
       var toggle = document.getElementById('nav-mobile-toggle');
@@ -1215,6 +1348,7 @@ EOF</span>
       initScrollAnimations();
       initTabs();
       initCopyButtons();
+      initOpenClawSlider();
       initMobileNav();
     });
   </script>
