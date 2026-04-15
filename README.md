@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 > Stop stuffing Agent Skills into source repositories.
-> Skill Base is a lightweight private distribution platform for Agent Skills for small and medium teams: a minimal server plus an `skb` CLI that pulls team standards out of repos and ships them consistently to Cursor, Claude Code, Qoder, OpenCode, Windsurf, and similar tools.
+> Skill Base is a lightweight private distribution platform for Agent Skills for small and medium teams: a minimal server plus an `skb` CLI that pulls team standards out of repos and ships them consistently to Cursor, Claude Code, Qoder, OpenCode, Windsurf, OpenClaw-class assistants, and similar tools.
 
 <p align="center">
   <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base demo" />
@@ -30,6 +30,32 @@ PMs and QA also need Skills for PRDs, test cases, and regression checklists. The
 When “generic API auth Skill” updates in project A, project B does not follow automatically. You end up copying everywhere, drifting everywhere, missing updates everywhere.
 
 Skill Base does one thing straight: turn Skills into publishable, installable, updatable, rollback-friendly team assets.
+
+## How to use Skill Base with OpenClaw-class products
+
+Send the following to your assistant as-is (replace the server URL and verification code for your environment):
+
+1. **Install `skill-base-cli` from ClawHub (use an existing Skill Base site)** — *“From ClawHub, pull **`skill-base-cli`** and install it into your skills directory.”* (Use this for day-to-day `skb` search, install, and publish against a server your team already runs—you **do not** need the server-deploy skill just to use the CLI.)
+2. **Install `skill-base-web-deploy` from ClawHub (deploy or operate the server)** — *“From ClawHub, pull **`skill-base-web-deploy`** and install it into your skills directory.”* (Install this only when you want the assistant to **run the service**, Docker, data-directory layout, backups, and other **server-side** work.)
+3. **Point the CLI at your server** — *“Help me configure Skill Base; the server URL is **`https://skill-base-server`**.”* (Use your real site root URL; do not include `/api`.)
+4. **Complete `skb login`** — *“Help me with `skb login`; the verification code is **`xxxx-xxxx`**.”* (The code comes from the browser flow or from opening `https://<host>/cli-code` in a browser; it is valid for five minutes.)
+5. **Publish** — *“Use `skb` to publish the skill I just wrote.”* (You can also ask the assistant to draft `--changelog` copy when needed.)
+
+This repository maintains two assistant-oriented Skills under `skills/`, both published on **ClawHub**:
+
+| Skill | Role |
+|-------|------|
+| **`skill-base-cli`** | Guide the assistant to run **`skb`** from the terminal: `init`, `login`, `search`, `install`, `update`, `publish`, etc., against your Skill Base site. |
+| **`skill-base-web-deploy`** | Guide the assistant to deploy, start, or operate the **Skill Base server** (`npx skill-base`, Docker, ports, data directory, backups, etc.). |
+
+In **OpenClaw-class** products, you can have Claw install the Skill(s) you need from ClawHub into the assistant’s skills directory (same idea as pulling skill packages from a marketplace). After installation, a typical private Skill Base loop looks like this:
+
+1. **Server** — Have the assistant start a local instance (for example `npx skill-base -d <data-dir> -p <port>`) or connect to an existing deployment; use **`skill-base-web-deploy`** when the task is “run or operate the server”.
+2. **CLI target** — Run `skb init -s <site-root-url>` to save the server root to **`~/.skill-base/config.json`** (no `/api` suffix on the URL).
+3. **Login** — **`skb search` and `skb install` do not require a login**; only **`skb publish`** does. When you are ready to publish, have the assistant run `skb login` with you. `skb login` uses the browser verification flow. You can also open **`http://<your-skill-base-host>/cli-code`** in a browser (for example `http://localhost:8000/cli-code` on your machine) to obtain a **temporary** code; the CLI exchanges it for a **long-lived PAT**. The code is valid for **five minutes**, so it is safe to paste into Claw or an assistant—you are not handing over a long-term secret.
+4. **Day-to-day** — Use `skb search`, `skb install`, `skb update`, and `skb publish` to pull, update, and release; **`skill-base-cli`** is authoritative for these. When publishing, use `--changelog "..."` for release notes; you can also **have the AI assistant generate changelog copy** from your changes or your notes, then pass it to `skb publish`.
+
+You can also install the CLI globally on your machine (`pnpm add -g skill-base-cli`) or use `npx skill-base-cli`; the value of these two Skills is that they help the assistant run the same commands **consistently and under one convention** on your behalf.
 
 ## Core capabilities
 
@@ -58,6 +84,8 @@ skb publish ./my-skill --changelog "API auth rules updated"
 ```
 
 PMs, QA, and colleagues who prefer not to use the CLI can search, browse versions, and download packages in the web UI. Team knowledge should not only serve people who write code.
+
+The web UI also supports account-based favorites, download counters, and an optional global tag library (managed by the super admin). Inline previews use a dedicated `/view` endpoint so browsing a version ZIP does not inflate download statistics.
 
 ### Small data model, GitOps-friendly
 
@@ -297,6 +325,34 @@ docker run -d -p 8000:8000 -v "$(pwd)/skill-data:/data" \
 ```
 
 With `SESSION_STORE=sqlite`, sessions are stored in the same SQLite database (`skills.db`) in the `sessions` table.
+
+### PM2
+
+Install [PM2](https://pm2.keymetrics.io/) globally, then start Skill Base with `npx` (same flags as above). Below uses `./skill-data` like **Quick start**; use an absolute path if you prefer.
+
+```bash
+pnpm add -g pm2
+pm2 start npx --name skill-base -- -y skill-base -d ./skill-data -p 8000
+```
+
+If you cloned this repository and run from source, start the CLI entry from the project root:
+
+```bash
+pm2 start bin/skill-base.js --name skill-base -- -d ./skill-data -p 8000
+```
+
+Environment variables work like any shell command (for example SQLite-backed sessions):
+
+```bash
+SESSION_STORE=sqlite pm2 start npx --name skill-base -- -y skill-base -d ./skill-data -p 8000
+```
+
+For a persistent process list and boot-time restore:
+
+```bash
+pm2 save
+pm2 startup
+```
 
 ### Backup
 
