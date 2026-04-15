@@ -37,13 +37,13 @@ Send the following to your assistant as-is (replace the server URL and verificat
 
 1. **Install `skill-base-cli` from ClawHub (use an existing Skill Base site)**
 
-   > From ClawHub, pull **`skill-base-cli`** and install it into your skills directory.
+   > From ClawHub, pull **skill-base-cli** and install it into your skills directory.
 
    Use this for day-to-day skb search, install, publish, and connecting to a Skill Base your team already runs—you **do not** need to install the server-deploy skill just to use the CLI.
 
 2. **Install `skill-base-web-deploy` from ClawHub (deploy or operate the server)**
 
-   > From ClawHub, pull **`skill-base-web-deploy`** and install it into your skills directory.
+   > From ClawHub, pull **skill-base-web-deploy** and install it into your skills directory.
 
    Install this only when you need the assistant to **run the service** on your machine or a server—Docker, data directory, backups, and other **server-side** work.
 
