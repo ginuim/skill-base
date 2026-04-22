@@ -149,6 +149,7 @@
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `q` | string | 可选，搜索关键词 |
+| `visibility` | string | 可选，`public` 或 `private`；用于按可见性过滤 |
 
 **响应:**
 ```json
@@ -290,6 +291,7 @@
 |------|------|------|
 | `name` | string | Skill 名称 |
 | `description` | string | Skill 描述 |
+| `visibility` | string | `public` 或 `private` |
 | `webhook_url` | string \| null | `http` 或 `https` URL，最长 2048；传 `null` 或空字符串表示清空 |
 
 **响应:** 与 **GET** `/api/v1/skills/:skill_id` 结构一致。`webhook_url` 仅当调用者是 **所有者或管理员** 时在 JSON 中返回；协作者和普通访客不返回该字段。
@@ -403,6 +405,7 @@
 | `name` | string | 条件 | 新 Skill 必需，Skill 名称 |
 | `description` | string | 否 | Skill 描述 |
 | `changelog` | string | 否 | 版本更新日志 |
+| `visibility` | string | 否 | 仅新 Skill 生效，`public` 或 `private`，默认 `public` |
 
 **响应:**
 ```json
@@ -627,6 +630,7 @@
 | `is_favorited` | boolean | 当前登录用户是否已收藏（未登录为 `false`） |
 | `tags` | array | `{ id, name }[]`，全局标签 |
 | `owner` | object | 所有者信息 `{id, username}` |
+| `visibility` | string | `public` 或 `private` |
 | `created_at` | string | 创建时间 |
 | `updated_at` | string | 更新时间 |
 

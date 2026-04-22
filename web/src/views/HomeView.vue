@@ -92,6 +92,7 @@
         >
           <div class="skill-card-header">
             <h3 class="skill-card-name">{{ skill.name }}</h3>
+            <span v-if="skill.visibility === 'private'" class="skill-visibility-badge">PRIVATE</span>
           </div>
           <p class="skill-card-desc">{{ truncateDescription(skill.description) }}</p>
           <div class="skill-card-footer">
@@ -235,5 +236,19 @@ onMounted(async () => {
   color: var(--color-base-400);
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
+}
+
+.skill-visibility-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.625rem;
+  line-height: 1;
+  padding: 0.3rem 0.5rem;
+  color: #fcd34d;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  letter-spacing: 0.04em;
 }
 </style>

@@ -43,6 +43,7 @@ async function buildTestApp() {
   clearModule('../../src/models/favorite');
   clearModule('../../src/models/tag');
   clearModule('../../src/utils/model-cache');
+  clearModule('../../src/utils/permission');
 
   const db = require('../../src/database');
   const app = Fastify({ logger: false });

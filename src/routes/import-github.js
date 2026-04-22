@@ -45,7 +45,7 @@ async function importGithubRoutes(fastify) {
   fastify.post('/import/github', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
-    const { source, ref, subpath, target_skill_id, changelog } = request.body || {};
+    const { source, ref, subpath, target_skill_id, changelog, visibility } = request.body || {};
     const target = String(target_skill_id || '').trim();
 
     if (!target || !/^[\w-]+$/.test(target)) {
@@ -90,6 +90,7 @@ async function importGithubRoutes(fastify) {
       name: nameForCreate,
       description: descForCreate,
       changelog: changelog != null ? String(changelog) : '',
+      visibility,
       zipBuffer
     });
 

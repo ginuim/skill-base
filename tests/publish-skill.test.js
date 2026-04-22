@@ -50,6 +50,13 @@ function seedUser(db) {
   `).run().lastInsertRowid;
 }
 
+function seedUserByUsername(db, username) {
+  return db.prepare(`
+    INSERT INTO users (username, password_hash, role, name, status, created_at, updated_at)
+    VALUES (?, 'hash', 'developer', ?, 'active', datetime('now'), datetime('now'))
+  `).run(username, username).lastInsertRowid;
+}
+
 function withFixedDate(isoString, fn) {
   const RealDate = Date;
   const fixedTimestamp = new RealDate(isoString).getTime();
@@ -118,6 +125,45 @@ test('publish rejects same-second duplicate without overwriting existing zip', (
 
     const versionCount = db.prepare('SELECT COUNT(*) AS count FROM skill_versions WHERE skill_id = ?').get('skill-a');
     assert.equal(versionCount.count, 1);
+  } finally {
+    destroyFixture(tempDir);
+  }
+});
+
+test('publish existing skill by non-collaborator returns conflict error', () => {
+  const { tempDir, dbPath, dataDir } = createFixture();
+
+  try {
+    const { db, publishSkillFromZip } = loadFreshPublish(dbPath, dataDir);
+    const ownerId = seedUserByUsername(db, 'owner');
+    const outsiderId = seedUserByUsername(db, 'outsider');
+
+    const owner = { id: ownerId, role: 'developer', username: 'owner' };
+    const outsider = { id: outsiderId, role: 'developer', username: 'outsider' };
+    const zipBuffer = Buffer.from('zip-content');
+
+    const created = publishSkillFromZip({
+      user: owner,
+      skillId: 'shared-skill',
+      name: 'Shared Skill',
+      description: 'init',
+      changelog: 'v1',
+      zipBuffer
+    });
+    assert.equal(created.ok, true);
+
+    const denied = publishSkillFromZip({
+      user: outsider,
+      skillId: 'shared-skill',
+      name: 'Shared Skill',
+      description: 'try overwrite',
+      changelog: 'v2',
+      zipBuffer
+    });
+
+    assert.equal(denied.ok, false);
+    assert.equal(denied.status, 403);
+    assert.equal(denied.body.error, 'skill_conflict');
   } finally {
     destroyFixture(tempDir);
   }

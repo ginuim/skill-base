@@ -8,6 +8,7 @@ const db = require('../database');
  * @returns {boolean}
  */
 function hasSkillPermission(user, skillId, requiredRole = 'any') {
+  if (!user) return false;
   // Admin has all permissions
   if (user.role === 'admin') return true;
   
@@ -38,6 +39,13 @@ function canManageSkill(user, skillId) {
   return hasSkillPermission(user, skillId, 'owner');
 }
 
+function canViewSkill(user, skillId) {
+  const skill = db.prepare('SELECT visibility FROM skills WHERE id = ?').get(skillId);
+  if (!skill) return false;
+  if (skill.visibility !== 'private') return true;
+  return hasSkillPermission(user, skillId, 'any');
+}
+
 function isSuperAdmin(user) {
   return !!user && user.role === 'admin' && Number(user.is_super_admin || 0) === 1;
 }
@@ -46,5 +54,6 @@ module.exports = {
   hasSkillPermission,
   canPublishSkill,
   canManageSkill,
+  canViewSkill,
   isSuperAdmin
 };

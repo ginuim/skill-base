@@ -9,10 +9,10 @@ const { notifySkillWebhook } = require('./skill-webhook');
 
 /**
  * Persist a new skill version from an in-memory zip (same rules as POST /skills/publish).
- * @param {{ user: object, skillId: string, name?: string, description?: string, changelog?: string, zipBuffer: Buffer }} params
+ * @param {{ user: object, skillId: string, name?: string, description?: string, changelog?: string, visibility?: string, zipBuffer: Buffer }} params
  * @returns {{ ok: true, skill_id: string, version: string, created_at: string } | { ok: false, status: number, body: object }}
  */
-function publishSkillFromZip({ user, skillId, name, description, changelog, zipBuffer }) {
+function publishSkillFromZip({ user, skillId, name, description, changelog, visibility, zipBuffer }) {
   if (!zipBuffer || !Buffer.isBuffer(zipBuffer)) {
     return { ok: false, status: 400, body: { detail: 'zip_file is required' } };
   }
@@ -22,14 +22,18 @@ function publishSkillFromZip({ user, skillId, name, description, changelog, zipB
     return { ok: false, status: 400, body: { detail: 'skill_id is required' } };
   }
 
+  if (visibility !== undefined && visibility !== 'public' && visibility !== 'private') {
+    return { ok: false, status: 400, body: { detail: 'visibility must be public or private' } };
+  }
+
   if (!canPublishSkill(user, skill_id)) {
     return {
       ok: false,
       status: 403,
       body: {
         ok: false,
-        error: 'permission_denied',
-        detail: 'You do not have publish permission for this Skill'
+        error: 'skill_conflict',
+        detail: 'Skill already exists and you are not a collaborator'
       }
     };
   }
@@ -41,7 +45,7 @@ function publishSkillFromZip({ user, skillId, name, description, changelog, zipB
       return { ok: false, status: 400, body: { detail: 'name is required for new skill' } };
     }
     const createSkillTx = db.transaction(() => {
-      SkillModel.create(skill_id, String(name).trim(), description || '', user.id);
+      SkillModel.create(skill_id, String(name).trim(), description || '', user.id, visibility || 'public');
       db.prepare(
         'INSERT INTO skill_collaborators (skill_id, user_id, role, created_by) VALUES (?, ?, ?, ?)'
       ).run(skill_id, user.id, 'owner', user.id);

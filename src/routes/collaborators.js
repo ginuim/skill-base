@@ -1,5 +1,5 @@
 const db = require('../database');
-const { canManageSkill } = require('../utils/permission');
+const { canManageSkill, canViewSkill } = require('../utils/permission');
 const UserModel = require('../models/user');
 const { invalidateSkill } = require('../utils/model-cache');
 const { notifySkillWebhook } = require('../utils/skill-webhook');
@@ -7,12 +7,10 @@ const { notifySkillWebhook } = require('../utils/skill-webhook');
 async function collaboratorsRoutes(fastify, options) {
 
   // GET /:skill_id/collaborators - Get collaborators list (public)
-  fastify.get('/:skill_id/collaborators', async (request, reply) => {
+  fastify.get('/:skill_id/collaborators', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { skill_id } = request.params;
     
-    // Check if Skill exists
-    const skill = db.prepare('SELECT id FROM skills WHERE id = ?').get(skill_id);
-    if (!skill) {
+    if (!canViewSkill(request.user, skill_id)) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'Skill not found' });
     }
     

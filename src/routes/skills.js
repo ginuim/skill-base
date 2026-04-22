@@ -6,7 +6,7 @@ const VersionModel = require('../models/version');
 const FavoriteModel = require('../models/favorite');
 const TagModel = require('../models/tag');
 const { getZipPath, resolveZipPath } = require('../utils/zip');
-const { canManageSkill } = require('../utils/permission');
+const { canManageSkill, canViewSkill } = require('../utils/permission');
 const { parseWebhookUrlField, notifySkillWebhook, canViewSkillWebhook } = require('../utils/skill-webhook');
 
 function listCollaboratorUsersForSkillDetail(skillId) {
@@ -43,6 +43,7 @@ function formatSkill(skill, currentUser) {
     created_at: skill.created_at,
     updated_at: skill.updated_at
   };
+  result.visibility = skill.visibility || 'public';
 
   if (currentUser) {
     if (currentUser.role === 'admin' || currentUser.id === skill.owner_id) {
@@ -103,7 +104,7 @@ async function skillsRoutes(fastify, options) {
   // GET / - Get skills list
   fastify.get('/', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { q } = request.query;
-    const skills = SkillModel.search(q);
+    const skills = SkillModel.search(q, request.user);
     const formattedSkills = skills.map(skill => formatSkill(skill, request.user));
 
     return {
@@ -120,6 +121,9 @@ async function skillsRoutes(fastify, options) {
     if (!skill) {
       return reply.code(404).send({ detail: 'Skill not found' });
     }
+    if (!canViewSkill(request.user, skill_id)) {
+      return reply.code(404).send({ detail: 'Skill not found' });
+    }
 
     const formatted = formatSkill(skill, request.user);
     formatted.collaborators = listCollaboratorUsersForSkillDetail(skill_id);
@@ -127,11 +131,11 @@ async function skillsRoutes(fastify, options) {
   });
 
   // GET /:skill_id/versions - Get all versions of a skill
-  fastify.get('/:skill_id/versions', async (request, reply) => {
+  fastify.get('/:skill_id/versions', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { skill_id } = request.params;
 
     // First check if skill exists
-    if (!SkillModel.exists(skill_id)) {
+    if (!canViewSkill(request.user, skill_id)) {
       return reply.code(404).send({ detail: 'Skill not found' });
     }
 
@@ -145,8 +149,11 @@ async function skillsRoutes(fastify, options) {
   });
 
   // GET /:skill_id/versions/:version/download - Download version zip file
-  fastify.get('/:skill_id/versions/:version/download', async (request, reply) => {
+  fastify.get('/:skill_id/versions/:version/download', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { skill_id, version } = request.params;
+    if (!canViewSkill(request.user, skill_id)) {
+      return reply.code(404).send({ detail: 'Version not found' });
+    }
 
     let versionRecord;
 
@@ -177,8 +184,11 @@ async function skillsRoutes(fastify, options) {
   });
 
   // GET /:skill_id/versions/:version/view - View version zip file without counting download
-  fastify.get('/:skill_id/versions/:version/view', async (request, reply) => {
+  fastify.get('/:skill_id/versions/:version/view', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { skill_id, version } = request.params;
+    if (!canViewSkill(request.user, skill_id)) {
+      return reply.code(404).send({ detail: 'Version not found' });
+    }
 
     const versionRecord = version === 'latest'
       ? VersionModel.getLatest(skill_id)
@@ -206,7 +216,7 @@ async function skillsRoutes(fastify, options) {
   }, async (request, reply) => {
     const { skill_id } = request.params;
 
-    if (!SkillModel.exists(skill_id)) {
+    if (!canViewSkill(request.user, skill_id)) {
       return reply.code(404).send({ detail: 'Skill not found' });
     }
 
@@ -227,7 +237,7 @@ async function skillsRoutes(fastify, options) {
   }, async (request, reply) => {
     const { skill_id } = request.params;
 
-    if (!SkillModel.exists(skill_id)) {
+    if (!canViewSkill(request.user, skill_id)) {
       return reply.code(404).send({ detail: 'Skill not found' });
     }
 
@@ -270,7 +280,7 @@ async function skillsRoutes(fastify, options) {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const { skill_id } = request.params;
-    const { name, description, webhook_url: webhookUrlRaw } = request.body || {};
+    const { name, description, webhook_url: webhookUrlRaw, visibility } = request.body || {};
 
     if (!SkillModel.exists(skill_id)) {
       return reply.code(404).send({ detail: 'Skill not found' });
@@ -278,6 +288,9 @@ async function skillsRoutes(fastify, options) {
 
     if (!canManageSkill(request.user, skill_id)) {
       return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Owner or admin permission required' });
+    }
+    if (visibility !== undefined && visibility !== 'public' && visibility !== 'private') {
+      return reply.code(400).send({ detail: 'visibility must be public or private' });
     }
 
     const parsed = parseWebhookUrlField(webhookUrlRaw);
@@ -287,11 +300,12 @@ async function skillsRoutes(fastify, options) {
 
     const prev = SkillModel.findById(skill_id);
     const webhookColumn = parsed.omit ? undefined : parsed.value;
-    const updated = SkillModel.update(skill_id, name, description, webhookColumn);
+    const updated = SkillModel.update(skill_id, name, description, webhookColumn, visibility);
 
     const metaChanged =
       (name !== undefined && String(name) !== String(prev.name)) ||
-      (description !== undefined && String(description ?? '') !== String(prev.description ?? ''));
+      (description !== undefined && String(description ?? '') !== String(prev.description ?? '')) ||
+      (visibility !== undefined && visibility !== (prev.visibility || 'public'));
     if (metaChanged) {
       notifySkillWebhook(
         updated,

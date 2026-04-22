@@ -22,7 +22,7 @@ async function publishRoutes(fastify, options) {
       }
     }
 
-    const { skill_id, name, description, changelog } = fields;
+    const { skill_id, name, description, changelog, visibility } = fields;
 
     const result = publishSkillFromZip({
       user: request.user,
@@ -30,6 +30,7 @@ async function publishRoutes(fastify, options) {
       name,
       description,
       changelog,
+      visibility,
       zipBuffer
     });
 

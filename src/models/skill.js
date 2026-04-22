@@ -10,6 +10,10 @@ function queryById(id) {
   `).get(id);
 }
 
+function normalizeVisibility(visibility) {
+  return visibility === 'private' ? 'private' : 'public';
+}
+
 const SkillModel = {
   // Find Skill by ID (includes owner info)
   findById(id) {
@@ -21,26 +25,67 @@ const SkillModel = {
   },
 
   // Search/List Skills (supports keyword search on name or description)
-  search(query) {
+  search(query, viewer) {
     const normalizedQuery = query ? String(query) : '';
+    const viewerKey = viewer ? `${viewer.role}:${viewer.id}` : 'guest';
     return modelCache.remember(
-      modelCache.keys.skillSearch(normalizedQuery),
+      modelCache.keys.skillSearch(`${normalizedQuery}:${viewerKey}`),
       () => {
+        const isAdmin = viewer && viewer.role === 'admin';
         if (normalizedQuery) {
           const pattern = `%${normalizedQuery}%`;
+          if (isAdmin) {
+            return db.prepare(`
+              SELECT s.*, u.username as owner_username, u.name as owner_name
+              FROM skills s
+              LEFT JOIN users u ON s.owner_id = u.id
+              WHERE s.name LIKE ? OR s.description LIKE ?
+              ORDER BY s.updated_at DESC
+            `).all(pattern, pattern);
+          }
+          if (viewer) {
+            return db.prepare(`
+              SELECT s.*, u.username as owner_username, u.name as owner_name
+              FROM skills s
+              LEFT JOIN users u ON s.owner_id = u.id
+              LEFT JOIN skill_collaborators sc_view ON s.id = sc_view.skill_id AND sc_view.user_id = ?
+              WHERE (s.name LIKE ? OR s.description LIKE ?)
+                AND (s.visibility = 'public' OR sc_view.user_id IS NOT NULL)
+              ORDER BY s.updated_at DESC
+            `).all(viewer.id, pattern, pattern);
+          }
           return db.prepare(`
             SELECT s.*, u.username as owner_username, u.name as owner_name
             FROM skills s
             LEFT JOIN users u ON s.owner_id = u.id
-            WHERE s.name LIKE ? OR s.description LIKE ?
+            WHERE (s.name LIKE ? OR s.description LIKE ?) AND s.visibility = 'public'
             ORDER BY s.updated_at DESC
           `).all(pattern, pattern);
         }
 
+        if (isAdmin) {
+          return db.prepare(`
+            SELECT s.*, u.username as owner_username, u.name as owner_name
+            FROM skills s
+            LEFT JOIN users u ON s.owner_id = u.id
+            ORDER BY s.updated_at DESC
+          `).all();
+        }
+        if (viewer) {
+          return db.prepare(`
+            SELECT s.*, u.username as owner_username, u.name as owner_name
+            FROM skills s
+            LEFT JOIN users u ON s.owner_id = u.id
+            LEFT JOIN skill_collaborators sc_view ON s.id = sc_view.skill_id AND sc_view.user_id = ?
+            WHERE s.visibility = 'public' OR sc_view.user_id IS NOT NULL
+            ORDER BY s.updated_at DESC
+          `).all(viewer.id);
+        }
         return db.prepare(`
           SELECT s.*, u.username as owner_username, u.name as owner_name
           FROM skills s
           LEFT JOIN users u ON s.owner_id = u.id
+          WHERE s.visibility = 'public'
           ORDER BY s.updated_at DESC
         `).all();
       },
@@ -49,17 +94,17 @@ const SkillModel = {
   },
 
   // Create new Skill
-  create(id, name, description, ownerId) {
+  create(id, name, description, ownerId, visibility = 'public') {
     db.prepare(`
-      INSERT INTO skills (id, name, description, owner_id)
-      VALUES (?, ?, ?, ?)
-    `).run(id, name, description || '', ownerId);
+      INSERT INTO skills (id, name, description, owner_id, visibility)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(id, name, description || '', ownerId, normalizeVisibility(visibility));
     modelCache.invalidateSkill(id);
     return queryById(id);
   },
 
   // Update Skill (webhookUrl: undefined = leave column unchanged; null or '' clears)
-  update(id, name, description, webhookUrl) {
+  update(id, name, description, webhookUrl, visibility) {
     const fields = [];
     const values = [];
     if (name !== undefined) {
@@ -73,6 +118,10 @@ const SkillModel = {
     if (webhookUrl !== undefined) {
       fields.push('webhook_url = ?');
       values.push(webhookUrl);
+    }
+    if (visibility !== undefined) {
+      fields.push('visibility = ?');
+      values.push(normalizeVisibility(visibility));
     }
     if (fields.length === 0) return this.findById(id);
     

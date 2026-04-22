@@ -249,7 +249,8 @@ Object.defineProperty(db, 'inTransaction', {
 });
 
 const migrations = [
-  require('./migrations/005-skill-favorites-tags-downloads-super-admin')
+  require('./migrations/005-skill-favorites-tags-downloads-super-admin'),
+  require('./migrations/006-skill-visibility')
 ];
 
 function ensureSchemaMigrationsTable() {
@@ -316,6 +317,7 @@ CREATE TABLE IF NOT EXISTS skills (
     id            TEXT PRIMARY KEY,
     name          TEXT NOT NULL,
     description   TEXT,
+    visibility    TEXT NOT NULL DEFAULT 'public',
     latest_version TEXT,
     owner_id      INTEGER NOT NULL,
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,

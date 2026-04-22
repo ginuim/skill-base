@@ -180,6 +180,7 @@ export interface Skill {
   id: string
   name: string
   description: string
+  visibility: 'public' | 'private'
   owner: User
   created_at: string
   updated_at: string
@@ -230,6 +231,7 @@ export interface GithubImportBody {
   subpath?: string
   target_skill_id: string
   changelog?: string
+  visibility?: 'public' | 'private'
 }
 
 /** GET /skills/import/github/connectivity */
@@ -241,7 +243,7 @@ export const skillsApi = {
   list: (query?: string) => apiGet<{ skills: Skill[] }>(`/skills${query ? `?q=${encodeURIComponent(query)}` : ''}`),
   get: (id: string) => apiGet<SkillDetail>(`/skills/${id}`),
   create: (data: { name: string; description: string }) => apiPost<Skill>('/skills', data),
-  update: (id: string, data: { name?: string; description?: string; webhook_url?: string | null }) =>
+  update: (id: string, data: { name?: string; description?: string; webhook_url?: string | null; visibility?: 'public' | 'private' }) =>
     apiPut<Skill>(`/skills/${id}`, data),
   delete: (id: string, confirm: string) => apiDelete(`/skills/${id}?confirm=${encodeURIComponent(confirm)}`),
   upload: (data: FormData) => apiPost('/skills/publish', data),

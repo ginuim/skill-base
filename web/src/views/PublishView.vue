@@ -255,6 +255,19 @@
                 ></textarea>
                 <p class="form-hint"><span class="text-neon-400">{{ form.description.length }}</span> / 500 chars</p>
               </div>
+
+              <div v-if="showVisibilitySelector" class="form-group">
+                <label for="skill-visibility" class="form-label font-mono text-base-400 mb-2 block">{{ t('publish.visibilityLabel') }}</label>
+                <select
+                  id="skill-visibility"
+                  v-model="newSkillVisibility"
+                  class="rounded-lg px-4 py-2.5 w-full"
+                >
+                  <option value="public">{{ t('visibility.public') }}</option>
+                  <option value="private">{{ t('visibility.private') }}</option>
+                </select>
+                <p class="form-hint">{{ t('publish.visibilityHint') }}</p>
+              </div>
             </div>
 
             <!-- 更新说明 -->
@@ -368,8 +381,20 @@ const form = ref({
   description: '',
   changelog: '',
 })
+const newSkillVisibility = ref<'public' | 'private'>('public')
 
 const isNewSkill = computed(() => selectedExistingId.value === '')
+const isGithubTargetExisting = computed(() => {
+  const target = githubTargetId.value.trim()
+  if (!target) return false
+  return mySkills.value.some((s) => s.id === target)
+})
+const showVisibilitySelector = computed(() => {
+  if (publishMode.value === 'github') {
+    return !!githubPreview.value && !isGithubTargetExisting.value
+  }
+  return isNewSkill.value
+})
 
 const activeSkillIdModel = computed({
   get() {
@@ -487,6 +512,7 @@ function clearGithubImport() {
   form.value.skillId = ''
   form.value.name = ''
   form.value.description = ''
+  newSkillVisibility.value = 'public'
   clearParseNotice()
 }
 
@@ -556,6 +582,7 @@ async function handleGithubImport() {
       source: githubSource.value.trim(),
       target_skill_id: skillId,
       changelog: form.value.changelog.trim(),
+      ...(!mine ? { visibility: newSkillVisibility.value } : {}),
       ...(githubRef.value.trim() ? { ref: githubRef.value.trim() } : {}),
       ...(githubSubpath.value.trim() ? { subpath: githubSubpath.value.trim() } : {}),
     }
@@ -918,6 +945,7 @@ function clearFiles() {
   form.value.skillId = ''
   form.value.name = ''
   form.value.description = ''
+  newSkillVisibility.value = 'public'
   githubPreview.value = null
   githubTargetId.value = ''
   if (fileInput.value) fileInput.value.value = ''
@@ -990,6 +1018,7 @@ async function handlePublish() {
     if (isNewSkill.value) {
       formData.append('name', form.value.name.trim())
       formData.append('description', form.value.description.trim())
+      formData.append('visibility', newSkillVisibility.value)
     }
     
     if (form.value.changelog.trim()) {

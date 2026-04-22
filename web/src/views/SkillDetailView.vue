@@ -44,6 +44,7 @@
             {{ skill.name }}
           </h1>
           <div class="flex flex-wrap items-center gap-2 mb-4">
+            <span v-if="skill.visibility === 'private'" class="skill-meta-chip skill-meta-chip-private">PRIVATE</span>
             <button
               v-if="authStore.isLoggedIn"
               type="button"
@@ -304,6 +305,27 @@
               </div>
             </div>
             <div v-if="skillsStore.isOwner" class="px-5 pb-4 border-t border-base-800 pt-4">
+              <div class="font-mono text-xs text-fg-strong/90 mb-1 flex items-center gap-2">
+                <span class="text-neon-400">acl</span>
+                {{ t('skill.visibilityTitle') }}
+              </div>
+              <p class="text-[11px] text-base-500 mb-2 leading-relaxed">{{ t('skill.visibilityHint') }}</p>
+              <select
+                v-model="visibilityDraft"
+                class="w-full bg-base-950 border border-base-800 text-fg-strong text-xs font-mono rounded px-3 py-2 mb-2 focus:outline-none focus:border-neon-500"
+              >
+                <option value="public">{{ t('visibility.public') }}</option>
+                <option value="private">{{ t('visibility.private') }}</option>
+              </select>
+              <button
+                type="button"
+                class="w-full py-2 text-xs font-mono text-neon-400 border border-neon-500/30 rounded bg-neon-400/5 hover:bg-neon-400/10 transition-colors disabled:opacity-50 mb-3"
+                :disabled="isSavingVisibility"
+                @click="saveVisibility"
+              >
+                <span v-if="isSavingVisibility" class="spinner spinner-sm inline-block mr-2 align-middle"></span>
+                {{ t('skill.visibilitySave') }}
+              </button>
               <div class="font-mono text-xs text-fg-strong/90 mb-1 flex items-center gap-2">
                 <span class="text-neon-400">hook</span>
                 {{ t('skill.webhookTitle') }}
@@ -667,6 +689,8 @@ const deleteConfirmInput = ref('')
 const isFullscreen = ref(false)
 const webhookDraft = ref('')
 const isSavingWebhook = ref(false)
+const visibilityDraft = ref<'public' | 'private'>('public')
+const isSavingVisibility = ref(false)
 const allTags = ref<Tag[]>([])
 const selectedTagIds = ref<number[]>([])
 
@@ -679,6 +703,14 @@ const collaboratorExcludedIdsList = computed(() => {
   if (authStore.user?.id != null) ids.push(authStore.user.id)
   return ids
 })
+
+watch(
+  () => skill.value?.visibility,
+  (visibility) => {
+    visibilityDraft.value = visibility === 'private' ? 'private' : 'public'
+  },
+  { immediate: true }
+)
 
 watch(
   () => skill.value?.webhook_url,
@@ -709,6 +741,21 @@ async function saveWebhook() {
     globalToast.error(msg)
   } finally {
     isSavingWebhook.value = false
+  }
+}
+
+async function saveVisibility() {
+  if (!skill.value) return
+  isSavingVisibility.value = true
+  try {
+    await skillsStore.updateSkill(skillId.value, { visibility: visibilityDraft.value })
+    globalToast.success(t('skill.visibilitySaved'))
+    await skillsStore.fetchSkill(skillId.value)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : t('skill.visibilitySaveFailed')
+    globalToast.error(msg)
+  } finally {
+    isSavingVisibility.value = false
   }
 }
 
@@ -1428,6 +1475,12 @@ html[data-theme="light"] .card {
 
 .skill-meta-chip-action:hover {
   background: rgba(var(--color-neon-rgb), 0.14);
+}
+
+.skill-meta-chip-private {
+  color: #fcd34d;
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.3);
 }
 
 .skill-meta-chip--favorited:hover {
