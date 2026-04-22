@@ -127,6 +127,13 @@ PMs, QA, and colleagues who prefer not to use the CLI can search, browse version
 
 The web UI also supports account-based favorites, download counters, and an optional global tag library (managed by the super admin). Inline previews use a dedicated `/view` endpoint so browsing a version ZIP does not inflate download statistics.
 
+Visibility is built into the data model:
+
+- Skills are `public` by default.
+- Skills can be set to `private` (only owner/collaborators/admin can view).
+- Existing/legacy rows are upgraded safely and treated as `public` during migration.
+- If someone tries to publish to an existing `skill_id` without collaborator permission, publish is rejected.
+
 ### Small data model, GitOps-friendly
 
 The Skill Base server only manages:
@@ -320,6 +327,8 @@ For people who avoid the CLI, the web UI supports:
 3. Download packages
 4. Upload a folder or zip containing `SKILL.md` to publish
 5. Import a **public** GitHub repository by URL or `owner/repo` (Publish page): the server downloads the GitHub zipball, parses `SKILL.md`, and publishes like a normal upload. If the default derived skill id already exists and you are not allowed to publish to it, the UI suggests a `gh-owner-repo` style id you can edit before publishing.
+6. Set Skill visibility (`public` / `private`) when creating a Skill, and update visibility later on the Skill detail page (owner only)
+7. Keep private Skills hidden from non-collaborators across list, detail, versions, and download endpoints
 
 **GitHub import (server):** optional env `GITHUB_TOKEN` or `SKILL_BASE_GITHUB_TOKEN` raises API rate limits; `SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB` caps download size (default `50`); `SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS` adjusts the connectivity probe timeout (default `8000`). The Publish page can call `GET /api/v1/skills/import/github/connectivity` to show whether **the server** can reach GitHub (browser VPN does not help). Private repos are not supported in this flow.
 

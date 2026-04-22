@@ -1,5 +1,6 @@
 node_modules/
 data
+**data**/
 !data/.gitkeep
 .env
 *.log
@@ -8,4 +9,5 @@ data
 .cursor/
 .pnpm-store/
 static/
+scripts/
 promo-video/

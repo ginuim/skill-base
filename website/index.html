@@ -4,18 +4,35 @@
   <meta charset="UTF-8">
   <script>
     (function () {
-      var k = 'skill-base-website-lang';
-      var v = null;
-      try { v = localStorage.getItem(k); } catch (e) {}
-      var lang = 'en';
-      if (v === 'zh' || v === 'en') {
-        lang = v;
-      } else {
-        var n = (navigator.language || '').toLowerCase();
-        lang = n.indexOf('zh') === 0 ? 'zh' : 'en';
+      function readCookie(name) {
+        var cookie = '; ' + document.cookie;
+        var parts = cookie.split('; ' + name + '=');
+        if (parts.length !== 2) return null;
+        return decodeURIComponent(parts.pop().split(';').shift());
+      }
+      var lang = readCookie('reaidea_lang');
+      if (!lang) {
+        var k = 'skill-base-website-lang';
+        var v = null;
+        try { v = localStorage.getItem(k); } catch (e) {}
+        if (v === 'zh' || v === 'en') {
+          lang = v;
+        } else {
+          var n = (navigator.language || '').toLowerCase();
+          lang = n.indexOf('zh') === 0 ? 'zh' : 'en';
+        }
       }
       document.documentElement.setAttribute('data-lang', lang);
       document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+
+      var theme = readCookie('reaidea_theme');
+      if (!theme) {
+        try { theme = localStorage.getItem('skill-base-website-theme'); } catch (e) {}
+      }
+      if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -49,6 +66,7 @@
           <a href="#quick-start"><span class="i18n-zh">快速开始</span><span class="i18n-en">Quick start</span></a>
           <a href="#openclaw"><span class="i18n-zh">OpenClaw 接入</span><span class="i18n-en">OpenClaw</span></a>
           <a href="#philosophy"><span class="i18n-zh">设计哲学</span><span class="i18n-en">Philosophy</span></a>
+          <a href="#articles"><span class="i18n-zh">系列文章</span><span class="i18n-en">Articles</span></a>
           <div class="nav-mobile-lang">
             <div class="nav-lang-dropdown nav-lang-dropdown--in-menu" data-lang-dropdown>
               <button type="button" class="nav-lang-trigger" id="nav-lang-trigger-mobile" aria-expanded="false" aria-haspopup="listbox" aria-controls="nav-lang-panel-mobile" data-lang-trigger>
@@ -65,8 +83,15 @@
         <div class="nav-actions">
           <a href="https://github.com/ginuim/skill-base" class="nav-github-star" target="_blank" rel="noopener noreferrer" aria-label="Star Skill Base on GitHub">
             <svg class="nav-github-star-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            <span class="nav-github-star-label"><span class="i18n-zh">Star on GitHub</span><span class="i18n-en">Star on GitHub</span></span>
           </a>
+          <button type="button" class="nav-theme-toggle" id="nav-theme-toggle" aria-label="切换浅色/深色显示" title="切换浅色/深色显示" aria-pressed="false">
+            <span class="nav-theme-icon nav-theme-moon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </span>
+            <span class="nav-theme-icon nav-theme-sun" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            </span>
+          </button>
           <div class="nav-lang nav-lang-dropdown" data-lang-dropdown>
             <button type="button" class="nav-lang-trigger" id="nav-lang-trigger-desktop" aria-expanded="false" aria-haspopup="listbox" aria-controls="nav-lang-panel-desktop" data-lang-trigger>
               <span class="nav-lang-current" data-lang-current>中文</span>
@@ -116,7 +141,9 @@
                 </svg>
                 npx skill-base
               </button>
-              <a href="https://www.producthunt.com/products/skill-base?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-skill-base" target="_blank" rel="noopener noreferrer" class="hero-product-hunt-link"><img alt="Skill Base - A simple, privately deployable agent skills distribution hub | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1119415&amp;theme=light&amp;t=1775723222148" class="hero-product-hunt-img"></a>
+              <a href="https://reaidea.com/category/agent-skills/" target="_blank" rel="noopener noreferrer" class="btn btn-secondary hero-articles-link">
+                <span class="i18n-zh">阅读系列文章</span><span class="i18n-en">Read the series</span>
+              </a>
             </div>
           </div>
 
@@ -553,6 +580,56 @@ apiTest(<span class="string">'cart — happy path'</span>, <span class="keyword"
 
     <div class="section-divider"></div>
 
+    <!-- Articles Section -->
+    <section class="articles" id="articles">
+      <div class="container">
+        <h2 class="section-title fade-in"><span class="i18n-zh">推荐阅读</span><span class="i18n-en">Recommended Reading</span></h2>
+        <p class="section-subtitle fade-in">
+          <span class="i18n-zh">7 篇文章带你系统了解 Agent Skills：从概念到实战，从搭建到避坑</span>
+          <span class="i18n-en">7 articles to master Agent Skills—from concepts to production, from setup to pitfalls</span>
+        </p>
+        <div class="articles-grid">
+          <a href="https://reaidea.com/posts/agent-skills-series-1-pain-points" target="_blank" rel="noopener noreferrer" class="article-card fade-in">
+            <span class="article-num">01</span>
+            <h3><span class="i18n-zh">让 AI 从「能跑」到「符合团队约定」</span><span class="i18n-en">From "it works" to "it follows team rules"</span></h3>
+            <p><span class="i18n-zh">Skill 是什么、适合什么问题、如何选题与撰写，以及碎片化与团队分发。</span><span class="i18n-en">What a Skill is, when to use it, how to choose topics, and team distribution.</span></p>
+          </a>
+          <a href="https://reaidea.com/posts/agent-skills-series-2-concepts-in-practice" target="_blank" rel="noopener noreferrer" class="article-card fade-in">
+            <span class="article-num">02</span>
+            <h3><span class="i18n-zh">SKILL.md、渐进式披露与最小范例</span><span class="i18n-en">SKILL.md, progressive disclosure &amp; minimal examples</span></h3>
+            <p><span class="i18n-zh">运行时分层加载、技能目录结构，以及一份可照抄的最小 SKILL.md 模板。</span><span class="i18n-en">Runtime layering, directory layout, and a copy-paste minimal SKILL.md template.</span></p>
+          </a>
+          <a href="https://reaidea.com/posts/agent-skills-series-3-tooling" target="_blank" rel="noopener noreferrer" class="article-card fade-in">
+            <span class="article-num">03</span>
+            <h3><span class="i18n-zh">小团队，如何 5 分钟搭建 AI Skill 库？</span><span class="i18n-en">Build an AI Skill library in 5 minutes</span></h3>
+            <p><span class="i18n-zh">用 skill-base / skb 像 npm 一样发布、搜索、安装与更新团队 Skill。</span><span class="i18n-en">Use skill-base / skb to publish, search, install and update team Skills like npm.</span></p>
+          </a>
+          <a href="https://reaidea.com/posts/agent-skills-series-4-what-deserves-a-skill" target="_blank" rel="noopener noreferrer" class="article-card fade-in">
+            <span class="article-num">04</span>
+            <h3><span class="i18n-zh">少打三轮字，把「你每次都要纠正 AI 的话」固化成 Skill</span><span class="i18n-en">Stop repeating yourself: turn corrections into Skills</span></h3>
+            <p><span class="i18n-zh">重复、稳定、可执行三条标准判断什么值得写成 Skill，附场景清单与反例。</span><span class="i18n-en">Three criteria—repeatable, stable, executable—to decide what deserves a Skill.</span></p>
+          </a>
+          <a href="https://reaidea.com/posts/agent-skills-series-5-admin-query-case" target="_blank" rel="noopener noreferrer" class="article-card fade-in">
+            <span class="article-num">05</span>
+            <h3><span class="i18n-zh">管理后台查询页案例：把“隐性规范”变成可执行 Skill</span><span class="i18n-en">Admin query page: turning implicit rules into executable Skills</span></h3>
+            <p><span class="i18n-zh">把分页映射、时间范围校验、查询折叠、机构权限沉淀为项目 Skill 的真实改造案例。</span><span class="i18n-en">A real-world case study: pagination, date validation, permissions as Skills.</span></p>
+          </a>
+          <a href="https://reaidea.com/posts/agent-skills-series-6-operating-playbook" target="_blank" rel="noopener noreferrer" class="article-card fade-in">
+            <span class="article-num">06</span>
+            <h3><span class="i18n-zh">上线后怎么管——触发、冲突与版本的运维手册</span><span class="i18n-en">Operating playbook: triggers, conflicts &amp; versioning</span></h3>
+            <p><span class="i18n-zh">收窄 description、分层组织 SKILL.md/references、用 checklist 和版本策略稳住长期质量。</span><span class="i18n-en">Tighten descriptions, organize references, and use checklists and versioning.</span></p>
+          </a>
+          <a href="https://reaidea.com/posts/agent-skills-fragmentation" target="_blank" rel="noopener noreferrer" class="article-card fade-in">
+            <span class="article-num">07</span>
+            <h3><span class="i18n-zh">碎片化困局：一场关于 Agent 互操作性的灾难正在上演</span><span class="i18n-en">The fragmentation trap: an interoperability disaster</span></h3>
+            <p><span class="i18n-zh">多工具、多 Skill 并存时的真相源、触发排序与 frontmatter 方言。</span><span class="i18n-en">Truth sources, trigger ordering and frontmatter dialects across tools.</span></p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
     <!-- Quick Start Section -->
     <section class="quick-start" id="quick-start">
       <div class="container">
@@ -981,8 +1058,8 @@ EOF</span>
     <!-- Footer -->
     <footer class="footer">
       <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo-section">
+        <div class="footer-main">
+          <div class="footer-brand-block">
             <span class="nav-logo">
               <svg class="nav-logo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -991,11 +1068,12 @@ EOF</span>
               </svg>
               <span class="nav-logo-text"><span class="highlight">Skill</span> Base</span>
             </span>
-            <p><span class="i18n-zh">专为中小团队打造的 AI Agent Skill 私有化管理平台</span><span class="i18n-en">A private Skill hub for small teams—AI agents included</span></p>
+            <p class="footer-tagline"><span class="i18n-zh">专为中小团队打造的 AI Agent Skill 私有化管理平台</span><span class="i18n-en">A private Skill hub for small teams—AI agents included</span></p>
           </div>
-        </div>
-        <div class="footer-bottom">
-          <p><span class="i18n-zh">开源 · 为开发者而生</span><span class="i18n-en">Open source · built for developers</span></p>
+          <p class="footer-copyright">
+            <span class="i18n-zh">© 2026 </span><span class="i18n-en">© 2026 </span>
+            <a href="https://reaidea.com" target="_blank" rel="noopener noreferrer" class="footer-studio-link">REAIDEA STUDIO</a>
+          </p>
         </div>
       </div>
     </footer>
@@ -1060,6 +1138,10 @@ EOF</span>
           ? (lang === 'en' ? 'Close navigation menu' : '关闭导航菜单')
           : (lang === 'en' ? 'Open navigation menu' : '打开导航菜单'));
       }
+      document.querySelectorAll('.nav-theme-toggle').forEach(function (el) {
+        el.setAttribute('aria-label', lang === 'en' ? 'Toggle light/dark mode' : '切换浅色/深色显示');
+        el.setAttribute('title', lang === 'en' ? 'Toggle light/dark mode' : '切换浅色/深色显示');
+      });
     }
 
     function initLangDropdowns() {
@@ -1111,6 +1193,11 @@ EOF</span>
           var lang = btn.getAttribute('data-set-lang');
           if (lang !== 'zh' && lang !== 'en') return;
           try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) {}
+          var cookieAttrs = ['path=/', 'max-age=31536000', 'SameSite=Lax'];
+          if (location.hostname === 'reaidea.com' || location.hostname.endsWith('.reaidea.com')) {
+            cookieAttrs.push('Domain=.reaidea.com');
+          }
+          document.cookie = 'reaidea_lang=' + encodeURIComponent(lang) + '; ' + cookieAttrs.join('; ');
           document.documentElement.setAttribute('data-lang', lang);
           document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
           applyDocTitle();
@@ -1131,6 +1218,37 @@ EOF</span>
           }
         });
       });
+    }
+
+    function initThemeToggle() {
+      var THEME_STORAGE_KEY = 'skill-base-website-theme';
+      var THEME_COOKIE_KEY = 'reaidea_theme';
+      function createCookieAttrs() {
+        var attrs = ['path=/', 'max-age=31536000', 'SameSite=Lax'];
+        if (location.hostname === 'reaidea.com' || location.hostname.endsWith('.reaidea.com')) {
+          attrs.push('Domain=.reaidea.com');
+        }
+        return attrs.join('; ');
+      }
+      function saveTheme(theme) {
+        document.cookie = THEME_COOKIE_KEY + '=' + encodeURIComponent(theme) + '; ' + createCookieAttrs();
+        try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch (e) {}
+      }
+      function syncIcons() {
+        var theme = document.documentElement.getAttribute('data-theme');
+        document.querySelectorAll('.nav-theme-toggle').forEach(function (btn) {
+          btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+        });
+      }
+      document.querySelectorAll('.nav-theme-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          saveTheme(next);
+          syncIcons();
+        });
+      });
+      syncIcons();
     }
 
     // Initialize Lucide Icons
@@ -1477,6 +1595,7 @@ EOF</span>
       syncLangPickerUI();
       initLangDropdowns();
       initLangSwitcher();
+      initThemeToggle();
       runTerminalTypewriter();
       initScrollAnimations();
       initTabs();
