@@ -6,8 +6,9 @@
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE)
 
-> 不要再把 Agent Skills 塞进代码仓库了。
-> Skill Base 是一个面向中小团队的 Agent Skill 私有分发平台：一个轻量服务端，加一个 `skb` CLI，把团队规范从仓库里剥出来，统一分发给 Cursor、Claude Code、Qoder、OpenCode、Windsurf、OpenClaw 类产品等工具。
+> Skill Base 是面向团队的 Agent Skill 私有分发平台。
+> 通过最小化服务端 + `skb` CLI，实现技能的一次发布、多端安装、统一更新与可回滚，覆盖 Cursor、Claude Code、Codex、OpenClaw 等助手工具。
+> 它解决的是团队技能分发与版本治理，不是通用文件存储。
 
 <p align="center">
   <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base 运行演示" />

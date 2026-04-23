@@ -6,8 +6,9 @@
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> Stop stuffing Agent Skills into source repositories.
-> Skill Base is a lightweight private distribution platform for Agent Skills for small and medium teams: a minimal server plus an `skb` CLI that pulls team standards out of repos and ships them consistently to Cursor, Claude Code, Qoder, OpenCode, Windsurf, OpenClaw-class assistants, and similar tools.
+> Skill Base is a private distribution platform for Agent Skills.
+> Publish once, then let your team install, update, and rollback skills consistently across Cursor, Claude Code, Codex, OpenClaw, and similar assistants via a minimal server and the `skb` CLI.
+> It solves skill distribution and versioning for teams, not generic file storage.
 
 <p align="center">
   <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base demo" />
