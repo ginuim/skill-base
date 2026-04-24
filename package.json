@@ -39,7 +39,7 @@
     "fastify": "^5.8.4",
     "fastify-plugin": "^5.0.1",
     "node-sqlite3-wasm": "^0.8.55",
-    "uuid": "^9.0.0",
+    "uuid": "^14.0.0",
     "yaml": "^2.8.3"
   },
   "devDependencies": {
