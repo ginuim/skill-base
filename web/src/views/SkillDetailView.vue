@@ -378,8 +378,7 @@
             </div>
             <div v-if="!isVersionHistoryCollapsed" class="p-6 overflow-hidden">
               <div id="version-list" class="relative pl-6">
-                <!-- Timeline line -->
-                <div class="absolute left-[5px] top-0 bottom-2 w-px bg-base-800"></div>
+                <div class="absolute left-[8px] top-0 bottom-2 w-px -translate-x-1/2 bg-base-800"></div>
 
                 <div
                   v-for="v in versions"
@@ -423,7 +422,8 @@
                         @click.stop="setHeadVersion(v.version)"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5h12"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 14l5-5m0 0l5 5m-5-5v12"/>
                         </svg>
                       </button>
 
