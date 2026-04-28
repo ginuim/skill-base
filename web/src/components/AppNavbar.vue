@@ -41,9 +41,7 @@
                 {{ authStore.displayName.charAt(0).toUpperCase() }}
               </span>
               <span class="hidden sm:block">{{ authStore.displayName }}</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
+              <ChevronDown class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
             </button>
 
             <!-- Dropdown Menu -->
@@ -101,6 +99,7 @@
 </template>
 
 <script setup lang="ts">
+import { ChevronDown } from 'lucide-vue-next'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

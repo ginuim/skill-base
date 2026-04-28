@@ -33,10 +33,7 @@
           </p>
           <div class="hero-cta fade-in stagger-4">
             <button class="btn copy-btn" id="hero-copy-btn">
-              <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
+              <Copy class="copy-icon" :size="18" :stroke-width="2" aria-hidden="true" />
               npx skill-base
             </button>
             <a href="#what-is-skill" class="btn btn-secondary">了解更多 ↓</a>
@@ -71,7 +68,7 @@
       <div class="comparison-grid fade-in stagger-2">
         <div class="comparison-card before">
           <div class="comparison-label">
-            <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> AI 默认写的代码
+            <X class="lucide-icon" :size="18" :stroke-width="2" aria-hidden="true" /> AI 默认写的代码
           </div>
           <div class="comparison-code">
             <pre><code><span class="comment">// 发送 HTTP 请求</span>
@@ -91,7 +88,7 @@
 
         <div class="comparison-card after">
           <div class="comparison-label">
-            <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 有 Skill 后写的代码
+            <Check class="lucide-icon" :size="18" :stroke-width="2" aria-hidden="true" /> 有 Skill 后写的代码
           </div>
           <div class="comparison-code">
             <pre><code><span class="comment">// 使用团队内部请求库</span>
@@ -110,17 +107,17 @@
 
       <div class="key-points fade-in stagger-3" data-stagger-group>
         <div class="key-point fade-in">
-          <div class="key-point-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1"/><path d="M13 21v-2a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v1a1 1 0 0 0 1 1"/><path d="M3 7V5a1 1 0 0 1 1-1h1a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1"/><path d="M7 9h10"/><path d="M17 7V5a1 1 0 0 0-1-1h-1a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1"/></svg></div>
+          <div class="key-point-icon"><Boxes class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></div>
           <h4>内部请求库</h4>
           <p>统一使用团队封装的 HTTP 客户端，内置鉴权、重试、日志</p>
         </div>
         <div class="key-point fade-in">
-          <div class="key-point-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.536 11.293a1 1 0 0 0 0 1.414l2.376 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M2.297 11.293a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L6.088 8.916a1 1 0 0 0-1.414 0z"/><path d="M8.916 17.912a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M8.916 4.674a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L12.707 2.297a1 1 0 0 0-1.414 0z"/></svg></div>
+          <div class="key-point-icon"><Puzzle class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></div>
           <h4>内部组件</h4>
           <p>优先使用公司设计系统的组件，保持 UI 一致性</p>
         </div>
         <div class="key-point fade-in">
-          <div class="key-point-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+          <div class="key-point-icon"><Wrench class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></div>
           <h4>内部工具方法</h4>
           <p>复用已有的工具函数，避免重复造轮子</p>
         </div>
@@ -183,31 +180,31 @@
 
       <div class="features-grid fade-in stagger-2" data-stagger-group>
         <div class="feature-card fade-in">
-          <span class="feature-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg></span>
+          <span class="feature-icon"><Zap class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></span>
           <h3>零配置启动</h3>
           <p>一行命令启动服务，SQLite 自动初始化，开箱即用</p>
         </div>
 
         <div class="feature-card fade-in">
-          <span class="feature-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></span>
+          <span class="feature-icon"><RefreshCw class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></span>
           <h3>npm 般的体验</h3>
           <p>search / install / publish，熟悉的工作流，零学习成本</p>
         </div>
 
         <div class="feature-card fade-in">
-          <span class="feature-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <span class="feature-icon"><Lock class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></span>
           <h3>私有化安全</h3>
           <p>完全部署在你的内网，敏感规范不外泄</p>
         </div>
 
         <div class="feature-card fade-in">
-          <span class="feature-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/></svg></span>
+          <span class="feature-icon"><Package class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></span>
           <h3>版本控制</h3>
           <p>每次发布自动生成版本号，支持版本回溯和对比</p>
         </div>
 
         <div class="feature-card fade-in">
-          <span class="feature-icon"><svg class="lucide-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>
+          <span class="feature-icon"><Globe class="lucide-icon" :size="24" :stroke-width="2" aria-hidden="true" /></span>
           <h3>双端支持</h3>
           <p>Web 界面浏览管理，CLI 集成到开发工作流</p>
         </div>
@@ -415,6 +412,19 @@ EOF</span>
 </template>
 
 <script setup lang="ts">
+import {
+  Copy,
+  X,
+  Check,
+  Boxes,
+  Puzzle,
+  Wrench,
+  Zap,
+  RefreshCw,
+  Lock,
+  Package,
+  Globe,
+} from 'lucide-vue-next'
 import { onMounted, onUnmounted } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
 

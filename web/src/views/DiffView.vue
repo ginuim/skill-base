@@ -9,9 +9,7 @@
       <!-- Error State -->
       <div v-else-if="error" class="text-center py-20">
         <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-base-800 flex items-center justify-center">
-          <svg class="w-10 h-10 text-base-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
+          <CircleAlert class="w-10 h-10 text-base-600" :stroke-width="2" aria-hidden="true" />
         </div>
         <h3 class="text-xl font-semibold text-fg-strong mb-2">{{ t('diff.loadFailed') }}</h3>
         <p class="text-base-400 mb-6">{{ error }}</p>
@@ -62,10 +60,7 @@
               class="btn-primary flex items-center gap-2 ml-2 text-xs px-4 py-2"
               :disabled="isComputing"
             >
-              <svg v-if="!isComputing" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
+              <RefreshCw v-if="!isComputing" :size="14" :stroke-width="2" aria-hidden="true" />
               <div v-else class="spinner spinner-sm"></div>
               {{ isComputing ? t('diff.computingDiff') : 'Diff' }}
             </button>
@@ -153,10 +148,7 @@
         <!-- Back Button -->
         <div class="mt-8 pb-16">
           <router-link :to="`/skills/${skillId}`" class="btn-secondary flex items-center gap-2 text-sm px-4 py-2 w-fit">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="19" y1="12" x2="5" y2="12"/>
-              <polyline points="12 19 5 12 12 5"/>
-            </svg>
+            <ArrowLeft :size="14" :stroke-width="2" aria-hidden="true" />
             {{ t('diff.back') }}
           </router-link>
         </div>
@@ -166,6 +158,7 @@
 </template>
 
 <script setup lang="ts">
+import { CircleAlert, RefreshCw, ArrowLeft } from 'lucide-vue-next'
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import JSZip from 'jszip'

@@ -145,7 +145,7 @@
                 @click="triggerFileInput"
               >
                 <div class="drop-zone-icon">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <Upload :size="32" :stroke-width="2" aria-hidden="true" />
                 </div>
                 <div class="drop-zone-text">{{ t('publish.dropZoneText') }}</div>
                 <div class="drop-zone-subtitle">{{ t('publish.dropZoneSubtitle') }}</div>
@@ -311,7 +311,7 @@
                 :disabled="!canPublish || isPublishing"
                 class="btn btn-primary px-6 py-2.5 rounded-lg flex items-center gap-2"
               >
-                <svg v-if="!isPublishing" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <Upload v-if="!isPublishing" :size="16" :stroke-width="2" aria-hidden="true" />
                 <span v-if="isPublishing" class="spinner spinner-sm"></span>
                 {{ isPublishing ? t('publish.publishing') : t('publish.publishBtn') }}
               </button>
@@ -323,6 +323,7 @@
 </template>
 
 <script setup lang="ts">
+import { Upload } from 'lucide-vue-next'
 import { ref, computed, onMounted, reactive, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import JSZip from 'jszip'

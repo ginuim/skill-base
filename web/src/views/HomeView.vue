@@ -21,10 +21,7 @@
           v-model="searchQuery"
         >
         <button type="button" class="clear-btn" id="clearSearch" @click="clearSearch">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+          <X :size="16" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -44,9 +41,7 @@
           :class="{ 'filter-chip--active': onlyFavorites }"
           @click="onlyFavorites = !onlyFavorites"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
+          <Heart :size="14" :stroke-width="2" aria-hidden="true" />
           {{ t('index.favoriteOnly') }}
         </button>
       </div>
@@ -72,10 +67,7 @@
           <template v-else>
             <p class="empty-state-text">{{ t('index.noSkills') }}</p>
             <router-link to="/publish" class="btn btn-primary mt-6">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mr-1">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
+              <Plus class="mr-1" :size="18" :stroke-width="2.5" aria-hidden="true" />
               {{ t('index.publishBtn') }}
             </router-link>
           </template>
@@ -98,19 +90,12 @@
           <div class="skill-card-footer">
             <div class="skill-card-meta">
               <span class="skill-card-owner">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
+                <User :size="14" :stroke-width="2" aria-hidden="true" />
                 {{ skill.owner?.name || skill.owner?.username || t('state.unknown') }}
               </span>
               <span class="skill-card-stats">
                 <span class="skill-card-stat" :title="t('index.downloadCount')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
+                  <Download :size="14" :stroke-width="2" aria-hidden="true" />
                   {{ skill.download_count ?? 0 }}
                 </span>
                 <span
@@ -118,9 +103,7 @@
                   :title="skill.is_favorited ? t('index.favorited') : t('index.favorite')"
                 >
                   <span :class="{ 'skill-card-stat--favorited': skill.is_favorited }">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
+                    <Heart :size="14" :stroke-width="2" aria-hidden="true" />
                   </span>
                   {{ skill.favorite_count ?? 0 }}
                 </span>
@@ -135,14 +118,12 @@
 
   <!-- 浮动发布按钮 -->
   <router-link to="/publish" class="fab" :title="t('index.fabTitle')">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
+    <Plus :size="24" :stroke-width="2" aria-hidden="true" />
   </router-link>
 </template>
 
 <script setup lang="ts">
+import { X, Heart, Plus, User, Download } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'

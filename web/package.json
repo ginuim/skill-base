@@ -16,6 +16,7 @@
     "diff": "^8.0.4",
     "diff2html": "^3.4.56",
     "highlight.js": "^11.11.1",
+    "lucide-vue-next": "^0.562.0",
     "marked": "^17.0.5",
     "pinia": "^3.0.4",
     "vue": "^3.5.30",

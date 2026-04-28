@@ -3,11 +3,7 @@
     <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="sb-nav-main">
         <router-link to="/" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
-          <svg class="sb-nav-brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-            <line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
+          <Package class="sb-nav-brand-icon" :size="22" :stroke-width="2" aria-hidden="true" />
           <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">Skill</span>
           <span class="text-fg-strong font-bold">Base</span>
         </router-link>
@@ -30,11 +26,7 @@
 
       <div class="sb-nav-controls">
         <button type="button" class="sb-nav-toggle" :aria-expanded="isMobileMenuOpen" aria-label="Toggle navigation" @click="toggleMobileMenu">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="4" y1="7" x2="20" y2="7"></line>
-            <line x1="4" y1="12" x2="20" y2="12"></line>
-            <line x1="4" y1="17" x2="20" y2="17"></line>
-          </svg>
+          <Menu :size="18" :stroke-width="2" aria-hidden="true" />
         </button>
 
         <div class="navbar-user">
@@ -44,26 +36,15 @@
             :aria-label="themeToggleAria"
             @click.stop="toggleColorMode"
           >
-            <svg v-if="resolved === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
-            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-              <circle cx="12" cy="12" r="4"/>
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-            </svg>
+            <Moon v-if="resolved === 'dark'" :size="16" :stroke-width="2.2" aria-hidden="true" />
+            <Sun v-else :size="16" :stroke-width="2.2" aria-hidden="true" />
           </button>
 
           <div class="lang-switcher" :class="{ active: showLangMenu }">
             <button type="button" class="lang-switcher-trigger navbar-surface-btn" @click.stop="toggleLangMenu">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
+              <Globe :size="14" :stroke-width="2.2" aria-hidden="true" />
               <span>{{ currentLang === 'zh' ? '中文' : 'English' }}</span>
-              <svg class="lang-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
+              <ChevronDown class="lang-chevron" :size="12" :stroke-width="2.5" aria-hidden="true" />
             </button>
             <div class="lang-switcher-menu">
               <button class="lang-switcher-option" :class="{ active: currentLang === 'zh' }" @click="setLang('zh')">中文</button>
@@ -74,34 +55,20 @@
           <div v-if="authStore.isLoggedIn" class="navbar-user-dropdown" :class="{ active: showUserMenu }">
             <button type="button" class="navbar-user-btn navbar-surface-btn" @click.stop="toggleUserMenu">
               <span class="username">{{ authStore.displayName }}</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
+              <ChevronDown :size="16" :stroke-width="2" aria-hidden="true" />
             </button>
             <div class="navbar-user-menu">
               <router-link to="/settings" class="navbar-user-menu-item" @click="showUserMenu = false">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
+                <Settings :size="16" :stroke-width="2" aria-hidden="true" />
                 {{ t('nav.settings') }}
               </router-link>
               <router-link v-if="authStore.isAdmin" to="/admin/users" class="navbar-user-menu-item" @click="showUserMenu = false">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
+                <Users :size="16" :stroke-width="2" aria-hidden="true" />
                 {{ t('nav.admin') }}
               </router-link>
               <div class="navbar-user-menu-divider"></div>
               <button class="navbar-user-menu-item navbar-user-logout" @click="logout">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
+                <LogOut :size="16" :stroke-width="2" aria-hidden="true" />
                 {{ t('nav.logout') }}
               </button>
             </div>
@@ -141,7 +108,20 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
 import { useTheme } from '@/composables/useTheme'
-import { Home, Upload, LayoutGrid } from 'lucide-vue-next'
+import {
+  Home,
+  Upload,
+  LayoutGrid,
+  Package,
+  Menu,
+  Moon,
+  Sun,
+  Globe,
+  ChevronDown,
+  Settings,
+  Users,
+  LogOut,
+} from 'lucide-vue-next'
 
 type NavMenuIconName = 'home' | 'publish' | 'layout'
 

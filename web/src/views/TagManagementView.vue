@@ -26,10 +26,7 @@
           <span class="text-neon-400">#</span> {{ t('tagAdmin.listHeading') }}
         </h2>
         <button type="button" class="btn-primary px-4 py-2.5 rounded-lg font-mono flex items-center gap-2" @click="openAddModal">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
+          <Plus :size="16" :stroke-width="2" aria-hidden="true" />
           <span>{{ t('tagAdmin.addTag') }}</span>
         </button>
       </div>
@@ -44,10 +41,7 @@
               class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
             />
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-400">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
+              <Search :size="16" :stroke-width="2" aria-hidden="true" />
             </span>
           </div>
         </div>
@@ -89,10 +83,7 @@
                     :title="t('btn.edit')"
                     @click="openEditModal(tag)"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
+                    <Pencil :size="16" :stroke-width="2" aria-hidden="true" />
                   </button>
                   <button
                     type="button"
@@ -100,10 +91,7 @@
                     :title="t('btn.delete')"
                     @click="confirmDelete(tag)"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
+                    <Trash2 :size="16" :stroke-width="2" aria-hidden="true" />
                   </button>
                 </div>
               </td>
@@ -119,10 +107,7 @@
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
           <h3 class="text-lg font-semibold text-fg-strong font-mono">{{ t('tagAdmin.addModal') }}</h3>
           <button type="button" class="text-base-400 hover:text-fg-strong" @click="closeAddModal">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
+            <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
         <form class="px-6 py-4" @submit.prevent="handleAdd">
@@ -152,10 +137,7 @@
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
           <h3 class="text-lg font-semibold text-fg-strong font-mono">{{ t('tagAdmin.editModal') }}</h3>
           <button type="button" class="text-base-400 hover:text-fg-strong" @click="closeEditModal">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
+            <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
         <form class="px-6 py-4" @submit.prevent="handleEdit">
@@ -182,6 +164,7 @@
 </template>
 
 <script setup lang="ts">
+import { Plus, Search, Pencil, Trash2, X } from 'lucide-vue-next'
 import { ref, computed, onMounted, watch } from 'vue'
 import { tagsApi, type Tag } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'

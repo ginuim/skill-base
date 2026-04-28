@@ -39,10 +39,7 @@
                 {{ cliCode || '----' }}
               </div>
               <div class="cli-code-timer font-mono mt-6 flex items-center gap-2 text-base-400">
-                <svg class="cli-code-timer-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
+                <Clock class="cli-code-timer-icon w-4 h-4" :stroke-width="2" aria-hidden="true" />
                 <span :class="{ 'text-red-400': isExpiring, 'text-red-500': isExpired }">
                   {{ timerText }}
                 </span>
@@ -55,13 +52,8 @@
                 :disabled="!cliCode || isLoading"
                 class="btn btn-primary flex-1 py-3 font-mono text-sm rounded-lg flex items-center justify-center gap-2"
               >
-                <svg v-if="!copied" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
+                <Copy v-if="!copied" :size="16" :stroke-width="2" aria-hidden="true" />
+                <Check v-else :size="16" :stroke-width="2" aria-hidden="true" />
                 <span>{{ copied ? t('cliCode.copied') : t('cliCode.copyBtn') }}</span>
               </button>
               <button
@@ -69,10 +61,7 @@
                 :disabled="isLoading"
                 class="btn btn-secondary flex-1 py-3 font-mono text-sm rounded-lg flex items-center justify-center gap-2"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="23 4 23 10 17 10"/>
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                </svg>
+                <RefreshCw :size="16" :stroke-width="2" aria-hidden="true" />
                 <span>{{ t('cliCode.regenerate') }}</span>
               </button>
             </div>
@@ -89,6 +78,7 @@
 </template>
 
 <script setup lang="ts">
+import { Clock, Copy, Check, RefreshCw } from 'lucide-vue-next'
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'

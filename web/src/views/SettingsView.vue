@@ -72,10 +72,7 @@
           <div class="mt-6">
             <p class="text-base-400 text-sm font-mono mb-4" v-html="t('settings.cliDesc')"></p>
             <router-link to="/cli-code" class="inline-flex items-center gap-2 rounded-lg px-4 py-3 font-mono text-sm border border-neon-400/20 text-neon-400 bg-neon-400/5 hover:bg-neon-400/10 transition-colors">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
+              <Laptop class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
               <span>{{ t('settings.cliLink') }}</span>
             </router-link>
           </div>
@@ -139,6 +136,7 @@
 </template>
 
 <script setup lang="ts">
+import { Laptop } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'

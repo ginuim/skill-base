@@ -4,15 +4,9 @@
       <!-- 语言切换器 -->
       <div class="lang-switcher" :class="{ active: langMenuOpen }">
         <button class="lang-switcher-trigger" @click="toggleLangMenu">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
+          <Globe :size="14" :stroke-width="2" aria-hidden="true" />
           <span>{{ currentLangLabel }}</span>
-          <svg class="lang-chevron" :class="{ rotated: langMenuOpen }" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
+          <ChevronDown class="lang-chevron" :class="{ rotated: langMenuOpen }" :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
         <div class="lang-switcher-menu">
           <button
@@ -35,11 +29,7 @@
       <!-- Logo -->
       <div class="setup-brand">
         <span class="setup-brand-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-            <line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
+          <Package :size="28" :stroke-width="2" aria-hidden="true" />
         </span>
         <span class="setup-brand-text">Skill Base</span>
       </div>
@@ -138,9 +128,7 @@
               :disabled="isLoading"
               class="setup-submit"
             >
-              <svg class="btn-devtools-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
+              <Shield class="btn-devtools-icon" :size="18" :stroke-width="2" aria-hidden="true" />
               <span>{{ isLoading ? t('setup.loading') : t('setup.submit') }}</span>
             </button>
           </div>
@@ -157,6 +145,7 @@
 </template>
 
 <script setup lang="ts">
+import { Globe, ChevronDown, Package, Shield } from 'lucide-vue-next'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiPost, apiGet } from '@/services/api'

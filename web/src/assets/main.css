@@ -292,8 +292,8 @@ html[data-theme="light"] .btn-primary:hover {
 .skill-card-stat--favorited {
   color: #ff75b5;
 }
-.skill-card-stat--favorited svg path {
-  fill: currentColor;
+.skill-card-stat--favorited svg {
+  stroke: currentColor;
 }
 
 /* Filter chips */
@@ -320,8 +320,8 @@ html[data-theme="light"] .btn-primary:hover {
   border-color: rgba(255, 117, 181, 0.5);
   color: #ff75b5;
 }
-.filter-chip--active svg path {
-  fill: currentColor;
+.filter-chip--active svg {
+  stroke: currentColor;
 }
 
 /* FAB button */

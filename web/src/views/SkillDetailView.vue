@@ -14,9 +14,7 @@
       <!-- Error State -->
       <div v-else-if="!skill" class="text-center py-20">
         <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-base-800 flex items-center justify-center">
-          <svg class="w-10 h-10 text-base-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
+          <Frown class="w-10 h-10 text-base-600" :stroke-width="2" aria-hidden="true" />
         </div>
         <h3 class="text-xl font-semibold text-fg-strong mb-2">{{ t('skill.notFound') }}</h3>
         <p class="text-base-400 mb-6">{{ t('skill.notFoundDesc') }}</p>
@@ -54,20 +52,14 @@
               :title="skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite')"
               @click="toggleFavorite"
             >
-              <svg
+              <Heart
                 class="skill-favorite-icon"
-                viewBox="0 0 24 24"
+                :size="18"
+                :stroke-width="2"
+                :fill="skill.is_favorited ? 'currentColor' : 'none'"
+                :stroke="skill.is_favorited ? 'transparent' : 'currentColor'"
                 aria-hidden="true"
-              >
-                <path
-                  :fill="skill.is_favorited ? 'currentColor' : 'none'"
-                  :stroke="skill.is_favorited ? 'none' : 'currentColor'"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
+              />
             </button>
             <span class="skill-meta-chip">{{ skill.favorite_count }} {{ t('skill.favoriteCount') }}</span>
             <span class="skill-meta-chip">{{ skill.download_count }} {{ t('skill.downloadCount') }}</span>
@@ -91,9 +83,7 @@
               class="opacity-0 group-hover:opacity-100 p-1.5 text-base-400 hover:text-neon-400 transition-all flex-shrink-0 bg-base-950 border border-base-800 rounded ml-4"
               title="Edit Version Info"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-              </svg>
+              <Pencil class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
             </button>
           </div>
 
@@ -109,9 +99,7 @@
                   {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
                 </option>
               </select>
-              <svg class="w-4 h-4 absolute right-4 top-3 pointer-events-none text-base-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
+              <ChevronDown class="w-4 h-4 absolute right-4 top-3 pointer-events-none text-base-400" :stroke-width="2" aria-hidden="true" />
             </div>
             <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4 sm:mt-0 flex-shrink-0">
               <button
@@ -120,27 +108,21 @@
                 class="inline-flex items-center justify-center gap-2 text-sm font-mono px-4 py-2.5 rounded-lg border border-base-800 bg-base-950 text-base-300 hover:text-neon-400 hover:border-neon-500/40 hover:bg-neon-400/5 transition-colors text-left max-w-full min-w-0 break-all w-full sm:w-auto sm:max-w-md"
                 @click="copyInstallCommand"
               >
-                <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                </svg>
+                <Copy class="w-4 h-4 shrink-0 opacity-70" :stroke-width="2" aria-hidden="true" />
                 <span class="min-w-0 text-left">{{ installCliCommand }}</span>
               </button>
               <button
                 @click="goToDiff"
                 class="flex items-center justify-center gap-2 bg-transparent text-fg-strong border border-base-800 hover:bg-base-800 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                </svg>
+                <GitCompareArrows class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                 {{ t('skill.compare') }}
               </button>
               <button
                 @click="downloadCurrentVersion"
                 class="skill-btn-neon-glow flex items-center justify-center gap-2 bg-transparent border border-neon-500 text-neon-400 hover:bg-neon-400/10 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
+                <Download class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                 {{ t('skill.download') }}
               </button>
             </div>
@@ -203,12 +185,8 @@
                   class="md-view-btn"
                   :title="isFullscreen ? t('skill.exitFullscreen') : t('skill.fullscreen')"
                 >
-                  <svg v-if="!isFullscreen" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                  </svg>
-                  <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
+                  <Maximize2 v-if="!isFullscreen" class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
+                  <Minimize2 v-else class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -297,9 +275,7 @@
                     class="p-1.5 text-base-400 hover:text-red-400 transition-colors"
                     :title="t('btn.remove')"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
+                    <Trash2 class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -370,10 +346,8 @@
               <div class="flex items-center gap-2 font-mono font-semibold text-fg-strong text-sm">
                 <span class="text-neon-400">git</span> log
               </div>
-              <span class="text-base-400 transition-transform" :class="isVersionHistoryCollapsed ? '-rotate-90' : ''">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
+              <span class="text-base-400 transition-transform inline-flex" :class="isVersionHistoryCollapsed ? '-rotate-90' : ''">
+                <ChevronDown :size="20" :stroke-width="2" aria-hidden="true" />
               </span>
             </div>
             <div v-if="!isVersionHistoryCollapsed" class="p-6 overflow-hidden">
@@ -421,10 +395,7 @@
                         class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 transition-all"
                         @click.stop="setHeadVersion(v.version)"
                       >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5h12"/>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 14l5-5m0 0l5 5m-5-5v12"/>
-                        </svg>
+                        <ArrowUpToLine class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                       </button>
 
                       <button
@@ -433,9 +404,7 @@
                         class="flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 transition-all"
                         @click.stop="openEditVersionModal(v, 'changelog')"
                       >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
+                        <Pencil class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                       </button>
 
                       <button
@@ -443,9 +412,7 @@
                         class="skill-icon-btn-neon-hover flex items-center justify-center p-2 text-base-400 border border-base-800 rounded bg-base-950 hover:text-neon-400 hover:border-neon-500 hover:bg-neon-400/10 transition-all"
                         @click.stop="downloadVersion(v.version)"
                       >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
+                        <Download class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -593,6 +560,19 @@
 </template>
 
 <script setup lang="ts">
+import {
+  Frown,
+  Heart,
+  Pencil,
+  ChevronDown,
+  Copy,
+  GitCompareArrows,
+  Download,
+  Maximize2,
+  Minimize2,
+  Trash2,
+  ArrowUpToLine,
+} from 'lucide-vue-next'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

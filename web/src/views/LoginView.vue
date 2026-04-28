@@ -4,7 +4,7 @@
       <!-- Logo -->
       <div class="login-brand">
         <span class="login-brand-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <Package :size="28" :stroke-width="2" aria-hidden="true" />
         </span>
         <span class="login-brand-text">Skill Base</span>
       </div>
@@ -75,7 +75,7 @@
               :disabled="authStore.isLoading"
               class="login-submit"
             >
-              <svg v-if="!authStore.isLoading" class="btn-devtools-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <Play v-if="!authStore.isLoading" class="btn-devtools-icon" :size="18" :stroke-width="2" aria-hidden="true" />
               <span v-if="authStore.isLoading" class="spinner"></span>
               <span>{{ authStore.isLoading ? t('login.loading') : t('login.submit') }}</span>
             </button>
@@ -93,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import { Package, Play } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

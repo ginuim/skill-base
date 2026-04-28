@@ -1,10 +1,6 @@
 <script setup lang="ts">
+import { BookOpen, Wrench, Boxes, Users, HeartHandshake } from 'lucide-vue-next'
 import WelcomeItem from './WelcomeItem.vue'
-import DocumentationIcon from './icons/IconDocumentation.vue'
-import ToolingIcon from './icons/IconTooling.vue'
-import EcosystemIcon from './icons/IconEcosystem.vue'
-import CommunityIcon from './icons/IconCommunity.vue'
-import SupportIcon from './icons/IconSupport.vue'
 
 const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 </script>
@@ -12,7 +8,7 @@ const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 <template>
   <WelcomeItem>
     <template #icon>
-      <DocumentationIcon />
+      <BookOpen :size="20" :stroke-width="2" aria-hidden="true" />
     </template>
     <template #heading>Documentation</template>
 
@@ -23,7 +19,7 @@ const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 
   <WelcomeItem>
     <template #icon>
-      <ToolingIcon />
+      <Wrench :size="20" :stroke-width="2" aria-hidden="true" />
     </template>
     <template #heading>Tooling</template>
 
@@ -50,7 +46,7 @@ const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 
   <WelcomeItem>
     <template #icon>
-      <EcosystemIcon />
+      <Boxes :size="20" :stroke-width="2" aria-hidden="true" />
     </template>
     <template #heading>Ecosystem</template>
 
@@ -66,7 +62,7 @@ const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 
   <WelcomeItem>
     <template #icon>
-      <CommunityIcon />
+      <Users :size="20" :stroke-width="2" aria-hidden="true" />
     </template>
     <template #heading>Community</template>
 
@@ -84,7 +80,7 @@ const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 
   <WelcomeItem>
     <template #icon>
-      <SupportIcon />
+      <HeartHandshake :size="20" :stroke-width="2" aria-hidden="true" />
     </template>
     <template #heading>Support Vue</template>
 
