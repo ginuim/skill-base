@@ -4,11 +4,11 @@
     <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
       <span class="text-neon-400">~</span>
       <span class="opacity-50">/</span>
-      <router-link to="/" class="hover:text-white transition-colors">{{ t('nav.home') }}</router-link>
+      <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('nav.home') }}</router-link>
       <span class="opacity-50">/</span>
-      <span class="text-white">admin</span>
+      <span class="text-fg-strong">admin</span>
       <span class="opacity-50">/</span>
-      <span class="text-white">users</span>
+      <span class="text-fg-strong">users</span>
     </div>
 
     <!-- 页面标题 -->
@@ -16,7 +16,7 @@
       <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ADMIN-USERS</div>
 
       <div class="mb-8 border-b border-base-800 pb-6">
-        <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
           <span class="text-neon-400 font-mono font-normal opacity-70">></span>
           <span>{{ t('admin.heading') }}</span>
         </h1>
@@ -24,7 +24,7 @@
       </div>
 
       <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h2 class="flex items-center gap-2 text-lg font-semibold text-white pb-3 border-b border-base-800 font-mono mb-0">
+        <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono mb-0">
           <span class="text-neon-400">#</span> {{ t('admin.userList') }}
         </h2>
         <button class="btn-primary px-4 py-2.5 rounded-lg font-mono flex items-center gap-2" @click="showAddUserModal">
@@ -41,7 +41,7 @@
               type="text"
               v-model="searchQuery"
               :placeholder="t('admin.searchPlaceholder')"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
+              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
             />
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-400">
               <Search :size="16" :stroke-width="2" aria-hidden="true" />
@@ -49,7 +49,7 @@
             <button
               v-if="searchQuery"
               type="button"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-base-400 hover:text-white transition-colors"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-base-400 hover:text-fg-strong transition-colors"
               @click="searchQuery = ''"
             >
               <X :size="16" :stroke-width="2" aria-hidden="true" />
@@ -59,7 +59,7 @@
         <div class="relative min-w-[140px]">
           <select
             v-model="statusFilter"
-            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 pr-10 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors appearance-none cursor-pointer"
+            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 pr-10 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors appearance-none cursor-pointer"
           >
             <option value="">{{ t('admin.allStatus') }}</option>
             <option value="active">{{ t('admin.active') }}</option>
@@ -100,8 +100,8 @@
               :key="user.id"
               class="border-t border-base-800 hover:bg-white/5 transition-colors"
             >
-              <td class="px-4 py-4 font-mono text-white">{{ user.username }}</td>
-              <td class="px-4 py-4 font-mono text-white">{{ user.name || '-' }}</td>
+              <td class="px-4 py-4 font-mono text-fg-strong">{{ user.username }}</td>
+              <td class="px-4 py-4 font-mono text-fg-strong">{{ user.name || '-' }}</td>
               <td class="px-4 py-4">
                 <span
                   class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full font-mono"
@@ -156,30 +156,30 @@
     <div v-if="showAddModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeAddModal">
       <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-md mx-4 transform transition-all">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
-          <h3 class="text-lg font-semibold text-white font-mono flex items-center gap-2">
+          <h3 class="text-lg font-semibold text-fg-strong font-mono flex items-center gap-2">
             <span class="text-neon-400 opacity-70">></span>
             {{ t('admin.addModal') }}
           </h3>
-          <button class="text-base-400 hover:text-white transition-colors" @click="closeAddModal">
+          <button class="text-base-400 hover:text-fg-strong transition-colors" @click="closeAddModal">
             <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
         <form @submit.prevent="handleAddUser" class="p-6 space-y-5">
           <div>
             <label class="font-mono text-base-400 mb-2 block text-sm">
-              <span class="text-neon-400 opacity-70">let</span> <span class="text-white">username</span> <span class="text-neon-400 opacity-70">=</span>
+              <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">username</span> <span class="text-neon-400 opacity-70">=</span>
             </label>
             <input
               type="text"
               v-model="addForm.username"
               required
               autocomplete="off"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
             />
           </div>
           <div>
             <label class="font-mono text-base-400 mb-2 block text-sm">
-              <span class="text-neon-400 opacity-70">let</span> <span class="text-white">password</span> <span class="text-neon-400 opacity-70">=</span>
+              <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">password</span> <span class="text-neon-400 opacity-70">=</span>
             </label>
             <div class="relative">
               <input
@@ -187,7 +187,7 @@
                 v-model="addForm.password"
                 required
                 autocomplete="new-password"
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-20"
+                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-20"
               />
               <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                 <button type="button" class="p-1.5 text-base-400 hover:text-neon-400 rounded transition-colors" @click="showPassword = !showPassword">
@@ -202,12 +202,12 @@
           </div>
           <div>
             <label class="font-mono text-base-400 mb-2 block text-sm">
-              <span class="text-neon-400 opacity-70">let</span> <span class="text-white">name</span> <span class="text-neon-400 opacity-70">=</span>
+              <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">name</span> <span class="text-neon-400 opacity-70">=</span>
             </label>
             <input
               type="text"
               v-model="addForm.name"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
             />
           </div>
           <div>
@@ -220,7 +220,7 @@
                   value="developer"
                   class="w-4 h-4 accent-neon-400"
                 />
-                <span class="text-white font-mono text-sm">{{ t('admin.roleUser') }}</span>
+                <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleUser') }}</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
@@ -229,12 +229,12 @@
                   value="admin"
                   class="w-4 h-4 accent-neon-400"
                 />
-                <span class="text-white font-mono text-sm">{{ t('admin.roleAdmin') }}</span>
+                <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleAdmin') }}</span>
               </label>
             </div>
           </div>
           <div class="flex items-center justify-end gap-3 pt-4 border-t border-base-800">
-            <button type="button" class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:border-white hover:text-white transition-colors" @click="closeAddModal">
+            <button type="button" class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:text-fg-strong transition-colors" @click="closeAddModal">
               {{ t('admin.cancel') }}
             </button>
             <button
@@ -254,18 +254,18 @@
     <div v-if="showEditModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeEditModal">
       <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-md mx-4 transform transition-all">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
-          <h3 class="text-lg font-semibold text-white font-mono flex items-center gap-2">
+          <h3 class="text-lg font-semibold text-fg-strong font-mono flex items-center gap-2">
             <span class="text-neon-400 opacity-70">></span>
             {{ t('admin.editModal') }}
           </h3>
-          <button class="text-base-400 hover:text-white transition-colors" @click="closeEditModal">
+          <button class="text-base-400 hover:text-fg-strong transition-colors" @click="closeEditModal">
             <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
         <form @submit.prevent="handleEditUser" class="p-6 space-y-5">
           <div>
             <label class="font-mono text-base-400 mb-2 block text-sm">
-              <span class="text-neon-400 opacity-70">let</span> <span class="text-white">username</span> <span class="text-neon-400 opacity-70">=</span>
+              <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">username</span> <span class="text-neon-400 opacity-70">=</span>
             </label>
             <input
               type="text"
@@ -276,13 +276,13 @@
           </div>
           <div>
             <label class="font-mono text-base-400 mb-2 block text-sm">
-              <span class="text-neon-400 opacity-70">let</span> <span class="text-white">name</span> <span class="text-neon-400 opacity-70">=</span>
+              <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">name</span> <span class="text-neon-400 opacity-70">=</span>
             </label>
             <input
               type="text"
               v-model="editForm.name"
               autocomplete="off"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
             />
           </div>
           <div>
@@ -295,7 +295,7 @@
                   value="developer"
                   class="w-4 h-4 accent-neon-400"
                 />
-                <span class="text-white font-mono text-sm">{{ t('admin.roleUser') }}</span>
+                <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleUser') }}</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
@@ -304,7 +304,7 @@
                   value="admin"
                   class="w-4 h-4 accent-neon-400"
                 />
-                <span class="text-white font-mono text-sm">{{ t('admin.roleAdmin') }}</span>
+                <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleAdmin') }}</span>
               </label>
             </div>
           </div>
@@ -341,7 +341,7 @@
                   v-model="editForm.newPassword"
                   :placeholder="t('admin.newPasswordPlaceholder')"
                   autocomplete="new-password"
-                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-white focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-16"
+                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-16"
                 />
                 <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                   <button type="button" class="p-1.5 text-base-400 hover:text-neon-400 rounded transition-colors" @click="showEditPassword = !showEditPassword">
@@ -356,7 +356,7 @@
             </div>
           </div>
           <div class="flex items-center justify-end gap-3 pt-4 border-t border-base-800">
-            <button type="button" class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:border-white hover:text-white transition-colors" @click="closeEditModal">
+            <button type="button" class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:text-fg-strong transition-colors" @click="closeEditModal">
               {{ t('admin.cancel') }}
             </button>
             <button
