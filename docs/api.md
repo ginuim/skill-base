@@ -121,7 +121,7 @@
 
 获取当前登录用户信息。
 
-**认证:** 需要 Session
+**认证:** 需要已登录身份（浏览器 **Session Cookie**，或 CLI / API 调用的 **`Authorization: Bearer <PAT>`**）
 
 **响应:**
 ```json

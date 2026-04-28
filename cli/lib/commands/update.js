@@ -27,7 +27,7 @@ function formatInstallTitle(installPath) {
   return path.relative(process.cwd(), installPath) || installPath;
 }
 
-function buildTargetInstalls(skillId, options) {
+export function buildTargetInstalls(skillId, options) {
   if (options?.dir) {
     return [
       {

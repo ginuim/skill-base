@@ -37,12 +37,31 @@ export SKB_BASE_URL=https://skill.example.com
 | `skb init` | 初始化 CLI 配置，设置服务地址 |
 | `skb login` | 登录并获取本地凭证 |
 | `skb logout` | 登出并清除本地凭证 |
+| `skb whoami` | 检查本地是否有令牌，并请求服务器校验登录是否仍有效 |
 | `skb search <keyword>` | 搜索 Skill |
 | `skb install <target>` | 安装 Skill，支持 `name@version` |
 | `skb list` / `skb ls` | 浏览本地已记录的 Skill，并继续更新/删除/清记录 |
 | `skb update <skill_id>` | 选择版本并更新本地安装目录 |
 | `skb publish [directory]` | 发布当前目录或指定目录中的 Skill |
 | `skb import-github <source>` | 从公开 GitHub 仓库导入 Skill（服务端拉取 zipball）；别名 `skb import` |
+| `skb ui` | 启动本地 Web 界面，浏览器内搜索、安装与更新（默认 `127.0.0.1:9847`） |
+
+## 本地 Web UI（`skb ui`）
+
+在**你执行命令时所在的工作目录**下，用浏览器完成搜索、安装与对已记录安装的更新；请求经本机进程代理到 `skb init` / `SKB_BASE_URL` 所配置的 Skill Base，并自动带上 `skb login` 保存的 PAT，避免浏览器直连远端时的 CORS 与凭据暴露问题。
+
+```bash
+skb ui
+# 指定端口、不自动打开浏览器
+skb ui --port 9000 --no-open
+# 仅本机访问（默认）；若必须监听所有网卡（注意局域网风险）：
+skb ui --host 0.0.0.0
+```
+
+说明：
+
+- 安装目标选「当前目录」时，Skill 会解压到**启动 `skb ui` 时的当前目录**（与终端里 `skb install` 使用当前目录一致）。
+- 按 `Ctrl+C` 结束进程后页面即不可用。
 
 ## 登录与凭证
 
@@ -67,6 +86,20 @@ skb logout
 ```
 
 会清除本地登录凭证。
+
+### `skb whoami`
+
+用于确认「本机是否保存过 PAT」以及「该 PAT 在**当前配置的** Skill Base 上是否仍被接受」（例如令牌已从服务端撤销、用户被禁用、或 `SKB_BASE_URL` 指错实例）。
+
+```bash
+skb whoami
+# 脚本中仅判断退出码（0 有效，非 0 未登录或无效/不可达）
+skb whoami -q
+# 机器可读输出
+skb whoami --json
+```
+
+退出码：`0` 表示已登录且服务器返回当前用户信息；非 `0` 表示无本地令牌、服务器返回 401/403，或无法连接配置的服务地址。
 
 ## 搜索与安装
 

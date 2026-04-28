@@ -1,10 +1,11 @@
 ---
 name: skill-base-cli
 description: >-
-  The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install, update, publish, and import-from-GitHub skills from Skill Base, as well as configure skb. Triggered when users say "publish skill to skill base", "import skill from github", "download/update skill from skill base", "configure skb", or "configure skill-base-cli".
+  The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install, update, publish, and import-from-GitHub skills from Skill Base, as well as configure skb. Triggered when users say "publish skill to skill base", "import skill from github", "download/update skill from skill base", "configure skb", "am I logged in", "check skb login", or "configure skill-base-cli".
 keywords:
   - skill-base-cli
   - skb
+  - whoami
   - install skill
   - publish skill
   - update skill
@@ -41,6 +42,11 @@ Assistants should complete operations by **running terminal commands**. Package 
   3. After successful web login, a **verification code** (in the format `XXXX-XXXX`) will be provided.
   4. Enter the verification code in the terminal to exchange for a PAT.
 - Logout: `skb logout`.
+- Check login: `skb whoami` (calls `GET /api/v1/auth/me` with the saved PAT; exit `0` if valid). Use `skb whoami -q` for scripts (exit code only) or `skb whoami --json` for machine-readable output.
+
+## Local Web UI
+
+- `skb ui` — starts a small server on `127.0.0.1:9847` (override with `--port`), opens the browser, proxies `/api/v1/*` to the configured Skill Base with the saved PAT. Use `--no-open`, `--host <address>` (default `127.0.0.1`).
 
 ## Search and Install
 

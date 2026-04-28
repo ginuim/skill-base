@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skill Base — skb ui</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --border: #2d3a4d;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --accent: #3d8bfd;
+      --danger: #f87171;
+      --ok: #4ade80;
+      --radius: 8px;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    header h1 { font-size: 1.1rem; margin: 0 0 0.35rem; font-weight: 600; }
+    header .meta { font-size: 0.85rem; color: var(--muted); }
+    main { padding: 1.25rem; max-width: 960px; margin: 0 auto; }
+    nav.tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+    nav.tabs button {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    nav.tabs button.active { border-color: var(--accent); color: var(--accent); }
+    section.panel { display: none; }
+    section.panel.active { display: block; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+    input[type="text"], input[type="search"], select {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 0.65rem;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      min-width: 12rem;
+    }
+    button.primary {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; }
+    .msg { padding: 0.65rem; border-radius: var(--radius); margin: 0.5rem 0; font-size: 0.88rem; }
+    .msg.err { background: rgba(248,113,113,0.12); color: var(--danger); }
+    .msg.ok { background: rgba(74,222,128,0.1); color: var(--ok); }
+    .msg.info { background: rgba(61,139,253,0.1); color: var(--accent); }
+    dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); color: var(--text); padding: 1rem 1.25rem; max-width: min(440px, 94vw); }
+    dialog::backdrop { background: rgba(0,0,0,0.55); }
+    dialog h2 { margin: 0 0 0.75rem; font-size: 1rem; }
+    dialog label { display: block; font-size: 0.8rem; color: var(--muted); margin: 0.5rem 0 0.2rem; }
+    dialog .actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
+    code { font-size: 0.82em; background: var(--bg); padding: 0.1em 0.35em; border-radius: 4px; }
+    .desc { color: var(--muted); font-size: 0.82rem; max-width: 28rem; }
+    label.chk { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.88rem; cursor: pointer; }
+  </style>
+  <script>window.__SKB_UI_LANG__ = __INITIAL_LANG__;</script>
+</head>
+<body>
+  <header>
+    <h1 id="hdr-title">Skill Base Web UI</h1>
+    <div class="meta" id="hdr-meta"></div>
+  </header>
+  <main>
+    <div id="global-msg"></div>
+    <nav class="tabs">
+      <button type="button" class="tab active" data-tab="search" id="tab-search">搜索</button>
+      <button type="button" class="tab" data-tab="installed" id="tab-installed">已安装</button>
+    </nav>
+
+    <section id="panel-search" class="panel active">
+      <div class="row">
+        <input type="search" id="q" placeholder="关键词" autocomplete="off" />
+        <button type="button" class="primary" id="btn-search">搜索</button>
+      </div>
+      <div id="search-msg"></div>
+      <div style="overflow-x:auto">
+        <table id="tbl-results" style="display:none">
+          <thead><tr><th id="col-id">ID</th><th id="col-name">名称</th><th id="col-ver">版本</th><th id="col-desc">描述</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="panel-installed" class="panel">
+      <div class="row">
+        <button type="button" class="ghost" id="btn-refresh-installed">刷新列表</button>
+      </div>
+      <div id="installed-msg"></div>
+      <div style="overflow-x:auto">
+        <table id="tbl-installed" style="display:none">
+          <thead><tr><th id="col-sid">Skill</th><th id="col-paths">安装路径</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="dlg-install">
+    <h2 id="dlg-install-title">安装</h2>
+    <div><strong id="dlg-install-skill"></strong></div>
+    <label for="in-version" id="lbl-version">版本</label>
+    <input type="text" id="in-version" value="latest" style="width:100%" />
+    <label for="sel-ide" id="lbl-ide">目标</label>
+    <select id="sel-ide" style="width:100%"></select>
+    <label class="chk"><input type="checkbox" id="chk-global" /> <span id="lbl-global">全局安装（仅部分 Agent 支持）</span></label>
+    <label class="chk"><input type="checkbox" id="chk-overwrite" /> <span id="lbl-overwrite">覆盖已存在的同名目录</span></label>
+    <label class="chk" id="wrap-nested" style="display:none"><input type="checkbox" id="chk-nested" /> <span id="lbl-nested">确认在 Agent skill 目录内嵌套安装</span></label>
+    <div class="actions">
+      <button type="button" class="ghost" id="dlg-install-cancel">取消</button>
+      <button type="button" class="primary" id="dlg-install-ok">安装</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-update">
+    <h2 id="dlg-update-title">更新</h2>
+    <div><strong id="dlg-update-skill"></strong></div>
+    <label for="sel-ver" id="lbl-pick-ver">选择版本</label>
+    <select id="sel-ver" style="width:100%"></select>
+    <div id="wrap-paths" style="display:none;margin-top:0.75rem">
+      <div id="lbl-paths" style="font-size:0.8rem;color:var(--muted);margin-bottom:0.35rem">选择目录</div>
+      <div id="path-checkboxes"></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="ghost" id="dlg-update-cancel">取消</button>
+      <button type="button" class="primary" id="dlg-update-ok">更新</button>
+    </div>
+  </dialog>
+
+  <script>
+(function () {
+  const zh = window.__SKB_UI_LANG__ === 'zh';
+  const T = zh ? {
+    title: 'Skill Base 本地 Web UI',
+    server: '服务',
+    user: '用户',
+    guest: '未登录（部分接口可能 401）',
+    tabSearch: '搜索',
+    tabInstalled: '已安装',
+    searchPh: '关键词',
+    searchBtn: '搜索',
+    colId: 'ID', colName: '名称', colVer: '版本', colDesc: '描述', install: '安装',
+    colSkill: 'Skill', colPaths: '安装路径', update: '更新', refresh: '刷新列表',
+    dlgInstall: '安装', dlgUpdate: '更新', version: '版本', target: '目标 Agent / 目录',
+    global: '全局安装（仅部分 Agent 支持）',
+    overwrite: '覆盖已存在的同名目录',
+    nested: '确认在 Agent skill 目录内嵌套安装',
+    cancel: '取消', okInstall: '安装', okUpdate: '更新',
+    pickVer: '选择版本', pickPaths: '选择要更新的安装目录',
+    loadFail: '加载配置失败',
+    searchFail: '搜索失败',
+    installOk: '安装成功',
+    updateOk: '更新成功',
+    needPaths: '请至少勾选一个安装目录',
+    network: '网络错误'
+  } : {
+    title: 'Skill Base Web UI (local)',
+    server: 'Server',
+    user: 'User',
+    guest: 'Not logged in (some APIs may return 401)',
+    tabSearch: 'Search',
+    tabInstalled: 'Installed',
+    searchPh: 'Keyword',
+    searchBtn: 'Search',
+    colId: 'ID', colName: 'Name', colVer: 'Version', colDesc: 'Description', install: 'Install',
+    colSkill: 'Skill', colPaths: 'Paths', update: 'Update', refresh: 'Refresh',
+    dlgInstall: 'Install', dlgUpdate: 'Update', version: 'Version', target: 'Agent / folder',
+    global: 'Global install (supported agents only)',
+    overwrite: 'Overwrite if folder exists',
+    nested: 'Confirm nested install inside agent skill path',
+    cancel: 'Cancel', okInstall: 'Install', okUpdate: 'Update',
+    pickVer: 'Version', pickPaths: 'Select install directories',
+    loadFail: 'Failed to load config',
+    searchFail: 'Search failed',
+    installOk: 'Installed',
+    updateOk: 'Updated',
+    needPaths: 'Select at least one directory',
+    network: 'Network error'
+  };
+
+  document.getElementById('hdr-title').textContent = T.title;
+  document.getElementById('tab-search').textContent = T.tabSearch;
+  document.getElementById('tab-installed').textContent = T.tabInstalled;
+  document.getElementById('q').placeholder = T.searchPh;
+  document.getElementById('btn-search').textContent = T.searchBtn;
+  document.getElementById('col-id').textContent = T.colId;
+  document.getElementById('col-name').textContent = T.colName;
+  document.getElementById('col-ver').textContent = T.colVer;
+  document.getElementById('col-desc').textContent = T.colDesc;
+  document.getElementById('col-sid').textContent = T.colSkill;
+  document.getElementById('col-paths').textContent = T.colPaths;
+  document.getElementById('btn-refresh-installed').textContent = T.refresh;
+  document.getElementById('dlg-install-title').textContent = T.dlgInstall;
+  document.getElementById('lbl-version').textContent = T.version;
+  document.getElementById('lbl-ide').textContent = T.target;
+  document.getElementById('lbl-global').textContent = T.global;
+  document.getElementById('lbl-overwrite').textContent = T.overwrite;
+  document.getElementById('lbl-nested').textContent = T.nested;
+  document.getElementById('dlg-install-cancel').textContent = T.cancel;
+  document.getElementById('dlg-install-ok').textContent = T.okInstall;
+  document.getElementById('dlg-update-title').textContent = T.dlgUpdate;
+  document.getElementById('lbl-pick-ver').textContent = T.pickVer;
+  document.getElementById('lbl-paths').textContent = T.pickPaths;
+  document.getElementById('dlg-update-cancel').textContent = T.cancel;
+  document.getElementById('dlg-update-ok').textContent = T.okUpdate;
+
+  let config = { ideChoices: [] };
+  let pendingInstall = null;
+  let pendingUpdateSkill = null;
+  let pendingUpdateInstalls = [];
+
+  function show(el, html, cls) {
+    const n = document.getElementById(el);
+    if (!n) return;
+    n.innerHTML = html ? '<div class="msg ' + (cls || 'info') + '">' + html + '</div>' : '';
+  }
+
+  async function jfetch(url, opt) {
+    const r = await fetch(url, Object.assign({ headers: { Accept: 'application/json' } }, opt));
+    const ct = r.headers.get('content-type') || '';
+    let data = null;
+    if (ct.includes('application/json')) {
+      try { data = await r.json(); } catch (e) { data = null; }
+    }
+    if (!r.ok) {
+      const d = (data && (data.detail || data.message)) || r.statusText || T.network;
+      const err = new Error(d);
+      err.status = r.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  async function loadConfig() {
+    try {
+      config = await jfetch('/skb-local/config');
+      const u = config.username ? (T.user + ': ' + config.username) : T.guest;
+      document.getElementById('hdr-meta').textContent = T.server + ': ' + config.baseUrl + ' · ' + u;
+    } catch (e) {
+      show('global-msg', T.loadFail + ': ' + e.message, 'err');
+    }
+  }
+
+  function fillIdeSelect(sel) {
+    sel.innerHTML = '';
+    (config.ideChoices || []).forEach(function (c) {
+      const o = document.createElement('option');
+      o.value = c.id;
+      o.textContent = c.name;
+      sel.appendChild(o);
+    });
+  }
+
+  document.querySelectorAll('.tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var tab = btn.getAttribute('data-tab');
+      document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      document.querySelectorAll('.panel').forEach(function (p) {
+        p.classList.toggle('active', p.id === 'panel-' + tab);
+      });
+      if (tab === 'installed') loadInstalled();
+    });
+  });
+
+  document.getElementById('btn-search').addEventListener('click', doSearch);
+  document.getElementById('q').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  async function doSearch() {
+    const q = document.getElementById('q').value.trim();
+    show('search-msg', '');
+    const tbody = document.querySelector('#tbl-results tbody');
+    tbody.innerHTML = '';
+    if (!q) return;
+    document.getElementById('btn-search').disabled = true;
+    try {
+      const data = await jfetch('/api/v1/skills?q=' + encodeURIComponent(q));
+      const skills = data.skills || [];
+      if (skills.length === 0) {
+        document.getElementById('tbl-results').style.display = 'none';
+        show('search-msg', zh ? '无结果' : 'No results', 'info');
+        return;
+      }
+      document.getElementById('tbl-results').style.display = '';
+      skills.forEach(function (s) {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><code>' + esc(s.id) + '</code></td>' +
+          '<td>' + esc(s.name || '') + '</td>' +
+          '<td>' + esc(s.latest_version || '-') + '</td>' +
+          '<td class="desc">' + esc((s.description || '').slice(0, 200)) + '</td>' +
+          '<td><button type="button" class="ghost btn-install" data-id="' + esc(s.id) + '">' + esc(T.install) + '</button></td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('.btn-install').forEach(function (b) {
+        b.addEventListener('click', function () { openInstallDialog(b.getAttribute('data-id')); });
+      });
+    } catch (e) {
+      document.getElementById('tbl-results').style.display = 'none';
+      show('search-msg', T.searchFail + ': ' + e.message, 'err');
+    }
+    document.getElementById('btn-search').disabled = false;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  }
+
+  function openInstallDialog(skillId) {
+    pendingInstall = skillId;
+    document.getElementById('dlg-install-skill').textContent = skillId;
+    document.getElementById('in-version').value = 'latest';
+    fillIdeSelect(document.getElementById('sel-ide'));
+    document.getElementById('chk-global').checked = false;
+    document.getElementById('chk-overwrite').checked = false;
+    document.getElementById('chk-nested').checked = false;
+    document.getElementById('wrap-nested').style.display = 'none';
+    document.getElementById('dlg-install').showModal();
+  }
+
+  document.getElementById('sel-ide').addEventListener('change', function () {
+    const v = document.getElementById('sel-ide').value;
+    document.getElementById('chk-global').disabled = v === '_cwd';
+    if (v === '_cwd') document.getElementById('chk-global').checked = false;
+  });
+
+  document.getElementById('dlg-install-cancel').addEventListener('click', function () {
+    document.getElementById('dlg-install').close();
+  });
+
+  document.getElementById('dlg-install-ok').addEventListener('click', async function () {
+    const skillId = pendingInstall;
+    if (!skillId) return;
+    const body = {
+      skillId: skillId,
+      version: document.getElementById('in-version').value.trim() || 'latest',
+      ide: document.getElementById('sel-ide').value,
+      global: document.getElementById('chk-global').checked,
+      overwrite: document.getElementById('chk-overwrite').checked,
+      acceptNested: document.getElementById('chk-nested').checked
+    };
+    try {
+      const res = await fetch('/skb-local/install', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(function () { return {}; });
+      if (res.status === 409 && data.code === 'NESTED_IDE_PATH') {
+        document.getElementById('wrap-nested').style.display = '';
+        show('search-msg', data.detail || '', 'err');
+        return;
+      }
+      if (res.status === 409 && data.code === 'EXISTS') {
+        show('search-msg', (data.detail || '') + (data.path ? ' <code>' + esc(data.path) + '</code>' : ''), 'err');
+        return;
+      }
+      if (!res.ok) throw new Error(data.detail || res.statusText);
+      document.getElementById('dlg-install').close();
+      show('search-msg', T.installOk + ': <code>' + esc(data.installPath) + '</code> @ ' + esc(data.version), 'ok');
+    } catch (e) {
+      show('search-msg', e.message, 'err');
+    }
+  });
+
+  async function loadInstalled() {
+    show('installed-msg', '');
+    try {
+      const data = await jfetch('/skb-local/installed');
+      const skills = data.skills || [];
+      const tbody = document.querySelector('#tbl-installed tbody');
+      tbody.innerHTML = '';
+      if (skills.length === 0) {
+        document.getElementById('tbl-installed').style.display = 'none';
+        show('installed-msg', zh ? '暂无本地安装记录' : 'No local installs recorded', 'info');
+        return;
+      }
+      document.getElementById('tbl-installed').style.display = '';
+      skills.forEach(function (s) {
+        const paths = (s.installs || []).map(function (i) {
+          return '<div><code>' + esc(i.installPath) + '</code> <span class="desc">' + esc(i.version || '') + '</span></div>';
+        }).join('');
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><code>' + esc(s.skillId) + '</code></td>' +
+          '<td>' + paths + '</td>' +
+          '<td><button type="button" class="ghost btn-upd" data-id="' + esc(s.skillId) + '">' + esc(T.update) + '</button></td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('.btn-upd').forEach(function (b) {
+        b.addEventListener('click', function () { openUpdateDialog(b.getAttribute('data-id')); });
+      });
+    } catch (e) {
+      show('installed-msg', e.message, 'err');
+    }
+  }
+
+  document.getElementById('btn-refresh-installed').addEventListener('click', loadInstalled);
+
+  async function openUpdateDialog(skillId) {
+    pendingUpdateSkill = skillId;
+    pendingUpdateInstalls = [];
+    document.getElementById('dlg-update-skill').textContent = skillId;
+    document.getElementById('sel-ver').innerHTML = '';
+    document.getElementById('wrap-paths').style.display = 'none';
+    document.getElementById('path-checkboxes').innerHTML = '';
+    document.getElementById('dlg-update').showModal();
+    try {
+      const data = await jfetch('/api/v1/skills/' + encodeURIComponent(skillId) + '/versions');
+      const versions = data.versions || [];
+      versions.forEach(function (v, i) {
+        const o = document.createElement('option');
+        o.value = v.version;
+        o.textContent = v.version + (i === 0 ? (zh ? '（最新）' : ' (latest)') : '');
+        document.getElementById('sel-ver').appendChild(o);
+      });
+      const inst = await jfetch('/skb-local/installed');
+      const row = (inst.skills || []).find(function (x) { return x.skillId === skillId; });
+      pendingUpdateInstalls = row ? row.installs || [] : [];
+      if (pendingUpdateInstalls.length > 1) {
+        document.getElementById('wrap-paths').style.display = 'block';
+        pendingUpdateInstalls.forEach(function (i) {
+          const id = 'p_' + Math.random().toString(36).slice(2);
+          const lab = document.createElement('label');
+          lab.className = 'chk';
+          lab.style.display = 'flex';
+          lab.innerHTML = '<input type="checkbox" class="path-cb" value="' + esc(i.installPath) + '" checked /> <span><code>' + esc(i.installPath) + '</code></span>';
+          document.getElementById('path-checkboxes').appendChild(lab);
+        });
+      }
+    } catch (e) {
+      document.getElementById('dlg-update').close();
+      show('installed-msg', e.message, 'err');
+    }
+  }
+
+  document.getElementById('dlg-update-cancel').addEventListener('click', function () {
+    document.getElementById('dlg-update').close();
+  });
+
+  document.getElementById('dlg-update-ok').addEventListener('click', async function () {
+    const skillId = pendingUpdateSkill;
+    if (!skillId) return;
+    const version = document.getElementById('sel-ver').value;
+    let installPaths = null;
+    const cbs = document.querySelectorAll('#path-checkboxes .path-cb');
+    if (cbs.length) {
+      installPaths = [];
+      cbs.forEach(function (cb) { if (cb.checked) installPaths.push(cb.value); });
+      if (!installPaths.length) {
+        alert(T.needPaths);
+        return;
+      }
+    }
+    const body = { skillId: skillId, version: version };
+    if (installPaths) body.installPaths = installPaths;
+    try {
+      const res = await fetch('/skb-local/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(function () { return {}; });
+      if (res.status === 400 && data.code === 'PICK_PATHS') {
+        document.getElementById('wrap-paths').style.display = 'block';
+        document.getElementById('path-checkboxes').innerHTML = '';
+        (data.installs || []).forEach(function (i) {
+          const lab = document.createElement('label');
+          lab.className = 'chk';
+          lab.style.display = 'flex';
+          lab.innerHTML = '<input type="checkbox" class="path-cb" value="' + esc(i.installPath) + '" /> <span><code>' + esc(i.installPath) + '</code></span>';
+          document.getElementById('path-checkboxes').appendChild(lab);
+        });
+        show('installed-msg', data.detail || '', 'info');
+        return;
+      }
+      if (!res.ok) throw new Error(data.detail || res.statusText);
+      document.getElementById('dlg-update').close();
+      show('installed-msg', T.updateOk + ' (' + (data.updated || []).length + ')', 'ok');
+      loadInstalled();
+    } catch (e) {
+      show('installed-msg', e.message, 'err');
+    }
+  });
+
+  loadConfig();
+})();
+  </script>
+</body>
+</html>

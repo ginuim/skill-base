@@ -86,7 +86,7 @@ This repository maintains two assistant-oriented Skills under `skills/`, both pu
 
 | Skill | Role |
 |-------|------|
-| **`skill-base-cli`** | Guide the assistant to run **`skb`** from the terminal: `init`, `login`, `search`, `install`, `update`, `publish`, etc., against your Skill Base site. |
+| **`skill-base-cli`** | Guide the assistant to run **`skb`** from the terminal: `init`, `login`, `whoami`, `search`, `install`, `update`, `publish`, etc., against your Skill Base site. |
 | **`skill-base-web-deploy`** | Guide the assistant to deploy, start, or operate the **Skill Base server** (`npx skill-base`, Docker, ports, data directory, backups, etc.). |
 
 In **OpenClaw-class** products, you can have Claw install the Skill(s) you need from ClawHub into the assistant’s skills directory (same idea as pulling skill packages from a marketplace). After installation, a typical private Skill Base loop looks like this:
@@ -231,6 +231,8 @@ pnpm add -g skill-base-cli
 skb init -s http://your-team-server
 skb login
 ```
+
+To confirm the saved token still works against that server: `skb whoami` (or `skb whoami --json` / `skb whoami -q` for scripts).
 
 ### 4. Install, update, publish
 

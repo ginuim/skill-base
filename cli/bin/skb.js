@@ -10,6 +10,8 @@ import installed from '../lib/commands/installed.js';
 import update from '../lib/commands/update.js';
 import publish from '../lib/commands/publish.js';
 import importGithub from '../lib/commands/import-github.js';
+import ui from '../lib/commands/ui.js';
+import whoami from '../lib/commands/whoami.js';
 import { pickMessage } from '../lib/i18n.js';
 import { getSupportedIdeIds } from '../lib/ide.js';
 
@@ -43,6 +45,18 @@ const S = {
   logout: {
     zh: '登出并清除本地凭据',
     en: 'Log out and clear local credentials'
+  },
+  whoami: {
+    zh: '检测本地是否已保存令牌，并向服务器校验当前登录是否有效',
+    en: 'Check saved token and verify login with the server'
+  },
+  whoamiQuiet: {
+    zh: '仅通过退出码表示结果，不向标准输出打印内容',
+    en: 'Only exit code; no stdout'
+  },
+  whoamiJson: {
+    zh: '输出 JSON（便于脚本）',
+    en: 'Print JSON for scripts'
   },
   search: {
     zh: '搜索 Skills',
@@ -107,6 +121,22 @@ const S = {
   importGithubDryRun: {
     zh: '仅打印预览 JSON，不发布',
     en: 'Print preview JSON only, do not publish'
+  },
+  ui: {
+    zh: '启动本地 Web 界面（默认仅监听 127.0.0.1，通过本地代理访问已配置的 Skill Base）',
+    en: 'Start local Web UI (127.0.0.1 by default; proxies to your configured Skill Base)'
+  },
+  uiPort: {
+    zh: '监听端口（默认 9847）',
+    en: 'Listen port (default 9847)'
+  },
+  uiHost: {
+    zh: '监听地址（默认 127.0.0.1；0.0.0.0 表示所有网卡，注意局域网暴露风险）',
+    en: 'Bind address (default 127.0.0.1; 0.0.0.0 exposes on LAN — use with care)'
+  },
+  uiNoOpen: {
+    zh: '不自动打开系统浏览器',
+    en: 'Do not open the system browser'
   }
 };
 
@@ -130,6 +160,13 @@ program
   .command('logout')
   .description(pickMessage(S.logout))
   .action(logout);
+
+program
+  .command('whoami')
+  .description(pickMessage(S.whoami))
+  .option('-q, --quiet', pickMessage(S.whoamiQuiet), false)
+  .option('--json', pickMessage(S.whoamiJson), false)
+  .action((opts) => whoami(opts));
 
 program
   .command('search <keyword>')
@@ -179,5 +216,13 @@ program
   .option('--changelog <text>', pickMessage(S.publishChangelog))
   .option('--dry-run', pickMessage(S.importGithubDryRun), false)
   .action(importGithub);
+
+program
+  .command('ui')
+  .description(pickMessage(S.ui))
+  .option('-p, --port <port>', pickMessage(S.uiPort), '9847')
+  .option('--host <address>', pickMessage(S.uiHost), '127.0.0.1')
+  .option('--no-open', pickMessage(S.uiNoOpen), false)
+  .action((opts) => ui(opts));
 
 program.parse();
