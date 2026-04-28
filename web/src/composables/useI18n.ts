@@ -3,6 +3,7 @@
  * Based on static/js/i18n.js
  */
 import { ref, computed } from 'vue'
+import type { DateFormatLocale } from '@/utils/date'
 
 // Translation tables from static/js/i18n.js
 const zh: Record<string, string> = {
@@ -995,7 +996,7 @@ if (_storedLang === 'zh' || _storedLang === 'en') {
   isChinese = _browserLang.startsWith('zh')
 }
 
-const currentLang = ref(isChinese ? 'zh' : 'en')
+const currentLang = ref<DateFormatLocale>(isChinese ? 'zh' : 'en')
 
 export function useI18n() {
   const t = (key: string, params?: Record<string, string | number>): string => {
@@ -1025,7 +1026,7 @@ export function useI18n() {
 
   return {
     t,
-    currentLang: computed(() => currentLang.value),
+    currentLang: computed((): DateFormatLocale => currentLang.value),
     setLang,
   }
 }

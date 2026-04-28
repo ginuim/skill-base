@@ -20,7 +20,9 @@
             class="sb-nav-link"
             :class="{ 'is-active': isActiveItem(item.href) }"
           >
-            <span class="sb-nav-link-prefix">{{ isActiveItem(item.href) ? './' : '' }}</span>
+            <span class="sb-nav-link-icon" aria-hidden="true">
+              <component :is="navIconMap[item.icon]" class="sb-nav-lucide" :size="15" :stroke-width="2" />
+            </span>
             <span>{{ item.label }}</span>
           </router-link>
         </div>
@@ -121,6 +123,9 @@
             :class="{ 'is-active': isActiveItem(item.href) }"
             @click="closeMobileMenu"
           >
+            <span class="sb-nav-link-icon" aria-hidden="true">
+              <component :is="navIconMap[item.icon]" class="sb-nav-lucide" :size="15" :stroke-width="2" />
+            </span>
             <span class="sb-nav-mobile-marker">{{ isActiveItem(item.href) ? './' : '--' }}</span>
             <span>{{ item.label }}</span>
           </router-link>
@@ -136,11 +141,21 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
 import { useTheme } from '@/composables/useTheme'
+import { Home, Upload, LayoutGrid } from 'lucide-vue-next'
+
+type NavMenuIconName = 'home' | 'publish' | 'layout'
+
+const navIconMap = {
+  home: Home,
+  publish: Upload,
+  layout: LayoutGrid
+} as const
 
 interface NavItem {
   href: string
   label: string
   i18n?: string
+  icon?: NavMenuIconName
 }
 
 const props = withDefaults(defineProps<{
@@ -180,7 +195,8 @@ const navItems = computed(() => {
   
   return items.map(item => ({
     ...item,
-    label: item.i18n ? t(item.i18n as any) : item.label
+    label: item.i18n ? t(item.i18n as any) : item.label,
+    icon: item.icon ?? inferNavIcon(item.href)
   }))
 })
 
@@ -191,6 +207,13 @@ function normalizePath(path: string): string {
     .replace(/\/index\.html$/, '/')
     .replace(/\/+$/, '')
   return normalized || '/'
+}
+
+function inferNavIcon(href: string): NavMenuIconName {
+  const p = normalizePath(href)
+  if (p === '/') return 'home'
+  if (p === '/publish') return 'publish'
+  return 'layout'
 }
 
 function isActiveItem(href: string): boolean {
@@ -328,6 +351,34 @@ onUnmounted(() => {
   color: var(--color-fg-strong);
   background: linear-gradient(180deg, rgba(var(--color-neon-rgb), 0.1), color-mix(in srgb, var(--color-fg-strong) 2%, transparent));
   box-shadow: inset 0 0 0 1px rgba(var(--color-neon-rgb), 0.18);
+}
+
+.sb-nav-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.88;
+}
+
+.sb-nav-lucide {
+  display: block;
+  flex-shrink: 0;
+}
+
+.sb-nav-link.is-active .sb-nav-link-icon {
+  opacity: 1;
+  color: var(--color-neon-400);
+}
+
+.sb-nav-mobile-link .sb-nav-link-icon {
+  opacity: 0.88;
+}
+
+.sb-nav-mobile-link.is-active .sb-nav-link-icon {
+  opacity: 1;
+  color: var(--color-neon-400);
 }
 
 .sb-nav-link-prefix {

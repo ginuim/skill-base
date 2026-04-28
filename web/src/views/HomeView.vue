@@ -126,7 +126,7 @@
                 </span>
               </span>
             </div>
-            <span>{{ formatDate(skill.updated_at) }}</span>
+            <span>{{ formatDate(skill.updated_at, currentLang) }}</span>
           </div>
         </router-link>
       </template>
@@ -149,7 +149,7 @@ import { useI18n } from '@/composables/useI18n'
 import { formatDate } from '@/utils/date'
 
 const skillsStore = useSkillsStore()
-const { t } = useI18n()
+const { t, currentLang } = useI18n()
 const searchQuery = ref('')
 const onlyFavorites = ref(false)
 const isLoading = ref(true)

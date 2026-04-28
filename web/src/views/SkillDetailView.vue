@@ -411,7 +411,7 @@
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                       <div class="flex flex-col items-end gap-1">
-                        <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at) }}</span>
+                        <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at, currentLang) }}</span>
                         <span class="text-[10px] text-base-500 font-mono">{{ v.download_count }} {{ t('skill.downloadCount') }}</span>
                       </div>
                       
@@ -610,7 +610,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const skillsStore = useSkillsStore()
-const { t } = useI18n()
+const { t, currentLang } = useI18n()
 
 const skillId = computed(() => route.params.id as string)
 const skill = computed(() => skillsStore.currentSkill)
