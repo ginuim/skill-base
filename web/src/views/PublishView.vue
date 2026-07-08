@@ -32,6 +32,16 @@
             <button
               type="button"
               role="tab"
+              :aria-selected="publishMode === 'write'"
+              class="publish-mode-tab"
+              :class="{ active: publishMode === 'write' }"
+              @click="setPublishMode('write')"
+            >
+              {{ t('publish.tabWrite') }}
+            </button>
+            <button
+              type="button"
+              role="tab"
               :aria-selected="publishMode === 'github'"
               class="publish-mode-tab"
               :class="{ active: publishMode === 'github' }"
@@ -121,10 +131,12 @@
                 <div class="github-import-actions">
                   <button
                     type="button"
-                    class="btn btn-primary px-4 py-2 rounded-lg"
+                    class="btn btn-primary px-4 py-2 rounded-lg flex items-center gap-2"
                     :disabled="isPublishing || isPreviewLoading || !githubSource.trim()"
+                    :aria-busy="isPreviewLoading"
                     @click="runGithubPreview"
                   >
+                    <span v-if="isPreviewLoading" class="spinner spinner-sm" aria-hidden="true"></span>
                     {{ isPreviewLoading ? t('publish.githubPreviewing') : t('publish.githubPreview') }}
                   </button>
                   <button
@@ -204,6 +216,35 @@
                   {{ t('publish.totalFiles', { count: selectedFiles.length }) }}
                 </div>
               </div>
+            </div>
+
+            <!-- 在线编写 -->
+            <div v-show="publishMode === 'write'" class="form-group write-skill-panel">
+              <div class="write-skill-header">
+                <div class="min-w-0">
+                  <label for="skill-md-editor" class="form-label font-mono text-neon-400 mb-1 block">
+                    {{ t('publish.writeHeading') }}
+                  </label>
+                  <p class="write-skill-hint">{{ t('publish.writeHint') }}</p>
+                </div>
+                <button
+                  type="button"
+                  class="write-reset-action"
+                  :disabled="isPublishing"
+                  @click="resetSkillMdTemplate"
+                >
+                  {{ t('publish.writeResetTemplate') }}
+                </button>
+              </div>
+              <textarea
+                id="skill-md-editor"
+                v-model="skillMdDraft"
+                rows="18"
+                class="rounded-lg px-4 py-2.5 w-full write-skill-editor"
+                :disabled="isPublishing"
+                :placeholder="t('publish.writePlaceholder')"
+                spellcheck="false"
+              ></textarea>
             </div>
 
             <!-- Skill 选择 -->
@@ -337,13 +378,18 @@
 
 <script setup lang="ts">
 import { Upload } from 'lucide-vue-next'
-import { ref, computed, onMounted, reactive, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { skillsApi } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
 import type { Skill, GithubImportPreview } from '@/services/api'
+import {
+  buildSkillMdTemplate,
+  skillIdFromParsedName,
+  slugifySkillId,
+} from '@/utils/publish-skill-md'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -372,8 +418,21 @@ watch(error, async (msg) => {
 
 const selectedExistingId = ref('') // 下拉框选择的已存在 Skill ID
 
-type PublishMode = 'upload' | 'github'
+type PublishMode = 'upload' | 'write' | 'github'
 const publishMode = ref<PublishMode>('upload')
+const skillMdDraft = ref('')
+let skillMdParseTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearSkillMdParseTimer() {
+  if (skillMdParseTimer != null) {
+    clearTimeout(skillMdParseTimer)
+    skillMdParseTimer = null
+  }
+}
+
+onUnmounted(() => {
+  clearSkillMdParseTimer()
+})
 
 const githubConnect = reactive({
   state: 'idle' as 'idle' | 'checking' | 'ok' | 'fail',
@@ -469,6 +528,17 @@ const canPublish = computed(() => {
     if (!mine && !(form.value.name || '').trim()) return false
     return true
   }
+  if (publishMode.value === 'write') {
+    if (!skillMdDraft.value.trim()) return false
+    const parsed = parseSkillMdText(skillMdDraft.value)
+    const skillId = skillIdFromParsedName(parsed.name, form.value.skillId).trim()
+    if (!/^[a-z0-9\-_]+$/.test(skillId)) return false
+    if (selectedExistingId.value && selectedExistingId.value !== skillId) return false
+    if (isNewSkill.value) {
+      return !!(parsed.name || form.value.name).trim()
+    }
+    return true
+  }
   if (isNewSkill.value) {
     return !!(form.value.name && selectedFiles.value.length > 0)
   }
@@ -492,6 +562,12 @@ function setPublishMode(mode: PublishMode) {
   publishMode.value = mode
   if (mode === 'github') {
     fetchGithubConnectivity()
+  }
+  if (mode === 'write') {
+    githubPreview.value = null
+    githubTargetId.value = ''
+    if (!skillMdDraft.value.trim()) fillSkillMdTemplate()
+    else applySkillMdParse(skillMdDraft.value)
   }
 }
 
@@ -624,14 +700,56 @@ async function handleGithubImport() {
 // === 工具函数 ===
 const DESC_MAX = 500
 
-function slugToSkillId(raw: string) {
-  if (!raw || typeof raw !== 'string') return ''
-  let s = raw.trim().replace(/\.zip$/i, '')
-  s = s.toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9\-]+/g, '')
-  s = s.replace(/-+/g, '-').replace(/^-|-$/g, '')
-  if (!s || !/^[a-z0-9\-_]+$/.test(s)) return ''
-  return s
+function currentWriteTemplate(): string {
+  const bodyPlaceholder = t('publish.writeBodyPlaceholder')
+  if (selectedExistingId.value) {
+    const skill = mySkills.value.find((s) => s.id === selectedExistingId.value)
+    const name = (skill?.name || skill?.id || t('publish.writeDefaultName')).trim()
+    const description = (skill?.description || t('publish.writeDefaultDescription')).trim()
+    return buildSkillMdTemplate({ name, description, bodyPlaceholder })
+  }
+  return buildSkillMdTemplate({
+    name: t('publish.writeDefaultName'),
+    description: t('publish.writeDefaultDescription'),
+    bodyPlaceholder,
+  })
 }
+
+function applySkillMdParse(text: string) {
+  const parsed = parseSkillMdText(text)
+  if (parsed.name) {
+    form.value.skillId = skillIdFromParsedName(parsed.name, form.value.skillId)
+    form.value.name = parsed.name
+  }
+  if (parsed.description) {
+    form.value.description = parsed.description.slice(0, DESC_MAX)
+  }
+}
+
+function fillSkillMdTemplate(opts?: { toast?: boolean }) {
+  skillMdDraft.value = currentWriteTemplate()
+  applySkillMdParse(skillMdDraft.value)
+  if (opts?.toast) globalToast.success(t('publish.writeResetToast'))
+}
+
+function resetSkillMdTemplate() {
+  fillSkillMdTemplate({ toast: true })
+}
+
+watch(skillMdDraft, (text) => {
+  if (publishMode.value !== 'write') return
+  clearSkillMdParseTimer()
+  skillMdParseTimer = setTimeout(() => {
+    skillMdParseTimer = null
+    if (!text.trim()) return
+    applySkillMdParse(text)
+  }, 300)
+})
+
+watch(selectedExistingId, () => {
+  if (publishMode.value !== 'write') return
+  fillSkillMdTemplate()
+})
 
 function pickSkillMdPath(paths: string[]) {
   const matches = paths.filter(p => /(^|\/)SKILL\.md$/i.test(p))
@@ -789,7 +907,7 @@ async function handleFileSelect(event: Event) {
     const skillText = await readSkillMdFromZipInstance(zip, paths)
     const parsed = skillText != null ? parseSkillMdText(skillText) : { name: '', description: '' }
     const firstFile = files[0]
-    const rootSlug = firstFile ? slugToSkillId(firstFile.webkitRelativePath.split('/')[0] || '') : ''
+    const rootSlug = firstFile ? slugifySkillId(firstFile.webkitRelativePath.split('/')[0] || '') : ''
 
     selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
     selectedFileName.value = 'skill-package.zip'
@@ -816,7 +934,7 @@ async function handleZipSelect(event: Event) {
     return
   }
 
-  const slug = slugToSkillId(file.name)
+  const slug = slugifySkillId(file.name)
   await processZipFile(file, slug)
   if (zipInput.value) zipInput.value.value = ''
 }
@@ -874,14 +992,14 @@ async function handleDrop(event: DragEvent) {
     const file = await new Promise<File>((resolve, reject) => {
       ;(entry as FileSystemFileEntry).file(resolve, reject)
     })
-    const slug = slugToSkillId(file.name)
+    const slug = slugifySkillId(file.name)
     await processZipFile(file, slug)
     return
   }
 
   let rootSlug = ''
   if (entry.isDirectory) {
-    rootSlug = slugToSkillId(entry.name)
+    rootSlug = slugifySkillId(entry.name)
   }
 
   const zip = new JSZip()
@@ -975,10 +1093,93 @@ function formatFileSize(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
+async function handleWritePublish() {
+  const draft = skillMdDraft.value.trim()
+  if (!draft) {
+    error.value = t('publish.writeEmpty')
+    return
+  }
+  applySkillMdParse(draft)
+  const skillId = form.value.skillId.trim()
+  if (!skillId) {
+    error.value = t('publish.writeMissingId')
+    return
+  }
+  if (!/^[a-z0-9\-_]+$/.test(skillId)) {
+    error.value = t('publish.invalidSkillId')
+    return
+  }
+  if (selectedExistingId.value && selectedExistingId.value !== skillId) {
+    error.value = '上传包的 Skill ID 与下拉框所选已有 Skill 不一致，请重新选择或更换压缩包'
+    return
+  }
+  if (isNewSkill.value) {
+    const name = form.value.name.trim()
+    if (!name) {
+      error.value = 'SKILL.md 中缺少可用的 Skill 名称'
+      return
+    }
+    const desc = form.value.description.trim()
+    if (!desc) {
+      error.value = 'SKILL.md 中缺少描述'
+      return
+    }
+    if (desc.length > DESC_MAX) {
+      error.value = `描述不能超过 ${DESC_MAX} 字`
+      return
+    }
+  }
+
+  isPublishing.value = true
+  progress.value = 0
+  progressText.value = t('publish.preparing')
+  error.value = ''
+
+  try {
+    const zip = new JSZip()
+    zip.file('SKILL.md', skillMdDraft.value)
+    const blob = await zip.generateAsync({ type: 'blob' })
+    selectedZipBlob.value = blob
+    selectedFileName.value = 'skill-package.zip'
+
+    progressText.value = t('publish.uploading')
+    const progressInterval = setInterval(() => {
+      if (progress.value < 90) progress.value += Math.random() * 15
+    }, 200)
+
+    const formData = new FormData()
+    formData.append('zip_file', blob, 'skill-package.zip')
+    formData.append('skill_id', skillId)
+    if (isNewSkill.value) {
+      formData.append('name', form.value.name.trim())
+      formData.append('description', form.value.description.trim())
+      formData.append('visibility', newSkillVisibility.value)
+    }
+    if (form.value.changelog.trim()) {
+      formData.append('changelog', form.value.changelog.trim())
+    }
+
+    await skillsApi.upload(formData)
+    clearInterval(progressInterval)
+    progress.value = 100
+    progressText.value = t('publish.completed')
+    setTimeout(() => {
+      router.push('/')
+    }, 1000)
+  } catch (err: any) {
+    error.value = err.message || t('publish.uploadFailed')
+    isPublishing.value = false
+  }
+}
+
 async function handlePublish() {
   if (isPublishing.value) return
   if (publishMode.value === 'github') {
     await handleGithubImport()
+    return
+  }
+  if (publishMode.value === 'write') {
+    await handleWritePublish()
     return
   }
   if (!selectedZipBlob.value) return
@@ -1339,6 +1540,58 @@ select:disabled {
   background: rgba(var(--color-neon-rgb), 0.12);
   color: var(--color-neon-400);
   box-shadow: 0 0 0 1px rgba(var(--color-neon-rgb), 0.35);
+}
+
+.write-skill-panel {
+  border: 1px solid var(--color-base-800);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: color-mix(in srgb, var(--color-base-900) 82%, transparent);
+}
+.write-skill-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.write-skill-hint {
+  color: var(--color-base-400);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+.write-reset-action {
+  flex-shrink: 0;
+  border: 1px solid var(--color-base-700);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  background: color-mix(in srgb, var(--color-base-950) 72%, transparent);
+  color: var(--color-base-300);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.write-reset-action:hover:not(:disabled) {
+  border-color: rgba(var(--color-neon-rgb), 0.45);
+  color: var(--color-fg-strong);
+}
+.write-reset-action:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.write-skill-editor {
+  min-height: 18rem;
+  resize: vertical;
+  line-height: 1.55;
+}
+@media (max-width: 640px) {
+  .write-skill-header {
+    display: grid;
+  }
+  .write-reset-action {
+    width: 100%;
+  }
 }
 
 .github-import-panel {
