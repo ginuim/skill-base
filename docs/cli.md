@@ -178,6 +178,7 @@ Built-in IDE targets:
 - `trae-cn` (project: `<project-root>/.trae/skills`, global: `~/.trae-cn/skills`)
 - `openclaw` (`<project-root>/skills`, global: `~/.openclaw/skills`)
 - `codebuddy` (`<project-root>/.codebuddy/skills`, global: `~/.codebuddy/skills`)
+- `workbuddy` (`<project-root>/.workbuddy/skills`, global: `~/.workbuddy/skills`)
 - `codex` (`<project-root>/.agents/skills`, global: `~/.codex/skills`)
 - `iflow-cli` (`<project-root>/.iflow/skills`, global: `~/.iflow/skills`)
 - `kilo` (`<project-root>/.kilocode/skills`, global: `~/.kilocode/skills`)

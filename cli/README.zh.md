@@ -86,7 +86,7 @@ skb install --collection frontend-team --ide cursor
 - `-i, --ide <agent>`：按 IDE 规则自动选择目标目录（别名 `-a, --agent`）
 - `-g, --global`：安装到全局 IDE 配置目录，仅部分 IDE 支持
 
-常见 IDE：`cursor`、`claude-code`、`codex`、`copilot`、`windsurf`、`qoder`、`opencode`、`trae`、`openclaw`、`codebuddy` 等 — 运行 `skb install --help` 查看完整列表。
+常见 IDE：`cursor`、`claude-code`、`codex`、`copilot`、`windsurf`、`qoder`、`opencode`、`trae`、`openclaw`、`codebuddy`、`workbuddy` 等 — 运行 `skb install --help` 查看完整列表。
 
 若目标目录下已存在同名 Skill 文件夹，`skb install` 会先询问是否覆盖。安装集合时，若存在多个冲突路径，会一次性列出并询问是否全部覆盖；取消则不会安装任何 Skill。
 

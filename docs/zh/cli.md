@@ -185,6 +185,7 @@ skb install git-commit-rules --ide cursor --global
 - `trae-cn`（项目：`<项目根>/.trae/skills`，全局：`~/.trae-cn/skills`）
 - `openclaw`（`<项目根>/skills`，全局：`~/.openclaw/skills`）
 - `codebuddy`（`<项目根>/.codebuddy/skills`，全局：`~/.codebuddy/skills`）
+- `workbuddy`（`<项目根>/.workbuddy/skills`，全局：`~/.workbuddy/skills`）
 - `codex`（`<项目根>/.agents/skills`，全局：`~/.codex/skills`）
 - `iflow-cli`（`<项目根>/.iflow/skills`，全局：`~/.iflow/skills`）
 - `kilo`（`<项目根>/.kilocode/skills`，全局：`~/.kilocode/skills`）

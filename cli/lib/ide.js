@@ -92,6 +92,13 @@ export const IDE_CONFIGS = {
     globalPath: '.codebuddy/skills',
     supportsGlobal: true,
   },
+  workbuddy: {
+    id: 'workbuddy',
+    name: 'WorkBuddy',
+    projectPath: '.workbuddy/skills',
+    globalPath: '.workbuddy/skills',
+    supportsGlobal: true,
+  },
   codex: {
     id: 'codex',
     name: 'Codex',

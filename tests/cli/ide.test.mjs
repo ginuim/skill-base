@@ -15,6 +15,7 @@ test('getSupportedIdeIds lists known id including cursor', () => {
   const ids = getSupportedIdeIds();
   assert.ok(ids.includes('cursor'));
   assert.ok(ids.includes('claude-code'));
+  assert.ok(ids.includes('workbuddy'));
   assert.equal(ids.length, Object.keys(IDE_CONFIGS).length);
 });
 
@@ -37,6 +38,11 @@ test('resolveInstallDir project mode joins project root and projectPath', () => 
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
+});
+
+test('resolveInstallDir workbuddy global mode uses homedir', () => {
+  const dir = resolveInstallDir('workbuddy', 'my-skill', true, os.tmpdir());
+  assert.equal(dir, path.join(os.homedir(), '.workbuddy', 'skills'));
 });
 
 test('findProjectRoot finds directory with package.json', () => {

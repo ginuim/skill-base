@@ -63,7 +63,7 @@ skb install <skill_id> -i cursor      # Install to IDE skill directory
 skb install <skill_id> -i cursor -g # Global IDE directory (where supported)
 ```
 
-Options: `-d/--dir`, `-i/--ide` (alias `-a/--agent`), `-g/--global`. Common IDE values: `cursor`, `claude-code`, `codex`, `copilot`, `windsurf`, `qoder`, `opencode`, `trae`, `openclaw`, `codebuddy`, and others — run `skb install --help` for the full list.
+Options: `-d/--dir`, `-i/--ide` (alias `-a/--agent`), `-g/--global`. Common IDE values: `cursor`, `claude-code`, `codex`, `copilot`, `windsurf`, `qoder`, `opencode`, `trae`, `openclaw`, `codebuddy`, `workbuddy`, and others — run `skb install --help` for the full list.
 
 ### Install a Collection
 

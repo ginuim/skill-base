@@ -86,7 +86,7 @@ Options:
 - `-i, --ide <agent>`: Pick target directory using IDE rules (alias `-a, --agent`)
 - `-g, --global`: Install into global IDE config directory (where supported)
 
-Common IDE values: `cursor`, `claude-code`, `codex`, `copilot`, `windsurf`, `qoder`, `opencode`, `trae`, `openclaw`, `codebuddy`, and others — run `skb install --help` for the full list.
+Common IDE values: `cursor`, `claude-code`, `codex`, `copilot`, `windsurf`, `qoder`, `opencode`, `trae`, `openclaw`, `codebuddy`, `workbuddy`, and others — run `skb install --help` for the full list.
 
 If a same-named Skill folder already exists, `skb install` asks before overwriting. For collections, all conflicts are listed and confirmed in one prompt; cancel skips the entire collection install.
 
