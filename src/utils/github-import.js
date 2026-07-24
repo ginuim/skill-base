@@ -13,9 +13,11 @@ const { canPublishSkill } = require('./permission');
 const GITHUB_API = 'https://api.github.com';
 
 const MAX_ZIP_BYTES =
-  (Number(process.env.SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB) || 50) * 1024 * 1024;
+  (Number(process.env.SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB) || 100) * 1024 * 1024;
 const MAX_FILES = 2000;
-const MAX_ENTRY_UNCOMPRESSED = 10 * 1024 * 1024;
+const MAX_ENTRY_BYTES =
+  (Number(process.env.SKILL_BASE_GITHUB_IMPORT_MAX_ENTRY_MB) || 25) * 1024 * 1024;
+const BLOB_FETCH_CONCURRENCY = 10;
 
 const CONNECTIVITY_TIMEOUT_MS =
   Number(process.env.SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS) || 8000;
@@ -26,6 +28,24 @@ class GitHubImportError extends Error {
     this.code = code;
     this.statusCode = statusCode;
   }
+}
+
+function formatMb(bytes) {
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+async function mapPool(items, concurrency, fn) {
+  const results = new Array(items.length);
+  let index = 0;
+  async function worker() {
+    while (index < items.length) {
+      const i = index++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  const workers = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workers }, () => worker()));
+  return results;
 }
 
 function githubHeaders() {
@@ -150,13 +170,81 @@ async function downloadZipball(owner, repo, ref) {
   }
   const cl = res.headers.get('content-length');
   if (cl && Number(cl) > MAX_ZIP_BYTES) {
-    throw new GitHubImportError('archive_too_large', 'Archive exceeds size limit', 413);
+    throw new GitHubImportError(
+      'archive_too_large',
+      `Archive exceeds size limit (${formatMb(Number(cl))} > ${formatMb(MAX_ZIP_BYTES)})`,
+      413
+    );
   }
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.length > MAX_ZIP_BYTES) {
-    throw new GitHubImportError('archive_too_large', 'Archive exceeds size limit', 413);
+    throw new GitHubImportError(
+      'archive_too_large',
+      `Archive exceeds size limit (${formatMb(buf.length)} > ${formatMb(MAX_ZIP_BYTES)})`,
+      413
+    );
   }
   return buf;
+}
+
+async function downloadSkillFilesViaTree(owner, repo, ref, subpathNormalized) {
+  const treeData = await fetchJson(
+    `${GITHUB_API}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(ref)}?recursive=1`
+  );
+  if (treeData.truncated) {
+    throw new GitHubImportError(
+      'github_api_error',
+      'Repository tree is too large; specify a subpath to import a subdirectory',
+      413
+    );
+  }
+
+  const prefix = subpathNormalized ? `${subpathNormalized.replace(/\/+$/, '')}/` : '';
+  const skillMdPath = prefix ? `${prefix}SKILL.md` : 'SKILL.md';
+
+  const blobs = (treeData.tree || []).filter(
+    (t) => t.type === 'blob' && t.path.startsWith(prefix) && !isJunkZipPath(t.path)
+  );
+
+  if (!blobs.some((b) => b.path === skillMdPath)) {
+    throw new GitHubImportError('no_skill_md', 'SKILL.md not found at the selected path', 400);
+  }
+  if (blobs.length > MAX_FILES) {
+    throw new GitHubImportError('too_many_files', 'Too many files in skill directory', 413);
+  }
+
+  const files = await mapPool(blobs, BLOB_FETCH_CONCURRENCY, async (blob) => {
+    const pathEnc = blob.path.split('/').map(encodeURIComponent).join('/');
+    const url = `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(ref)}/${pathEnc}`;
+    const res = await fetch(url, {
+      headers: githubHeaders(),
+      redirect: 'follow',
+      signal: AbortSignal.timeout(60_000)
+    });
+    if (!res.ok) {
+      throw new GitHubImportError(
+        'github_fetch_failed',
+        `Failed to download ${blob.path}: HTTP ${res.status}`,
+        502
+      );
+    }
+    const content = Buffer.from(await res.arrayBuffer());
+    if (content.length > MAX_ENTRY_BYTES) {
+      throw new GitHubImportError(
+        'entry_too_large',
+        `File ${blob.path} exceeds size limit (${formatMb(content.length)} > ${formatMb(MAX_ENTRY_BYTES)})`,
+        413
+      );
+    }
+    const rel = prefix ? blob.path.slice(prefix.length) : blob.path;
+    return { rel, content };
+  });
+
+  const skillEntry = files.find((f) => f.rel === 'SKILL.md');
+  return {
+    files,
+    skillMdContent: skillEntry.content.toString('utf8')
+  };
 }
 
 /**
@@ -210,8 +298,12 @@ function extractSkillFilesFromZipball(buffer, subpathNormalized) {
     }
 
     const data = entry.getData();
-    if (data.length > MAX_ENTRY_UNCOMPRESSED) {
-      throw new GitHubImportError('entry_too_large', 'A file in the archive exceeds size limit', 413);
+    if (data.length > MAX_ENTRY_BYTES) {
+      throw new GitHubImportError(
+        'entry_too_large',
+        `File ${rel} exceeds size limit (${formatMb(data.length)} > ${formatMb(MAX_ENTRY_BYTES)})`,
+        413
+      );
     }
 
     files.push({ rel, content: Buffer.from(data) });
@@ -286,8 +378,23 @@ async function loadGithubSkillPayload(source, refOpt, subpathOpt) {
   const subpathNormalized = normalizeSubpath(subpathRaw);
 
   const resolvedRef = await resolveRef(owner, repo, ref);
-  const zipBuffer = await downloadZipball(owner, repo, resolvedRef);
-  const { files, skillMdContent } = extractSkillFilesFromZipball(zipBuffer, subpathNormalized);
+  let files;
+  let skillMdContent;
+  try {
+    const zipBuffer = await downloadZipball(owner, repo, resolvedRef);
+    ({ files, skillMdContent } = extractSkillFilesFromZipball(zipBuffer, subpathNormalized));
+  } catch (err) {
+    if (err instanceof GitHubImportError && err.code === 'archive_too_large') {
+      ({ files, skillMdContent } = await downloadSkillFilesViaTree(
+        owner,
+        repo,
+        resolvedRef,
+        subpathNormalized
+      ));
+    } else {
+      throw err;
+    }
+  }
   const meta = resolveDefaultSkillId(repo, skillMdContent, subpathNormalized);
 
   return {
@@ -369,5 +476,7 @@ module.exports = {
   suggestedImportSkillId,
   extractSkillFilesFromZipball,
   checkGithubConnectivity,
-  MAX_ZIP_BYTES
+  downloadSkillFilesViaTree,
+  MAX_ZIP_BYTES,
+  MAX_ENTRY_BYTES
 };

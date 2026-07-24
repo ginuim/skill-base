@@ -6,7 +6,8 @@ const {
   suggestedImportSkillId,
   extractSkillFilesFromZipball,
   buildPublishZipBuffer,
-  checkGithubConnectivity
+  checkGithubConnectivity,
+  downloadSkillFilesViaTree
 } = require('../src/utils/github-import');
 const {
   resolveSkillIdCore,
@@ -120,4 +121,41 @@ test('buildPublishZipBuffer prefixes target skill id', () => {
   const z2 = new AdmZip(out);
   const names = z2.getEntries().filter((e) => !e.isDirectory).map((e) => e.entryName);
   assert.ok(names.includes('new-id/SKILL.md'));
+});
+
+test('downloadSkillFilesViaTree fetches files under subpath', async (t) => {
+  const orig = global.fetch;
+  t.after(() => {
+    global.fetch = orig;
+  });
+
+  global.fetch = async (url) => {
+    const u = String(url);
+    if (u.includes('/git/trees/')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          truncated: false,
+          tree: [
+            { type: 'blob', path: 'pkg/skill/SKILL.md', sha: 'a1' },
+            { type: 'blob', path: 'pkg/skill/readme.txt', sha: 'a2' },
+            { type: 'blob', path: 'other/SKILL.md', sha: 'a3' }
+          ]
+        })
+      };
+    }
+    if (u.includes('raw.githubusercontent.com') && u.includes('pkg/skill/SKILL.md')) {
+      return { ok: true, status: 200, arrayBuffer: async () => Buffer.from('# Tree Skill\n\ndesc') };
+    }
+    if (u.includes('raw.githubusercontent.com') && u.includes('readme.txt')) {
+      return { ok: true, status: 200, arrayBuffer: async () => Buffer.from('hello') };
+    }
+    return { ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) };
+  };
+
+  const { files, skillMdContent } = await downloadSkillFilesViaTree('acme', 'repo', 'main', 'pkg/skill');
+  assert.equal(files.length, 2);
+  assert.ok(skillMdContent.includes('# Tree Skill'));
+  assert.ok(files.some((f) => f.rel === 'SKILL.md'));
 });
