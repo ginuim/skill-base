@@ -1,6 +1,6 @@
 [package]
 name = "skill-base-desktop-tauri"
-version = "0.1.0"
+version = "0.1.1"
 description = "Skill Base Desktop (Tauri)"
 authors = ["ginuim"]
 edition = "2021"

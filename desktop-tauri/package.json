@@ -1,6 +1,6 @@
 {
   "name": "skill-base-desktop-tauri",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Skill Base Desktop (Tauri) — 本地 Agent Skill 管理客户端",
   "private": true,
   "type": "module",

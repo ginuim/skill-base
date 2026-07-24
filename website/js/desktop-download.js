@@ -20,6 +20,13 @@
   }
 
 
+  function normalizeAssets(assets) {
+    var branded = assets.filter(function (a) {
+      return /^SkillBase-/i.test(a.name);
+    });
+    return branded.length ? branded : assets;
+  }
+
   function assetScore(name) {
     var score = 0;
     if (/^SkillBase-/i.test(name)) score += 10;
@@ -223,7 +230,7 @@
         return res.json();
       })
       .then(function (release) {
-        renderPanel(release.assets || []);
+        renderPanel(normalizeAssets(release.assets || []));
       })
       .catch(function () {
         renderError();

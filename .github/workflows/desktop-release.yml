@@ -326,6 +326,14 @@ jobs:
       - name: Show installer files
         run: find installers -type f | sort
 
+      - name: Keep only SkillBase-branded installers
+        run: |
+          set -euo pipefail
+          find installers -type f ! -name 'SkillBase-*' -print -delete
+          find installers -type d -empty -delete 2>/dev/null || true
+          test "$(find installers -type f | wc -l)" -ge 4
+          find installers -type f | sort
+
       - name: Remove previous desktop-latest release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -354,7 +362,7 @@ jobs:
 
             历史构建见 [Releases](${{ github.server_url }}/${{ github.repository }}/releases)。
           files: |
-            installers/**/*.dmg
-            installers/**/*.exe
-            installers/**/*.AppImage
-            installers/**/*.deb
+            installers/**/SkillBase-*.dmg
+            installers/**/SkillBase-*.exe
+            installers/**/SkillBase-*.AppImage
+            installers/**/SkillBase-*.deb
