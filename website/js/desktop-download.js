@@ -20,6 +20,12 @@
   }
 
 
+  function versionFromName(name) {
+    var m = name.match(/(\d+)\.(\d+)\.(\d+)/);
+    if (!m) return 0;
+    return Number(m[1]) * 1000000 + Number(m[2]) * 1000 + Number(m[3]);
+  }
+
   function normalizeAssets(assets) {
     var branded = assets.filter(function (a) {
       return /^SkillBase-/i.test(a.name);
@@ -27,9 +33,36 @@
     return branded.length ? branded : assets;
   }
 
+  function extractVersion(assets) {
+    var best = '';
+    var bestScore = 0;
+    for (var i = 0; i < assets.length; i++) {
+      var score = versionFromName(assets[i].name);
+      if (score <= bestScore) continue;
+      var match = assets[i].name.match(/(\d+\.\d+\.\d+)/);
+      if (!match) continue;
+      bestScore = score;
+      best = match[1];
+    }
+    return best;
+  }
+
+  function latestVersionAssets(assets) {
+    var version = extractVersion(assets);
+    if (!version) return assets;
+    var filtered = assets.filter(function (a) {
+      return a.name.indexOf('-' + version + '-') !== -1;
+    });
+    return filtered.length ? filtered : assets;
+  }
+
+  function prepareAssets(assets) {
+    return latestVersionAssets(normalizeAssets(assets || []));
+  }
+
   function assetScore(name) {
-    var score = 0;
-    if (/^SkillBase-/i.test(name)) score += 10;
+    var score = versionFromName(name);
+    if (/^SkillBase-/i.test(name)) score += 100000000;
     if (/macos/i.test(name)) score += 2;
     if (/linux/i.test(name)) score += 2;
     if (/windows/i.test(name)) score += 2;
@@ -74,14 +107,6 @@
     if (platform === 'windows') return pickWindowsAsset(assets);
     if (platform === 'linux') return pickLinuxAppImage(assets);
     return null;
-  }
-
-  function extractVersion(assets) {
-    for (var i = 0; i < assets.length; i++) {
-      var match = assets[i].name.match(/(\d+\.\d+\.\d+)/);
-      if (match) return match[1];
-    }
-    return '';
   }
 
   function formatSize(bytes) {
@@ -230,7 +255,7 @@
         return res.json();
       })
       .then(function (release) {
-        renderPanel(normalizeAssets(release.assets || []));
+        renderPanel(prepareAssets(release.assets));
       })
       .catch(function () {
         renderError();
