@@ -194,8 +194,9 @@ async function start() {
     const PORT = process.env.PORT || 8000;
     const HOST = process.env.HOST || '0.0.0.0';
     
-    // Cappy off unless ENABLE_CAPPY=true
-    const enableCappy = process.env.ENABLE_CAPPY === 'true';
+    // Cappy on only when ENABLE_CAPPY=true AND stdout is a TTY
+    // (avoids banner-animation spamming pm2/systemd logs at ~5MB/min)
+    const enableCappy = process.env.ENABLE_CAPPY === 'true' && !!process.stdout.isTTY;
     let cappy = null;
 
     if (enableCappy) {
