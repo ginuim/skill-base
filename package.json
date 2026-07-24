@@ -1,6 +1,6 @@
 {
   "name": "skill-base",
-  "version": "2.0.47",
+  "version": "2.0.49",
   "description": "Skill Base - A lightweight, privately deployable agent skills distribution hub",
   "main": "src/index.js",
   "bin": {
