@@ -389,6 +389,57 @@
 
 ---
 
+### 10. Skill 截图（screenshots）
+
+每个 Skill 可选挂一组截图（类似 App Store），存储于 `data/skills/<skill_id>/screenshots/`，`skills.screenshots` 列为 JSON 数组。**GET** `/api/v1/skills/:skill_id` 的响应包含：
+
+```json
+{
+  "screenshots": [
+    { "id": "uuid", "url": "skills/:skill_id/screenshots/:shot_id/file", "created_at": "ISO 时间" }
+  ]
+}
+```
+
+`url` 为相对 API 前缀的路径，完整地址即 `/api/v1/` + `url`。
+
+限制（可用环境变量调整）：
+- 单张大小上限：`SKILL_BASE_SCREENSHOT_MAX_MB`（默认 5 MB）
+- 每个 Skill 张数上限：`SKILL_BASE_SCREENSHOT_MAX_COUNT`（默认 10）
+- 仅允许 PNG / JPEG / WebP / GIF
+
+#### 上传截图
+
+**POST** `/api/v1/skills/:skill_id/screenshots`
+
+**认证:** 需要 Session；需为该 Skill 的 **所有者或协作者**。multipart 表单，文件字段名 `image`。
+
+**响应:** `{ "ok": true, "skill_id": "...", "screenshot": {...}, "screenshots": [...] }`
+
+**错误码:** `400` - 缺文件 / 类型非法 / 超大小 / 超张数；`403` - 无权限；`404` - Skill not found
+
+#### 读取截图文件
+
+**GET** `/api/v1/skills/:skill_id/screenshots/:shot_id/file`
+
+按 Skill 可见性控制访问（私有 Skill 仅协作者可见），返回图片二进制。
+
+#### 删除截图
+
+**DELETE** `/api/v1/skills/:skill_id/screenshots/:shot_id`
+
+**认证:** 所有者或协作者。同时删除磁盘文件。**响应:** `{ "ok": true, "screenshots": [...] }`
+
+#### 排序截图
+
+**PUT** `/api/v1/skills/:skill_id/screenshots`
+
+**认证:** 所有者或协作者。请求体 `{ "screenshot_ids": ["id1", "id2"] }`，未列出的 id 保持原相对顺序排在末尾。
+
+删除 Skill 时截图文件随 `data/skills/<skill_id>/` 一并清理。
+
+---
+
 ## 发布模块 `/api/v1/skills`
 
 ### 1. 发布新版本

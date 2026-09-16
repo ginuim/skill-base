@@ -58,6 +58,8 @@ Collection 是管理员维护的扁平推荐包（如“前端组必装”），
 
 每个 Skill 可选配置 `webhook_url`（**PUT** `/skills/:skill_id` 的 JSON 字段；仅管理者在 GET 中可见）。在元数据变更、发布新版本、修改 Head、PATCH 版本说明、删除 Skill 等时机向该 URL **异步 POST** JSON，详见 `docs/zh/api.md`。可选 `SKILL_BASE_WEBHOOK_TIMEOUT_MS` 控制投递超时。
 
+每个 Skill 可选挂截图（screenshots，JSON 数组列）：`POST/PUT /skills/:skill_id/screenshots`、`DELETE /skills/:skill_id/screenshots/:shot_id`、`GET .../file`（权限：owner/collaborator 写，可见性同 Skill 读）。文件存 `data/skills/<skill_id>/screenshots/`，删除 Skill 时随目录清理。上限可用 `SKILL_BASE_SCREENSHOT_MAX_MB`（默认 5）、`SKILL_BASE_SCREENSHOT_MAX_COUNT`（默认 10）配置。
+
 ## Development Commands
 
 ```bash

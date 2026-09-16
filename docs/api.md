@@ -389,6 +389,57 @@ Changing `webhook_url` alone does **not** trigger a Webhook.
 
 ---
 
+### 10. Skill screenshots
+
+Each Skill can optionally carry a set of screenshots (App Store style). Files live under `data/skills/<skill_id>/screenshots/`; the `skills.screenshots` column is a JSON array. **GET** `/api/v1/skills/:skill_id` includes:
+
+```json
+{
+  "screenshots": [
+    { "id": "uuid", "url": "skills/:skill_id/screenshots/:shot_id/file", "created_at": "ISO timestamp" }
+  ]
+}
+```
+
+`url` is relative to the API prefix; the full address is `/api/v1/` + `url`.
+
+Limits (configurable via env):
+- Max size per image: `SKILL_BASE_SCREENSHOT_MAX_MB` (default 5 MB)
+- Max count per Skill: `SKILL_BASE_SCREENSHOT_MAX_COUNT` (default 10)
+- Only PNG / JPEG / WebP / GIF are accepted
+
+#### Upload a screenshot
+
+**POST** `/api/v1/skills/:skill_id/screenshots`
+
+**Auth:** Session required; Skill **owner or collaborator**. Multipart form, file field name `image`.
+
+**Response:** `{ "ok": true, "skill_id": "...", "screenshot": {...}, "screenshots": [...] }`
+
+**Error codes:** `400` - missing file / invalid type / too large / too many; `403` - forbidden; `404` - Skill not found
+
+#### Read a screenshot file
+
+**GET** `/api/v1/skills/:skill_id/screenshots/:shot_id/file`
+
+Access follows Skill visibility (private Skills are only visible to collaborators); returns the image binary.
+
+#### Delete a screenshot
+
+**DELETE** `/api/v1/skills/:skill_id/screenshots/:shot_id`
+
+**Auth:** owner or collaborator. Also removes the file from disk. **Response:** `{ "ok": true, "screenshots": [...] }`
+
+#### Reorder screenshots
+
+**PUT** `/api/v1/skills/:skill_id/screenshots`
+
+**Auth:** owner or collaborator. Body `{ "screenshot_ids": ["id1", "id2"] }`; ids not listed keep their relative order at the end.
+
+Deleting a Skill removes its screenshots together with `data/skills/<skill_id>/`.
+
+---
+
 ## Publish module `/api/v1/skills`
 
 ### 1. Publish new version
