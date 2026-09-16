@@ -253,7 +253,8 @@ const migrations = [
   require('./migrations/006-skill-visibility'),
   require('./migrations/007-collections'),
   require('./migrations/008-collection-download-count'),
-  require('./migrations/009-collection-slug')
+  require('./migrations/009-collection-slug'),
+  require('./migrations/010-skill-screenshots')
 ];
 
 function ensureSchemaMigrationsTable() {

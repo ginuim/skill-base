@@ -55,14 +55,17 @@
           <span class="text-fg-strong">{{ skill.name }}</span>
         </div>
 
-        <!-- Skill Info Card -->
-        <div id="skill-info" class="card p-6 mb-6 relative">
-          <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ID: {{ skill.id.toString().substring(0, 8) }}</div>
-          <h1 class="text-3xl font-bold text-fg-strong mb-3 flex items-center gap-3">
-            <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
-            {{ skill.name }}
-          </h1>
-          <div class="flex flex-wrap items-center gap-2 mb-4">
+        <!-- Skill Header (open, page-like layout) -->
+        <header id="skill-info" class="skill-hero mb-10">
+          <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+            <h1 class="skill-title text-4xl font-bold text-fg-strong flex items-center gap-3 min-w-0">
+              <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
+              <span class="truncate">{{ skill.name }}</span>
+            </h1>
+            <span class="text-base-500 text-[10px] font-mono opacity-60 select-none pt-2">ID: {{ skill.id.toString().substring(0, 8) }}</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 mb-6">
             <span v-if="skill.visibility === 'private'" class="skill-meta-chip skill-meta-chip-private">PRIVATE</span>
             <button
               v-if="authStore.isLoggedIn"
@@ -96,15 +99,37 @@
             >
               {{ t('skill.editTags') }}
             </button>
+            <!-- Contributors avatar stack (owner + collaborators) -->
+            <div
+              v-if="contributorStack.length > 0"
+              class="flex items-center ml-2"
+              :title="t('skill.contributors')"
+            >
+              <span
+                v-for="person in contributorStack"
+                :key="person.id"
+                class="contributor-avatar"
+                :class="person.isOwner ? 'contributor-avatar-owner' : 'contributor-avatar-collab'"
+                :title="(person.name || person.username) + (person.isOwner ? ' (' + t('collab.owner') + ')' : '')"
+              >
+                {{ (person.username || 'U').charAt(0).toUpperCase() }}
+              </span>
+              <span
+                v-if="contributorOverflow > 0"
+                class="contributor-avatar contributor-avatar-more"
+              >+{{ contributorOverflow }}</span>
+            </div>
           </div>
-          <div class="flex items-start justify-between mb-6 group">
-            <p class="text-base-400 text-sm leading-relaxed max-w-5xl whitespace-pre-wrap">
+
+          <!-- Description -->
+          <div class="skill-desc-wrap group mb-8">
+            <p class="skill-desc whitespace-pre-wrap">
               {{ skill.description || t('state.noDesc') }}
             </p>
             <button
               v-if="canManageCollaborators"
               @click="openEditSkillDescription"
-              class="opacity-0 group-hover:opacity-100 p-1.5 text-base-400 hover:text-neon-400 transition-all flex-shrink-0 bg-base-950 border border-base-800 rounded ml-4"
+              class="skill-desc-edit opacity-0 group-hover:opacity-100 p-1.5 text-base-400 hover:text-neon-400 transition-all flex-shrink-0 bg-base-950 border border-base-800 rounded"
               :title="t('skill.editSkillDescriptionBtn')"
             >
               <Pencil class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
@@ -112,7 +137,7 @@
           </div>
 
           <!-- Version Select & Actions -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800/60">
             <div class="relative w-full sm:flex-1 sm:max-w-[18.2rem]">
               <select
                 v-model="currentVersion"
@@ -179,10 +204,75 @@
               </button>
             </div>
           </div>
+        </header>
+
+        <!-- Screenshots showcase (App Store style, above tabs) -->
+        <section v-if="(skill.screenshots || []).length > 0 || canManageCollaborators" class="screenshot-showcase mb-10">
+          <div class="flex items-center justify-between mb-4 px-1">
+            <div class="font-mono text-sm text-base-400 flex items-center gap-2">
+              <span class="text-neon-400">#</span> {{ t('skill.screenshots') }}
+            </div>
+            <button
+              v-if="canManageCollaborators"
+              type="button"
+              class="skill-meta-chip skill-meta-chip-action disabled:opacity-50"
+              :disabled="isUploadingScreenshot"
+              @click="screenshotInputRef?.click()"
+            >
+              <span v-if="isUploadingScreenshot" class="spinner spinner-sm inline-block mr-1 align-middle"></span>
+              {{ isUploadingScreenshot ? t('skill.screenshotUploading') : '+ ' + t('skill.screenshotUpload') }}
+            </button>
+          </div>
+          <div v-if="(skill.screenshots || []).length > 0" class="screenshot-strip">
+            <figure
+              v-for="shot in skill.screenshots"
+              :key="shot.id"
+              class="screenshot-thumb group"
+            >
+              <img
+                :src="screenshotSrc(shot)"
+                :alt="t('skill.screenshotPreview')"
+                loading="lazy"
+                class="screenshot-img"
+                @click="openLightbox(shot.id)"
+              />
+              <button
+                v-if="canManageCollaborators"
+                type="button"
+                class="screenshot-delete-btn"
+                :title="t('btn.remove')"
+                @click.stop="deleteScreenshot(shot.id)"
+              >
+                &times;
+              </button>
+            </figure>
+          </div>
+          <p v-else class="text-xs text-base-500 font-mono px-1">—</p>
+          <input
+            ref="screenshotInputRef"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            class="hidden"
+            @change="onScreenshotFileChange"
+          />
+        </section>
+
+        <!-- Tabs: Files / Versions / Team -->
+        <div class="detail-tabs mb-6">
+          <button
+            v-for="tab in detailTabs"
+            :key="tab.key"
+            type="button"
+            class="detail-tab-btn"
+            :class="{ 'detail-tab-btn--active': activeTab === tab.key }"
+            @click="activeTab = tab.key"
+          >
+            {{ tab.label }}
+          </button>
         </div>
 
-        <!-- File Tree & Preview (1:3 ratio) -->
-        <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Files tab: File Tree & Preview (1:3 ratio) -->
+        <section v-show="activeTab === 'files'" class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
           <!-- Left: File Tree -->
           <div class="bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
             <div class="px-5 py-3 border-b border-base-800 font-mono text-sm text-base-400 flex items-center gap-2">
@@ -270,9 +360,9 @@
           </div>
         </section>
 
-        <!-- Bottom Grid: Team (1/3) & Version History (2/3) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Left: Collaborators -->
+        <!-- Team & Access tab: left collaborators, right ACL + Webhook -->
+        <div v-show="activeTab === 'team'">
+          <div class="grid grid-cols-1 gap-6" :class="{ 'lg:grid-cols-2': skillsStore.isOwner }">
           <div class="bg-base-900 border border-base-800 rounded-xl h-fit">
             <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-fg-strong flex items-center justify-between text-sm">
               <div class="flex items-center gap-2">
@@ -332,7 +422,14 @@
                 </div>
               </div>
             </div>
-            <div v-if="skillsStore.isOwner" class="px-5 pb-4 border-t border-base-800 pt-4">
+          </div>
+
+          <!-- Right column: ACL (visibility) + Webhook (owner only) -->
+          <div v-if="skillsStore.isOwner" class="bg-base-900 border border-base-800 rounded-xl h-fit">
+            <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-fg-strong text-sm">
+              <span class="text-neon-400">#</span> {{ t('skill.tabAccess') }}
+            </div>
+            <div class="px-5 py-4">
               <div class="font-mono text-xs text-fg-strong/90 mb-1 flex items-center gap-2">
                 <span class="text-neon-400">acl</span>
                 {{ t('skill.visibilityTitle') }}
@@ -376,21 +473,23 @@
                 {{ t('skill.webhookSave') }}
               </button>
             </div>
-            <!-- Danger Zone -->
-            <div v-if="skillsStore.isOwner" class="px-5 pb-5 pt-0">
-              <div class="border-t border-base-800 pt-4">
-                <button
-                  @click="showDeleteModal = true"
-                  class="w-full py-2 text-xs font-mono text-red-500 border border-red-500/30 rounded bg-red-500/5 hover:bg-red-500/10 transition-colors"
-                >
-                  {{ t('skill.deleteSkill') }}
-                </button>
-              </div>
-            </div>
+          </div>
           </div>
 
-          <!-- Right: Version History -->
-          <div class="lg:col-span-2 bg-base-900 border border-base-800 rounded-xl">
+          <!-- Danger Zone (owner only, full width) -->
+          <div v-if="skillsStore.isOwner" class="mt-6 border border-red-500/20 bg-red-500/5 rounded-xl px-5 py-4">
+            <button
+              @click="showDeleteModal = true"
+              class="w-full py-2 text-xs font-mono text-red-500 border border-red-500/30 rounded bg-red-500/5 hover:bg-red-500/10 transition-colors"
+            >
+              {{ t('skill.deleteSkill') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Versions tab -->
+        <div v-show="activeTab === 'versions'">
+          <div class="bg-base-900 border border-base-800 rounded-xl">
             <div
               class="px-5 py-4 border-b border-base-800 flex items-center justify-between rounded-t-xl cursor-pointer hover:bg-white/5 transition-colors"
               @click="isVersionHistoryCollapsed = !isVersionHistoryCollapsed"
@@ -612,6 +711,24 @@
         </div>
       </div>
     </div>
+    <!-- Screenshot Lightbox -->
+    <div v-if="lightboxShot" class="screenshot-lightbox" @click.self="closeLightbox">
+      <div class="screenshot-lightbox-overlay" @click="closeLightbox"></div>
+      <button type="button" class="screenshot-lightbox-close" :title="t('btn.cancel')" @click="closeLightbox">&times;</button>
+      <button
+        v-if="(skill?.screenshots || []).length > 1"
+        type="button"
+        class="screenshot-lightbox-nav screenshot-lightbox-prev"
+        @click.stop="stepLightbox(-1)"
+      >&lsaquo;</button>
+      <img :src="screenshotSrc(lightboxShot)" :alt="t('skill.screenshotPreview')" class="screenshot-lightbox-img" />
+      <button
+        v-if="(skill?.screenshots || []).length > 1"
+        type="button"
+        class="screenshot-lightbox-nav screenshot-lightbox-next"
+        @click.stop="stepLightbox(1)"
+      >&rsaquo;</button>
+    </div>
   </div>
 </template>
 
@@ -634,7 +751,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
-import { versionsApi, skillsApi, tagsApi, type SkillVersion, type Tag } from '@/services/api'
+import { versionsApi, skillsApi, tagsApi, screenshotsApi, type SkillVersion, type Tag, type SkillScreenshot } from '@/services/api'
 import { globalToast } from '@/composables/useToast'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -743,6 +860,90 @@ const isMarkdownFile = computed(() => {
 
 // UI state
 const isInitializing = ref(true)
+const activeTab = ref<'files' | 'versions' | 'team'>('files')
+const detailTabs = computed(() => [
+  { key: 'files' as const, label: t('skill.tabFiles') },
+  { key: 'versions' as const, label: t('skill.tabVersions') },
+  { key: 'team' as const, label: t('skill.tabTeam') },
+])
+
+// Contributors avatar stack (owner first, then collaborators)
+const CONTRIBUTOR_STACK_MAX = 8
+const contributorStack = computed(() => {
+  const s = skill.value
+  if (!s) return []
+  const people = [
+    { id: s.owner?.id ?? -1, username: s.owner?.username ?? '', name: s.owner?.name ?? null, isOwner: true },
+    ...(s.collaborators || []).map((c) => ({ id: c.id, username: c.username, name: c.name, isOwner: false })),
+  ]
+  return people.slice(0, CONTRIBUTOR_STACK_MAX)
+})
+const contributorOverflow = computed(() => {
+  const s = skill.value
+  if (!s) return 0
+  const total = 1 + (s.collaborators || []).length
+  return Math.max(0, total - CONTRIBUTOR_STACK_MAX)
+})
+
+// Screenshots
+const screenshotInputRef = ref<HTMLInputElement | null>(null)
+const isUploadingScreenshot = ref(false)
+const lightboxShotId = ref<string | null>(null)
+const lightboxShot = computed<SkillScreenshot | null>(() => {
+  const shots = skill.value?.screenshots || []
+  return shots.find((s) => s.id === lightboxShotId.value) || null
+})
+
+function screenshotSrc(shot: SkillScreenshot) {
+  return screenshotsApi.fileUrl(shot)
+}
+
+function openLightbox(shotId: string) {
+  lightboxShotId.value = shotId
+}
+
+function closeLightbox() {
+  lightboxShotId.value = null
+}
+
+function stepLightbox(step: number) {
+  const shots = skill.value?.screenshots || []
+  if (shots.length === 0 || !lightboxShotId.value) return
+  const idx = shots.findIndex((s) => s.id === lightboxShotId.value)
+  const next = (idx + step + shots.length) % shots.length
+  lightboxShotId.value = shots[next]!.id
+}
+
+async function onScreenshotFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || !skill.value) return
+
+  isUploadingScreenshot.value = true
+  try {
+    const res = await screenshotsApi.upload(skillId.value, file)
+    skill.value.screenshots = res.screenshots
+    globalToast.success(t('skill.screenshotUploadSuccess'))
+  } catch (err: any) {
+    globalToast.error(err.message || t('skill.screenshotUploadFailed'))
+  } finally {
+    isUploadingScreenshot.value = false
+  }
+}
+
+async function deleteScreenshot(shotId: string) {
+  if (!skill.value) return
+  if (!confirm(t('skill.screenshotDeleteConfirm'))) return
+  try {
+    const res = await screenshotsApi.remove(skillId.value, shotId)
+    skill.value.screenshots = res.screenshots
+    if (lightboxShotId.value === shotId) closeLightbox()
+  } catch (err: any) {
+    globalToast.error(err.message || t('skill.screenshotDeleteFailed'))
+  }
+}
+
 const isVersionHistoryCollapsed = ref(false)
 const showAddCollaboratorModal = ref(false)
 const showDeleteModal = ref(false)
@@ -1263,7 +1464,12 @@ function toggleFullscreen() {
 }
 
 function handleEscKey(e: KeyboardEvent) {
-  if (e.key === 'Escape' && isFullscreen.value) {
+  if (e.key !== 'Escape') return
+  if (lightboxShotId.value) {
+    closeLightbox()
+    return
+  }
+  if (isFullscreen.value) {
     toggleFullscreen()
   }
 }
@@ -1582,6 +1788,260 @@ html[data-theme="light"] .card {
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.22);
 }
+
+/* Contributors avatar stack */
+.contributor-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 2px solid var(--color-base-950);
+  margin-left: -0.5rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.contributor-avatar:first-child {
+  margin-left: 0;
+}
+
+.contributor-avatar-owner {
+  background: rgba(var(--color-neon-rgb), 0.2);
+  color: var(--color-neon-400);
+}
+
+.contributor-avatar-collab {
+  background: rgba(96, 165, 250, 0.2);
+  color: #60a5fa;
+}
+
+.contributor-avatar-more {
+  background: var(--color-base-800);
+  color: var(--color-base-400);
+}
+
+/* Detail tabs */
+.detail-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-base-800);
+  padding-bottom: 0;
+}
+
+.detail-tab-btn {
+  padding: 0.5rem 1rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8125rem;
+  color: var(--color-base-400);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.detail-tab-btn:hover {
+  color: var(--color-fg-strong);
+}
+
+.detail-tab-btn--active {
+  color: var(--color-neon-400);
+  border-bottom-color: var(--color-neon-500);
+}
+
+/* Skill hero (open layout, no card) */
+.skill-hero {
+  position: relative;
+  padding-top: 0.5rem;
+}
+
+/* 顶部氛围光：暗色下 neon 微光，亮色下更淡 */
+.skill-hero::before {
+  content: '';
+  position: absolute;
+  top: -3rem;
+  left: -4rem;
+  width: 24rem;
+  height: 12rem;
+  background: radial-gradient(ellipse at center, rgba(var(--color-neon-rgb), 0.08), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+html[data-theme="light"] .skill-hero::before {
+  background: radial-gradient(ellipse at center, rgba(var(--color-neon-rgb), 0.05), transparent 70%);
+}
+
+.skill-title {
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Description: refined reading typography */
+.skill-desc-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 44rem;
+}
+
+.skill-desc {
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--color-base-300);
+  letter-spacing: 0.01em;
+  border-left: 2px solid rgba(var(--color-neon-rgb), 0.35);
+  padding-left: 1.25rem;
+}
+
+.skill-desc-edit {
+  margin-top: 0.35rem;
+}
+
+/* Screenshots showcase (App Store style) */
+.screenshot-showcase {
+  position: relative;
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  background:
+    radial-gradient(ellipse 60% 80% at 15% 0%, rgba(var(--color-neon-rgb), 0.10), transparent 70%),
+    linear-gradient(160deg, var(--color-base-900), var(--color-base-950) 85%);
+  border: 1px solid var(--color-base-800);
+  overflow: hidden;
+}
+
+html[data-theme="light"] .screenshot-showcase {
+  background:
+    radial-gradient(ellipse 60% 80% at 15% 0%, rgba(var(--color-neon-rgb), 0.07), transparent 70%),
+    linear-gradient(160deg, var(--color-base-100, #f5f5f4), var(--color-base-50, #fafaf9) 85%);
+}
+
+.screenshot-strip {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 0.75rem;
+  scroll-snap-type: x proximity;
+}
+
+.screenshot-thumb {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  border: 1px solid var(--color-base-800);
+  background: var(--color-base-950);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.45);
+  scroll-snap-align: start;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+html[data-theme="light"] .screenshot-thumb {
+  box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.18);
+}
+
+.screenshot-thumb:hover {
+  transform: translateY(-4px);
+  border-color: rgba(var(--color-neon-rgb), 0.45);
+  box-shadow:
+    0 18px 44px -10px rgba(0, 0, 0, 0.55),
+    0 0 24px -4px rgba(var(--color-neon-rgb), 0.25);
+}
+
+.screenshot-img {
+  height: 15rem;
+  width: auto;
+  display: block;
+  cursor: zoom-in;
+}
+
+.screenshot-delete-btn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.65);
+  color: #f87171;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.screenshot-thumb:hover .screenshot-delete-btn {
+  opacity: 1;
+}
+
+/* Screenshot lightbox */
+.screenshot-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screenshot-lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+}
+
+.screenshot-lightbox-img {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+.screenshot-lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-base-400);
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.screenshot-lightbox-close:hover {
+  color: var(--color-fg-strong);
+}
+
+.screenshot-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--color-base-800);
+  color: var(--color-fg-strong);
+  font-size: 1.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.screenshot-lightbox-prev { left: 1rem; }
+.screenshot-lightbox-next { right: 1rem; }
 
 .tag-option-row {
   display: flex;

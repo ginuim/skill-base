@@ -159,6 +159,7 @@ async function start() {
     await fastify.register(require('./routes/auth'), { prefix: `${API_PREFIX}/auth` });
     await fastify.register(require('./routes/skills'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/publish'), { prefix: `${API_PREFIX}/skills` });
+    await fastify.register(require('./routes/screenshots'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/import-github'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/collaborators'), { prefix: `${API_PREFIX}/skills` });
     await fastify.register(require('./routes/tags'), { prefix: `${API_PREFIX}/tags` });

@@ -189,6 +189,14 @@ export interface SkillCollaboratorUser {
   email?: string | null
 }
 
+/** 技能截图（App Store 风格，选填） */
+export interface SkillScreenshot {
+  id: string
+  /** 相对 API 前缀的路径，用 screenshotsApi.fileUrl 拼成完整 URL */
+  url: string
+  created_at: string | null
+}
+
 export interface Skill {
   id: string
   name: string
@@ -206,6 +214,7 @@ export interface Skill {
   is_favorited?: boolean
   tags: Tag[]
   collections: Collection[]
+  screenshots: SkillScreenshot[]
 }
 
 export interface SkillVersion {
@@ -279,6 +288,25 @@ export const skillsApi = {
 }
 
 // ===== Versions API =====
+
+export const screenshotsApi = {
+  /** 后端返回相对 API 前缀的路径，这里拼成完整 URL */
+  fileUrl: (shot: SkillScreenshot) => `${API_BASE}/${shot.url}`,
+  upload: (skillId: string, file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return apiPost<{ ok: boolean; skill_id: string; screenshot: SkillScreenshot; screenshots: SkillScreenshot[] }>(
+      `/skills/${skillId}/screenshots`,
+      form
+    )
+  },
+  remove: (skillId: string, shotId: string) =>
+    apiDelete<{ ok: boolean; skill_id: string; screenshots: SkillScreenshot[] }>(`/skills/${skillId}/screenshots/${shotId}`),
+  reorder: (skillId: string, screenshotIds: string[]) =>
+    apiPut<{ ok: boolean; skill_id: string; screenshots: SkillScreenshot[] }>(`/skills/${skillId}/screenshots`, {
+      screenshot_ids: screenshotIds,
+    }),
+}
 
 export const versionsApi = {
   list: (skillId: string) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),

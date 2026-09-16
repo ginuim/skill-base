@@ -9,6 +9,7 @@ const CollectionModel = require('../models/collection');
 const { getZipPath, resolveZipPath } = require('../utils/zip');
 const { canManageSkill, canViewSkill } = require('../utils/permission');
 const { parseWebhookUrlField, notifySkillWebhook, canViewSkillWebhook } = require('../utils/skill-webhook');
+const { formatScreenshots } = require('../utils/screenshots');
 
 function listCollaboratorUsersForSkillDetail(skillId) {
   const rows = db.prepare(`
@@ -37,6 +38,7 @@ function formatSkill(skill, currentUser) {
     download_count: skill.download_count || 0,
     tags: TagModel.listSkillTags(skill.id),
     collections: CollectionModel.listSkillCollections(skill.id),
+    screenshots: formatScreenshots(skill),
     owner: {
       id: skill.owner_id,
       username: skill.owner_username,
