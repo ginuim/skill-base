@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>skill base — directory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="preview.css?v=3">
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="index.html">
+      <h1>skill base</h1>
+      <span class="version">preview</span>
+    </a>
+    <div class="header-right">
+      <button class="btn" type="button" id="themeBtn">Light</button>
+      <a class="btn" href="http://localhost:8000/">live instance</a>
+    </div>
+  </header>
+
+  <nav class="tab-bar">
+    <a class="active" href="index.html">Home</a>
+    <a href="#">Publish</a>
+    <a href="skill.html">Skill</a>
+  </nav>
+
+  <main class="view">
+    <p class="kicker">Skill directory — editorial preview</p>
+    <h2 class="page-title">Skills</h2>
+    <p class="page-lead">
+      结构对齐当前实例 <code class="code-block">localhost:8000</code> 的列表页。
+      第一条是实例里的 <strong>my-skill</strong>；其余条目用来看卡片密度和标签，不会写进 Vue。
+    </p>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Skills</div>
+        <div class="value">6</div>
+        <div class="sub">1 from instance</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Downloads</div>
+        <div class="value">128</div>
+        <div class="sub">all versions</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Favorites</div>
+        <div class="value">19</div>
+        <div class="sub">logged-in users</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Tags</div>
+        <div class="value">4</div>
+        <div class="sub">in this preview</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input class="search-input" id="search" type="search" placeholder="Search skills">
+      <button class="type-chip" type="button" data-filter="fav">Favorites only</button>
+      <button class="type-chip active" type="button" data-view="card">Cards</button>
+      <button class="type-chip" type="button" data-view="list">List</button>
+    </div>
+
+    <div id="cardView" class="skill-grid"></div>
+    <div id="listView" class="hidden">
+      <table class="skill-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Owner</th>
+            <th>Status</th>
+            <th>Downloads</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="listBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <a class="fab" href="#" title="Publish">+</a>
+
+  <footer class="viewer-footer">
+    <span>skill base editorial preview</span>
+    <span>·</span>
+    <a href="index.html">directory</a>
+    <a href="skill.html">detail</a>
+    <a href="http://localhost:8000/">localhost:8000</a>
+  </footer>
+
+  <script>
+    const skills = [
+      {
+        id: "my-skill",
+        name: "my-skill",
+        desc: "One sentence on when to use this skill.",
+        owner: "admin",
+        downloads: 0,
+        fav: 0,
+        updated: "today",
+        visibility: "public",
+        tags: [],
+        real: true,
+        href: "skill.html"
+      },
+      {
+        id: "frontend-review",
+        name: "frontend-review",
+        desc: "Review Vue and CSS changes for layout regressions before merge.",
+        owner: "admin",
+        downloads: 42,
+        fav: 8,
+        updated: "2d ago",
+        visibility: "public",
+        tags: ["frontend"],
+        href: "skill.html"
+      },
+      {
+        id: "git-commit",
+        name: "git-commit",
+        desc: "Write short commit messages that explain why, not what.",
+        owner: "tao",
+        downloads: 61,
+        fav: 11,
+        updated: "5d ago",
+        visibility: "public",
+        tags: ["git"],
+        href: "skill.html"
+      },
+      {
+        id: "skill-base-cli",
+        name: "skill-base-cli",
+        desc: "Install, publish, and update skills from the command line.",
+        owner: "admin",
+        downloads: 17,
+        fav: 0,
+        updated: "1w ago",
+        visibility: "public",
+        tags: ["cli"],
+        href: "skill.html"
+      },
+      {
+        id: "collection-pack",
+        name: "collection-pack",
+        desc: "Bundle a flat recommended set for a team. Not a folder tree.",
+        owner: "admin",
+        downloads: 8,
+        fav: 0,
+        updated: "1w ago",
+        visibility: "public",
+        tags: ["ops"],
+        href: "skill.html"
+      },
+      {
+        id: "private-notes",
+        name: "private-notes",
+        desc: "Internal runbook. Visible only to owner and collaborators.",
+        owner: "admin",
+        downloads: 0,
+        fav: 0,
+        updated: "3d ago",
+        visibility: "private",
+        tags: [],
+        href: "skill.html"
+      }
+    ];
+
+    const cardView = document.getElementById("cardView");
+    const listBody = document.getElementById("listBody");
+    const search = document.getElementById("search");
+    let onlyFav = false;
+    let view = "card";
+
+    function badge(skill) {
+      if (skill.visibility === "private") return '<span class="badge badge-yellow">private</span>';
+      if (skill.real) return '<span class="badge badge-green">instance</span>';
+      return '<span class="badge badge-muted">sample</span>';
+    }
+
+    function filtered() {
+      const q = search.value.trim().toLowerCase();
+      return skills.filter((s) => {
+        if (onlyFav && s.fav === 0) return false;
+        if (!q) return true;
+        return (s.name + s.desc + s.owner).toLowerCase().includes(q);
+      });
+    }
+
+    function render() {
+      const rows = filtered();
+      cardView.innerHTML = rows.map((s) => `
+        <a class="skill-card" href="${s.href}">
+          <div class="skill-card-kicker">${s.tags[0] || "skill"} ${badge(s)}</div>
+          <h3>${s.name}</h3>
+          <p>${s.desc}</p>
+          <div class="skill-card-meta">
+            <span>@${s.owner} · ↓ ${s.downloads} · ♥ ${s.fav}</span>
+            <span>${s.updated}</span>
+          </div>
+        </a>
+      `).join("");
+      listBody.innerHTML = rows.map((s) => `
+        <tr>
+          <td><a href="${s.href}">${s.name}</a><div class="muted">${s.desc}</div></td>
+          <td class="muted">${s.owner}</td>
+          <td>${badge(s)}</td>
+          <td class="muted">${s.downloads}</td>
+          <td class="muted">${s.updated}</td>
+        </tr>
+      `).join("");
+    }
+
+    search.addEventListener("input", render);
+    document.querySelectorAll("[data-filter=fav]").forEach((el) => {
+      el.addEventListener("click", () => {
+        onlyFav = !onlyFav;
+        el.classList.toggle("active", onlyFav);
+        render();
+      });
+    });
+    document.querySelectorAll("[data-view]").forEach((el) => {
+      el.addEventListener("click", () => {
+        view = el.dataset.view;
+        document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("active", b === el));
+        cardView.classList.toggle("hidden", view !== "card");
+        document.getElementById("listView").classList.toggle("hidden", view !== "list");
+      });
+    });
+
+    const themeBtn = document.getElementById("themeBtn");
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      themeBtn.textContent = theme === "dark" ? "Light" : "Dark";
+    }
+    themeBtn.addEventListener("click", () => {
+      applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+
+    render();
+  </script>
+</body>
+</html>
