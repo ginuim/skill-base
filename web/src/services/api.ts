@@ -201,7 +201,27 @@ export interface SkillScreenshot {
   created_at: string | null
 }
 
+export interface SkillContributor {
+  id: number
+  username: string
+  name: string | null
+  avatar: string | null
+  version_count: number
+  last_contributed_at: string
+}
+
+export interface UserProfile {
+  user: Pick<User, 'id' | 'username' | 'name' | 'avatar' | 'created_at'>
+  stats: { skill_count: number; version_count: number; download_count: number }
+  skills: Skill[]
+}
+
+export const profilesApi = {
+  get: (id: string) => apiGet<UserProfile>(`/users/${encodeURIComponent(id)}/profile`),
+}
+
 export interface Skill {
+  contributors?: SkillContributor[]
   id: string
   name: string
   description: string

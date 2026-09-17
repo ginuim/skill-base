@@ -411,3 +411,7 @@ skb update my-awesome-skill
 ## 系统要求
 
 - Node.js >= 18
+
+## Web 贡献主页
+
+通过 `skb publish` 或 GitHub 导入产生的版本会计入发布者贡献。在 Web 技能列表点击贡献者头像可进入 `/users/:id`，查看其贡献的技能、发布版本数及贡献技能累计下载量；列表和统计遵循当前访问者的技能权限。CLI 命令和参数无需变更。

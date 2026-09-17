@@ -102,6 +102,13 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - Web 前端使用 Vue 3 Composition API 与 `<script setup lang="ts">`；运行 `npm run build --prefix web` 生成 `static/`，不要手改构建产物。
 - Skill 详情页桌面端左列为技能介绍及紧随其后的文件、效果预览、版本历史、成员与权限分区，右列独立放置安装/版本操作，避免撑高介绍区域；截图属于独立的效果预览页签（有截图或有管理权限时显示）。安装面板支持 AI Agent Prompt / 命令行切换，复制内容须包含当前站点与所选版本；长介绍默认折叠。贡献者仅从版本 uploader 去重得出，不等同于所有者或协作者；头像可用同 ID 成员信息补全。截图不使用装饰边框、卡片或阴影。
 
+## Contributor Profiles
+
+- 首页列表贡献者最多显示 3 个头像，超出用 `+N` 展开；头像链接 `/users/:id`。详情页复用同一头像组件。
+- `GET /api/v1/users/:user_id/profile` 返回公开身份字段与访问者可见的贡献技能及统计；不能直接暴露管理接口的用户对象。
+- 贡献者由 `skill_versions.uploader_id` 去重，成员身份本身不计为贡献。列表批量读取贡献者，避免每个 Skill 请求版本历史。
+- 主页统计中的下载量为可见贡献技能的累计下载，不能宣称为某用户个人带来的下载。
+
 ## Documentation Checklist
 
 完成任何功能开发或修改后，必须检查并更新以下文档：

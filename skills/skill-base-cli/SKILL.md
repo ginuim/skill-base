@@ -32,6 +32,8 @@ Assistants should complete operations by **running terminal commands**. Package 
 
 Web detail pages offer AI Agent prompts and CLI commands bound to the selected version and site. When using these, skip CLI installation if already available and choose the current agent's install directory via `skb install --help`.
 
+Web contributor profiles at `/users/:id` list skills the user published versions for. Publishing via `skb publish` or GitHub import contributes to the same history; no separate CLI profile command is required.
+
 ## Environment
 
 - Node.js >= 18

@@ -21,6 +21,10 @@ This skill guides you through setting up and operating the Skill Base platform s
 - When users want to use the `skb` command to search, install, or publish specific skills (refer to `skill-base-cli` instead).
 - When users ask about Docker, ports, or database configuration for non-Skill Base projects (avoid misuse).
 
+## Contributor profiles
+
+The Web UI includes `/users/:id` and `GET /api/v1/users/:user_id/profile`. Deploy the rebuilt `static/` together with the updated server. No new environment variables or database migration are required: contributions use existing version uploaders and respect skill visibility.
+
 ## Quick Start (npm package)
 
 ```bash

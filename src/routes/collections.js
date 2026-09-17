@@ -5,6 +5,7 @@ const {
   isSlugConflictError
 } = require('../models/collection');
 const TagModel = require('../models/tag');
+const ContributionModel = require('../models/contribution');
 const { buildCollectionZipBuffer, incrementDownloadCounts } = require('../utils/collection-bundle');
 
 function formatSkill(skill) {
@@ -129,7 +130,8 @@ async function collectionsRoutes(fastify) {
     const rawSkills = includePrivate
       ? CollectionModel.listAllCollectionSkills(collection.id)
       : CollectionModel.listCollectionSkills(collection.id, request.user);
-    const skills = rawSkills.map(formatSkill);
+    const people = ContributionModel.forSkills(rawSkills.map(skill => skill.id));
+    const skills = rawSkills.map(skill => ({ ...formatSkill(skill), contributors: people.get(skill.id) || [] }));
     const formattedCollection = formatCollection(collection);
     formattedCollection.skill_count = skills.length;
     return { collection: formattedCollection, skills, total: skills.length };

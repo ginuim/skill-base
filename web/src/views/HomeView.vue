@@ -1,39 +1,21 @@
 <template>
   <!-- 页面内容 -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-    <!-- 页面标题区域 -->
-    <div class="page-header mb-8 text-center">
-      <div class="inline-flex items-center justify-center gap-2 px-3 py-1 bg-base-900 border border-base-800 rounded-full mb-6 text-xs font-mono text-neon-400">
-        <span class="w-2 h-2 rounded-full bg-neon-400 animate-pulse"></span>
-        Skill Directory
+    <header class="library-header">
+      <div>
+        <h1>{{ t('index.library') }}</h1>
+        <p>{{ t('index.libraryHint') }}</p>
       </div>
-
-      <div class="search-bar">
-        <div class="search-icon-wrapper">
-          <span>$</span>
-          <span>grep</span>
-        </div>
-        <input
-          type="search"
-          id="searchInput"
-          :placeholder="`&quot;${searchPlaceholder}&quot;`"
-          autocomplete="off"
-          v-model="searchQuery"
-        >
-        <button type="button" class="clear-btn" id="clearSearch" @click="clearSearch">
-          <X :size="16" :stroke-width="2" aria-hidden="true" />
-        </button>
+      <div class="library-search">
+        <Search :size="18" aria-hidden="true" />
+        <input type="search" id="searchInput" :placeholder="searchPlaceholder" :aria-label="t('index.searchLabel')" autocomplete="off" v-model="searchQuery" />
+        <button v-if="searchQuery" type="button" :aria-label="t('index.clearSearch')" @click="clearSearch"><X :size="16" /></button>
       </div>
-    </div>
+    </header>
 
     <!-- 面包屑与过滤器 -->
     <div v-if="skillsStore.skills.length > 0" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-      <div class="text-sm text-base-400 font-mono flex items-center gap-2">
-        <span class="text-neon-400">~</span>
-        <span class="opacity-50">/</span>
-        <span class="text-fg-strong">skills</span>
-        <span class="opacity-50 ml-2">ls -la</span>
-      </div>
+      <div class="library-result-count">{{ t('index.resultCount', { count: filteredSkills.length }) }}</div>
       <div class="home-filter-actions">
         <button
           type="button"
@@ -140,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { X, Heart, Plus, Tags, ChevronDown, Check } from 'lucide-vue-next'
+import { X, Search, Heart, Plus, Tags, ChevronDown, Check } from 'lucide-vue-next'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
@@ -273,6 +255,20 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.library-header { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 12px 0 36px; }
+.library-header h1 { font-size: 28px; font-weight: 650; color: var(--color-fg-strong); letter-spacing: -0.03em; }
+.library-header p { margin-top: 8px; font-size: 13px; color: var(--color-base-400); }
+.library-search { display: flex; align-items: center; gap: 12px; width: min(440px, 45%); padding: 12px 14px; border: 1px solid var(--color-base-800); border-radius: 8px; color: var(--color-base-400); background: var(--color-base-900); }
+.library-search:focus-within { border-color: var(--color-neon-400); }
+.library-search input { width: 100%; min-width: 0; background: transparent; border: 0; outline: none; font-size: 13px; color: var(--color-fg-strong); }
+.library-search button { display: flex; cursor: pointer; }
+.library-result-count { font-size: 13px; font-weight: 500; color: var(--color-base-400); }
+@media (max-width: 639px) {
+  .library-header { align-items: stretch; flex-direction: column; gap: 20px; margin-bottom: 24px; }
+  .library-header h1 { font-size: 24px; }
+  .library-search { width: 100%; }
+}
+
 .home-filter-actions {
   display: flex;
   align-items: center;

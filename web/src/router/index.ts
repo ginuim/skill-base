@@ -50,6 +50,11 @@ const router = createRouter({
       component: SkillDetailView,
     },
     {
+      path: '/users/:id',
+      name: 'user-profile',
+      component: () => import('@/views/UserProfileView.vue'),
+    },
+    {
       path: '/publish',
       name: 'publish',
       component: PublishView,

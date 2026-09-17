@@ -834,3 +834,13 @@
 | `zip_path` | string | ZIP 文件路径 |
 | `uploader` | object | 上传者信息 `{id, username}` |
 | `created_at` | string | 创建时间 |
+
+## 贡献者与用户主页
+
+**GET** `/api/v1/users/:user_id/profile`（可匿名访问）
+
+返回 `user`（仅 `id`、`username`、`name`、`avatar`、`created_at`）、`stats` 和 `skills`。`stats` 含 `skill_count`、`version_count`、`download_count`，只统计访问者有权限查看的技能。`download_count` 是贡献技能的总下载量，并非个人下载归因。无效或不存在的用户返回 404。用户管理端点权限不变。
+
+贡献仅从 `skill_versions.uploader_id` 统计：同一用户多次发布一个技能，只计一个贡献技能，但每个版本分别计数。仅为 owner/collaborator 而未发布版本的用户不计入。技能按该用户最近贡献时间排序；没有可见贡献时返回空列表和零统计。
+
+技能列表、详情、集合详情及用户主页的技能对象附带 `contributors` 数组，按最近贡献时间倒序、用户 ID 升序稳定排列。每项包含 `id`、`username`、`name`、`avatar`、`version_count`、`last_contributed_at`。用户主页每个技能另附 `contribution`（该用户对该技能的 `skill_id`、`version_count`、`last_contributed_at`）。不增加数据库表或部署配置。

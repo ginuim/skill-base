@@ -113,34 +113,9 @@
                 {{ t('skill.editTags') }}
               </button>
             </div>
-            <div v-if="contributorStack.length" class="skill-contributors">
+            <div v-if="skill.contributors?.length" class="skill-contributors">
               <span class="skill-contributors-label">{{ t('skill.contributors') }}</span>
-              <div class="contributor-stack" role="group" :aria-label="t('skill.contributors')">
-                <button
-                  v-for="person in contributorStack"
-                  :key="person.id"
-                  type="button"
-                  class="contributor-avatar contributor-avatar-collab"
-                  :title="contributorLabel(person)"
-                  :aria-label="contributorLabel(person)"
-                  @click="activeTab = 'versions'"
-                >
-                  <UserAvatar
-                    :avatar="person.avatar"
-                    :name="person.name"
-                    :username="person.username"
-                    size-class="w-full h-full text-[11px]"
-                  />
-                </button>
-                <button
-                  v-if="contributorOverflow > 0"
-                  type="button"
-                  class="contributor-avatar contributor-avatar-more"
-                  :aria-label="t('skill.tabVersions')"
-                  :title="t('skill.tabVersions')"
-                  @click="activeTab = 'versions'"
-                >+{{ contributorOverflow }}</button>
-              </div>
+              <ContributorAvatars :people="skill.contributors" :max="8" />
             </div>
           </div>
 
@@ -755,6 +730,7 @@ import hljs from 'highlight.js'
 import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
 import CollaboratorUserPicker from '@/components/CollaboratorUserPicker.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import ContributorAvatars from '@/components/ContributorAvatars.vue'
 import { formatDate, formatDateFull } from '@/utils/date'
 import { appBasePath, withBasePath } from '@/utils/basePath'
 
@@ -865,31 +841,6 @@ const detailTabs = computed(() => {
   }
   return tabs
 })
-
-// A contributor must have published a version; access membership alone is not a contribution.
-const CONTRIBUTOR_STACK_MAX = 8
-const contributors = computed(() => {
-  const people = new Map<number, { id: number; username: string; name: string | null; avatar: string | null }>()
-  const members = [skill.value?.owner, ...(skill.value?.collaborators || [])]
-  for (const version of versions.value) {
-    const uploader = version.uploader
-    if (!uploader?.id || people.has(uploader.id)) continue
-    const member = members.find((person) => person?.id === uploader.id)
-    people.set(uploader.id, {
-      id: uploader.id,
-      username: uploader.username || '',
-      name: uploader.name || null,
-      avatar: uploader.avatar || member?.avatar || null,
-    })
-  }
-  return [...people.values()]
-})
-const contributorStack = computed(() => contributors.value.slice(0, CONTRIBUTOR_STACK_MAX))
-const contributorOverflow = computed(() => Math.max(0, contributors.value.length - CONTRIBUTOR_STACK_MAX))
-
-function contributorLabel(person: { name: string | null; username: string }) {
-  return `${person.name || person.username} · ${t('skill.tabVersions')}`
-}
 
 // Screenshots
 const screenshotInputRef = ref<HTMLInputElement | null>(null)
@@ -1791,14 +1742,7 @@ html[data-theme="light"] .card {
 /* Overlapping avatars share one baseline; the owner always comes first. */
 .skill-contributors { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
 .skill-contributors-label { color: var(--color-base-400); font-size: 12px; flex-shrink: 0; }
-.contributor-stack { display: flex; align-items: center; isolation: isolate; padding: 3px; }
-.contributor-avatar { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; margin-left: -10px; border: 3px solid var(--color-base-950); border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; overflow: hidden; padding: 0; }
-.contributor-avatar:first-child { margin-left: 0; }
-.contributor-avatar:hover, .contributor-avatar:focus-visible { z-index: 1; outline: 2px solid var(--color-base-400); outline-offset: 1px; }
-.contributor-avatar-owner { background: color-mix(in srgb, var(--color-neon-400) 18%, var(--color-base-950)); color: var(--color-neon-400); }
-.contributor-avatar-collab { background: var(--color-base-800); color: var(--color-fg-strong); }
-.contributor-avatar-more { background: var(--color-base-900); color: var(--color-base-400); }
-@media (max-width: 380px) { .skill-contributors { gap: 8px; } .contributor-avatar { width: 32px; height: 32px; margin-left: -11px; } }
+
 
 /* Detail tabs */
 .detail-tabs {

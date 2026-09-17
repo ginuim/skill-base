@@ -2,7 +2,7 @@
   <nav class="navbar sticky top-0 z-50 bg-base-950/80 backdrop-blur-md border-b border-base-800">
     <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="sb-nav-main">
-        <router-link to="/" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
+        <router-link to="/" aria-label="Skill Base" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
           <Package class="sb-nav-brand-icon" :size="22" :stroke-width="2" aria-hidden="true" />
           <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">Skill</span>
           <span class="text-fg-strong font-bold">Base</span>
@@ -64,6 +64,10 @@
               <ChevronDown :size="16" :stroke-width="2" aria-hidden="true" />
             </button>
             <div class="navbar-user-menu">
+              <router-link :to="`/users/${authStore.user?.id}`" class="navbar-user-menu-item" @click="showUserMenu = false">
+                <Users :size="16" :stroke-width="2" aria-hidden="true" />
+                {{ t('profile.myPage') }}
+              </router-link>
               <router-link to="/settings" class="navbar-user-menu-item" @click="showUserMenu = false">
                 <Settings :size="16" :stroke-width="2" aria-hidden="true" />
                 {{ t('nav.settings') }}
@@ -734,5 +738,13 @@ onUnmounted(() => {
   .navbar-user {
     gap: 0.5rem;
   }
+}
+@media (max-width: 420px) {
+  .sb-nav-brand { gap: 6px; font-size: 16px; }
+  .sb-nav-brand > span:last-child { display: none; }
+  .navbar .container { gap: 8px; }
+}
+@media (max-width: 360px) {
+  .sb-nav-brand > span { display: none; }
 }
 </style>

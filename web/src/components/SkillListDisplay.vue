@@ -31,41 +31,31 @@
     </template>
 
     <template v-else-if="viewMode === 'list'">
-      <router-link
-        v-for="(skill, index) in skills"
-        :key="skill.id"
-        :to="`/skills/${skill.id}`"
-        class="skill-list-row"
-      >
+      <div class="skill-list-heading" aria-hidden="true">
+        <span>#</span><span>{{ t('index.skillColumn') }}</span>
+        <div class="skill-list-aside"><span>{{ t('skill.contributors') }}</span><span>{{ t('index.downloadColumn') }}</span><span>{{ t('index.favoriteColumn') }}</span><span>{{ t('index.updatedColumn') }}</span></div>
+      </div>
+      <article v-for="(skill, index) in skills" :key="skill.id" class="skill-list-row">
         <span class="skill-list-index">{{ index + 1 }}</span>
-        <div class="skill-list-main">
+        <router-link :to="`/skills/${skill.id}`" class="skill-list-main">
           <div class="skill-list-title-row">
-            <h3 class="skill-list-name">{{ skill.name }}</h3>
+            <h3 class="skill-list-name" :title="skill.name">{{ skill.name }}</h3>
             <span v-if="skill.visibility === 'private'" class="skill-visibility-badge">PRIVATE</span>
-            <span v-for="tag in skill.tags || []" :key="tag.id" class="skill-list-tag">{{ tag.name }}</span>
+            <span v-for="tag in (skill.tags || []).slice(0, 2)" :key="tag.id" class="skill-list-tag">{{ tag.name }}</span>
           </div>
           <p class="skill-list-desc">{{ truncateDescription(skill.description, listDescMaxLen) }}</p>
-        </div>
+        </router-link>
         <div class="skill-list-aside">
-          <span class="skill-list-owner">
-            <User :size="13" :stroke-width="2" aria-hidden="true" />
-            {{ skill.owner?.name || skill.owner?.username || t('state.unknown') }}
-          </span>
+          <ContributorAvatars :people="skill.contributors || []" />
           <span class="skill-list-stat" :title="t('index.downloadCount')">
-            <Download :size="13" :stroke-width="2" aria-hidden="true" />
-            {{ skill.download_count ?? 0 }}
+            <Download :size="13" :stroke-width="2" aria-hidden="true" />{{ skill.download_count ?? 0 }}
           </span>
-          <span
-            class="skill-list-stat"
-            :class="{ 'skill-list-stat--favorited': skill.is_favorited }"
-            :title="skill.is_favorited ? t('index.favorited') : t('index.favorite')"
-          >
-            <Heart :size="13" :stroke-width="2" aria-hidden="true" />
-            {{ skill.favorite_count ?? 0 }}
+          <span class="skill-list-stat" :class="{ 'skill-list-stat--favorited': skill.is_favorited }" :title="t('index.favorite')">
+            <Heart :size="13" :stroke-width="2" aria-hidden="true" />{{ skill.favorite_count ?? 0 }}
           </span>
           <span class="skill-list-date">{{ formatDate(skill.updated_at, currentLang) }}</span>
         </div>
-      </router-link>
+      </article>
     </template>
 
     <template v-else>
@@ -110,6 +100,7 @@
 </template>
 
 <script setup lang="ts">
+import ContributorAvatars from '@/components/ContributorAvatars.vue'
 import { User, Download, Heart } from 'lucide-vue-next'
 import { useI18n } from '@/composables/useI18n'
 import { formatDate } from '@/utils/date'
@@ -128,7 +119,7 @@ withDefaults(defineProps<{
   isLoading: false,
   emptyText: '',
   skeletonCount: 6,
-  listDescMaxLen: 180,
+  listDescMaxLen: 100,
   cardDescMaxLen: 100,
 })
 
@@ -136,7 +127,9 @@ const { t, currentLang } = useI18n()
 
 function truncateDescription(desc: string | null | undefined, maxLen: number): string {
   if (!desc) return t('state.noDesc')
-  return desc.length > maxLen ? desc.substring(0, maxLen) + '...' : desc
+  const text = desc.replace(/\s+/g, ' ').trim()
+  const chars = Array.from(text)
+  return chars.length > maxLen ? chars.slice(0, maxLen).join('') + '…' : text
 }
 </script>
 
@@ -230,24 +223,19 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
   text-align: left;
 }
 
-.skill-list-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
+.skill-list-row, .skill-list-heading {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 346px;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 12px;
   border-bottom: 1px solid var(--color-base-800);
-  text-decoration: none;
-  transition: color 0.15s ease;
 }
-
-.skill-list-row .skill-list-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.skill-list-row .skill-list-aside {
-  margin-left: auto;
-}
+.skill-list-heading { padding-block: 12px; font-size: 11px; color: var(--color-base-400); }
+.skill-list-row { transition: background 0.15s ease; }
+.skill-list-row:hover { background: color-mix(in srgb, var(--color-fg-strong) 2%, transparent); }
+.skill-list-main { min-width: 0; text-decoration: none; }
+.skill-list-main:focus-visible { outline: 2px solid var(--color-neon-400); outline-offset: 4px; border-radius: 4px; }
 
 .skill-list-row:last-child {
   border-bottom: none;
@@ -260,24 +248,24 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 .skill-list-title-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
 }
 
 .skill-list-name {
   margin: 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--color-fg-strong);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
   transition: color 0.15s ease;
 }
 
 .skill-list-desc {
+  max-width: 64ch;
   margin: 0;
   font-size: 0.8125rem;
   color: var(--color-base-400);
@@ -303,16 +291,15 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 }
 
 .skill-list-aside {
-  flex-shrink: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 124px 60px 52px 80px;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  font-size: 0.6875rem;
-  color: #64748b;
-  font-family: 'JetBrains Mono', monospace;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--color-base-400);
+  font-variant-numeric: tabular-nums;
 }
+.skill-list-aside > :not(:first-child) { justify-self: end; }
 
 .skill-list-owner,
 .skill-list-stat {
@@ -373,16 +360,18 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
   animation: skeleton-loading 1.5s infinite;
 }
 
+@media (max-width: 900px) {
+  .skill-list-row, .skill-list-heading { grid-template-columns: 24px minmax(0, 1fr) 260px; gap: 12px; }
+  .skill-list-aside { grid-template-columns: 116px 58px 62px; gap: 12px; }
+  .skill-list-aside > :last-child { display: none; }
+  .skill-list-tag { display: none; }
+}
 @media (max-width: 639px) {
-  .skill-list-row {
-    flex-wrap: wrap;
-    gap: 0.5rem 0.75rem;
-  }
-
-  .skill-list-aside {
-    width: 100%;
-    margin-left: calc(2rem + 0.75rem);
-    justify-content: flex-start;
-  }
+  .skill-list-heading { display: none; }
+  .skill-list-row { grid-template-columns: 20px minmax(0, 1fr); gap: 8px 10px; padding: 14px 0; }
+  .skill-list-index { align-self: start; padding-top: 2px; width: auto; }
+  .skill-list-aside { grid-column: 2; grid-template-columns: minmax(100px, 1fr) 55px 50px; width: 100%; }
+  .skill-list-name { font-size: 14px; }
+  .skill-list-desc { font-size: 12px; }
 }
 </style>
