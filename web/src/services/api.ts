@@ -146,6 +146,7 @@ export interface User {
   username: string
   name: string | null
   email: string | null
+  avatar?: string | null
   role: 'admin' | 'developer'
   is_super_admin?: number
   /** 账号状态；列表/详情接口返回，登录响应可能省略 */
@@ -177,6 +178,8 @@ export const authApi = {
   login: (data: LoginRequest) => apiPost<{ user: User }>('/auth/login', data),
   logout: () => apiPost('/auth/logout'),
   me: () => apiGet<User>('/auth/me'),
+  updateMe: (data: { name?: string; username?: string; avatar?: string | null }) =>
+    apiPatch<{ ok: boolean; user: User }>('/auth/me', data),
 }
 
 // ===== Skills API =====
@@ -186,6 +189,7 @@ export interface SkillCollaboratorUser {
   id: number
   username: string
   name: string | null
+  avatar?: string | null
   email?: string | null
 }
 

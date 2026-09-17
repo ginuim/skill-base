@@ -122,14 +122,23 @@
                   :class="person.isOwner ? 'contributor-avatar-owner' : 'contributor-avatar-collab'"
                   :title="contributorLabel(person)"
                   :aria-label="contributorLabel(person)"
+                  :disabled="!canManageCollaborators"
                   @click="activeTab = 'team'"
-                >{{ (person.name || person.username || 'U').charAt(0).toUpperCase() }}</button>
+                >
+                  <UserAvatar
+                    :avatar="person.avatar"
+                    :name="person.name"
+                    :username="person.username"
+                    size-class="w-full h-full text-[11px]"
+                  />
+                </button>
                 <button
                   v-if="contributorOverflow > 0"
                   type="button"
                   class="contributor-avatar contributor-avatar-more"
                   :aria-label="t('skill.tabTeam')"
                   :title="t('skill.tabTeam')"
+                  :disabled="!canManageCollaborators"
                   @click="activeTab = 'team'"
                 >+{{ contributorOverflow }}</button>
               </div>
@@ -358,7 +367,7 @@
         </section>
 
         <!-- Team & Access tab: left collaborators, right ACL + Webhook -->
-        <div v-show="activeTab === 'team'">
+        <div v-if="canManageCollaborators && activeTab === 'team'">
           <div class="grid grid-cols-1 gap-6" :class="{ 'lg:grid-cols-2': skillsStore.isOwner }">
           <div class="bg-base-900 border border-base-800 rounded-xl h-fit">
             <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-fg-strong flex items-center justify-between text-sm">
@@ -377,9 +386,12 @@
               <!-- Owner -->
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <span class="w-10 h-10 rounded-full bg-neon-400/20 flex items-center justify-center text-neon-400 font-bold text-sm">
-                    {{ (skill.owner?.username || 'U').charAt(0).toUpperCase() }}
-                  </span>
+                  <UserAvatar
+                    :avatar="skill.owner?.avatar"
+                    :name="skill.owner?.name"
+                    :username="skill.owner?.username"
+                    size-class="w-10 h-10 text-sm"
+                  />
                   <div>
                     <div class="font-medium text-fg-strong text-sm">{{ skill.owner?.name || skill.owner?.username }}</div>
                     <div class="text-xs text-base-400">{{ skill.owner?.email || '' }}</div>
@@ -396,9 +408,12 @@
                 class="flex items-center justify-between"
               >
                 <div class="flex items-center gap-3">
-                  <span class="w-10 h-10 rounded-full bg-blue-400/20 flex items-center justify-center text-blue-400 font-bold text-sm">
-                    {{ (collaborator.username || 'U').charAt(0).toUpperCase() }}
-                  </span>
+                  <UserAvatar
+                    :avatar="collaborator.avatar"
+                    :name="collaborator.name"
+                    :username="collaborator.username"
+                    size-class="w-10 h-10 text-sm"
+                  />
                   <div>
                     <div class="font-medium text-fg-strong text-sm">{{ collaborator.name || collaborator.username }}</div>
                     <div class="text-xs text-base-400">{{ collaborator.email || '' }}</div>
@@ -754,6 +769,7 @@ import { marked } from 'marked'
 import hljs from 'highlight.js'
 import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
 import CollaboratorUserPicker from '@/components/CollaboratorUserPicker.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate, formatDateFull } from '@/utils/date'
 
 const route = useRoute()
@@ -858,11 +874,20 @@ const isMarkdownFile = computed(() => {
 // UI state
 const isInitializing = ref(true)
 const activeTab = ref<'files' | 'versions' | 'team'>('files')
-const detailTabs = computed(() => [
-  { key: 'files' as const, label: t('skill.tabFiles') },
-  { key: 'versions' as const, label: t('skill.tabVersions') },
-  { key: 'team' as const, label: t('skill.tabTeam') },
-])
+const canManageCollaborators = computed(() => {
+  if (!skill.value) return false
+  return skill.value.permission === 'owner' || skill.value.permission === 'collaborator'
+})
+const detailTabs = computed(() => {
+  const tabs: Array<{ key: 'files' | 'versions' | 'team'; label: string }> = [
+    { key: 'files' as const, label: t('skill.tabFiles') },
+    { key: 'versions' as const, label: t('skill.tabVersions') },
+  ]
+  if (canManageCollaborators.value) {
+    tabs.push({ key: 'team' as const, label: t('skill.tabTeam') })
+  }
+  return tabs
+})
 
 // Contributors avatar stack (owner first, then collaborators)
 const CONTRIBUTOR_STACK_MAX = 8
@@ -870,8 +895,8 @@ const contributorStack = computed(() => {
   const s = skill.value
   if (!s) return []
   const people = [
-    { id: s.owner?.id ?? -1, username: s.owner?.username ?? '', name: s.owner?.name ?? null, isOwner: true },
-    ...(s.collaborators || []).map((c) => ({ id: c.id, username: c.username, name: c.name, isOwner: false })),
+    { id: s.owner?.id ?? -1, username: s.owner?.username ?? '', name: s.owner?.name ?? null, avatar: s.owner?.avatar ?? null, isOwner: true },
+    ...(s.collaborators || []).map((c) => ({ id: c.id, username: c.username, name: c.name, avatar: c.avatar ?? null, isOwner: false })),
   ]
   return people.slice(0, CONTRIBUTOR_STACK_MAX)
 })
@@ -1052,11 +1077,6 @@ const TEXT_FILENAMES = new Set([
   'dockerfile', 'makefile', 'rakefile', 'readme', 'license', 'changelog',
   '.gitignore', '.gitattributes', '.editorconfig', '.env', '.env.example',
 ])
-
-const canManageCollaborators = computed(() => {
-  if (!skill.value) return false
-  return skill.value.permission === 'owner' || skill.value.permission === 'collaborator'
-})
 
 const canEditTags = computed(() => canManageCollaborators.value)
 
@@ -1794,7 +1814,7 @@ html[data-theme="light"] .card {
 .skill-contributors { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
 .skill-contributors-label { color: var(--color-base-400); font-size: 12px; flex-shrink: 0; }
 .contributor-stack { display: flex; align-items: center; isolation: isolate; padding: 3px; }
-.contributor-avatar { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; margin-left: -10px; border: 3px solid var(--color-base-950); border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; }
+.contributor-avatar { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; margin-left: -10px; border: 3px solid var(--color-base-950); border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; overflow: hidden; padding: 0; }
 .contributor-avatar:first-child { margin-left: 0; }
 .contributor-avatar:hover, .contributor-avatar:focus-visible { z-index: 1; outline: 2px solid var(--color-base-400); outline-offset: 1px; }
 .contributor-avatar-owner { background: color-mix(in srgb, var(--color-neon-400) 18%, var(--color-base-950)); color: var(--color-neon-400); }

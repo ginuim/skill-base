@@ -29,6 +29,44 @@
           <form @submit.prevent="saveProfile" class="space-y-5 mt-6">
             <div>
               <label class="font-mono text-base-400 mb-2 block text-sm">
+                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">avatar</span> <span class="text-neon-400 opacity-70">=</span>
+              </label>
+              <div class="flex items-center gap-4 mb-4">
+                <UserAvatar
+                  :avatar="profileForm.avatar"
+                  :name="profileForm.name"
+                  :username="profileForm.username"
+                  size-class="w-16 h-16 text-lg"
+                />
+                <p class="font-mono text-xs text-base-500">{{ t('settings.avatarHint') }}</p>
+              </div>
+              <div class="grid grid-cols-6 sm:grid-cols-7 gap-2" role="listbox" :aria-label="t('settings.avatarLabel')">
+                <button
+                  type="button"
+                  class="avatar-option"
+                  :class="{ 'is-selected': profileForm.avatar === null }"
+                  :aria-selected="profileForm.avatar === null"
+                  :title="t('settings.avatarDefault')"
+                  @click="profileForm.avatar = null"
+                >
+                  <span class="avatar-option-initial">{{ profileInitial }}</span>
+                </button>
+                <button
+                  v-for="file in PRESET_AVATARS"
+                  :key="file"
+                  type="button"
+                  class="avatar-option"
+                  :class="{ 'is-selected': profileForm.avatar === file }"
+                  :aria-selected="profileForm.avatar === file"
+                  :title="file.replace('.png', '')"
+                  @click="profileForm.avatar = file"
+                >
+                  <img :src="avatarSrc(file)!" :alt="file.replace('.png', '')" />
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="font-mono text-base-400 mb-2 block text-sm">
                 <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">username</span> <span class="text-neon-400 opacity-70">=</span>
               </label>
               <input
@@ -142,16 +180,24 @@ import { useAuthStore } from '@/stores/auth'
 import { apiPost } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { PRESET_AVATARS, avatarSrc, isPresetAvatar } from '@/utils/avatar'
 
 const authStore = useAuthStore()
 const { t } = useI18n()
 
 // Profile
-const profileForm = ref({
+const profileForm = ref<{
+  username: string
+  name: string
+  avatar: string | null
+}>({
   username: '',
   name: '',
+  avatar: null,
 })
 const isSaving = ref(false)
+const profileInitial = computed(() => (profileForm.value.name || profileForm.value.username || 'U').charAt(0).toUpperCase())
 
 // Password
 const passwordForm = ref({
@@ -173,9 +219,11 @@ onMounted(() => {
 })
 
 function resetProfile() {
+  const current = authStore.user?.avatar
   profileForm.value = {
     username: authStore.username || '',
     name: authStore.user?.name || '',
+    avatar: isPresetAvatar(current) ? current : null,
   }
 }
 
@@ -184,6 +232,7 @@ async function saveProfile() {
   try {
     await authStore.updateProfile({
       name: profileForm.value.name,
+      avatar: profileForm.value.avatar,
     })
     globalToast.success(t('settings.saveSuccess'))
   } catch (err) {
@@ -234,3 +283,39 @@ async function changePassword() {
   }
 }
 </script>
+
+<style scoped>
+.avatar-option {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 2px solid var(--color-base-800);
+  background: var(--color-base-950);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.avatar-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatar-option-initial {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-neon-400);
+}
+.avatar-option:hover {
+  border-color: var(--color-neon-500);
+}
+.avatar-option.is-selected {
+  border-color: var(--color-neon-400);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-neon-400) 35%, transparent);
+}
+</style>

@@ -13,7 +13,7 @@ async function usersRoutes(fastify, options) {
 
     if (!trimmed) {
       const users = db.prepare(`
-        SELECT id, username, name, status
+        SELECT id, username, name, avatar, status
         FROM users
         WHERE status = 'active'
         ORDER BY username ASC
@@ -24,7 +24,7 @@ async function usersRoutes(fastify, options) {
 
     const pattern = `%${trimmed}%`;
     const users = db.prepare(`
-      SELECT id, username, name, status
+      SELECT id, username, name, avatar, status
       FROM users
       WHERE (username LIKE ? OR name LIKE ?) AND status = 'active'
       ORDER BY username ASC
@@ -125,6 +125,7 @@ async function usersRoutes(fastify, options) {
       id: user.id,
       username: user.username,
       name: user.name,
+      avatar: user.avatar || null,
       role: user.role,
       status: user.status,
       is_super_admin: user.is_super_admin || 0,

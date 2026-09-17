@@ -59,6 +59,8 @@ Collection 是管理员维护的扁平推荐包（如“前端组必装”），
 
 每个 Skill 可选挂截图（screenshots，JSON 数组列）：`POST/PUT /skills/:skill_id/screenshots`、`DELETE /skills/:skill_id/screenshots/:shot_id`、`GET .../file`（权限：owner/collaborator 写，可见性同 Skill 读）。文件存 `data/skills/<skill_id>/screenshots/`，删除 Skill 时随目录清理。上限可用 `SKILL_BASE_SCREENSHOT_MAX_MB`（默认 5）、`SKILL_BASE_SCREENSHOT_MAX_COUNT`（默认 10）配置。
 
+用户可选预设头像（`users.avatar`，文件名白名单，静态资源 `/avatars/`）。登录用户通过 **PATCH** `/auth/me` 更新 `name` / `avatar`。
+
 ## Development Commands
 
 ```bash

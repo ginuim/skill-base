@@ -54,6 +54,12 @@
 
           <div v-if="authStore.isLoggedIn" class="navbar-user-dropdown" :class="{ active: showUserMenu }">
             <button type="button" class="navbar-user-btn navbar-surface-btn sb-nav-action-btn" @click.stop="toggleUserMenu">
+              <UserAvatar
+                :avatar="authStore.user?.avatar"
+                :name="authStore.user?.name"
+                :username="authStore.username"
+                size-class="w-6 h-6 text-[10px]"
+              />
               <span class="username">{{ authStore.displayName }}</span>
               <ChevronDown :size="16" :stroke-width="2" aria-hidden="true" />
             </button>
@@ -117,6 +123,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
 import { useTheme } from '@/composables/useTheme'
 import { collectionsApi } from '@/services/api'
+import UserAvatar from '@/components/UserAvatar.vue'
 import {
   Home,
   Upload,

@@ -17,7 +17,7 @@ async function collaboratorsRoutes(fastify, options) {
     
     const collaborators = db.prepare(`
       SELECT sc.id, sc.role, sc.created_at,
-             u.id as user_id, u.username, u.name, u.status,
+             u.id as user_id, u.username, u.name, u.avatar, u.status,
              cb.id as created_by_id, cb.username as created_by_username
       FROM skill_collaborators sc
       JOIN users u ON sc.user_id = u.id
@@ -29,7 +29,7 @@ async function collaboratorsRoutes(fastify, options) {
     const result = collaborators.map(c => {
       const item = {
         id: c.id,
-        user: { id: c.user_id, username: c.username, name: c.name, status: c.status },
+        user: { id: c.user_id, username: c.username, name: c.name, avatar: c.avatar || null, status: c.status },
         role: c.role,
         created_at: c.created_at
       };

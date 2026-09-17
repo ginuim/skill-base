@@ -80,7 +80,7 @@ setInterval(() => sessionStore.cleanup(), 60 * 60 * 1000);
 // Authentication middleware decorator - registered as Fastify's decorate + preHandler
 // Usage: use via { preHandler: [fastify.authenticate] } in routes
 async function authPlugin(fastify, options) {
-  const authUserColumns = 'id, username, name, role, status, is_super_admin';
+  const authUserColumns = 'id, username, name, avatar, role, status, is_super_admin';
 
   // Expose sessionStore for routes to use
   fastify.decorate('sessionStore', sessionStore);

@@ -21,7 +21,8 @@ function formatSkill(skill) {
     owner: {
       id: skill.owner_id,
       username: skill.owner_username,
-      name: skill.owner_name
+      name: skill.owner_name,
+      avatar: skill.owner_avatar || null
     },
     created_at: skill.created_at,
     updated_at: skill.updated_at

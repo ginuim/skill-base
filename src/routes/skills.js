@@ -13,7 +13,7 @@ const { formatScreenshots } = require('../utils/screenshots');
 
 function listCollaboratorUsersForSkillDetail(skillId) {
   const rows = db.prepare(`
-    SELECT u.id as user_id, u.username, u.name
+    SELECT u.id as user_id, u.username, u.name, u.avatar
     FROM skill_collaborators sc
     JOIN users u ON sc.user_id = u.id
     WHERE sc.skill_id = ? AND sc.role = 'collaborator'
@@ -22,7 +22,8 @@ function listCollaboratorUsersForSkillDetail(skillId) {
   return rows.map((r) => ({
     id: r.user_id,
     username: r.username,
-    name: r.name
+    name: r.name,
+    avatar: r.avatar || null
   }));
 }
 
@@ -42,7 +43,8 @@ function formatSkill(skill, currentUser) {
     owner: {
       id: skill.owner_id,
       username: skill.owner_username,
-      name: skill.owner_name
+      name: skill.owner_name,
+      avatar: skill.owner_avatar || null
     },
     created_at: skill.created_at,
     updated_at: skill.updated_at

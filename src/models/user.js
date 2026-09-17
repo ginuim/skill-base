@@ -2,7 +2,7 @@ const db = require('../database');
 const modelCache = require('../utils/model-cache');
 
 function queryById(id) {
-  return db.prepare('SELECT id, username, name, role, status, is_super_admin, created_at, updated_at FROM users WHERE id = ?').get(id);
+  return db.prepare('SELECT id, username, name, avatar, role, status, is_super_admin, created_at, updated_at FROM users WHERE id = ?').get(id);
 }
 
 const UserModel = {
@@ -29,7 +29,7 @@ const UserModel = {
 
   // List users (supports pagination and search)
   list({ q, status, page = 1, limit = 20 } = {}) {
-    let sql = 'SELECT id, username, name, role, status, is_super_admin, created_at, updated_at FROM users WHERE 1=1';
+    let sql = 'SELECT id, username, name, avatar, role, status, is_super_admin, created_at, updated_at FROM users WHERE 1=1';
     let countSql = 'SELECT COUNT(*) as total FROM users WHERE 1=1';
     const params = [];
     const countParams = [];
@@ -125,7 +125,7 @@ const UserModel = {
   // Find user details (includes creator info)
   findByIdWithCreator(id) {
     return db.prepare(`
-      SELECT u.id, u.username, u.name, u.role, u.status, u.is_super_admin, u.created_at, u.updated_at,
+      SELECT u.id, u.username, u.name, u.avatar, u.role, u.status, u.is_super_admin, u.created_at, u.updated_at,
              c.id as creator_id, c.username as creator_username
       FROM users u
       LEFT JOIN users c ON u.created_by = c.id
@@ -149,8 +149,8 @@ const UserModel = {
     return this.canDemoteOrDisableSuperAdmin(id);
   },
 
-  // Update username and name
-  updateProfile(id, { username, name }) {
+  // Update username, name, and avatar
+  updateProfile(id, { username, name, avatar }) {
     const sets = [];
     const params = [];
     
@@ -161,6 +161,10 @@ const UserModel = {
     if (name !== undefined) {
       sets.push('name = ?');
       params.push(name);
+    }
+    if (avatar !== undefined) {
+      sets.push('avatar = ?');
+      params.push(avatar);
     }
     
     if (sets.length === 0) return false;

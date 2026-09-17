@@ -130,12 +130,43 @@ Get the currently logged-in user.
 {
   "id": "string",
   "username": "string",
+  "name": "string",
+  "avatar": "fox.png",
   "role": "string",
   "is_super_admin": 0
 }
 ```
 
 `is_super_admin` is `1` for a **super admin** (first migrated admin or the first admin created during initialization), used to ensure at least one super admin remains. The global tag library is maintained by any **admin** (`role === 'admin'`); all admins can create/rename/delete global tags and assign tags to Skills they manage.
+
+`avatar` is a preset filename (e.g. `fox.png`) served at `/avatars/<filename>`. `null` if unset.
+
+---
+
+### 6. Update current user
+
+**PATCH** `/api/v1/auth/me`
+
+Update the current user's display name and avatar. Username cannot be changed here.
+
+**Auth:** Requires an authenticated identity
+
+**Request body:**
+```json
+{
+  "name": "string",
+  "avatar": "fox.png"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Optional display name |
+| `avatar` | string \| null | Optional preset filename; `null` or `""` clears the avatar |
+
+**Error codes:**
+- `400` - Invalid params or avatar not in the preset list
+- `401` - Unauthenticated
 
 ---
 
