@@ -16,9 +16,8 @@ skill-base/
 │   ├── models/       # 数据模型 (skill, user, version)
 │   ├── routes/       # API 路由
 │   └── utils/        # 工具函数
-├── static/       # Web 前端 (原生 JS)
-│   ├── js/           # 前端脚本
-│   └── css/          # 样式文件
+├── web/          # Web 前端源码 (Vue 3 + TypeScript + Vite)
+├── static/       # Web 构建产物（由 web/ 构建生成）
 ├── data/         # 数据存储 (SQLite + ZIP files)
 └── docs/         # API 文档
 ```
@@ -27,7 +26,7 @@ skill-base/
 
 - **Backend**: Node.js + Fastify
 - **Database**: SQLite (node-sqlite3-wasm)
-- **Frontend**: Vanilla JavaScript + CSS
+- **Frontend**: Vue 3 + TypeScript + Tailwind CSS (web/)
 - **Storage**: Local filesystem (ZIP archives)
 
 ## Key Concepts
@@ -98,7 +97,8 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 使用 CommonJS 模块系统
 - 异步函数使用 async/await
 - 错误处理通过 Fastify error handler
-- 前端使用原生 DOM API，无框架依赖
+- Web 前端使用 Vue 3 Composition API 与 `<script setup lang="ts">`；运行 `npm run build --prefix web` 生成 `static/`，不要手改构建产物。
+- Skill 详情页顶部为技能介绍与安装/版本操作，下方按文件、版本历史、成员与权限分区；截图属于文件页签。
 
 ## Documentation Checklist
 

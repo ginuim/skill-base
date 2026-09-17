@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-12 pb-12 px-4 sm:px-6 lg:px-8">
+  <div class="skill-detail-page min-h-screen pt-8 pb-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
       <!-- Loading State -->
       <div v-if="isInitializing || skillsStore.isLoadingDetail" class="flex items-center justify-center min-h-[70vh]">
@@ -46,100 +46,103 @@
 
       <!-- Skill Detail -->
       <template v-else>
-        <!-- Breadcrumb -->
-        <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-          <span class="text-neon-400">~</span>
-          <span class="opacity-50">/</span>
-          <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('skill.breadcrumbHome') }}</router-link>
-          <span class="opacity-50">/</span>
-          <span class="text-fg-strong">{{ skill.name }}</span>
-        </div>
+        <nav class="skill-breadcrumb" :aria-label="t('skill.breadcrumbHome')">
+          <router-link to="/">{{ t('skill.breadcrumbHome') }}</router-link>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{{ skill.name }}</span>
+        </nav>
 
         <!-- Skill Header (open, page-like layout) -->
-        <header id="skill-info" class="skill-hero mb-10">
-          <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
-            <h1 class="skill-title text-4xl font-bold text-fg-strong flex items-center gap-3 min-w-0">
-              <span class="text-neon-400 font-mono font-normal opacity-70">&gt;</span>
-              <span class="truncate">{{ skill.name }}</span>
-            </h1>
-            <span class="text-base-500 text-[10px] font-mono opacity-60 select-none pt-2">ID: {{ skill.id.toString().substring(0, 8) }}</span>
-          </div>
+        <header id="skill-info" class="skill-hero">
+          <div class="skill-summary">
+            <div class="skill-heading">
+              <h1 class="skill-title text-fg-strong">
+                <span>{{ skill.name }}</span>
+              </h1>
+            </div>
 
-          <div class="flex flex-wrap items-center gap-2 mb-6">
-            <span v-if="skill.visibility === 'private'" class="skill-meta-chip skill-meta-chip-private">PRIVATE</span>
-            <button
-              v-if="authStore.isLoggedIn"
-              type="button"
-              class="skill-meta-chip skill-meta-chip-action skill-meta-chip-favorite"
-              :class="{ 'skill-meta-chip--favorited': skill.is_favorited }"
-              :aria-label="skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite')"
-              :title="skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite')"
-              @click="toggleFavorite"
-            >
-              <Heart
-                class="skill-favorite-icon"
-                :size="18"
-                :stroke-width="2"
-                :fill="skill.is_favorited ? 'currentColor' : 'none'"
-                :stroke="skill.is_favorited ? 'transparent' : 'currentColor'"
-                aria-hidden="true"
-              />
-            </button>
-            <span class="skill-meta-chip">{{ skill.favorite_count }} {{ t('skill.favoriteCount') }}</span>
-            <span class="skill-meta-chip">{{ skill.download_count }} {{ t('skill.downloadCount') }}</span>
-            <span v-for="tag in skill.tags" :key="tag.id" class="skill-tag-chip">{{ tag.name }}</span>
-            <span v-for="collection in skill.collections || []" :key="collection.id" class="skill-collection-chip">
-              {{ collection.name }}
-            </span>
-            <button
-              v-if="canEditTags && showTagEditButton"
-              type="button"
-              class="skill-meta-chip skill-meta-chip-action"
-              @click="showEditTagsModal = true"
-            >
-              {{ t('skill.editTags') }}
-            </button>
-            <!-- Contributors avatar stack (owner + collaborators) -->
-            <div
-              v-if="contributorStack.length > 0"
-              class="flex items-center ml-2"
-              :title="t('skill.contributors')"
-            >
-              <span
-                v-for="person in contributorStack"
-                :key="person.id"
-                class="contributor-avatar"
-                :class="person.isOwner ? 'contributor-avatar-owner' : 'contributor-avatar-collab'"
-                :title="(person.name || person.username) + (person.isOwner ? ' (' + t('collab.owner') + ')' : '')"
+            <!-- Description -->
+            <div class="skill-desc-wrap group">
+              <p class="skill-desc whitespace-pre-wrap">
+                {{ skill.description || t('state.noDesc') }}
+              </p>
+              <button
+                v-if="canManageCollaborators"
+                @click="openEditSkillDescription"
+                class="skill-desc-edit p-1.5 text-base-400 hover:text-neon-400 transition-all flex-shrink-0 bg-base-950 border border-base-800 rounded"
+                :title="t('skill.editSkillDescriptionBtn')"
               >
-                {{ (person.username || 'U').charAt(0).toUpperCase() }}
+                <Pencil class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
+              </button>
+            </div>
+
+            <div class="skill-metadata flex flex-wrap items-center gap-2">
+              <span v-if="skill.visibility === 'private'" class="skill-meta-chip skill-meta-chip-private">PRIVATE</span>
+              <button
+                v-if="authStore.isLoggedIn"
+                type="button"
+                class="skill-meta-chip skill-meta-chip-action skill-meta-chip-favorite"
+                :class="{ 'skill-meta-chip--favorited': skill.is_favorited }"
+                :aria-label="skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite')"
+                :title="skill.is_favorited ? t('skill.unfavorite') : t('skill.favorite')"
+                @click="toggleFavorite"
+              >
+                <Heart
+                  class="skill-favorite-icon"
+                  :size="18"
+                  :stroke-width="2"
+                  :fill="skill.is_favorited ? 'currentColor' : 'none'"
+                  :stroke="skill.is_favorited ? 'transparent' : 'currentColor'"
+                  aria-hidden="true"
+                />
+              </button>
+              <span class="skill-meta-chip">{{ skill.favorite_count }} {{ t('skill.favoriteCount') }}</span>
+              <span class="skill-meta-chip">{{ skill.download_count }} {{ t('skill.downloadCount') }}</span>
+              <span v-for="tag in skill.tags" :key="tag.id" class="skill-tag-chip">{{ tag.name }}</span>
+              <span v-for="collection in skill.collections || []" :key="collection.id" class="skill-collection-chip">
+                {{ collection.name }}
               </span>
-              <span
-                v-if="contributorOverflow > 0"
-                class="contributor-avatar contributor-avatar-more"
-              >+{{ contributorOverflow }}</span>
+              <button
+                v-if="canEditTags && showTagEditButton"
+                type="button"
+                class="skill-meta-chip skill-meta-chip-action"
+                @click="showEditTagsModal = true"
+              >
+                {{ t('skill.editTags') }}
+              </button>
+            </div>
+            <div v-if="contributorStack.length" class="skill-contributors">
+              <span class="skill-contributors-label">{{ t('skill.contributors') }}</span>
+              <div class="contributor-stack" role="group" :aria-label="t('skill.contributors')">
+                <button
+                  v-for="person in contributorStack"
+                  :key="person.id"
+                  type="button"
+                  class="contributor-avatar"
+                  :class="person.isOwner ? 'contributor-avatar-owner' : 'contributor-avatar-collab'"
+                  :title="contributorLabel(person)"
+                  :aria-label="contributorLabel(person)"
+                  @click="activeTab = 'team'"
+                >{{ (person.name || person.username || 'U').charAt(0).toUpperCase() }}</button>
+                <button
+                  v-if="contributorOverflow > 0"
+                  type="button"
+                  class="contributor-avatar contributor-avatar-more"
+                  :aria-label="t('skill.tabTeam')"
+                  :title="t('skill.tabTeam')"
+                  @click="activeTab = 'team'"
+                >+{{ contributorOverflow }}</button>
+              </div>
             </div>
           </div>
 
-          <!-- Description -->
-          <div class="skill-desc-wrap group mb-8">
-            <p class="skill-desc whitespace-pre-wrap">
-              {{ skill.description || t('state.noDesc') }}
-            </p>
-            <button
-              v-if="canManageCollaborators"
-              @click="openEditSkillDescription"
-              class="skill-desc-edit opacity-0 group-hover:opacity-100 p-1.5 text-base-400 hover:text-neon-400 transition-all flex-shrink-0 bg-base-950 border border-base-800 rounded"
-              :title="t('skill.editSkillDescriptionBtn')"
-            >
-              <Pencil class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
-            </button>
-          </div>
-
-          <!-- Version Select & Actions -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-base-800/60">
-            <div class="relative w-full sm:flex-1 sm:max-w-[18.2rem]">
+          <!-- Installation and version actions -->
+          <div class="skill-install-panel">
+            <h2 class="skill-panel-title">{{ t('skill.installTitle') }}</h2>
+            <label for="skill-version" class="skill-field-label">{{ t('skill.currentVersion') }}</label>
+            <div class="relative w-full">
               <select
+                id="skill-version"
                 v-model="currentVersion"
                 @change="onVersionChange"
                 class="w-full appearance-none bg-base-950 border border-base-800 text-fg-strong font-mono text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-500 focus:ring-1 focus:ring-neon-500 transition-colors cursor-pointer"
@@ -150,11 +153,11 @@
               </select>
               <ChevronDown class="w-4 h-4 absolute right-4 top-3 pointer-events-none text-base-400" :stroke-width="2" aria-hidden="true" />
             </div>
-            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4 sm:mt-0 flex-shrink-0">
-              <div v-if="installCliCommand" class="relative inline-flex items-stretch w-full sm:w-auto min-w-0 cli-install-help-group">
+            <div class="skill-install-actions">
+              <div v-if="installCliCommand" class="relative inline-flex items-stretch w-full min-w-0 cli-install-help-group">
                 <button
                   type="button"
-                  class="inline-flex flex-1 items-center justify-center gap-2 text-sm font-mono px-4 py-2.5 rounded-l-lg border border-base-800 bg-base-950 text-base-300 hover:text-neon-400 hover:border-neon-500/40 hover:bg-neon-400/5 transition-colors text-left max-w-full min-w-0 break-all w-full sm:w-auto sm:max-w-md cursor-pointer"
+                  class="inline-flex flex-1 items-center justify-center gap-2 text-sm font-mono px-4 py-2.5 rounded-l-lg border border-base-800 bg-base-950 text-base-300 hover:text-neon-400 hover:border-neon-500/40 hover:bg-neon-400/5 transition-colors text-left max-w-full min-w-0 w-full cursor-pointer"
                   :title="t('skill.copyInstallHint')"
                   @click="copyInstallCommand"
                 >
@@ -189,73 +192,22 @@
                 </div>
               </div>
               <button
-                @click="goToDiff"
-                class="flex items-center justify-center gap-2 bg-transparent text-fg-strong border border-base-800 hover:bg-base-800 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
-              >
-                <GitCompareArrows class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
-                {{ t('skill.compare') }}
-              </button>
-              <button
                 @click="downloadCurrentVersion"
-                class="skill-btn-neon-glow flex items-center justify-center gap-2 bg-transparent border border-neon-500 text-neon-400 hover:bg-neon-400/10 text-sm font-mono px-5 py-2.5 rounded-lg transition-colors w-full sm:w-auto"
+                class="skill-download-button"
               >
                 <Download class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                 {{ t('skill.download') }}
               </button>
+              <button
+                @click="goToDiff"
+                class="skill-compare-button"
+              >
+                <GitCompareArrows class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
+                {{ t('skill.compare') }}
+              </button>
             </div>
           </div>
         </header>
-
-        <!-- Screenshots showcase (App Store style, above tabs) -->
-        <section v-if="(skill.screenshots || []).length > 0 || canManageCollaborators" class="screenshot-showcase mb-10">
-          <div class="flex items-center justify-between mb-4 px-1">
-            <div class="font-mono text-sm text-base-400 flex items-center gap-2">
-              <span class="text-neon-400">#</span> {{ t('skill.screenshots') }}
-            </div>
-            <button
-              v-if="canManageCollaborators"
-              type="button"
-              class="skill-meta-chip skill-meta-chip-action disabled:opacity-50"
-              :disabled="isUploadingScreenshot"
-              @click="screenshotInputRef?.click()"
-            >
-              <span v-if="isUploadingScreenshot" class="spinner spinner-sm inline-block mr-1 align-middle"></span>
-              {{ isUploadingScreenshot ? t('skill.screenshotUploading') : '+ ' + t('skill.screenshotUpload') }}
-            </button>
-          </div>
-          <div v-if="(skill.screenshots || []).length > 0" class="screenshot-strip">
-            <figure
-              v-for="shot in skill.screenshots"
-              :key="shot.id"
-              class="screenshot-thumb group"
-            >
-              <img
-                :src="screenshotSrc(shot)"
-                :alt="t('skill.screenshotPreview')"
-                loading="lazy"
-                class="screenshot-img"
-                @click="openLightbox(shot.id)"
-              />
-              <button
-                v-if="canManageCollaborators"
-                type="button"
-                class="screenshot-delete-btn"
-                :title="t('btn.remove')"
-                @click.stop="deleteScreenshot(shot.id)"
-              >
-                &times;
-              </button>
-            </figure>
-          </div>
-          <p v-else class="text-xs text-base-500 font-mono px-1">—</p>
-          <input
-            ref="screenshotInputRef"
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            class="hidden"
-            @change="onScreenshotFileChange"
-          />
-        </section>
 
         <!-- Tabs: Files / Versions / Team -->
         <div class="detail-tabs mb-6">
@@ -271,16 +223,11 @@
           </button>
         </div>
 
-        <!-- Files tab: File Tree & Preview (1:3 ratio) -->
-        <section v-show="activeTab === 'files'" class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Files tab: file navigation and reading pane -->
+        <section v-show="activeTab === 'files'" class="skill-file-workspace">
           <!-- Left: File Tree -->
-          <div class="bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]">
-            <div class="px-5 py-3 border-b border-base-800 font-mono text-sm text-base-400 flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-base-800"></span>
-              <span class="ml-2 text-fg-strong/50">ls -la</span>
-            </div>
+          <div class="skill-file-tree">
+            <div class="skill-file-toolbar">{{ t('skill.tabFiles') }}</div>
             <div id="file-tree" class="p-3 flex-1 overflow-y-auto no-scrollbar font-mono text-sm">
               <div v-if="isLoadingZip" class="flex justify-center py-8">
                 <div class="spinner spinner-sm"></div>
@@ -302,10 +249,10 @@
           </div>
 
           <!-- Right: File Preview -->
-          <div id="file-preview-panel" :class="['lg:col-span-3 bg-base-900 border border-base-800 rounded-xl flex flex-col min-h-[400px] max-h-[500px]', { 'fullscreen': isFullscreen }]">
-            <div class="px-5 py-3 border-b border-base-800 text-sm font-mono text-base-400 bg-base-950/50 rounded-t-xl flex justify-between items-center">
+          <div id="file-preview-panel" :class="['skill-file-preview', { 'fullscreen': isFullscreen }]">
+            <div class="skill-file-toolbar skill-preview-toolbar">
               <div>
-                <span>cat <span class="text-fg-strong/30">{{ selectedFilePath || '<file>' }}</span></span>
+                <span class="skill-file-path">{{ selectedFilePath || t('skill.selectFile') }}</span>
               </div>
               <div class="flex items-center gap-3">
                 <div v-if="isMarkdownFile" class="flex gap-2">
@@ -358,6 +305,56 @@
               </div>
             </div>
           </div>
+        </section>
+
+        <!-- Screenshots stay with the files they illustrate -->
+        <section v-if="(skill.screenshots || []).length > 0 || canManageCollaborators" v-show="activeTab === 'files'" class="screenshot-showcase">
+          <div class="flex items-center justify-between gap-3">
+            <div class="text-sm text-base-400 flex items-center gap-2">
+              {{ t('skill.screenshots') }}
+            </div>
+            <button
+              v-if="canManageCollaborators"
+              type="button"
+              class="skill-meta-chip skill-meta-chip-action disabled:opacity-50"
+              :disabled="isUploadingScreenshot"
+              @click="screenshotInputRef?.click()"
+            >
+              <span v-if="isUploadingScreenshot" class="spinner spinner-sm inline-block mr-1 align-middle"></span>
+              {{ isUploadingScreenshot ? t('skill.screenshotUploading') : '+ ' + t('skill.screenshotUpload') }}
+            </button>
+          </div>
+          <div v-if="(skill.screenshots || []).length > 0" class="screenshot-strip">
+            <figure
+              v-for="shot in skill.screenshots"
+              :key="shot.id"
+              class="screenshot-thumb group"
+            >
+              <img
+                :src="screenshotSrc(shot)"
+                :alt="t('skill.screenshotPreview')"
+                loading="lazy"
+                class="screenshot-img"
+                @click="openLightbox(shot.id)"
+              />
+              <button
+                v-if="canManageCollaborators"
+                type="button"
+                class="screenshot-delete-btn"
+                :title="t('btn.remove')"
+                @click.stop="deleteScreenshot(shot.id)"
+              >
+                &times;
+              </button>
+            </figure>
+          </div>
+          <input
+            ref="screenshotInputRef"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            class="hidden"
+            @change="onScreenshotFileChange"
+          />
         </section>
 
         <!-- Team & Access tab: left collaborators, right ACL + Webhook -->
@@ -884,6 +881,10 @@ const contributorOverflow = computed(() => {
   const total = 1 + (s.collaborators || []).length
   return Math.max(0, total - CONTRIBUTOR_STACK_MAX)
 })
+
+function contributorLabel(person: { name: string | null; username: string; isOwner: boolean }) {
+  return `${person.name || person.username} · ${t(person.isOwner ? 'collab.owner' : 'collab.collaborator')}`
+}
 
 // Screenshots
 const screenshotInputRef = ref<HTMLInputElement | null>(null)
@@ -1725,7 +1726,7 @@ html[data-theme="light"] .card {
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: inherit;
   font-size: 0.75rem;
   line-height: 1;
   padding: 0.45rem 0.75rem;
@@ -1789,41 +1790,17 @@ html[data-theme="light"] .card {
   border: 1px solid rgba(251, 191, 36, 0.22);
 }
 
-/* Contributors avatar stack */
-.contributor-avatar {
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  border: 2px solid var(--color-base-950);
-  margin-left: -0.5rem;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.contributor-avatar:first-child {
-  margin-left: 0;
-}
-
-.contributor-avatar-owner {
-  background: rgba(var(--color-neon-rgb), 0.2);
-  color: var(--color-neon-400);
-}
-
-.contributor-avatar-collab {
-  background: rgba(96, 165, 250, 0.2);
-  color: #60a5fa;
-}
-
-.contributor-avatar-more {
-  background: var(--color-base-800);
-  color: var(--color-base-400);
-}
+/* Overlapping avatars share one baseline; the owner always comes first. */
+.skill-contributors { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+.skill-contributors-label { color: var(--color-base-400); font-size: 12px; flex-shrink: 0; }
+.contributor-stack { display: flex; align-items: center; isolation: isolate; padding: 3px; }
+.contributor-avatar { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; margin-left: -10px; border: 3px solid var(--color-base-950); border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; }
+.contributor-avatar:first-child { margin-left: 0; }
+.contributor-avatar:hover, .contributor-avatar:focus-visible { z-index: 1; outline: 2px solid var(--color-base-400); outline-offset: 1px; }
+.contributor-avatar-owner { background: color-mix(in srgb, var(--color-neon-400) 18%, var(--color-base-950)); color: var(--color-neon-400); }
+.contributor-avatar-collab { background: var(--color-base-800); color: var(--color-fg-strong); }
+.contributor-avatar-more { background: var(--color-base-900); color: var(--color-base-400); }
+@media (max-width: 380px) { .skill-contributors { gap: 8px; } .contributor-avatar { width: 32px; height: 32px; margin-left: -11px; } }
 
 /* Detail tabs */
 .detail-tabs {
@@ -1835,8 +1812,8 @@ html[data-theme="light"] .card {
 
 .detail-tab-btn {
   padding: 0.5rem 1rem;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.8125rem;
+  font-family: inherit;
+  font-size: 0.875rem;
   color: var(--color-base-400);
   background: transparent;
   border: none;
@@ -1854,73 +1831,43 @@ html[data-theme="light"] .card {
   border-bottom-color: var(--color-neon-500);
 }
 
-/* Skill hero (open layout, no card) */
-.skill-hero {
-  position: relative;
-  padding-top: 0.5rem;
+/* Overview and installation stay together; the file reader is the main content. */
+.skill-breadcrumb { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; font-size: 13px; color: var(--color-base-400); overflow-wrap: anywhere; }
+.skill-breadcrumb a:hover { color: var(--color-fg-strong); }
+.skill-hero { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 48px; align-items: start; margin-bottom: 32px; }
+.skill-summary { min-width: 0; }
+.skill-title { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.25; overflow-wrap: anywhere; }
+.skill-desc-wrap { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 20px; }
+.skill-desc { min-width: 0; flex: 1; font-size: 14px; line-height: 1.8; color: var(--color-fg); overflow-wrap: anywhere; }
+.skill-desc-edit { margin-top: 2px; }
+.skill-install-panel { padding: 20px; border: 1px solid var(--color-base-800); border-radius: 8px; background: var(--color-base-950); min-width: 0; }
+.skill-panel-title { margin-bottom: 16px; font-size: 15px; font-weight: 600; color: var(--color-fg-strong); }
+.skill-field-label { display: block; font-size: 12px; color: var(--color-base-400); margin-bottom: 6px; }
+.cli-install-help-group > button:first-child { overflow-wrap: anywhere; word-break: normal; font-size: 12px; }
+.skill-install-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.skill-download-button, .skill-compare-button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 150ms; }
+.skill-download-button { order: 1; background: var(--color-fg-strong); color: var(--color-base-950); border: 1px solid var(--color-fg-strong); }
+.skill-download-button:hover { background: var(--color-fg); }
+.skill-compare-button { order: 2; color: var(--color-base-400); }
+.skill-compare-button:hover { color: var(--color-fg-strong); background: var(--color-base-900); }
+.skill-file-workspace { display: grid; grid-template-columns: 240px minmax(0, 1fr); border: 1px solid var(--color-base-800); border-radius: 8px; overflow: hidden; margin-bottom: 24px; background: var(--color-base-950); }
+.skill-file-tree, .skill-file-preview { display: flex; flex-direction: column; min-width: 0; height: 600px; }
+.skill-file-tree { border-right: 1px solid var(--color-base-800); background: var(--color-base-900); }
+.skill-file-toolbar { display: flex; align-items: center; min-height: 52px; padding: 10px 16px; border-bottom: 1px solid var(--color-base-800); color: var(--color-base-400); font-size: 13px; gap: 12px; }
+.skill-preview-toolbar { justify-content: space-between; flex-wrap: wrap; }
+.skill-preview-toolbar > div:first-child { min-width: 0; flex: 1; }
+.skill-file-path { font-family: var(--font-mono); overflow-wrap: anywhere; font-size: 12px; color: var(--color-fg); }
+.screenshot-showcase { padding: 16px; border: 1px solid var(--color-base-800); border-radius: 8px; margin-bottom: 24px; }
+@media (max-width: 900px) {
+  .skill-hero { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .skill-file-workspace { grid-template-columns: 190px minmax(0, 1fr); }
 }
-
-/* 顶部氛围光：暗色下 neon 微光，亮色下更淡 */
-.skill-hero::before {
-  content: '';
-  position: absolute;
-  top: -3rem;
-  left: -4rem;
-  width: 24rem;
-  height: 12rem;
-  background: radial-gradient(ellipse at center, rgba(var(--color-neon-rgb), 0.08), transparent 70%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-html[data-theme="light"] .skill-hero::before {
-  background: radial-gradient(ellipse at center, rgba(var(--color-neon-rgb), 0.05), transparent 70%);
-}
-
-.skill-title {
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-/* Description: refined reading typography */
-.skill-desc-wrap {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  max-width: 44rem;
-}
-
-.skill-desc {
-  flex: 1;
-  min-width: 0;
-  font-size: 1rem;
-  line-height: 1.9;
-  color: var(--color-base-300);
-  letter-spacing: 0.01em;
-  border-left: 2px solid rgba(var(--color-neon-rgb), 0.35);
-  padding-left: 1.25rem;
-}
-
-.skill-desc-edit {
-  margin-top: 0.35rem;
-}
-
-/* Screenshots showcase (App Store style) */
-.screenshot-showcase {
-  position: relative;
-  border-radius: 1.25rem;
-  padding: 1.5rem 1.5rem 1.25rem;
-  background:
-    radial-gradient(ellipse 60% 80% at 15% 0%, rgba(var(--color-neon-rgb), 0.10), transparent 70%),
-    linear-gradient(160deg, var(--color-base-900), var(--color-base-950) 85%);
-  border: 1px solid var(--color-base-800);
-  overflow: hidden;
-}
-
-html[data-theme="light"] .screenshot-showcase {
-  background:
-    radial-gradient(ellipse 60% 80% at 15% 0%, rgba(var(--color-neon-rgb), 0.07), transparent 70%),
-    linear-gradient(160deg, var(--color-base-100, #f5f5f4), var(--color-base-50, #fafaf9) 85%);
+@media (max-width: 600px) {
+  .skill-file-workspace { grid-template-columns: minmax(0, 1fr); }
+  .skill-file-tree { height: 180px; border-right: 0; border-bottom: 1px solid var(--color-base-800); }
+  .skill-file-preview { height: 520px; }
+  .skill-preview-toolbar > div:first-child { flex-basis: 100%; }
+  .detail-tab-btn { padding: 10px 12px; }
 }
 
 .screenshot-strip {
@@ -2063,6 +2010,8 @@ html[data-theme="light"] .screenshot-thumb {
   z-index: 100;
   max-height: none;
   min-height: 100vh;
+  height: 100dvh;
+  background: var(--color-base-950);
   border-radius: 0;
   border: none;
 }
