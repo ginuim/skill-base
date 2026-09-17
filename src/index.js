@@ -254,6 +254,8 @@ async function start() {
     };
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
+    // nodemon default restart signal; without this the wasm <db>.lock dir is left behind.
+    process.on('SIGUSR2', () => shutdown('SIGUSR2'));
 
     await fastify.listen({ port: PORT, host: HOST });
     infoLog({

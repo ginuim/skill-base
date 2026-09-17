@@ -93,6 +93,7 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 缓存总容量通过环境变量 `CACHE_MAX_MB` 控制，默认 `50`（MB）。
 - 服务健康检查 `GET /api/v1/health` 会返回简化缓存统计，可用于部署后观察缓存是否生效。
 - 任何涉及 Skill/Version/User 的写路径都应在数据库写入成功后显式失效相关缓存，不要尝试做“通用 SQL 缓存”。
+- `node-sqlite3-wasm` 用 `data/skills.db.lock` 空目录当互斥锁。`npm run dev` 只 watch `src/`（见 `nodemon.json`），并对 SIGUSR2 做 close；否则 nodemon 重启会留下锁目录，下次启动报 `database is locked`。残留空目录且确认无其它进程时，删掉即可。
 
 ## Code Style
 

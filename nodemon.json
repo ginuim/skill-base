@@ -1,0 +1,7 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": ["data", "web", "static", "tests"],
+  "delay": 400,
+  "signal": "SIGUSR2"
+}

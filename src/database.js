@@ -157,7 +157,34 @@ function bindArgs(args) {
 
 tryNormalizeSqliteJournalForWasm(dbPath);
 
+function isSqliteBusyError(err) {
+  return /locked|busy/i.test(String(err && err.message));
+}
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
 function openRawDatabaseOrMigrate() {
+  let lastBusy;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    try {
+      return openRawDatabaseOnce();
+    } catch (err) {
+      if (!isSqliteBusyError(err)) throw err;
+      lastBusy = err;
+      sleepSync(50);
+    }
+  }
+  throw new Error(
+    `SQLite 数据库被锁定: ${dbPath}` +
+      `\nnode-sqlite3-wasm 用 ${dbPath}.lock 目录互斥。` +
+      '若确认没有其它 Skill Base 进程，删除该空目录后重试。' +
+      `\n${lastBusy && lastBusy.message ? lastBusy.message : lastBusy}`
+  );
+}
+
+function openRawDatabaseOnce() {
   let db;
   try {
     db = new Database(dbPath);
