@@ -63,7 +63,7 @@
 
             <!-- Description -->
             <div class="skill-desc-wrap group">
-              <p class="skill-desc whitespace-pre-wrap">
+              <p class="skill-desc whitespace-pre-wrap" :class="{ 'skill-desc--collapsed': !descriptionExpanded && (skill.description || '').length > 180 }">
                 {{ skill.description || t('state.noDesc') }}
               </p>
               <button
@@ -76,6 +76,7 @@
               </button>
             </div>
 
+            <button v-if="(skill.description || '').length > 180" class="description-toggle" :aria-expanded="descriptionExpanded" @click="descriptionExpanded = !descriptionExpanded">{{ t(descriptionExpanded ? 'skill.lessDescription' : 'skill.moreDescription') }}</button>
             <div class="skill-metadata flex flex-wrap items-center gap-2">
               <span v-if="skill.visibility === 'private'" class="skill-meta-chip skill-meta-chip-private">PRIVATE</span>
               <button
@@ -163,43 +164,17 @@
               <ChevronDown class="w-4 h-4 absolute right-4 top-3 pointer-events-none text-base-400" :stroke-width="2" aria-hidden="true" />
             </div>
             <div class="skill-install-actions">
-              <div v-if="installCliCommand" class="relative inline-flex items-stretch w-full min-w-0 cli-install-help-group">
-                <button
-                  type="button"
-                  class="inline-flex flex-1 items-center justify-center gap-2 text-sm font-mono px-4 py-2.5 rounded-l-lg border border-base-800 bg-base-950 text-base-300 hover:text-neon-400 hover:border-neon-500/40 hover:bg-neon-400/5 transition-colors text-left max-w-full min-w-0 w-full cursor-pointer"
-                  :title="t('skill.copyInstallHint')"
-                  @click="copyInstallCommand"
-                >
-                  <Copy class="w-4 h-4 shrink-0 opacity-70" :stroke-width="2" aria-hidden="true" />
-                  <span class="min-w-0 text-left">{{ installCliCommand }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="inline-flex items-center justify-center shrink-0 w-9 rounded-r-lg border border-l-0 border-base-800 bg-base-950 text-base-400 hover:text-neon-400 hover:border-neon-500/40 hover:bg-neon-400/5 transition-colors cursor-pointer"
-                  :aria-label="t('skill.cliInstallHelpAria')"
-                  :aria-expanded="showCliInstallHelp"
-                  @click.stop="showCliInstallHelp = !showCliInstallHelp"
-                >
-                  ?
-                </button>
-                <div
-                  v-if="showCliInstallHelp"
-                  class="cli-install-help-popover"
-                  role="tooltip"
-                >
-                  <p class="cli-install-help-title">{{ t('skill.cliInstallHelpTitle') }}</p>
-                  <p class="cli-install-help-desc">{{ t('skill.cliInstallHelpDesc') }}</p>
-                  <button
-                    type="button"
-                    class="cli-install-help-code cli-install-help-code-btn"
-                    :title="t('skill.copyInstallHint')"
-                    @click.stop="copyCliPackageInstallCommand"
-                  >
-                    <span class="min-w-0 text-left">{{ CLI_PACKAGE_INSTALL_CMD }}</span>
-                    <Copy class="w-3 h-3 shrink-0 opacity-70" :stroke-width="2" aria-hidden="true" />
-                  </button>
-                </div>
+              <div class="install-methods" role="group" :aria-label="t('skill.installTitle')">
+                <button v-for="method in (['agent', 'cli'] as const)" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(method === 'agent' ? 'skill.agentMethod' : 'skill.cliMethod') }}</button>
               </div>
+              <p class="install-hint">{{ t(installMethod === 'agent' ? 'skill.agentHint' : 'skill.cliHint') }}</p>
+              <div class="install-content">
+                <pre>{{ installContent }}</pre>
+                <button type="button" class="install-copy" @click="copyTextToClipboard(installContent)">
+                  <Copy class="w-3.5 h-3.5" aria-hidden="true" />{{ t(installMethod === 'agent' ? 'skill.copyPrompt' : 'skill.copyCommands') }}
+                </button>
+              </div>
+              <div class="install-secondary-actions">
               <button
                 @click="downloadCurrentVersion"
                 class="skill-download-button"
@@ -214,18 +189,20 @@
                 <GitCompareArrows class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
                 {{ t('skill.compare') }}
               </button>
+              </div>
             </div>
           </div>
         </header>
 
-        <!-- Tabs: Files / Versions / Team -->
-        <div class="detail-tabs mb-6">
+        <!-- Files / Preview / Versions / Team -->
+        <div class="detail-tabs mb-6" aria-label="Skill">
           <button
             v-for="tab in detailTabs"
             :key="tab.key"
             type="button"
             class="detail-tab-btn"
             :class="{ 'detail-tab-btn--active': activeTab === tab.key }"
+            :aria-pressed="activeTab === tab.key"
             @click="activeTab = tab.key"
           >
             {{ tab.label }}
@@ -316,11 +293,11 @@
           </div>
         </section>
 
-        <!-- Screenshots stay with the files they illustrate -->
-        <section v-if="(skill.screenshots || []).length > 0 || canManageCollaborators" v-show="activeTab === 'files'" class="screenshot-showcase">
+        <!-- Effect previews have a discoverable tab without dominating the overview. -->
+        <section v-if="(skill.screenshots || []).length > 0 || canManageCollaborators" v-show="activeTab === 'preview'" class="screenshot-showcase">
           <div class="flex items-center justify-between gap-3">
             <div class="text-sm text-base-400 flex items-center gap-2">
-              {{ t('skill.screenshots') }}
+              {{ t('skill.tabPreview') }}
             </div>
             <button
               v-if="canManageCollaborators"
@@ -333,19 +310,22 @@
               {{ isUploadingScreenshot ? t('skill.screenshotUploading') : '+ ' + t('skill.screenshotUpload') }}
             </button>
           </div>
+          <p class="preview-description">{{ t('skill.previewHint') }}</p>
+          <div v-if="!(skill.screenshots || []).length" class="preview-empty">{{ t('skill.previewEmpty') }}</div>
           <div v-if="(skill.screenshots || []).length > 0" class="screenshot-strip">
             <figure
               v-for="shot in skill.screenshots"
               :key="shot.id"
               class="screenshot-thumb group"
             >
+              <button type="button" class="screenshot-open" :aria-label="t('skill.screenshotPreview')" @click="openLightbox(shot.id)">
               <img
                 :src="screenshotSrc(shot)"
                 :alt="t('skill.screenshotPreview')"
                 loading="lazy"
                 class="screenshot-img"
-                @click="openLightbox(shot.id)"
               />
+              </button>
               <button
                 v-if="canManageCollaborators"
                 type="button"
@@ -367,12 +347,12 @@
         </section>
 
         <!-- Team & Access tab: left collaborators, right ACL + Webhook -->
-        <div v-if="canManageCollaborators && activeTab === 'team'">
-          <div class="grid grid-cols-1 gap-6" :class="{ 'lg:grid-cols-2': skillsStore.isOwner }">
+        <div v-if="canManageCollaborators && activeTab === 'team'" class="team-settings">
+          <div class="team-settings-grid">
           <div class="bg-base-900 border border-base-800 rounded-xl h-fit">
             <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-fg-strong flex items-center justify-between text-sm">
               <div class="flex items-center gap-2">
-                <span class="text-neon-400">#</span> {{ t('skill.collaborators') }}
+                {{ t('skill.collaborators') }}
               </div>
               <button
                 v-if="skillsStore.isOwner"
@@ -439,15 +419,17 @@
           <!-- Right column: ACL (visibility) + Webhook (owner only) -->
           <div v-if="skillsStore.isOwner" class="bg-base-900 border border-base-800 rounded-xl h-fit">
             <div class="px-5 py-4 border-b border-base-800 font-mono font-semibold text-fg-strong text-sm">
-              <span class="text-neon-400">#</span> {{ t('skill.tabAccess') }}
+              {{ t('skill.tabAccess') }}
             </div>
             <div class="px-5 py-4">
               <div class="font-mono text-xs text-fg-strong/90 mb-1 flex items-center gap-2">
-                <span class="text-neon-400">acl</span>
+
                 {{ t('skill.visibilityTitle') }}
               </div>
               <p class="text-[11px] text-base-500 mb-2 leading-relaxed">{{ t('skill.visibilityHint') }}</p>
               <select
+                id="skill-visibility"
+                :aria-label="t('skill.visibilityTitle')"
                 v-model="visibilityDraft"
                 class="w-full bg-base-950 border border-base-800 text-fg-strong text-xs font-mono rounded px-3 py-2 mb-2 focus:outline-none focus:border-neon-500"
               >
@@ -464,11 +446,13 @@
                 {{ t('skill.visibilitySave') }}
               </button>
               <div class="font-mono text-xs text-fg-strong/90 mb-1 flex items-center gap-2">
-                <span class="text-neon-400">hook</span>
+
                 {{ t('skill.webhookTitle') }}
               </div>
               <p class="text-[11px] text-base-500 mb-2 leading-relaxed">{{ t('skill.webhookHint') }}</p>
               <input
+                id="skill-webhook"
+                :aria-label="t('skill.webhookTitle')"
                 v-model="webhookDraft"
                 type="url"
                 autocomplete="off"
@@ -488,11 +472,11 @@
           </div>
           </div>
 
-          <!-- Danger Zone (owner only, full width) -->
-          <div v-if="skillsStore.isOwner" class="mt-6 border border-red-500/20 bg-red-500/5 rounded-xl px-5 py-4">
+          <!-- Destructive action remains secondary. -->
+          <div v-if="skillsStore.isOwner" class="danger-setting"><div><h3>{{ t('skill.deleteSkill') }}</h3><p>{{ t('skill.deleteHint') }}</p></div>
             <button
               @click="showDeleteModal = true"
-              class="w-full py-2 text-xs font-mono text-red-500 border border-red-500/30 rounded bg-red-500/5 hover:bg-red-500/10 transition-colors"
+              class="danger-button"
             >
               {{ t('skill.deleteSkill') }}
             </button>
@@ -551,7 +535,7 @@
                         <span class="text-xs text-base-400 font-mono whitespace-nowrap text-right" :title="formatDateFull(v.created_at)">{{ formatDate(v.created_at, currentLang) }}</span>
                         <span class="text-[10px] text-base-500 font-mono">{{ v.download_count }} {{ t('skill.downloadCount') }}</span>
                       </div>
-                      
+
                       <button
                         v-if="canManageCollaborators && v.version !== skill.latest_version"
                         title="Set as Head"
@@ -771,6 +755,7 @@ import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
 import CollaboratorUserPicker from '@/components/CollaboratorUserPicker.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate, formatDateFull } from '@/utils/date'
+import { appBasePath, withBasePath } from '@/utils/basePath'
 
 const route = useRoute()
 const router = useRouter()
@@ -797,27 +782,23 @@ const showAuthHint = computed(() => {
   return !authStore.isLoggedIn && authStore.hasFetchedUser && skillsStore.errorStatus === 404
 })
 
+const descriptionExpanded = ref(false)
+const installMethod = ref<'agent' | 'cli'>('agent')
+const installSite = window.location.origin + appBasePath.replace(/\/$/, '')
+// Single-quoted arguments preserve literal values when pasted into a POSIX shell.
+const shellQuote = (value: string) => "'" + value.replace(/'/g, "'\"'\"'") + "'"
 const installCliCommand = computed(() => {
-  const id = skill.value?.id?.trim()
-  if (!id) return ''
-  return `skb install ${id}`
+  const target = `${skill.value?.id || skillId.value}${currentVersion.value ? '@' + currentVersion.value : ''}`
+  return `skb install ${shellQuote(target)}`
 })
-
-const CLI_PACKAGE_INSTALL_CMD = 'npm install -g skill-base-cli'
-
-const showCliInstallHelp = ref(false)
-
-function closeCliInstallHelp() {
-  showCliInstallHelp.value = false
-}
-
-function onDocumentClickForCliHelp(e: MouseEvent) {
-  if (!showCliInstallHelp.value) return
-  const target = e.target
-  if (!(target instanceof Element)) return
-  if (target.closest('.cli-install-help-group')) return
-  closeCliInstallHelp()
-}
+const installCommands = computed(() => [
+  'npm install -g skill-base-cli',
+  `skb init --server ${shellQuote(installSite)}`,
+  ...(skill.value?.visibility === 'private' ? ['skb login'] : []),
+  installCliCommand.value,
+].join('\n'))
+const installContent = computed(() => installMethod.value === 'cli' ? installCommands.value :
+  `${t('skill.agentPrompt')}\n${window.location.origin}${withBasePath('/skills/' + encodeURIComponent(skillId.value))}\n\n${installCommands.value}\n\n${t('skill.agentPromptEnd')}`)
 
 async function copyTextToClipboard(text: string) {
   if (!text) return
@@ -844,14 +825,6 @@ async function copyTextToClipboard(text: string) {
   }
 }
 
-async function copyInstallCommand() {
-  await copyTextToClipboard(installCliCommand.value)
-}
-
-async function copyCliPackageInstallCommand() {
-  await copyTextToClipboard(CLI_PACKAGE_INSTALL_CMD)
-}
-
 // Version management
 const versions = ref<SkillVersion[]>([])
 const currentVersion = ref<string>('')
@@ -873,16 +846,19 @@ const isMarkdownFile = computed(() => {
 
 // UI state
 const isInitializing = ref(true)
-const activeTab = ref<'files' | 'versions' | 'team'>('files')
+const activeTab = ref<'files' | 'preview' | 'versions' | 'team'>('files')
 const canManageCollaborators = computed(() => {
   if (!skill.value) return false
   return skill.value.permission === 'owner' || skill.value.permission === 'collaborator'
 })
 const detailTabs = computed(() => {
-  const tabs: Array<{ key: 'files' | 'versions' | 'team'; label: string }> = [
+  const tabs: Array<{ key: 'files' | 'preview' | 'versions' | 'team'; label: string }> = [
     { key: 'files' as const, label: t('skill.tabFiles') },
     { key: 'versions' as const, label: t('skill.tabVersions') },
   ]
+  if ((skill.value?.screenshots || []).length || canManageCollaborators.value) {
+    tabs.splice(1, 0, { key: 'preview', label: `${t('skill.tabPreview')}${skill.value?.screenshots?.length ? ' · ' + skill.value.screenshots.length : ''}` })
+  }
   if (canManageCollaborators.value) {
     tabs.push({ key: 'team' as const, label: t('skill.tabTeam') })
   }
@@ -1132,7 +1108,7 @@ const highlightedCodeLines = computed(() => {
   if (!selectedFileContent.value) return []
   const content = normalizeLineEndings(selectedFileContent.value)
   const language = isMarkdownFile.value && markdownMode.value === 'source' ? 'markdown' : getLanguage(selectedFilePath.value)
-  
+
   let highlighted: string
   try {
     highlighted = hljs.highlight(content, { language }).value
@@ -1145,7 +1121,7 @@ const highlightedCodeLines = computed(() => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;')
   }
-  
+
   return highlighted.split('\n')
 })
 
@@ -1192,12 +1168,10 @@ onMounted(async () => {
 
   // ESC 键退出全屏
   document.addEventListener('keydown', handleEscKey)
-  document.addEventListener('click', onDocumentClickForCliHelp)
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscKey)
-  document.removeEventListener('click', onDocumentClickForCliHelp)
 })
 
 async function loadVersions() {
@@ -1854,7 +1828,7 @@ html[data-theme="light"] .card {
 /* Overview and installation stay together; the file reader is the main content. */
 .skill-breadcrumb { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; font-size: 13px; color: var(--color-base-400); overflow-wrap: anywhere; }
 .skill-breadcrumb a:hover { color: var(--color-fg-strong); }
-.skill-hero { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 48px; align-items: start; margin-bottom: 32px; }
+.skill-hero { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 48px; align-items: start; margin-bottom: 32px; }
 .skill-summary { min-width: 0; }
 .skill-title { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.25; overflow-wrap: anywhere; }
 .skill-desc-wrap { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 20px; }
@@ -1863,7 +1837,6 @@ html[data-theme="light"] .card {
 .skill-install-panel { padding: 20px; border: 1px solid var(--color-base-800); border-radius: 8px; background: var(--color-base-950); min-width: 0; }
 .skill-panel-title { margin-bottom: 16px; font-size: 15px; font-weight: 600; color: var(--color-fg-strong); }
 .skill-field-label { display: block; font-size: 12px; color: var(--color-base-400); margin-bottom: 6px; }
-.cli-install-help-group > button:first-child { overflow-wrap: anywhere; word-break: normal; font-size: 12px; }
 .skill-install-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .skill-download-button, .skill-compare-button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 150ms; }
 .skill-download-button { order: 1; background: var(--color-fg-strong); color: var(--color-base-950); border: 1px solid var(--color-fg-strong); }
@@ -1924,8 +1897,9 @@ html[data-theme="light"] .screenshot-thumb {
 }
 
 .screenshot-img {
-  height: 15rem;
-  width: auto;
+  height: 19rem;
+  width: 100%;
+  object-fit: contain;
   display: block;
   cursor: zoom-in;
 }
@@ -1943,7 +1917,7 @@ html[data-theme="light"] .screenshot-thumb {
   font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.15s;
 }
 
@@ -2299,57 +2273,34 @@ html[data-theme="light"] .screenshot-thumb {
   margin-bottom: 1rem;
 }
 
-.cli-install-help-popover {
-  position: absolute;
-  bottom: calc(100% + 0.5rem);
-  right: 0;
-  z-index: 20;
-  width: min(18rem, calc(100vw - 2rem));
-  padding: 0.75rem 0.875rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-base-800);
-  background: var(--color-base-900);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-}
 
-.cli-install-help-title {
-  margin: 0 0 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-fg-strong);
-}
-
-.cli-install-help-desc {
-  margin: 0 0 0.5rem;
-  font-size: 0.6875rem;
-  line-height: 1.5;
-  color: var(--color-base-400);
-}
-
-.cli-install-help-code {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.375rem;
-  width: 100%;
-  padding: 0.375rem 0.5rem;
-  border-radius: 0.375rem;
-  background: var(--color-base-950);
-  border: 1px solid var(--color-base-800);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.6875rem;
-  color: var(--color-neon-400);
-  word-break: break-all;
-}
-
-.cli-install-help-code-btn {
-  cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
-}
-
-.cli-install-help-code-btn:hover {
-  border-color: rgba(var(--color-neon-rgb), 0.4);
-  background: rgba(var(--color-neon-rgb), 0.05);
-  color: var(--color-neon-400);
-}
+.skill-desc--collapsed { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.description-toggle { display: block; margin: -8px 0 20px; color: var(--color-neon-400); font-size: 12px; cursor: pointer; }
+.install-methods { display: flex; padding: 3px; border-radius: 7px; background: var(--color-base-900); border: 1px solid var(--color-base-800); }
+.install-methods button { flex: 1; padding: 7px; font-size: 12px; border-radius: 5px; color: var(--color-base-400); cursor: pointer; }
+.install-methods .is-selected { background: var(--color-base-950); color: var(--color-fg-strong); box-shadow: 0 1px 3px #0001; }
+.install-secondary-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.install-hint, .preview-description { font-size: 12px; line-height: 1.7; color: var(--color-base-400); }
+.install-content { border: 1px solid var(--color-base-800); border-radius: 6px; overflow: hidden; }
+.install-content pre { margin: 0; padding: 12px; max-height: 125px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; }
+.install-copy { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 8px; border-top: 1px solid var(--color-base-800); color: var(--color-neon-400); font-size: 12px; cursor: pointer; background: rgba(var(--color-neon-rgb), .04); }
+.detail-tabs { overflow-x: auto; }
+.detail-tab-btn { white-space: nowrap; }
+.preview-description { margin: 12px 0; }
+.preview-empty { padding: 64px 20px; text-align: center; border: 1px dashed var(--color-base-800); border-radius: 8px; color: var(--color-base-400); font-size: 14px; }
+.screenshot-open { display: block; width: 100%; cursor: zoom-in; }
+.screenshot-thumb { width: min(480px, 78vw); box-shadow: none; border-radius: 8px; }
+.screenshot-thumb:hover { transform: none; box-shadow: none; }
+.team-settings { max-width: 960px; margin-inline: auto; }
+.team-settings-grid { display: grid; gap: 24px; }
+.team-settings .font-mono { font-family: inherit; }
+.team-settings-grid > div { background: var(--color-base-950); }
+.team-settings-grid select, .team-settings-grid input { max-width: 580px; display: block; font-size: 13px; }
+.team-settings-grid button.w-full { width: auto; padding-inline: 16px; }
+.team-settings-grid p { font-size: 12px; }
+.danger-setting { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 24px; padding: 20px; border: 1px solid var(--color-base-800); border-radius: 12px; }
+.danger-setting h3 { font-size: 14px; font-weight: 600; }
+.danger-setting p { font-size: 12px; color: var(--color-base-400); margin-top: 6px; }
+.danger-button { flex-shrink: 0; border: 1px solid #ef444450; border-radius: 6px; color: #ef4444; font-size: 12px; padding: 8px 14px; cursor: pointer; }
+@media (max-width: 600px) { .danger-setting { align-items: flex-start; flex-direction: column; } .skill-hero { gap: 20px; } }
 </style>

@@ -100,7 +100,7 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 异步函数使用 async/await
 - 错误处理通过 Fastify error handler
 - Web 前端使用 Vue 3 Composition API 与 `<script setup lang="ts">`；运行 `npm run build --prefix web` 生成 `static/`，不要手改构建产物。
-- Skill 详情页顶部为技能介绍与安装/版本操作，下方按文件、版本历史、成员与权限分区；截图属于文件页签。
+- Skill 详情页顶部为技能介绍与安装/版本操作，下方按文件、效果预览、版本历史、成员与权限分区；截图属于独立的效果预览页签（有截图或有管理权限时显示）。安装面板支持 AI Agent Prompt / 命令行切换，复制内容须包含当前站点与所选版本；长介绍默认折叠。
 
 ## Documentation Checklist
 

@@ -127,6 +127,8 @@ skb search vue
 skb search "react component"
 ```
 
+Web 技能详情页提供「AI Agent / 命令行」安装方式切换，可复制包含 CLI 安装、站点配置和当前浏览版本的完整命令。私有技能会包含登录步骤；AI Agent Prompt 会提示助手确认对应的技能安装目录。
+
 ### `skb install <target>`
 
 ```bash
