@@ -52,6 +52,7 @@
           <span aria-current="page">{{ skill.name }}</span>
         </nav>
 
+        <div class="skill-detail-layout">
         <!-- Skill Header (open, page-like layout) -->
         <header id="skill-info" class="skill-hero">
           <div class="skill-summary">
@@ -119,12 +120,10 @@
                   v-for="person in contributorStack"
                   :key="person.id"
                   type="button"
-                  class="contributor-avatar"
-                  :class="person.isOwner ? 'contributor-avatar-owner' : 'contributor-avatar-collab'"
+                  class="contributor-avatar contributor-avatar-collab"
                   :title="contributorLabel(person)"
                   :aria-label="contributorLabel(person)"
-                  :disabled="!canManageCollaborators"
-                  @click="activeTab = 'team'"
+                  @click="activeTab = 'versions'"
                 >
                   <UserAvatar
                     :avatar="person.avatar"
@@ -137,15 +136,15 @@
                   v-if="contributorOverflow > 0"
                   type="button"
                   class="contributor-avatar contributor-avatar-more"
-                  :aria-label="t('skill.tabTeam')"
-                  :title="t('skill.tabTeam')"
-                  :disabled="!canManageCollaborators"
-                  @click="activeTab = 'team'"
+                  :aria-label="t('skill.tabVersions')"
+                  :title="t('skill.tabVersions')"
+                  @click="activeTab = 'versions'"
                 >+{{ contributorOverflow }}</button>
               </div>
             </div>
           </div>
 
+        </header>
           <!-- Installation and version actions -->
           <div class="skill-install-panel">
             <h2 class="skill-panel-title">{{ t('skill.installTitle') }}</h2>
@@ -192,8 +191,8 @@
               </div>
             </div>
           </div>
-        </header>
 
+        <div class="skill-detail-content">
         <!-- Files / Preview / Versions / Team -->
         <div class="detail-tabs mb-6" aria-label="Skill">
           <button
@@ -572,6 +571,8 @@
             </div>
           </div>
         </div>
+        </div>
+        </div>
       </template>
     </div>
 
@@ -865,26 +866,29 @@ const detailTabs = computed(() => {
   return tabs
 })
 
-// Contributors avatar stack (owner first, then collaborators)
+// A contributor must have published a version; access membership alone is not a contribution.
 const CONTRIBUTOR_STACK_MAX = 8
-const contributorStack = computed(() => {
-  const s = skill.value
-  if (!s) return []
-  const people = [
-    { id: s.owner?.id ?? -1, username: s.owner?.username ?? '', name: s.owner?.name ?? null, avatar: s.owner?.avatar ?? null, isOwner: true },
-    ...(s.collaborators || []).map((c) => ({ id: c.id, username: c.username, name: c.name, avatar: c.avatar ?? null, isOwner: false })),
-  ]
-  return people.slice(0, CONTRIBUTOR_STACK_MAX)
+const contributors = computed(() => {
+  const people = new Map<number, { id: number; username: string; name: string | null; avatar: string | null }>()
+  const members = [skill.value?.owner, ...(skill.value?.collaborators || [])]
+  for (const version of versions.value) {
+    const uploader = version.uploader
+    if (!uploader?.id || people.has(uploader.id)) continue
+    const member = members.find((person) => person?.id === uploader.id)
+    people.set(uploader.id, {
+      id: uploader.id,
+      username: uploader.username || '',
+      name: uploader.name || null,
+      avatar: uploader.avatar || member?.avatar || null,
+    })
+  }
+  return [...people.values()]
 })
-const contributorOverflow = computed(() => {
-  const s = skill.value
-  if (!s) return 0
-  const total = 1 + (s.collaborators || []).length
-  return Math.max(0, total - CONTRIBUTOR_STACK_MAX)
-})
+const contributorStack = computed(() => contributors.value.slice(0, CONTRIBUTOR_STACK_MAX))
+const contributorOverflow = computed(() => Math.max(0, contributors.value.length - CONTRIBUTOR_STACK_MAX))
 
-function contributorLabel(person: { name: string | null; username: string; isOwner: boolean }) {
-  return `${person.name || person.username} · ${t(person.isOwner ? 'collab.owner' : 'collab.collaborator')}`
+function contributorLabel(person: { name: string | null; username: string }) {
+  return `${person.name || person.username} · ${t('skill.tabVersions')}`
 }
 
 // Screenshots
@@ -1828,13 +1832,15 @@ html[data-theme="light"] .card {
 /* Overview and installation stay together; the file reader is the main content. */
 .skill-breadcrumb { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; font-size: 13px; color: var(--color-base-400); overflow-wrap: anywhere; }
 .skill-breadcrumb a:hover { color: var(--color-fg-strong); }
-.skill-hero { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 48px; align-items: start; margin-bottom: 32px; }
+.skill-detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto 1fr; column-gap: 48px; row-gap: 28px; align-items: start; }
+.skill-hero { grid-column: 1; grid-row: 1; min-width: 0; }
+.skill-detail-content { grid-column: 1; grid-row: 2; min-width: 0; }
 .skill-summary { min-width: 0; }
 .skill-title { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.25; overflow-wrap: anywhere; }
 .skill-desc-wrap { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 20px; }
 .skill-desc { min-width: 0; flex: 1; font-size: 14px; line-height: 1.8; color: var(--color-fg); overflow-wrap: anywhere; }
 .skill-desc-edit { margin-top: 2px; }
-.skill-install-panel { padding: 20px; border: 1px solid var(--color-base-800); border-radius: 8px; background: var(--color-base-950); min-width: 0; }
+.skill-install-panel { grid-column: 2; grid-row: 1 / 3; min-width: 0; padding: 0; }
 .skill-panel-title { margin-bottom: 16px; font-size: 15px; font-weight: 600; color: var(--color-fg-strong); }
 .skill-field-label { display: block; font-size: 12px; color: var(--color-base-400); margin-bottom: 6px; }
 .skill-install-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
@@ -1843,16 +1849,17 @@ html[data-theme="light"] .card {
 .skill-download-button:hover { background: var(--color-fg); }
 .skill-compare-button { order: 2; color: var(--color-base-400); }
 .skill-compare-button:hover { color: var(--color-fg-strong); background: var(--color-base-900); }
-.skill-file-workspace { display: grid; grid-template-columns: 240px minmax(0, 1fr); border: 1px solid var(--color-base-800); border-radius: 8px; overflow: hidden; margin-bottom: 24px; background: var(--color-base-950); }
+.skill-file-workspace { display: grid; grid-template-columns: 180px minmax(0, 1fr); border: 0; border-radius: 0; overflow: hidden; margin-bottom: 24px; background: var(--color-base-950); }
 .skill-file-tree, .skill-file-preview { display: flex; flex-direction: column; min-width: 0; height: 600px; }
 .skill-file-tree { border-right: 1px solid var(--color-base-800); background: var(--color-base-900); }
 .skill-file-toolbar { display: flex; align-items: center; min-height: 52px; padding: 10px 16px; border-bottom: 1px solid var(--color-base-800); color: var(--color-base-400); font-size: 13px; gap: 12px; }
 .skill-preview-toolbar { justify-content: space-between; flex-wrap: wrap; }
 .skill-preview-toolbar > div:first-child { min-width: 0; flex: 1; }
 .skill-file-path { font-family: var(--font-mono); overflow-wrap: anywhere; font-size: 12px; color: var(--color-fg); }
-.screenshot-showcase { padding: 16px; border: 1px solid var(--color-base-800); border-radius: 8px; margin-bottom: 24px; }
+.screenshot-showcase { margin-bottom: 24px; }
 @media (max-width: 900px) {
-  .skill-hero { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .skill-detail-layout { display: flex; flex-direction: column; gap: 28px; }
+  .skill-detail-layout > * { width: 100%; }
   .skill-file-workspace { grid-template-columns: 190px minmax(0, 1fr); }
 }
 @media (max-width: 600px) {
@@ -1875,25 +1882,8 @@ html[data-theme="light"] .card {
   position: relative;
   flex-shrink: 0;
   margin: 0;
-  border-radius: 0.875rem;
   overflow: hidden;
-  border: 1px solid var(--color-base-800);
-  background: var(--color-base-950);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.45);
   scroll-snap-align: start;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-
-html[data-theme="light"] .screenshot-thumb {
-  box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.18);
-}
-
-.screenshot-thumb:hover {
-  transform: translateY(-4px);
-  border-color: rgba(var(--color-neon-rgb), 0.45);
-  box-shadow:
-    0 18px 44px -10px rgba(0, 0, 0, 0.55),
-    0 0 24px -4px rgba(var(--color-neon-rgb), 0.25);
 }
 
 .screenshot-img {
@@ -1947,7 +1937,7 @@ html[data-theme="light"] .screenshot-thumb {
   max-width: 90vw;
   max-height: 85vh;
   border-radius: 0.5rem;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
 }
 
 .screenshot-lightbox-close {
@@ -2278,29 +2268,34 @@ html[data-theme="light"] .screenshot-thumb {
 .description-toggle { display: block; margin: -8px 0 20px; color: var(--color-neon-400); font-size: 12px; cursor: pointer; }
 .install-methods { display: flex; padding: 3px; border-radius: 7px; background: var(--color-base-900); border: 1px solid var(--color-base-800); }
 .install-methods button { flex: 1; padding: 7px; font-size: 12px; border-radius: 5px; color: var(--color-base-400); cursor: pointer; }
-.install-methods .is-selected { background: var(--color-base-950); color: var(--color-fg-strong); box-shadow: 0 1px 3px #0001; }
+.install-methods .is-selected { background: transparent; color: var(--color-fg-strong); border-bottom: 2px solid var(--color-fg-strong); }
 .install-secondary-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .install-hint, .preview-description { font-size: 12px; line-height: 1.7; color: var(--color-base-400); }
-.install-content { border: 1px solid var(--color-base-800); border-radius: 6px; overflow: hidden; }
+.install-content { border: 0; border-radius: 0; overflow: hidden; }
 .install-content pre { margin: 0; padding: 12px; max-height: 125px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; }
 .install-copy { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 8px; border-top: 1px solid var(--color-base-800); color: var(--color-neon-400); font-size: 12px; cursor: pointer; background: rgba(var(--color-neon-rgb), .04); }
 .detail-tabs { overflow-x: auto; }
 .detail-tab-btn { white-space: nowrap; }
 .preview-description { margin: 12px 0; }
-.preview-empty { padding: 64px 20px; text-align: center; border: 1px dashed var(--color-base-800); border-radius: 8px; color: var(--color-base-400); font-size: 14px; }
+.preview-empty { padding: 64px 20px; text-align: center; border: 0; color: var(--color-base-400); font-size: 14px; }
 .screenshot-open { display: block; width: 100%; cursor: zoom-in; }
-.screenshot-thumb { width: min(480px, 78vw); box-shadow: none; border-radius: 8px; }
-.screenshot-thumb:hover { transform: none; box-shadow: none; }
+.screenshot-thumb { width: auto; max-width: 100%; }
+.screenshot-img { width: auto; max-width: 100%; }
 .team-settings { max-width: 960px; margin-inline: auto; }
 .team-settings-grid { display: grid; gap: 24px; }
 .team-settings .font-mono { font-family: inherit; }
-.team-settings-grid > div { background: var(--color-base-950); }
+.team-settings-grid > div { background: transparent; border: 0; border-radius: 0; }
+.team-settings-grid > div > div { padding-left: 0; padding-right: 0; }
 .team-settings-grid select, .team-settings-grid input { max-width: 580px; display: block; font-size: 13px; }
 .team-settings-grid button.w-full { width: auto; padding-inline: 16px; }
 .team-settings-grid p { font-size: 12px; }
-.danger-setting { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 24px; padding: 20px; border: 1px solid var(--color-base-800); border-radius: 12px; }
+.danger-setting { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 24px; padding: 20px 0; border-top: 1px solid var(--color-base-800); }
 .danger-setting h3 { font-size: 14px; font-weight: 600; }
 .danger-setting p { font-size: 12px; color: var(--color-base-400); margin-top: 6px; }
 .danger-button { flex-shrink: 0; border: 1px solid #ef444450; border-radius: 6px; color: #ef4444; font-size: 12px; padding: 8px 14px; cursor: pointer; }
 @media (max-width: 600px) { .danger-setting { align-items: flex-start; flex-direction: column; } .skill-hero { gap: 20px; } }
+.skill-detail-content > div > .bg-base-900 { background: transparent; border: 0; border-radius: 0; }
+.install-methods { background: transparent; border: 0; border-bottom: 1px solid var(--color-base-800); border-radius: 0; padding: 0; }
+.install-methods button { border-radius: 0; }
+.skill-file-tree { background: transparent; }
 </style>
