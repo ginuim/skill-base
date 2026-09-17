@@ -10,6 +10,7 @@ import '@fontsource/jetbrains-mono/400.css'
 import '@fontsource/jetbrains-mono/500.css'
 import '@fontsource/jetbrains-mono/700.css'
 import './assets/main.css'
+import './assets/flat-forms.css'
 import 'diff2html/bundles/css/diff2html.min.css'
 import { initTheme } from './theme'
 

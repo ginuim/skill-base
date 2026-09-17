@@ -41,7 +41,7 @@
           </button>
 
           <div class="lang-switcher" :class="{ active: showLangMenu }">
-            <button type="button" class="lang-switcher-trigger navbar-surface-btn sb-nav-action-btn" @click.stop="toggleLangMenu">
+            <button type="button" class="lang-switcher-trigger navbar-surface-btn sb-nav-action-btn" :aria-label="t('nav.language')" @click.stop="toggleLangMenu">
               <Globe :size="14" :stroke-width="2.2" aria-hidden="true" />
               <span>{{ currentLang === 'zh' ? '中文' : 'English' }}</span>
               <ChevronDown class="lang-chevron" :size="12" :stroke-width="2.5" aria-hidden="true" />
@@ -741,10 +741,11 @@ onUnmounted(() => {
 }
 @media (max-width: 420px) {
   .sb-nav-brand { gap: 6px; font-size: 16px; }
-  .sb-nav-brand > span:last-child { display: none; }
+  .sb-nav-brand > span { display: none; }
+  .navbar-user-btn .username { display: none; }
   .navbar .container { gap: 8px; }
 }
 @media (max-width: 360px) {
-  .sb-nav-brand > span { display: none; }
+  .lang-switcher-trigger > span { display: none; }
 }
 </style>

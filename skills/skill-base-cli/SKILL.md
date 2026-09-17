@@ -34,6 +34,8 @@ Web detail pages offer AI Agent prompts and CLI commands bound to the selected v
 
 Web contributor profiles at `/users/:id` list skills the user published versions for. Publishing via `skb publish` or GitHub import contributes to the same history; no separate CLI profile command is required.
 
+The Web publish form now reveals confirmation after content is read. CLI publish and GitHub-import arguments are unchanged.
+
 ## Environment
 
 - Node.js >= 18

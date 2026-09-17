@@ -1,0 +1,144 @@
+/* Content-first forms: sections stay on the page, controls carry their own affordance. */
+.flat-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 32px 72px;
+}
+.flat-back {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--color-base-400);
+  text-decoration: none;
+}
+.flat-back:hover {
+  color: var(--color-fg-strong);
+}
+.flat-header {
+  margin: 32px 0;
+}
+.flat-header h1 {
+  color: var(--color-fg-strong);
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+.flat-header p {
+  margin-top: 10px;
+  color: var(--color-base-400);
+  font-size: 14px;
+}
+.flat-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+}
+.flat-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flat-page label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-fg-strong);
+}
+.flat-page input:not([type='file']),
+.flat-page textarea,
+.flat-page select {
+  width: 100%;
+  background: var(--color-base-900);
+  border: 0;
+  border-radius: 6px;
+  color: var(--color-fg-strong);
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.flat-page input::placeholder,
+.flat-page textarea::placeholder {
+  color: var(--color-base-400);
+}
+.flat-page input[readonly] {
+  background: transparent;
+  padding-left: 0;
+  font-family: var(--font-mono);
+}
+.flat-page textarea {
+  resize: vertical;
+}
+.flat-page :is(input, textarea, select, button, summary, a):focus-visible {
+  outline: 2px solid var(--color-neon-400);
+  outline-offset: 3px;
+}
+.flat-page .flat-hint {
+  color: var(--color-base-400);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.flat-page .flat-primary,
+.flat-page .flat-secondary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  font: 500 13px/1.5 var(--font-sans);
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none;
+  transition: opacity 150ms;
+}
+.flat-page .flat-primary {
+  background: var(--color-fg-strong);
+  color: var(--color-base-950);
+}
+.flat-page .flat-secondary {
+  background: var(--color-base-900);
+  color: var(--color-fg-strong);
+}
+.flat-page .flat-primary:hover,
+.flat-page .flat-secondary:hover {
+  opacity: 0.8;
+}
+.flat-page button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.flat-page .flat-link,
+.flat-page summary {
+  color: var(--color-fg-strong);
+  font-size: 13px;
+  cursor: pointer;
+}
+.flat-page summary {
+  width: fit-content;
+}
+.flat-page summary::marker {
+  color: var(--color-base-400);
+}
+.flat-page .flat-link {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.flat-error {
+  color: var(--color-danger, #dc2626);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .flat-page {
+    padding: 24px 20px 48px;
+  }
+  .flat-header {
+    margin: 28px 0;
+  }
+  .flat-header h1 {
+    font-size: 25px;
+  }
+}

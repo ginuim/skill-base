@@ -103,6 +103,11 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - Web 前端使用 Vue 3 Composition API 与 `<script setup lang="ts">`；运行 `npm run build --prefix web` 生成 `static/`，不要手改构建产物。
 - Skill 详情页桌面端左列为技能介绍及紧随其后的文件、效果预览、版本历史、成员与权限分区，右列独立放置安装/版本操作，避免撑高介绍区域；截图属于独立的效果预览页签（有截图或有管理权限时显示）。安装面板支持 AI Agent Prompt / 命令行切换，复制内容须包含当前站点与所选版本；长介绍默认折叠。贡献者仅从版本 uploader 去重得出，不等同于所有者或协作者；头像可用同 ID 成员信息补全。截图不使用装饰边框、卡片或阴影。
 
+## Form Layout
+
+- 发布与账户设置复用 `web/src/assets/flat-forms.css`：页面不包卡片，不加装饰边框或阴影；用留白、标题和必要的分隔线组织内容。输入控件保留轻底色和焦点提示。
+- GitHub 导入先填仓库，分支与子目录收进高级选项；读取成功才显示确认与发布区。改变仓库来源后须重新预览。头像选择和修改密码默认收起，头像仍随“保存修改”提交。
+
 ## Contributor Profiles
 
 - 首页列表贡献者最多显示 3 个头像，超出用 `+N` 展开；头像链接 `/users/:id`。详情页复用同一头像组件。

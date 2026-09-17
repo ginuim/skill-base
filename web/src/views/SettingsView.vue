@@ -1,175 +1,153 @@
 <template>
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-    <div class="max-w-2xl mx-auto">
-      <!-- 面包屑 -->
-      <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-        <span class="text-neon-400">~</span>
-        <span class="opacity-50">/</span>
-        <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('nav.home') }}</router-link>
-        <span class="opacity-50">/</span>
-        <span class="text-fg-strong">{{ t('nav.settings') }}</span>
+  <main class="flat-page settings-page">
+    <router-link to="/" class="flat-back">← {{ t('nav.home') }}</router-link>
+    <header class="flat-header">
+      <h1>{{ t('settings.heading') }}</h1>
+      <p>{{ t('settings.subtitle') }}</p>
+    </header>
+    <section class="settings-section">
+      <div class="section-intro">
+        <h2>{{ t('settings.basicInfo') }}</h2>
+        <p>{{ t('settings.profileHint') }}</p>
       </div>
-
-      <div class="skill-card p-8 relative overflow-hidden">
-        <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CFG-USER</div>
-
-        <div class="mb-8 border-b border-base-800 pb-6">
-          <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
-            <span class="text-neon-400 font-mono font-normal opacity-70">></span>
-            <span>{{ t('settings.heading') }}</span>
-          </h1>
-          <p class="text-base-400 text-sm font-mono">{{ t('settings.subtitle') }}</p>
-        </div>
-
-        <!-- 基本信息 -->
-        <div class="mb-10">
-          <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono">
-            <span class="text-neon-400">#</span> {{ t('settings.basicInfo') }}
-          </h2>
-          <form @submit.prevent="saveProfile" class="space-y-5 mt-6">
-            <div>
-              <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">avatar</span> <span class="text-neon-400 opacity-70">=</span>
-              </label>
-              <div class="flex items-center gap-4 mb-4">
-                <UserAvatar
-                  :avatar="profileForm.avatar"
-                  :name="profileForm.name"
-                  :username="profileForm.username"
-                  size-class="w-16 h-16 text-lg"
-                />
-                <p class="font-mono text-xs text-base-500">{{ t('settings.avatarHint') }}</p>
-              </div>
-              <div class="grid grid-cols-6 sm:grid-cols-7 gap-2" role="listbox" :aria-label="t('settings.avatarLabel')">
-                <button
-                  type="button"
-                  class="avatar-option"
-                  :class="{ 'is-selected': profileForm.avatar === null }"
-                  :aria-selected="profileForm.avatar === null"
-                  :title="t('settings.avatarDefault')"
-                  @click="profileForm.avatar = null"
-                >
-                  <span class="avatar-option-initial">{{ profileInitial }}</span>
-                </button>
-                <button
-                  v-for="file in PRESET_AVATARS"
-                  :key="file"
-                  type="button"
-                  class="avatar-option"
-                  :class="{ 'is-selected': profileForm.avatar === file }"
-                  :aria-selected="profileForm.avatar === file"
-                  :title="file.replace('.png', '')"
-                  @click="profileForm.avatar = file"
-                >
-                  <img :src="avatarSrc(file)!" :alt="file.replace('.png', '')" />
-                </button>
-              </div>
-            </div>
-            <div>
-              <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">username</span> <span class="text-neon-400 opacity-70">=</span>
-              </label>
-              <input
-                type="text"
-                v-model="profileForm.username"
-                disabled
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong opacity-50 cursor-not-allowed"
-              />
-              <p class="font-mono text-xs text-base-500 mt-1">{{ t('settings.usernameHint') }}</p>
-            </div>
-            <div>
-              <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">name</span> <span class="text-neon-400 opacity-70">=</span>
-              </label>
-              <input
-                type="text"
-                v-model="profileForm.name"
-                :placeholder="t('settings.namePlaceholder')"
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
-              />
-              <p class="font-mono text-xs text-base-500 mt-1">{{ t('settings.nameHint') }}</p>
-            </div>
-            <div class="pt-2">
-              <button
-                type="submit"
-                :disabled="isSaving"
-                class="btn-primary px-6 py-2.5 rounded-lg font-mono flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span v-if="isSaving" class="spinner spinner-sm"></span>
-                <template v-else>{{ t('settings.saveBtn') }}</template>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- CLI 验证码 -->
-        <div class="mb-10">
-          <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono">
-            <span class="text-neon-400">#</span> {{ t('settings.cliSection') }}
-          </h2>
-          <div class="mt-6">
-            <p class="text-base-400 text-sm font-mono mb-4" v-html="t('settings.cliDesc')"></p>
-            <router-link to="/cli-code" class="inline-flex items-center gap-2 rounded-lg px-4 py-3 font-mono text-sm border border-neon-400/20 text-neon-400 bg-neon-400/5 hover:bg-neon-400/10 transition-colors">
-              <Laptop class="w-4 h-4" :stroke-width="2" aria-hidden="true" />
-              <span>{{ t('settings.cliLink') }}</span>
-            </router-link>
+      <form @submit.prevent="saveProfile" class="flat-form">
+        <div class="profile-avatar-row">
+          <UserAvatar
+            :avatar="profileForm.avatar"
+            :name="profileForm.name"
+            :username="profileForm.username"
+            size-class="w-16 h-16 text-lg"
+          />
+          <div>
+            <p class="avatar-name">
+              {{ profileForm.name || profileForm.username }}
+            </p>
+            <p class="flat-hint">{{ t('settings.avatarHint') }}</p>
           </div>
         </div>
-
-        <!-- 修改密码 -->
-        <div>
-          <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono">
-            <span class="text-neon-400">#</span> {{ t('settings.passwordSection') }}
-          </h2>
-          <form @submit.prevent="changePassword" class="space-y-5 mt-6">
-            <div>
-              <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">current_password</span> <span class="text-neon-400 opacity-70">=</span>
-              </label>
-              <input
-                type="password"
-                v-model="passwordForm.current"
-                required
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
-              />
-            </div>
-            <div>
-              <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">new_password</span> <span class="text-neon-400 opacity-70">=</span>
-              </label>
-              <input
-                type="password"
-                v-model="passwordForm.new"
-                required
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
-              />
-              <p class="font-mono text-xs text-base-500 mt-1">{{ t('settings.newPasswordHint') }}</p>
-            </div>
-            <div>
-              <label class="font-mono text-base-400 mb-2 block text-sm">
-                <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">confirm_password</span> <span class="text-neon-400 opacity-70">=</span>
-              </label>
-              <input
-                type="password"
-                v-model="passwordForm.confirm"
-                required
-                class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
-              />
-            </div>
-            <div class="pt-2">
-              <button
-                type="submit"
-                :disabled="isChangingPassword || !canChangePassword"
-                class="btn-primary px-6 py-2.5 rounded-lg font-mono flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span v-if="isChangingPassword" class="spinner spinner-sm"></span>
-                <template v-else>{{ t('settings.changePasswordBtn') }}</template>
-              </button>
-            </div>
-          </form>
+        <details class="avatar-picker">
+          <summary>{{ t('settings.changeAvatar') }}</summary>
+          <div
+            class="avatar-options"
+            role="group"
+            :aria-label="t('settings.avatarLabel')"
+          >
+            <button
+              type="button"
+              class="avatar-option"
+              :class="{ 'is-selected': profileForm.avatar === null }"
+              :aria-pressed="profileForm.avatar === null"
+              :aria-label="t('settings.avatarDefault')"
+              @click="selectAvatar(null, $event)"
+            >
+              <span>{{ profileInitial }}</span>
+            </button>
+            <button
+              v-for="file in PRESET_AVATARS"
+              :key="file"
+              type="button"
+              class="avatar-option"
+              :class="{ 'is-selected': profileForm.avatar === file }"
+              :aria-pressed="profileForm.avatar === file"
+              :aria-label="file.replace('.png', '')"
+              :title="file.replace('.png', '')"
+              @click="selectAvatar(file, $event)"
+            >
+              <img :src="avatarSrc(file)!" alt="" />
+            </button>
+          </div>
+        </details>
+        <div class="settings-username">
+          <span>{{ t('settings.usernameLabel') }}</span
+          ><strong>{{ profileForm.username }}</strong
+          ><small>{{ t('settings.usernameHint') }}</small>
         </div>
+        <div class="flat-field">
+          <label for="profile-name">{{ t('settings.nameLabel') }}</label
+          ><input
+            id="profile-name"
+            v-model="profileForm.name"
+            :placeholder="t('settings.namePlaceholder')"
+            autocomplete="name"
+            :disabled="isSaving"
+          />
+          <p class="flat-hint">{{ t('settings.nameHint') }}</p>
+        </div>
+        <button type="submit" class="flat-primary" :disabled="isSaving">
+          <span v-if="isSaving" class="spinner spinner-sm"></span
+          >{{ t('settings.saveBtn') }}
+        </button>
+      </form>
+    </section>
+    <section class="settings-section">
+      <div class="section-intro">
+        <h2>{{ t('settings.cliSection') }}</h2>
+        <p>{{ t('settings.cliHint') }}</p>
       </div>
-    </div>
+      <div class="settings-action-row">
+        <p class="flat-hint" v-html="t('settings.cliDesc')"></p>
+        <router-link to="/cli-code" class="flat-secondary"
+          ><Laptop :size="16" />{{ t('settings.cliLink') }} →</router-link
+        >
+      </div>
+    </section>
+    <section class="settings-section">
+      <div class="section-intro">
+        <h2>{{ t('settings.security') }}</h2>
+        <p>{{ t('settings.securityHint') }}</p>
+      </div>
+      <details ref="passwordDetails" class="password-details">
+        <summary>{{ t('settings.passwordSection') }}</summary>
+        <form @submit.prevent="changePassword" class="flat-form">
+          <div class="flat-field">
+            <label for="current-password">{{ t('settings.oldPassword') }}</label
+            ><input
+              id="current-password"
+              v-model="passwordForm.current"
+              type="password"
+              autocomplete="current-password"
+              required
+              :disabled="isChangingPassword"
+            />
+          </div>
+          <div class="flat-field">
+            <label for="new-password">{{ t('settings.newPassword') }}</label
+            ><input
+              id="new-password"
+              v-model="passwordForm.new"
+              type="password"
+              autocomplete="new-password"
+              minlength="6"
+              required
+              :disabled="isChangingPassword"
+            />
+            <p class="flat-hint">{{ t('settings.newPasswordHint') }}</p>
+          </div>
+          <div class="flat-field">
+            <label for="confirm-password">{{
+              t('settings.confirmPassword')
+            }}</label
+            ><input
+              id="confirm-password"
+              v-model="passwordForm.confirm"
+              type="password"
+              autocomplete="new-password"
+              minlength="6"
+              required
+              :disabled="isChangingPassword"
+            />
+          </div>
+          <button
+            type="submit"
+            class="flat-primary"
+            :disabled="isChangingPassword || !canChangePassword"
+          >
+            <span v-if="isChangingPassword" class="spinner spinner-sm"></span
+            >{{ t('settings.changePasswordBtn') }}
+          </button>
+        </form>
+      </details>
+    </section>
   </main>
 </template>
 
@@ -197,7 +175,20 @@ const profileForm = ref<{
   avatar: null,
 })
 const isSaving = ref(false)
-const profileInitial = computed(() => (profileForm.value.name || profileForm.value.username || 'U').charAt(0).toUpperCase())
+const passwordDetails = ref<HTMLDetailsElement | null>(null)
+function selectAvatar(avatar: string | null, event: Event) {
+  profileForm.value.avatar = avatar
+  const details = (event.currentTarget as HTMLElement).closest('details')
+  if (details) {
+    details.open = false
+    details.querySelector('summary')?.focus()
+  }
+}
+const profileInitial = computed(() =>
+  (profileForm.value.name || profileForm.value.username || 'U')
+    .charAt(0)
+    .toUpperCase(),
+)
 
 // Password
 const passwordForm = ref({
@@ -208,10 +199,12 @@ const passwordForm = ref({
 const isChangingPassword = ref(false)
 
 const canChangePassword = computed(() => {
-  return passwordForm.value.current &&
+  return (
+    passwordForm.value.current &&
     passwordForm.value.new &&
     passwordForm.value.confirm &&
     passwordForm.value.new === passwordForm.value.confirm
+  )
 })
 
 onMounted(() => {
@@ -261,13 +254,18 @@ async function changePassword() {
 
   isChangingPassword.value = true
   try {
-    const response = await apiPost<{ ok: boolean; error?: string; detail?: string }>('/auth/me/change-password', {
+    const response = await apiPost<{
+      ok: boolean
+      error?: string
+      detail?: string
+    }>('/auth/me/change-password', {
       old_password: passwordForm.value.current,
       new_password: passwordForm.value.new,
     })
     if (response.ok) {
       globalToast.success(t('settings.changeSuccess'))
       passwordForm.value = { current: '', new: '', confirm: '' }
+      if (passwordDetails.value) passwordDetails.value.open = false
     } else {
       globalToast.error(response.detail || t('settings.changeFailed'))
     }
@@ -285,37 +283,97 @@ async function changePassword() {
 </script>
 
 <style scoped>
+.settings-section {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 48px;
+  padding: 32px 0;
+  border-top: 1px solid var(--color-base-800);
+}
+.section-intro h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+.section-intro p {
+  font-size: 13px;
+  color: var(--color-base-400);
+  margin-top: 8px;
+}
+.settings-section > :last-child {
+  max-width: 560px;
+}
+.profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.avatar-name {
+  color: var(--color-fg-strong);
+  font-weight: 600;
+}
+.avatar-picker {
+  margin-top: -8px;
+}
+.avatar-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 44px);
+  gap: 12px;
+  margin-top: 20px;
+  padding: 4px;
+}
 .avatar-option {
   width: 44px;
   height: 44px;
-  padding: 0;
-  border-radius: 9999px;
+  border-radius: 50%;
   overflow: hidden;
-  border: 2px solid var(--color-base-800);
-  background: var(--color-base-950);
+  background: var(--color-base-900);
+  color: var(--color-neon-400);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .avatar-option img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
-.avatar-option-initial {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-neon-400);
-}
-.avatar-option:hover {
-  border-color: var(--color-neon-500);
-}
+.avatar-option:hover,
 .avatar-option.is-selected {
-  border-color: var(--color-neon-400);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-neon-400) 35%, transparent);
+  outline: 2px solid var(--color-neon-400);
+  outline-offset: 2px;
+}
+.settings-username {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: baseline;
+  gap: 6px 12px;
+  font-size: 14px;
+}
+.settings-username strong {
+  font-weight: 500;
+  color: var(--color-fg-strong);
+}
+.settings-username small {
+  grid-column: 2;
+  color: var(--color-base-400);
+  font-size: 12px;
+}
+.settings-action-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+.password-details {
+  width: 100%;
+}
+.password-details form {
+  margin-top: 24px;
+}
+@media (max-width: 700px) {
+  .settings-section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding-block: 28px;
+  }
 }
 </style>

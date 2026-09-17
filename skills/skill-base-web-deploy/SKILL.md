@@ -25,6 +25,8 @@ This skill guides you through setting up and operating the Skill Base platform s
 
 The Web UI includes `/users/:id` and `GET /api/v1/users/:user_id/profile`. Deploy the rebuilt `static/` together with the updated server. No new environment variables or database migration are required: contributions use existing version uploaders and respect skill visibility.
 
+Publish/settings presentation changes require rebuilding `web/` into `static/`; no server configuration or migration is needed.
+
 ## Quick Start (npm package)
 
 ```bash
