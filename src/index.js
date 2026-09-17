@@ -189,7 +189,7 @@ async function start() {
     });
 
     // 5. DB init
-    require('./database');
+    const db = require('./database');
 
     // 6. Listen
     const PORT = process.env.PORT || 8000;
@@ -246,6 +246,7 @@ async function start() {
           cappy.stop?.();
         }
         await fastify.close();
+        db.close();
       } catch {
         // ignore shutdown errors
       }

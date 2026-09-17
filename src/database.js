@@ -197,6 +197,10 @@ function openRawDatabaseOrMigrate() {
 const rawDb = openRawDatabaseOrMigrate();
 global[DB_CLOSE_KEY] = { database: rawDb };
 
+// node-sqlite3-wasm 用 `<db>.lock` 目录当互斥锁；进程被 nodemon 杀掉时
+// 若不 close，空目录会留下，下次启动就是 SQLITE_BUSY。
+process.once('exit', () => closeSilently(rawDb));
+
 function createStatement(sql) {
   return {
     get(...args) {
