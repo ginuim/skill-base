@@ -180,11 +180,11 @@
   padding-right: 0;
   white-space: nowrap;
 }
-.flat-page.admin-page input.pl-10 {
+.flat-page input.admin-search-input:not([type='file']):not([type='checkbox']):not([type='radio']) {
   padding-left: 40px;
   padding-right: 40px;
 }
-.flat-page.admin-page input.pr-20 {
+.flat-page input.pr-20:not([type='file']):not([type='checkbox']):not([type='radio']) {
   padding-right: 80px;
 }
 .admin-page select {

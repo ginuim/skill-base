@@ -27,7 +27,7 @@
               v-model="searchQuery"
               type="text"
               :placeholder="t('tagAdmin.searchPlaceholder')"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
+              class="admin-search-input w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
             />
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-400">
               <Search :size="16" :stroke-width="2" aria-hidden="true" />
