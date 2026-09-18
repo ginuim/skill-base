@@ -115,10 +115,6 @@
     </div>
   </main>
 
-  <!-- 浮动发布按钮 -->
-  <router-link to="/publish" class="fab" :title="t('index.fabTitle')">
-    <Plus :size="24" :stroke-width="2" aria-hidden="true" />
-  </router-link>
 </template>
 
 <script setup lang="ts">
