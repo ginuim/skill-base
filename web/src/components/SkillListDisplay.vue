@@ -59,49 +59,45 @@
     </template>
 
     <template v-else>
-      <router-link
+      <article
         v-for="skill in skills"
         :key="skill.id"
-        :to="`/skills/${skill.id}`"
         class="skill-card"
       >
         <div class="skill-card-header">
-          <h3 class="skill-card-name">{{ skill.name }}</h3>
+          <h3 class="skill-card-name">
+            <router-link :to="`/skills/${skill.id}`" class="skill-card-link" :title="skill.name">{{ skill.name }}</router-link>
+          </h3>
           <span v-if="skill.visibility === 'private'" class="skill-visibility-badge">PRIVATE</span>
         </div>
         <p class="skill-card-desc">{{ truncateDescription(skill.description, cardDescMaxLen) }}</p>
         <div class="skill-card-footer">
-          <div class="skill-card-meta">
-            <span class="skill-card-owner">
-              <User :size="14" :stroke-width="2" aria-hidden="true" />
-              {{ skill.owner?.name || skill.owner?.username || t('state.unknown') }}
+          <ContributorAvatars :people="skill.contributors || []" />
+          <span class="skill-card-stats">
+            <span class="skill-card-stat" :title="t('index.downloadCount')">
+              <Download :size="14" :stroke-width="2" aria-hidden="true" />
+              {{ skill.download_count ?? 0 }}
             </span>
-            <span class="skill-card-stats">
-              <span class="skill-card-stat" :title="t('index.downloadCount')">
-                <Download :size="14" :stroke-width="2" aria-hidden="true" />
-                {{ skill.download_count ?? 0 }}
+            <span
+              class="skill-card-stat"
+              :title="skill.is_favorited ? t('index.favorited') : t('index.favorite')"
+            >
+              <span :class="{ 'skill-card-stat--favorited': skill.is_favorited }">
+                <Heart :size="14" :stroke-width="2" aria-hidden="true" />
               </span>
-              <span
-                class="skill-card-stat"
-                :title="skill.is_favorited ? t('index.favorited') : t('index.favorite')"
-              >
-                <span :class="{ 'skill-card-stat--favorited': skill.is_favorited }">
-                  <Heart :size="14" :stroke-width="2" aria-hidden="true" />
-                </span>
-                {{ skill.favorite_count ?? 0 }}
-              </span>
+              {{ skill.favorite_count ?? 0 }}
             </span>
-          </div>
-          <span>{{ formatDate(skill.updated_at, currentLang) }}</span>
+            <span class="skill-card-date">{{ formatDate(skill.updated_at, currentLang) }}</span>
+          </span>
         </div>
-      </router-link>
+      </article>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import ContributorAvatars from '@/components/ContributorAvatars.vue'
-import { User, Download, Heart } from 'lucide-vue-next'
+import { Download, Heart } from 'lucide-vue-next'
 import { useI18n } from '@/composables/useI18n'
 import { formatDate } from '@/utils/date'
 import type { Skill } from '@/services/api'
@@ -137,7 +133,7 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 .skeleton-card {
   background-color: var(--color-base-900);
   border: 1px solid var(--color-base-800);
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   border-radius: 0.75rem;
 }
 

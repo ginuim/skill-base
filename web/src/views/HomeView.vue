@@ -286,8 +286,8 @@ onUnmounted(() => {
   height: 1.125rem;
   padding: 0 0.25rem;
   border-radius: 9999px;
-  background: rgba(255, 117, 181, 0.25);
-  color: #ff75b5;
+  background: color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  color: var(--color-fg-strong);
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1.125rem;

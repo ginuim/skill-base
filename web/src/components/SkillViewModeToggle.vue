@@ -71,12 +71,12 @@ const { t } = useI18n()
 }
 
 .view-mode-btn:focus-visible {
-  box-shadow: inset 0 0 0 1px var(--color-neon-400);
+  box-shadow: inset 0 0 0 1px var(--color-base-500);
 }
 
 .view-mode-btn--active {
-  background: rgba(var(--color-neon-rgb), 0.12);
-  color: var(--color-neon-400);
+  background: color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+  color: var(--color-fg-strong);
 }
 
 .view-mode-btn-label {

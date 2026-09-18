@@ -33,8 +33,8 @@ function closeMore(event: Event) {
 </script>
 
 <style scoped>
-.contributor-avatars { position: relative; display: flex; align-items: center; padding-left: 6px; isolation: isolate; }
-.contributor-link, .contributor-more summary { display: inline-flex; border: 2px solid var(--color-base-950); border-radius: 50%; margin-left: -6px; flex-shrink: 0; background: var(--color-base-950); }
+.contributor-avatars { position: relative; z-index: 1; display: flex; align-items: center; padding-left: 6px; isolation: isolate; }
+.contributor-link, .contributor-more summary { display: inline-flex; border: 2px solid var(--contributor-ring, var(--color-base-950)); border-radius: 50%; margin-left: -6px; flex-shrink: 0; background: var(--contributor-ring, var(--color-base-950)); }
 .contributor-link:hover, .contributor-link:focus-visible { z-index: 2; outline: 2px solid var(--color-neon-400); outline-offset: 1px; }
 .contributor-avatars:has(details[open]) { z-index: 5; }
 .contributor-more { position: relative; }
