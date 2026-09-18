@@ -1,10 +1,6 @@
 <template>
   <main class="collections-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-    <header class="collections-page-header mb-10">
-      <div class="inline-flex items-center justify-center gap-2 px-3 py-1 bg-base-900 border border-base-800 rounded-full mb-6 text-xs font-mono text-neon-400">
-        <span class="w-2 h-2 rounded-full bg-neon-400 animate-pulse"></span>
-        Collections
-      </div>
+    <header class="collections-page-header">
       <h1 class="collections-page-title">{{ t('collections.title') }}</h1>
       <p class="collections-page-subtitle">{{ t('collections.subtitle') }}</p>
     </header>
@@ -15,14 +11,16 @@
       </div>
     </div>
 
-    <div v-else-if="collections.length === 0" class="collections-empty">
-      <Package :size="40" :stroke-width="1.5" aria-hidden="true" />
+    <div v-else-if="collections.length === 0" class="empty-state">
+      <div class="empty-state-icon">
+        <Package :size="40" :stroke-width="1.5" aria-hidden="true" />
+      </div>
       <p class="collections-empty-title">{{ t('collections.empty') }}</p>
       <p class="collections-empty-hint">{{ t('collections.emptyHint') }}</p>
       <router-link
         v-if="authStore.isAdmin"
         to="/admin/collections"
-        class="collections-empty-cta"
+        class="btn btn-primary mt-6"
       >
         {{ t('collections.emptyAdminCta') }}
       </router-link>
@@ -78,24 +76,19 @@ onMounted(async () => {
 
 <style scoped>
 .collections-page-header {
-  text-align: center;
-  position: relative;
-  margin-top: 0.5rem;
+  margin: 12px 0 36px;
 }
 
 .collections-page-title {
-  margin: 0 0 0.5rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(1.9rem, 4vw, 3.1rem);
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 650;
   color: var(--color-fg-strong);
-  line-height: 1.12;
+  letter-spacing: -0.03em;
 }
 
 .collections-page-subtitle {
-  margin: 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
+  margin-top: 8px;
+  font-size: 13px;
   color: var(--color-base-400);
 }
 
@@ -107,7 +100,6 @@ onMounted(async () => {
   gap: 3rem 3.25rem;
   max-width: 72rem;
   margin: 0 auto;
-  padding: 2.25rem 1.25rem 3.5rem;
 }
 
 .collections-shelf--single,
@@ -147,14 +139,18 @@ onMounted(async () => {
 }
 
 .collection-shelf-link:focus-visible {
-  box-shadow: 0 0 0 2px rgba(var(--color-neon-rgb), 0.65);
+  outline: 2px solid var(--color-neon-400);
+  outline-offset: 2px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
+  .collections-page-title {
+    font-size: 24px;
+  }
+
   .collections-shelf {
     grid-template-columns: 1fr;
     gap: 2rem;
-    padding: 1.75rem 0.75rem 2.75rem;
   }
 
   .collections-shelf--pair {
@@ -162,16 +158,8 @@ onMounted(async () => {
   }
 }
 
-.collections-empty {
-  padding: 4rem 1rem;
-  text-align: center;
-  color: var(--color-base-400);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.collections-empty svg {
-  margin: 0 auto 1rem;
-  opacity: 0.35;
+.empty-state-icon svg {
+  display: inline-block;
 }
 
 .collections-empty-title {
@@ -186,23 +174,6 @@ onMounted(async () => {
   font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--color-base-400);
-}
-
-.collections-empty-cta {
-  display: inline-block;
-  margin-top: 1.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
-  color: var(--color-neon-400);
-  text-decoration: none;
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.5rem;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.collections-empty-cta:hover {
-  color: var(--color-fg-strong);
-  border-color: var(--color-neon-400);
 }
 
 </style>
