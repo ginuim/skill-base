@@ -34,13 +34,14 @@ function closeMore(event: Event) {
 
 <style scoped>
 .contributor-avatars { position: relative; z-index: 1; display: flex; align-items: center; padding-left: 6px; isolation: isolate; }
-.contributor-link, .contributor-more summary { display: inline-flex; border: 2px solid var(--contributor-ring, var(--color-base-950)); border-radius: 50%; margin-left: -6px; flex-shrink: 0; background: var(--contributor-ring, var(--color-base-950)); }
-.contributor-link:hover, .contributor-link:focus-visible { z-index: 2; outline: 2px solid var(--color-neon-400); outline-offset: 1px; }
+.contributor-link, .contributor-more summary { display: inline-flex; border: 2px solid var(--contributor-ring, var(--color-base-950)); border-radius: 50%; margin-left: -6px; flex-shrink: 0; background: var(--contributor-ring, var(--color-base-950)); opacity: 0.5; transition: opacity 0.15s ease; }
+.contributor-link:hover, .contributor-link:focus-visible { z-index: 2; opacity: 1; outline: 2px solid var(--color-neon-400); outline-offset: 1px; }
 .contributor-avatars:has(details[open]) { z-index: 5; }
 .contributor-more { position: relative; }
 .contributor-more[open] { z-index: 5; }
 .contributor-more summary { width: 32px; height: 32px; align-items: center; justify-content: center; background: var(--color-base-900); color: var(--color-fg-strong); font-size: 11px; font-weight: 600; cursor: pointer; list-style: none; }
 .contributor-more summary::-webkit-details-marker { display: none; }
+.contributor-more summary:focus-visible, .contributor-more summary:hover { opacity: 1; }
 .contributor-more summary:focus-visible { outline: 2px solid var(--color-neon-400); outline-offset: 1px; }
 .contributor-menu { position: absolute; right: 0; top: calc(100% + 8px); width: min(220px, calc(100vw - 64px)); max-height: 280px; overflow-y: auto; padding: 8px; background: var(--color-base-950); border: 1px solid var(--color-base-800); border-radius: 12px; box-shadow: 0 8px 24px #0002; }
 .contributor-menu p { padding: 6px 8px; font-size: 12px; color: var(--color-base-400); }

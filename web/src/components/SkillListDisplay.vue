@@ -221,7 +221,7 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 
 .skill-list-row, .skill-list-heading {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 346px;
+  grid-template-columns: 28px minmax(0, 1fr) 330px;
   align-items: center;
   gap: 16px;
   padding: 16px 12px;
@@ -288,7 +288,7 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 
 .skill-list-aside {
   display: grid;
-  grid-template-columns: 124px 60px 52px 80px;
+  grid-template-columns: 108px 60px 52px 80px;
   align-items: center;
   gap: 10px;
   font-size: 0.75rem;
@@ -357,8 +357,8 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 }
 
 @media (max-width: 900px) {
-  .skill-list-row, .skill-list-heading { grid-template-columns: 24px minmax(0, 1fr) 260px; gap: 12px; }
-  .skill-list-aside { grid-template-columns: 116px 58px 62px; gap: 12px; }
+  .skill-list-row, .skill-list-heading { grid-template-columns: 24px minmax(0, 1fr) 248px; gap: 12px; }
+  .skill-list-aside { grid-template-columns: 104px 58px 62px; gap: 12px; }
   .skill-list-aside > :last-child { display: none; }
   .skill-list-tag { display: none; }
 }
