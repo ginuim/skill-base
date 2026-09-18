@@ -2,10 +2,10 @@
   <main class="flat-page admin-page">
     <router-link to="/" class="flat-back">← {{ t('nav.home') }}</router-link>
 
-    <div class="admin-content">
+    <div>
 
       <div class="flat-header">
-        <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
+        <h1 class="text-fg-strong mb-2 flex items-center gap-3">
           <span>{{ t('collectionAdmin.heading') }}</span>
         </h1>
         <p class="text-base-400 text-sm ">{{ t('collectionAdmin.subtitle').replace(/^\/\/\s*/, '') }}</p>
@@ -27,7 +27,7 @@
               v-model="searchQuery"
               type="text"
               :placeholder="t('collectionAdmin.searchPlaceholder')"
-              class="admin-search-input w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+              class="admin-search-input w-full"
             />
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-400">
               <Search :size="16" :stroke-width="2" aria-hidden="true" />
@@ -39,7 +39,7 @@
       <div class="admin-table-scroll">
         <table class="w-full">
           <thead>
-            <tr class="admin-table-heading">
+            <tr>
               <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thName') }}</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thSlug') }}</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thDescription') }}</th>
@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <div v-if="showFormModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeFormModal">
+    <div v-if="showFormModal" class="fixed inset-0 flex items-center justify-center z-50" @click.self="closeFormModal">
       <div class="admin-dialog w-full max-w-lg mx-4">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
           <h3 class="text-lg font-semibold text-fg-strong ">{{ isEditing ? t('collectionAdmin.editModal') : t('collectionAdmin.addModal') }}</h3>
@@ -100,14 +100,14 @@
         <form class="px-6 py-4 space-y-4" @submit.prevent="saveForm">
           <div>
             <label class="block text-sm text-base-400  mb-2">{{ t('collectionAdmin.thName') }}</label>
-            <input v-model="form.name" type="text" class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none" :placeholder="t('collectionAdmin.namePlaceholder')" />
+            <input v-model="form.name" type="text" class="w-full" :placeholder="t('collectionAdmin.namePlaceholder')" />
           </div>
           <div>
             <label class="block text-sm text-base-400  mb-2">{{ t('collectionAdmin.thSlug') }}</label>
             <input
               v-model="form.slug"
               type="text"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none"
+              class="w-full"
               :placeholder="t('collectionAdmin.slugPlaceholder')"
               autocapitalize="off"
               autocomplete="off"
@@ -121,7 +121,7 @@
               v-model="form.description"
               rows="3"
               :maxlength="MAX_COLLECTION_DESCRIPTION_LENGTH"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none"
+              class="w-full"
               :placeholder="t('collectionAdmin.descriptionPlaceholder')"
             ></textarea>
             <p class="mt-1.5 text-xs text-base-500 ">
@@ -133,7 +133,7 @@
           </div>
           <div>
             <label class="block text-sm text-base-400  mb-2">{{ t('collectionAdmin.thSort') }}</label>
-            <input v-model.number="form.sort_order" type="number" class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none" />
+            <input v-model.number="form.sort_order" type="number" class="w-full" />
           </div>
           <div class="flex justify-end gap-3 pt-2">
             <button type="button" class="px-4 py-2 rounded-lg border border-base-800 text-base-400 hover:text-fg-strong" @click="closeFormModal">
@@ -148,8 +148,8 @@
       </div>
     </div>
 
-    <div v-if="showMembersModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeMembersModal">
-      <div class="admin-dialog w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
+    <div v-if="showMembersModal" class="fixed inset-0 flex items-center justify-center z-50" @click.self="closeMembersModal">
+      <div class="admin-dialog w-full max-w-2xl mx-4 flex flex-col">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
           <h3 class="text-lg font-semibold text-fg-strong ">{{ t('collectionAdmin.membersModal') }}</h3>
           <button type="button" class="text-base-400 hover:text-fg-strong" @click="closeMembersModal">
@@ -161,7 +161,7 @@
             v-model="skillSearchQuery"
             type="text"
             :placeholder="t('collectionAdmin.skillSearchPlaceholder')"
-            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none"
+            class="w-full"
           />
           <p class="mt-2 text-xs text-base-500 ">
             {{ t('collectionAdmin.maxSkillsHint') }}

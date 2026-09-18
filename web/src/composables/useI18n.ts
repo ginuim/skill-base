@@ -131,8 +131,11 @@ const zh: Record<string, string> = {
 
   // Login page
   'login.title': '登录 - Skill Base',
-  'login.subtitle': '// 内网 Skill 管理平台 · 需要凭证',
-  'login.submit': '执行登录',
+  'login.heading': '登录',
+  'login.username': '用户名',
+  'login.password': '密码',
+  'login.subtitle': '登录 Skill Base，管理和分享你的技能。',
+  'login.submit': '登录',
   'login.loading': '登录中...',
   'login.errUsername': '请输入用户名',
   'login.errPassword': '请输入密码',
@@ -817,7 +820,10 @@ const en: Record<string, string> = {
 
   // Login page
   'login.title': 'Sign In - Skill Base',
-  'login.subtitle': '// Internal Skill Platform · Credentials Required',
+  'login.heading': 'Sign in',
+  'login.username': 'Username',
+  'login.password': 'Password',
+  'login.subtitle': 'Sign in to manage and share your skills.',
   'login.submit': 'Sign In',
   'login.loading': 'Signing in...',
   'login.errUsername': 'Please enter your username',

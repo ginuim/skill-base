@@ -6,7 +6,7 @@
 }
 .flat-back {
   display: inline-block;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-base-400);
   text-decoration: none;
 }
@@ -112,7 +112,7 @@
 .flat-page .flat-link,
 .flat-page summary {
   color: var(--color-fg-strong);
-  font-size: 13px;
+  font-size: 0.8125rem;
   cursor: pointer;
 }
 .flat-page summary {
@@ -127,7 +127,7 @@
 }
 .flat-error {
   color: var(--color-danger, #dc2626);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
@@ -242,7 +242,7 @@ html[data-theme='dark'] .admin-dialog {
   border-bottom-color: var(--color-neon-400);
 }
 .flat-page .admin-dialog label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 .flat-page .admin-dialog input:not([type='file']):not([type='radio']):not([type='checkbox']),

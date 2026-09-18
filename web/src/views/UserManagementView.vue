@@ -3,10 +3,10 @@
     <!-- 面包屑 -->
     <router-link to="/" class="flat-back">← {{ t('nav.home') }}</router-link>
 
-    <div class="admin-content">
+    <div>
 
       <div class="flat-header">
-        <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
+        <h1 class="text-fg-strong mb-2 flex items-center gap-3">
           <span>{{ t('admin.heading') }}</span>
         </h1>
         <p class="text-base-400 text-sm ">{{ t('admin.subtitle').replace(/^\/\/\s*/, '') }}</p>

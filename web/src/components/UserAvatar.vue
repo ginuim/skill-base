@@ -1,6 +1,6 @@
 <template>
   <span class="user-avatar" :class="sizeClass" :title="label">
-    <img v-if="src" :src="src" alt="" class="user-avatar-img" />
+    <img v-if="src" :src="src" alt="" class="user-avatar-img" loading="lazy" decoding="async" />
     <span v-else class="user-avatar-initial">{{ initial }}</span>
   </span>
 </template>

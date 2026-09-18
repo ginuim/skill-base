@@ -398,7 +398,7 @@ EOF</span>
           <p>专为小团队打造的 AI Agent Skill 私有化管理平台</p>
         </div>
         <div class="footer-links">
-          <a href="https://github.com" target="_blank">GitHub</a>
+          <a href="https://github.com/ginuim/skill-base" target="_blank">GitHub</a>
           <a href="#features">文档</a>
           <a href="#philosophy">关于</a>
         </div>
@@ -425,19 +425,14 @@ import {
   Package,
   Globe,
 } from 'lucide-vue-next'
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
 
 onMounted(() => {
-  document.body.classList.add('landing-body')
   initTypewriter()
   initScrollAnimations()
   initTabs()
   initCopyButtons()
-})
-
-onUnmounted(() => {
-  document.body.classList.remove('landing-body')
 })
 
 function initTypewriter() {

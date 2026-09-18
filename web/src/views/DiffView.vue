@@ -205,6 +205,16 @@ const statusLabels = {
   modified: t('diff.modified')
 }
 
+// v-html 状态位使用的 lucide 内联图标（与页面其它位置的 lucide 图标保持一致）
+function stateIcon(paths: string): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;margin:0 auto 16px;color:var(--color-base-600)">${paths}</svg>`
+}
+const STATE_ICONS = {
+  error: stateIcon('<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>'),
+  binary: stateIcon('<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>'),
+  same: stateIcon('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>')
+}
+
 const BINARY_EXTS = new Set([
   '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp',
   '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',

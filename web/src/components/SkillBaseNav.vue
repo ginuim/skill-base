@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar sticky top-0 z-50 bg-base-950/80 backdrop-blur-md border-b border-base-800">
+  <nav class="navbar sticky top-0 bg-base-950/80 backdrop-blur-md border-b border-base-800">
     <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="sb-nav-main">
         <router-link to="/" aria-label="Skill Base" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">

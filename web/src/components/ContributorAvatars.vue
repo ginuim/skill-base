@@ -37,10 +37,12 @@ function closeMore(event: Event) {
 .contributor-link, .contributor-more summary { display: inline-flex; border: 2px solid var(--color-base-950); border-radius: 50%; margin-left: -6px; flex-shrink: 0; background: var(--color-base-950); }
 .contributor-link:hover, .contributor-link:focus-visible { z-index: 2; outline: 2px solid var(--color-neon-400); outline-offset: 1px; }
 .contributor-avatars:has(details[open]) { z-index: 5; }
+.contributor-more { position: relative; }
 .contributor-more[open] { z-index: 5; }
-.contributor-more summary { width: 36px; height: 36px; align-items: center; justify-content: center; background: var(--color-base-900); color: var(--color-fg-strong); font-size: 11px; font-weight: 600; cursor: pointer; list-style: none; }
+.contributor-more summary { width: 32px; height: 32px; align-items: center; justify-content: center; background: var(--color-base-900); color: var(--color-fg-strong); font-size: 11px; font-weight: 600; cursor: pointer; list-style: none; }
 .contributor-more summary::-webkit-details-marker { display: none; }
-.contributor-menu { position: absolute; left: 0; top: calc(100% + 8px); width: min(220px, calc(100vw - 64px)); max-height: 280px; overflow-y: auto; padding: 8px; background: var(--color-base-950); border: 1px solid var(--color-base-800); border-radius: 12px; box-shadow: 0 8px 24px #0002; }
+.contributor-more summary:focus-visible { outline: 2px solid var(--color-neon-400); outline-offset: 1px; }
+.contributor-menu { position: absolute; right: 0; top: calc(100% + 8px); width: min(220px, calc(100vw - 64px)); max-height: 280px; overflow-y: auto; padding: 8px; background: var(--color-base-950); border: 1px solid var(--color-base-800); border-radius: 12px; box-shadow: 0 8px 24px #0002; }
 .contributor-menu p { padding: 6px 8px; font-size: 12px; color: var(--color-base-400); }
 .contributor-menu a { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 6px; color: var(--color-fg-strong); font-size: 13px; text-decoration: none; }
 .contributor-menu a:hover { background: var(--color-base-900); }
