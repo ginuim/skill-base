@@ -41,7 +41,7 @@ Skill Base turns Skills into **publishable, versioned, and installable** team as
   <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-market.png" alt="Skill Base desktop — Skill Market" width="720" />
 </p>
 
-The publish and account settings pages use flat sections without decorative cards. GitHub import reveals review fields after preview; branch/subdirectory options, avatar choices, and password changes expand on demand.
+The version diff page follows the skill detail page’s open layout, with flat version controls, underline view tabs, and scrollable code differences. The publish and account settings pages use flat sections without decorative cards. GitHub import reveals review fields after preview; branch/subdirectory options, avatar choices, and password changes expand on demand.
 
 ## Quick start
 
