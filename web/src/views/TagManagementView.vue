@@ -1,31 +1,20 @@
 <template>
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-    <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-      <span class="text-neon-400">~</span>
-      <span class="opacity-50">/</span>
-      <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('nav.home') }}</router-link>
-      <span class="opacity-50">/</span>
-      <span class="text-fg-strong">admin</span>
-      <span class="opacity-50">/</span>
-      <span class="text-fg-strong">tags</span>
-    </div>
+  <main class="flat-page admin-page">
+    <router-link to="/" class="flat-back">← {{ t('nav.home') }}</router-link>
 
-    <div class="skill-card p-8 relative overflow-hidden">
-      <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ADMIN-TAGS</div>
+    <div class="admin-content">
 
-      <div class="mb-8 border-b border-base-800 pb-6">
+      <div class="flat-header">
         <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
-          <span class="text-neon-400 font-mono font-normal opacity-70">></span>
           <span>{{ t('tagAdmin.heading') }}</span>
         </h1>
-        <p class="text-base-400 text-sm font-mono">{{ t('tagAdmin.subtitle') }}</p>
+        <p class="text-base-400 text-sm ">{{ t('tagAdmin.subtitle').replace(/^\/\/\s*/, '') }}</p>
       </div>
 
-      <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono mb-0">
-          <span class="text-neon-400">#</span> {{ t('tagAdmin.listHeading') }}
+      <div class="admin-toolbar">
+        <h2 class="admin-list-title"> {{ t('tagAdmin.listHeading') }}
         </h2>
-        <button type="button" class="btn-primary px-4 py-2.5 rounded-lg font-mono flex items-center gap-2" @click="openAddModal">
+        <button type="button" class="flat-primary px-4 py-2.5 rounded-lg  flex items-center gap-2" @click="openAddModal">
           <Plus :size="16" :stroke-width="2" aria-hidden="true" />
           <span>{{ t('tagAdmin.addTag') }}</span>
         </button>
@@ -38,7 +27,7 @@
               v-model="searchQuery"
               type="text"
               :placeholder="t('tagAdmin.searchPlaceholder')"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
+              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
             />
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-400">
               <Search :size="16" :stroke-width="2" aria-hidden="true" />
@@ -47,13 +36,13 @@
         </div>
       </div>
 
-      <div class="border border-base-800 rounded-xl overflow-hidden">
+      <div class="admin-table-scroll">
         <table class="w-full">
           <thead>
-            <tr class="bg-base-950">
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('tagAdmin.thName') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('tagAdmin.thUsage') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('tagAdmin.thActions') }}</th>
+            <tr class="admin-table-heading">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('tagAdmin.thName') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('tagAdmin.thUsage') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('tagAdmin.thActions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -65,7 +54,7 @@
               </tr>
             </template>
             <tr v-else-if="filteredTags.length === 0" class="border-t border-base-800">
-              <td colspan="3" class="px-4 py-12 text-center text-base-400 font-mono">{{ t('tagAdmin.emptyState') }}</td>
+              <td colspan="3" class="px-4 py-12 text-center text-base-400 ">{{ t('tagAdmin.emptyState') }}</td>
             </tr>
             <tr
               v-else
@@ -73,8 +62,8 @@
               :key="tag.id"
               class="border-t border-base-800 hover:bg-white/5 transition-colors"
             >
-              <td class="px-4 py-4 font-mono text-fg-strong">{{ tag.name }}</td>
-              <td class="px-4 py-4 font-mono text-base-400">{{ tag.usage_count ?? 0 }}</td>
+              <td class="px-4 py-4  text-fg-strong">{{ tag.name }}</td>
+              <td class="px-4 py-4  text-base-400">{{ tag.usage_count ?? 0 }}</td>
               <td class="px-4 py-4">
                 <div class="flex items-center gap-2">
                   <button
@@ -103,26 +92,26 @@
 
     <!-- 新建 -->
     <div v-if="showAddModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeAddModal">
-      <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-md mx-4">
+      <div class="admin-dialog w-full max-w-md mx-4">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
-          <h3 class="text-lg font-semibold text-fg-strong font-mono">{{ t('tagAdmin.addModal') }}</h3>
+          <h3 class="text-lg font-semibold text-fg-strong ">{{ t('tagAdmin.addModal') }}</h3>
           <button type="button" class="text-base-400 hover:text-fg-strong" @click="closeAddModal">
             <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
         <form class="px-6 py-4" @submit.prevent="handleAdd">
-          <label class="block text-sm text-base-400 font-mono mb-2">{{ t('tagAdmin.thName') }}</label>
+          <label class="block text-sm text-base-400  mb-2">{{ t('tagAdmin.thName') }}</label>
           <input
             v-model="addName"
             type="text"
-            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none"
+            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none"
             :placeholder="t('tagAdmin.namePlaceholder')"
           />
           <div class="flex justify-end gap-3 mt-6">
             <button type="button" class="px-4 py-2 rounded-lg border border-base-800 text-base-400 hover:text-fg-strong" @click="closeAddModal">
               {{ t('admin.cancel') }}
             </button>
-            <button type="submit" class="btn-primary px-4 py-2 rounded-lg font-mono disabled:opacity-50" :disabled="isAdding">
+            <button type="submit" class="flat-primary px-4 py-2 rounded-lg  disabled:opacity-50" :disabled="isAdding">
               <span v-if="isAdding" class="spinner spinner-sm"></span>
               <template v-else>{{ t('tagAdmin.confirmAdd') }}</template>
             </button>
@@ -133,26 +122,26 @@
 
     <!-- 编辑 -->
     <div v-if="showEditModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeEditModal">
-      <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-md mx-4">
+      <div class="admin-dialog w-full max-w-md mx-4">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
-          <h3 class="text-lg font-semibold text-fg-strong font-mono">{{ t('tagAdmin.editModal') }}</h3>
+          <h3 class="text-lg font-semibold text-fg-strong ">{{ t('tagAdmin.editModal') }}</h3>
           <button type="button" class="text-base-400 hover:text-fg-strong" @click="closeEditModal">
             <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
         <form class="px-6 py-4" @submit.prevent="handleEdit">
-          <label class="block text-sm text-base-400 font-mono mb-2">{{ t('tagAdmin.thName') }}</label>
+          <label class="block text-sm text-base-400  mb-2">{{ t('tagAdmin.thName') }}</label>
           <input
             v-model="editName"
             type="text"
-            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none"
+            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5  text-fg-strong focus:border-neon-400 focus:outline-none"
             :placeholder="t('tagAdmin.namePlaceholder')"
           />
           <div class="flex justify-end gap-3 mt-6">
             <button type="button" class="px-4 py-2 rounded-lg border border-base-800 text-base-400 hover:text-fg-strong" @click="closeEditModal">
               {{ t('admin.cancel') }}
             </button>
-            <button type="submit" class="btn-primary px-4 py-2 rounded-lg font-mono disabled:opacity-50" :disabled="isSaving">
+            <button type="submit" class="flat-primary px-4 py-2 rounded-lg  disabled:opacity-50" :disabled="isSaving">
               <span v-if="isSaving" class="spinner spinner-sm"></span>
               <template v-else>{{ t('admin.confirmSave') }}</template>
             </button>

@@ -44,7 +44,7 @@
   font-weight: 500;
   color: var(--color-fg-strong);
 }
-.flat-page input:not([type='file']),
+.flat-page input:not([type='file']):not([type='checkbox']):not([type='radio']),
 .flat-page textarea,
 .flat-page select {
   width: 100%;
@@ -140,5 +140,80 @@
   }
   .flat-header h1 {
     font-size: 25px;
+  }
+}
+
+/* Administration shares the flat page rhythm; tables scroll within their own region. */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 36px 0 24px;
+}
+.admin-list-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+.admin-table-scroll {
+  overflow-x: auto;
+}
+.admin-page table {
+  font-size: 14px;
+}
+.admin-page th {
+  background: transparent;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.admin-page td {
+  border-bottom: 1px solid var(--color-base-800);
+}
+.admin-page th:first-child,
+.admin-page td:first-child {
+  padding-left: 0;
+}
+.admin-page th:last-child,
+.admin-page td:last-child {
+  text-align: right;
+  padding-right: 0;
+  white-space: nowrap;
+}
+.flat-page.admin-page input.pl-10 {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+.flat-page.admin-page input.pr-20 {
+  padding-right: 80px;
+}
+.admin-page select {
+  padding-right: 40px;
+}
+.admin-dialog {
+  background: var(--color-base-950);
+  border-radius: 10px;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+.flat-page .admin-dialog input:not([type='radio']):not([type='checkbox']),
+.admin-dialog textarea,
+.admin-dialog select {
+  background: var(--color-base-900);
+}
+.admin-page td > span.rounded-full {
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+@media (max-width: 640px) {
+  .admin-page table {
+    min-width: 580px;
+  }
+  .admin-toolbar {
+    margin-top: 28px;
+  }
+  .admin-page .admin-dialog {
+    margin: 12px;
   }
 }

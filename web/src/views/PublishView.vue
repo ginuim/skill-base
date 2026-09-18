@@ -130,7 +130,7 @@
             class="drop-zone"
             :class="{ 'drag-over': isDragging }"
             @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
+            @dragleave.prevent="handleDragLeave"
             @drop.prevent="handleDrop"
           >
             <Upload :size="28" :stroke-width="1.5" aria-hidden="true" />
@@ -997,6 +997,12 @@ async function processZipFile(file: File, slug: string) {
 }
 
 // drop zone
+function handleDragLeave(event: DragEvent) {
+  const zone = event.currentTarget as HTMLElement
+  if (event.relatedTarget instanceof Node && zone.contains(event.relatedTarget)) return
+  isDragging.value = false
+}
+
 async function handleDrop(event: DragEvent) {
   if (isPublishing.value) return
   isDragging.value = false
@@ -1372,7 +1378,11 @@ async function handlePublish() {
   color: var(--color-danger, #dc2626);
 }
 .drop-zone {
-  padding: 24px 0;
+  padding: 28px;
+  border: 1px dashed var(--color-base-400);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-base-900) 55%, transparent);
+  transition: background 150ms, border-color 150ms;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1389,7 +1399,8 @@ async function handlePublish() {
 .drop-zone.drag-over {
   background: var(--color-base-900);
   outline: 2px dashed var(--color-neon-400);
-  outline-offset: 8px;
+  outline-offset: -2px;
+  border-color: var(--color-neon-400);
 }
 .file-preview {
   margin-top: 24px;
