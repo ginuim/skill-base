@@ -247,7 +247,27 @@
                 </div>
                 <p class="text-sm font-mono">{{ t('skill.selectFile') }}</p>
               </div>
-              <div v-else-if="isMarkdownFile && markdownMode === 'render'" class="markdown-body p-6" v-html="renderedMarkdown"></div>
+              <div v-else-if="isMarkdownFile && markdownMode === 'render'" class="markdown-body p-6">
+                <div v-if="selectedMarkdownFrontmatter.length" class="md-frontmatter">
+                  <div class="md-frontmatter-head">
+                    <span class="md-frontmatter-label">YAML</span>
+                    <span class="md-frontmatter-hint">frontmatter</span>
+                  </div>
+                  <dl class="md-frontmatter-list">
+                    <template v-for="field in selectedMarkdownFrontmatter" :key="field.key">
+                      <dt>{{ field.key }}</dt>
+                      <dd>
+                        <ul v-if="field.kind === 'list'" class="md-frontmatter-items">
+                          <li v-for="(item, i) in field.items" :key="i">{{ item }}</li>
+                        </ul>
+                        <pre v-else-if="field.kind === 'block'" class="md-frontmatter-block"><code>{{ field.value }}</code></pre>
+                        <span v-else>{{ field.value }}</span>
+                      </dd>
+                    </template>
+                  </dl>
+                </div>
+                <div class="markdown-body-content" v-html="renderedMarkdown"></div>
+              </div>
               <div v-else-if="isMarkdownFile && markdownMode === 'source'" class="code-line-grid">
                 <div v-for="(line, i) in selectedFileLines" :key="i" class="code-line-row">
                   <span class="line-gutter" aria-hidden="true">{{ i + 1 }}</span>
@@ -1080,9 +1100,78 @@ const highlightedCodeLines = computed(() => {
   return highlighted.split('\n')
 })
 
+type FrontmatterField = {
+  key: string
+  kind: 'text' | 'list' | 'block'
+  value: string
+  items: string[]
+}
+
+/** 解析 Markdown 开头的 YAML frontmatter，仅用于结构化展示：返回字段列表与去掉 frontmatter 的正文 */
+function parseYamlFrontmatter(content: string): { fields: FrontmatterField[]; body: string } {
+  const normalized = content.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
+  const match = /^---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/.exec(normalized)
+  if (!match) return { fields: [], body: normalized }
+
+  const fields: FrontmatterField[] = []
+  let key: string | null = null
+  let buffer: string[] = []
+
+  const flush = () => {
+    if (key === null) return
+    const lines = buffer.slice()
+    while (lines.length && !lines[lines.length - 1]!.trim()) lines.pop()
+    const isList = lines.length > 0 && lines.every((l) => !l.trim() || /^\s*-\s+/.test(l))
+    const hasIndent = lines.some((l) => /^\s+\S/.test(l))
+    const items: string[] = []
+    if (isList) {
+      for (const l of lines) {
+        const m = /^\s*-\s+(.*)$/.exec(l)
+        if (m) items.push(m[1]!.trim())
+      }
+    }
+    fields.push({
+      key,
+      value: lines.join('\n').trim(),
+      kind: isList ? 'list' : lines.length > 1 || hasIndent ? 'block' : 'text',
+      items,
+    })
+    key = null
+    buffer = []
+  }
+
+  for (const line of match[1]!.split('\n')) {
+    if (!line.trim() || line.trimStart().startsWith('#')) {
+      if (key !== null) buffer.push(line)
+      continue
+    }
+    const top = /^([A-Za-z0-9_.\-]+):[ \t]*(.*)$/.exec(line)
+    if (top) {
+      flush()
+      key = top[1]!
+      const inline = top[2]!.trim()
+      // 块标量指示符（|、>- 等）本身不展示
+      if (inline && !/^[|>][+-]?\d*$/.test(inline)) buffer.push(inline)
+      continue
+    }
+    if (key !== null) buffer.push(line)
+  }
+  flush()
+
+  return { fields, body: normalized.slice(match[0].length) }
+}
+
+const parsedSelectedMarkdown = computed(() => {
+  if (!isMarkdownFile.value || !selectedFileContent.value) return null
+  return parseYamlFrontmatter(normalizeLineEndings(selectedFileContent.value))
+})
+
+const selectedMarkdownFrontmatter = computed<FrontmatterField[]>(() => parsedSelectedMarkdown.value?.fields ?? [])
+
 const renderedMarkdown = computed(() => {
   if (!selectedFileContent.value) return ''
-  return marked.parse(normalizedSelectedFileContent.value)
+  const parsed = parsedSelectedMarkdown.value
+  return marked.parse(parsed ? parsed.body : normalizedSelectedFileContent.value)
 })
 
 const normalizedSelectedFileContent = computed(() => {
@@ -1176,7 +1265,7 @@ async function loadVersionZip(version: string) {
 
     // Generate file tree
     fileTree.value = generateFileTree(zip)
-    await selectDefaultSkillMdIfPresent(zip)
+    await selectDefaultDocIfPresent(zip)
   } catch (err) {
     console.error('Failed to load version zip:', err)
     fileTree.value = []
@@ -1257,15 +1346,16 @@ function sortTree(nodes: any[]) {
   })
 }
 
-/** 选路径最浅的 SKILL.md（不区分大小写），与平台约定一致 */
-function findShallowestSkillMdPath(zip: any): string | null {
+/** 选路径最浅的目标文件名（不区分大小写） */
+function findShallowestPathByLeafName(zip: any, leafName: string): string | null {
+  const target = leafName.toLowerCase()
   let best: string | null = null
   let bestDepth = Infinity
   zip.forEach((relativePath: string, zipEntry: any) => {
     if (!relativePath || zipEntry.dir) return
     const parts = relativePath.split('/').filter(Boolean)
     const leaf = parts[parts.length - 1]
-    if (!leaf || leaf.toLowerCase() !== 'skill.md') return
+    if (!leaf || leaf.toLowerCase() !== target) return
     const depth = parts.length
     if (depth < bestDepth) {
       bestDepth = depth
@@ -1306,8 +1396,9 @@ async function selectFileByPath(path: string) {
   }
 }
 
-async function selectDefaultSkillMdIfPresent(zip: any) {
-  const path = findShallowestSkillMdPath(zip)
+/** 默认预览 README.md，缺失时回退 SKILL.md */
+async function selectDefaultDocIfPresent(zip: any) {
+  const path = findShallowestPathByLeafName(zip, 'README.md') ?? findShallowestPathByLeafName(zip, 'SKILL.md')
   if (!path) return
   expandAncestorsForFilePath(fileTree.value, path)
   await selectFileByPath(path)
@@ -1589,6 +1680,68 @@ html[data-theme="light"] .card {
 }
 .markdown-body :deep(th) {
   background-color: var(--color-base-950);
+}
+
+/* YAML frontmatter structured rendering */
+.md-frontmatter {
+  border: 1px solid var(--color-base-800);
+  border-radius: 0.5rem;
+  background-color: var(--color-base-950);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.md-frontmatter-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.md-frontmatter-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-neon-400);
+  border: 1px solid var(--color-base-800);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.4rem;
+}
+.md-frontmatter-hint {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6875rem;
+  color: var(--color-base-400);
+  letter-spacing: 0.08em;
+}
+.md-frontmatter-list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+.md-frontmatter-list > dt {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8125rem;
+  color: var(--color-fg-strong);
+  white-space: nowrap;
+  padding-top: 0.1rem;
+}
+.md-frontmatter-list > dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-fg);
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+.md-frontmatter-items {
+  margin: 0;
+  padding-left: 1.25em;
+}
+.md-frontmatter-items > li {
+  list-style: disc;
+  margin-bottom: 0.15em;
+}
+.md-frontmatter-block {
+  margin: 0;
 }
 
 /* 按逻辑行渲染：行号与该行首对齐，长行仅在右侧折行（与常见编辑器换行行为一致） */
