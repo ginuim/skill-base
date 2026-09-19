@@ -139,17 +139,26 @@
             </div>
             <div class="skill-install-actions">
               <div class="install-methods" role="group" :aria-label="t('skill.installTitle')">
-                <button v-for="method in (['agent', 'cli'] as const)" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(method === 'agent' ? 'skill.agentMethod' : 'skill.cliMethod') }}</button>
+                <button v-for="method in (['download', 'agent', 'cli'] as const)" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
               </div>
-              <p class="install-hint">{{ t(installMethod === 'agent' ? 'skill.agentHint' : 'skill.cliHint') }}</p>
-              <div class="install-content">
+              <p class="install-hint">{{ t(`skill.${installMethod}Hint`) }}</p>
+              <ol v-if="installMethod === 'download'" class="install-steps">
+                <li>{{ t('skill.downloadStep1') }}</li>
+                <li>{{ t('skill.downloadStep2') }}</li>
+                <li>{{ t('skill.downloadStep3') }}</li>
+              </ol>
+              <div v-else class="install-content">
                 <pre>{{ installContent }}</pre>
                 <button type="button" class="install-copy" @click="copyTextToClipboard(installContent)">
                   <Copy class="w-3.5 h-3.5" aria-hidden="true" />{{ t(installMethod === 'agent' ? 'skill.copyPrompt' : 'skill.copyCommands') }}
                 </button>
               </div>
+              <p class="install-hint">{{ t(skill.visibility === 'private' ? 'skill.privateDownloadHint' : 'skill.publicDownloadHint') }}</p>
+              <p v-if="downloadError" class="flat-error" role="alert">{{ downloadError }}</p>
+              <router-link v-if="downloadNeedsLogin" :to="{ path: '/login', query: { redirect: route.fullPath } }" class="flat-link">{{ t('nav.login') }}</router-link>
               <div class="install-secondary-actions">
               <button
+                :disabled="isDownloading || !currentVersion"
                 @click="downloadCurrentVersion"
                 class="skill-download-button"
               >
@@ -260,6 +269,7 @@
                         <ul v-if="field.kind === 'list'" class="md-frontmatter-items">
                           <li v-for="(item, i) in field.items" :key="i">{{ item }}</li>
                         </ul>
+                        <p v-else-if="field.key === 'description'" class="md-frontmatter-block">{{ field.value }}</p>
                         <pre v-else-if="field.kind === 'block'" class="md-frontmatter-block"><code>{{ field.value }}</code></pre>
                         <span v-else>{{ field.value }}</span>
                       </dd>
@@ -780,7 +790,7 @@ const showAuthHint = computed(() => {
 })
 
 const descriptionExpanded = ref(false)
-const installMethod = ref<'agent' | 'cli'>('agent')
+const installMethod = ref<'download' | 'agent' | 'cli'>('download')
 const installSite = window.location.origin + appBasePath.replace(/\/$/, '')
 // Single-quoted arguments preserve literal values when pasted into a POSIX shell.
 const shellQuote = (value: string) => "'" + value.replace(/'/g, "'\"'\"'") + "'"
@@ -795,7 +805,7 @@ const installCommands = computed(() => [
   installCliCommand.value,
 ].join('\n'))
 const installContent = computed(() => installMethod.value === 'cli' ? installCommands.value :
-  `${t('skill.agentPrompt')}\n${window.location.origin}${withBasePath('/skills/' + encodeURIComponent(skillId.value))}\n\n${installCommands.value}\n\n${t('skill.agentPromptEnd')}`)
+  `${t('skill.agentPrompt')}\n${window.location.origin}${withBasePath('/skills/' + encodeURIComponent(skillId.value))}\n\n${t('skill.promptVersion')}: ${currentVersion.value}\nZIP: ${new URL(versionsApi.downloadUrl(skillId.value, currentVersion.value), window.location.origin).href}\n${t(skill.value?.visibility === 'private' ? 'skill.privateDownloadHint' : 'skill.publicDownloadHint')}\n\n${t('skill.agentPromptEnd')}`)
 
 async function copyTextToClipboard(text: string) {
   if (!text) return
@@ -1421,8 +1431,34 @@ function downloadCurrentVersion() {
   downloadVersion(currentVersion.value)
 }
 
-function downloadVersion(version: string) {
-  window.open(versionsApi.downloadUrl(skillId.value, version), '_blank')
+const isDownloading = ref(false)
+const downloadError = ref('')
+const downloadNeedsLogin = ref(false)
+async function downloadVersion(version: string) {
+  if (isDownloading.value) return
+  isDownloading.value = true
+  downloadError.value = ''
+  downloadNeedsLogin.value = false
+  try {
+    const response = await fetch(versionsApi.downloadUrl(skillId.value, version), { credentials: 'include' })
+    if (!response.ok) {
+      downloadNeedsLogin.value = response.status === 401 || (response.status === 404 && skill.value?.visibility === 'private')
+      downloadError.value = t(downloadNeedsLogin.value ? 'skill.downloadLoginError' : 'skill.downloadError')
+      return
+    }
+    const url = URL.createObjectURL(await response.blob())
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${skillId.value}-${version}.zip`
+    document.body.append(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  } catch {
+    downloadError.value = t('skill.downloadError')
+  } finally {
+    isDownloading.value = false
+  }
 }
 
 function goToDiff() {
@@ -1742,6 +1778,11 @@ html[data-theme="light"] .card {
 }
 .md-frontmatter-block {
   margin: 0;
+  white-space: pre-wrap;
+  font: inherit;
+  border: 0;
+  padding: 0;
+  background: transparent;
 }
 
 /* 按逻辑行渲染：行号与该行首对齐，长行仅在右侧折行（与常见编辑器换行行为一致） */
@@ -2385,4 +2426,10 @@ html[data-theme="light"] .card {
 .install-methods { background: transparent; border: 0; border-bottom: 1px solid var(--color-base-800); border-radius: 0; padding: 0; }
 .install-methods button { border-radius: 0; }
 .skill-file-tree { background: transparent; }
+</style>
+
+<style scoped>
+.install-steps { padding-left: 18px; font-size: 13px; line-height: 1.8; color: var(--color-fg); }
+.install-steps li { list-style: decimal; margin-bottom: 8px; }
+.skill-download-button:disabled { opacity: .5; cursor: wait; }
 </style>

@@ -103,7 +103,7 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - Web 前端使用 Vue 3 Composition API 与 `<script setup lang="ts">`；运行 `npm run build --prefix web` 生成 `static/`，不要手改构建产物。
 - 导航栏与集合列表页同样遵循扁平开放布局：页头左对齐（h1 28px/650/-0.03em，移动端 24px），不用装饰徽章、居中 hero 或发光阴影；导航链接与下拉项的激活/hover 态用 `color-mix` 浅灰底，不用渐变、描边或霓虹发光；品牌标识（Skill + 图标）是 navbar 唯一保留霓虹色的元素。集合列表保留 CD 封面组件，空态复用 `main.css` 的 `.empty-state` 与 `.btn-primary`。
 - 首页 Skill 卡片（`.skill-card`，`main.css`）同样扁平：标题用 Inter 不加 `>` 终端前缀，hover 只加深边框，不改底色、不变色、无发光阴影或位移；页脚用 hairline 分隔线与 tabular-nums，不用等宽字体。筛选胶囊（`.filter-chip`）与视图切换（`SkillViewModeToggle`）的激活态统一为 `color-mix` 浅灰底 + 强前景色，不再使用粉色/霓虹描边。卡片是 `article` + 标题 stretched link（`.skill-card-link::after` 覆盖整卡），页脚左侧复用 `ContributorAvatars`（头像描边色经 `--contributor-ring` 适配卡片底色），右侧为下载/收藏/日期。
-- Skill 详情页桌面端左列为技能介绍及紧随其后的文件、效果预览、版本历史、成员与权限分区，右列独立放置安装/版本操作，避免撑高介绍区域；截图属于独立的效果预览页签（有截图或有管理权限时显示）。安装面板支持 AI Agent Prompt / 命令行切换，复制内容须包含当前站点与所选版本；长介绍默认折叠。贡献者仅从版本 uploader 去重得出，不等同于所有者或协作者；头像可用同 ID 成员信息补全。截图不使用装饰边框、卡片或阴影。版本对比页沿用详情页的开放布局、面包屑与标题层级，使用下划线切换对比视图，保留代码红绿差异标识；窄屏版本选择纵向排列，长路径换行，代码在内容区内滚动。
+- Skill 详情页桌面端左列为技能介绍及紧随其后的文件、效果预览、版本历史、成员与权限分区，右列独立放置安装/版本操作，避免撑高介绍区域；截图属于独立的效果预览页签（有截图或有管理权限时显示）。安装面板默认展示 ZIP 下载及导入说明，支持 AI Agent Prompt / 命令行切换；AI 提示词使用当前站点及所选版本的 ZIP 直链，不强制 Node.js / skb，说明登录及本地文件回退。公开技能免登录下载，私有技能沿用权限校验；下载失败在页面显示并提供必要登录入口。YAML description 使用无内框的正文。长介绍默认折叠。贡献者仅从版本 uploader 去重得出，不等同于所有者或协作者；头像可用同 ID 成员信息补全。截图不使用装饰边框、卡片或阴影。版本对比页沿用详情页的开放布局、面包屑与标题层级，使用下划线切换对比视图，保留代码红绿差异标识；窄屏版本选择纵向排列，长路径换行，代码在内容区内滚动。
 
 ## Shared Visual System
 
