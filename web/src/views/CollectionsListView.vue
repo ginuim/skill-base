@@ -96,17 +96,17 @@ onMounted(async () => {
   position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
-  justify-items: center;
-  gap: 3rem 3.25rem;
-  max-width: 72rem;
+  justify-items: start;
+  gap: 40px 32px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
 .collections-shelf--single,
 .collections-shelf--pair {
   grid-template-columns: repeat(var(--collection-count, 1), minmax(13.5rem, 17rem));
-  justify-content: center;
-  gap: 3rem 4rem;
+  justify-content: start;
+  gap: 40px 32px;
 }
 
 .collections-shelf--pair {
@@ -150,6 +150,7 @@ onMounted(async () => {
 
   .collections-shelf {
     grid-template-columns: 1fr;
+    justify-items: center;
     gap: 2rem;
   }
 

@@ -1,6 +1,6 @@
 <template>
-  <div class="diff-page min-h-screen pt-8 pb-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
+  <div class="diff-page min-h-screen pt-8 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center py-20">
         <div class="spinner"></div>
@@ -509,9 +509,9 @@ onMounted(() => {
 .diff-version-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
 .diff-version-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .diff-field-label { font-size: 12px; color: var(--color-base-400); }
-.diff-version-select { width: 240px; max-width: 100%; padding: 10px 12px; border: 1px solid var(--color-base-800); border-radius: 6px; background: var(--color-base-900); color: var(--color-fg-strong); font-family: var(--font-mono); font-size: 12px; }
+.diff-version-select { width: 240px; max-width: 100%; padding: 10px 12px; border: 1px solid var(--color-base-800); border-radius: var(--control-radius); min-height: var(--control-height); background: var(--control-bg); color: var(--color-fg-strong); font-family: var(--font-sans); font-size: 14px; }
 .diff-version-arrow { padding-bottom: 9px; color: var(--color-base-400); }
-.diff-compare-button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--color-fg-strong); border-radius: 6px; background: var(--color-fg-strong); color: var(--color-base-950); font-size: 13px; cursor: pointer; }
+.diff-compare-button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--color-fg-strong); border-radius: var(--control-radius); min-height: var(--control-height); background: var(--color-fg-strong); color: var(--color-base-950); font-size: 13px; cursor: pointer; }
 .diff-compare-button:disabled { opacity: .5; cursor: wait; }
 .diff-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 28px; border-bottom: 1px solid var(--color-base-800); }
 .diff-file-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; padding-bottom: 10px; }

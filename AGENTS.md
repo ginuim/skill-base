@@ -105,9 +105,15 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 首页 Skill 卡片（`.skill-card`，`main.css`）同样扁平：标题用 Inter 不加 `>` 终端前缀，hover 只加深边框，不改底色、不变色、无发光阴影或位移；页脚用 hairline 分隔线与 tabular-nums，不用等宽字体。筛选胶囊（`.filter-chip`）与视图切换（`SkillViewModeToggle`）的激活态统一为 `color-mix` 浅灰底 + 强前景色，不再使用粉色/霓虹描边。卡片是 `article` + 标题 stretched link（`.skill-card-link::after` 覆盖整卡），页脚左侧复用 `ContributorAvatars`（头像描边色经 `--contributor-ring` 适配卡片底色），右侧为下载/收藏/日期。
 - Skill 详情页桌面端左列为技能介绍及紧随其后的文件、效果预览、版本历史、成员与权限分区，右列独立放置安装/版本操作，避免撑高介绍区域；截图属于独立的效果预览页签（有截图或有管理权限时显示）。安装面板支持 AI Agent Prompt / 命令行切换，复制内容须包含当前站点与所选版本；长介绍默认折叠。贡献者仅从版本 uploader 去重得出，不等同于所有者或协作者；头像可用同 ID 成员信息补全。截图不使用装饰边框、卡片或阴影。版本对比页沿用详情页的开放布局、面包屑与标题层级，使用下划线切换对比视图，保留代码红绿差异标识；窄屏版本选择纵向排列，长路径换行，代码在内容区内滚动。
 
+## Shared Visual System
+
+- 视觉规范见 `docs/zh/design-system.md`：黑白主按钮、中性次按钮、绿色品牌与焦点；普通控件不使用霓虹阴影或悬浮位移。
+- 基础变量在 `main.css`：常规控件 40px / 圆角 8px；列表和管理页宽 1280px，发布与设置宽 960px。普通控件用 sans 字体，代码和路径保留 mono。
+- 品牌复用 `SkillBaseBrand.vue`，集合保留 CD 造型；新增页面优先复用公共控件与布局规则。
+
 ## Form Layout
 
-- 登录页复用 `flat-forms.css` 的表单与按钮，采用最大 400px 的居中开放布局；标签与提示使用中英文翻译，不添加代码式标签、装饰角标或未经检测的连接状态。
+- 登录页复用 `flat-forms.css` 与 `SkillBaseBrand`，桌面使用最大 960px 的双栏面板（左侧表单、右侧 CD 技能集合展示）；820px 以下隐藏展示区并限制为 400px 单栏，手机去掉外层边框和阴影。所有文案保持中英文，保留原有登录及 CLI 重定向流程。
 
 - 管理弹窗在 `flat-forms.css` 中统一样式：下划线页签、紧凑表单、透明底部操作区；移动端内容可滚动，主操作保留清晰层级。搜索框的内边距规则须高于通用输入框规则，避免图标与文字重叠。
 

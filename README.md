@@ -115,3 +115,7 @@ Full note: [docs/author.md](docs/author.md).
 ## License
 
 [MIT](LICENSE)
+
+### Web visual system
+
+The Web UI uses shared neutral buttons and form controls, light/dark themes, and a responsive two-column sign-in page. See [the visual guidelines](docs/zh/design-system.md).

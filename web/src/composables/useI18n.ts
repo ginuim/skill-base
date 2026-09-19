@@ -131,7 +131,14 @@ const zh: Record<string, string> = {
 
   // Login page
   'login.title': '登录 - Skill Base',
-  'login.heading': '登录',
+  'login.heading': '欢迎回来',
+  'login.visualTitle': '让团队的技能，随时可用',
+  'login.visualDescription': '集中管理 Agent Skills，追踪版本，并通过集合分发给团队。',
+  'login.demoCollection': '团队技能集',
+  'login.demoDescription': '把实用技能放在一起',
+  'login.feature.manage': '技能管理',
+  'login.feature.versions': '版本追踪',
+  'login.feature.collections': '集合分发',
   'login.username': '用户名',
   'login.password': '密码',
   'login.subtitle': '登录 Skill Base，管理和分享你的技能。',
@@ -820,7 +827,14 @@ const en: Record<string, string> = {
 
   // Login page
   'login.title': 'Sign In - Skill Base',
-  'login.heading': 'Sign in',
+  'login.heading': 'Welcome back',
+  'login.visualTitle': 'Your team’s skills, ready to use',
+  'login.visualDescription': 'Manage Agent Skills, track versions, and share them with your team through collections.',
+  'login.demoCollection': 'Team essentials',
+  'login.demoDescription': 'Useful skills, together',
+  'login.feature.manage': 'Manage skills',
+  'login.feature.versions': 'Track versions',
+  'login.feature.collections': 'Share collections',
   'login.username': 'Username',
   'login.password': 'Password',
   'login.subtitle': 'Sign in to manage and share your skills.',

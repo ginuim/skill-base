@@ -3,9 +3,7 @@
     <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="sb-nav-main">
         <router-link to="/" aria-label="Skill Base" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
-          <Package class="sb-nav-brand-icon" :size="22" :stroke-width="2" aria-hidden="true" />
-          <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">Skill</span>
-          <span class="text-fg-strong font-bold">Base</span>
+          <SkillBaseBrand />
         </router-link>
 
         <div class="sb-nav-links">
@@ -121,6 +119,7 @@
 </template>
 
 <script setup lang="ts">
+import SkillBaseBrand from './SkillBaseBrand.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -688,30 +687,12 @@ onUnmounted(() => {
 }
 
 .sb-nav-login-btn {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border-radius: 0.5rem;
-  text-decoration: none;
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-  cursor: pointer;
-  background-color: transparent;
-  border: 1px solid var(--color-neon-500);
-  color: var(--color-neon-400);
-  white-space: nowrap;
+  font-size: 14px; font-weight: 500; border-radius: var(--control-radius);
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+  background: var(--color-fg-strong); color: var(--color-base-950); border: 1px solid transparent;
 }
-
-.sb-nav-login-btn:hover,
-.sb-nav-login-btn:focus-visible {
-  background-color: var(--color-neon-400);
-  border-color: var(--color-neon-400);
-  color: var(--color-base-950);
-  outline: none;
-}
-
-html[data-theme="light"] .sb-nav-login-btn:hover,
-html[data-theme="light"] .sb-nav-login-btn:focus-visible {
-  color: #fafafa;
-}
+.sb-nav-login-btn:hover { background: color-mix(in srgb, var(--color-fg-strong) 82%, var(--color-base-950)); }
+.sb-nav-login-btn:focus-visible { outline: 2px solid var(--color-neon-400); outline-offset: 3px; }
 
 @media (max-width: 767px) {
   .sb-nav-links {
@@ -729,7 +710,7 @@ html[data-theme="light"] .sb-nav-login-btn:focus-visible {
 }
 @media (max-width: 420px) {
   .sb-nav-brand { gap: 6px; font-size: 16px; }
-  .sb-nav-brand > span { display: none; }
+  .sb-nav-brand :deep(.skill-base-brand > span) { display: none; }
   .navbar-user-btn .username { display: none; }
   .navbar .container { gap: 8px; }
 }

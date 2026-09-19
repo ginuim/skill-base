@@ -1,6 +1,6 @@
 /* Content-first forms: sections stay on the page, controls carry their own affordance. */
 .flat-page {
-  max-width: 1100px;
+  max-width: var(--page-form);
   margin: 0 auto;
   padding: 32px 32px 72px;
 }
@@ -48,11 +48,12 @@
 .flat-page textarea,
 .flat-page select {
   width: 100%;
-  background: var(--color-base-900);
-  border: 0;
-  border-radius: 6px;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  min-height: var(--control-height);
+  border-radius: var(--control-radius);
   color: var(--color-fg-strong);
-  padding: 12px 14px;
+  padding: 9px 12px;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -86,12 +87,13 @@
   gap: 8px;
   padding: 10px 18px;
   border: 0;
-  border-radius: 6px;
-  font: 500 13px/1.5 var(--font-sans);
+  border-radius: var(--control-radius);
+  font: 500 14px/1.5 var(--font-sans);
+  min-height: var(--control-height);
   text-decoration: none;
   cursor: pointer;
   box-shadow: none;
-  transition: opacity 150ms;
+  transition: background-color 150ms;
 }
 .flat-page .flat-primary {
   background: var(--color-fg-strong);
@@ -101,10 +103,10 @@
   background: var(--color-base-900);
   color: var(--color-fg-strong);
 }
-.flat-page .flat-primary:hover,
-.flat-page .flat-secondary:hover {
-  opacity: 0.8;
+.flat-page .flat-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-fg-strong) 82%, var(--color-base-950));
 }
+.flat-page .flat-secondary:hover:not(:disabled) { background: var(--color-base-800); }
 .flat-page button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -139,7 +141,7 @@
     margin: 28px 0;
   }
   .flat-header h1 {
-    font-size: 25px;
+    font-size: 24px;
   }
 }
 
@@ -219,7 +221,7 @@ html[data-theme='dark'] .admin-dialog {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
 }
 .admin-dialog > div:first-child > button:hover {
   background: var(--color-base-900);
@@ -239,7 +241,7 @@ html[data-theme='dark'] .admin-dialog {
 }
 .admin-dialog [role='tab'][aria-selected='true'] {
   color: var(--color-fg-strong);
-  border-bottom-color: var(--color-neon-400);
+  border-bottom-color: var(--color-fg-strong);
 }
 .flat-page .admin-dialog label {
   font-size: 0.8125rem;
@@ -266,33 +268,6 @@ html[data-theme='dark'] .admin-dialog {
   outline: 2px solid var(--color-neon-400);
   outline-offset: 3px;
 }
-.flat-page .admin-dialog input:not([type='file']):not([type='radio']):not([type='checkbox']),
-.flat-page .admin-dialog textarea,
-.flat-page .admin-dialog select {
-  background: color-mix(in srgb, var(--color-base-900) 92%, var(--color-fg-strong));
-  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 20%, transparent);
-  transition: border-color 150ms, background-color 150ms;
-}
-.flat-page .admin-dialog input:not([type='file']):not([type='radio']):not([type='checkbox']):hover:not(:disabled),
-.flat-page .admin-dialog textarea:hover:not(:disabled),
-.flat-page .admin-dialog select:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--color-fg-strong) 35%, transparent);
-}
-.flat-page .admin-dialog input:not([type='file']):not([type='radio']):not([type='checkbox']):focus-visible,
-.flat-page .admin-dialog textarea:focus-visible,
-.flat-page .admin-dialog select:focus-visible {
-  border-color: var(--color-neon-400);
-  outline: 2px solid color-mix(in srgb, var(--color-neon-400) 25%, transparent);
-  outline-offset: 1px;
-}
-.flat-page .admin-dialog input:disabled {
-  opacity: 0.55;
-}
-html[data-theme='light'] .flat-page .admin-dialog input:not([type='file']):not([type='radio']):not([type='checkbox']),
-html[data-theme='light'] .flat-page .admin-dialog textarea,
-html[data-theme='light'] .flat-page .admin-dialog select {
-  background: #fff;
-}
 .admin-page td > span.rounded-full {
   padding: 0;
   background: transparent;
@@ -309,3 +284,14 @@ html[data-theme='light'] .flat-page .admin-dialog select {
     margin: 0;
   }
 }
+
+.admin-page { max-width: var(--page-wide); }
+.flat-page input[readonly] { border-color: transparent; }
+.flat-page :is(input, select, textarea):focus-visible {
+  border-color: var(--color-neon-400);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.flat-page :is(input, select, textarea):disabled { opacity: .55; cursor: not-allowed; background: var(--color-base-900); }
+.flat-page :is(input, textarea)[aria-invalid='true'] { border-color: var(--color-danger); }
+input:autofill { -webkit-text-fill-color: var(--color-fg-strong); box-shadow: 0 0 0 1000px var(--control-bg) inset; }

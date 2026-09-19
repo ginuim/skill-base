@@ -1,6 +1,6 @@
 <template>
-  <div class="skill-detail-page min-h-screen pt-8 pb-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
+  <div class="skill-detail-page min-h-screen pt-8 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Loading State -->
       <div v-if="isInitializing || skillsStore.isLoadingDetail" class="flex items-center justify-center min-h-[70vh]">
         <div class="cube-loader">
@@ -1585,16 +1585,16 @@ async function setHeadVersion(version: string) {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .skill-btn-neon-glow {
-  box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.12);
+  box-shadow: none;
 }
 .skill-btn-neon-glow:hover {
-  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.22);
+  box-shadow: none;
 }
 .skill-timeline-dot-glow {
   box-shadow: 0 0 8px rgba(var(--color-neon-rgb), 0.45);
 }
 .skill-icon-btn-neon-hover:hover {
-  box-shadow: 0 0 10px rgba(var(--color-neon-rgb), 0.18);
+  box-shadow: none;
 }
 
 .card {
@@ -1922,8 +1922,8 @@ html[data-theme="light"] .card {
 }
 
 .detail-tab-btn--active {
-  color: var(--color-neon-400);
-  border-bottom-color: var(--color-neon-500);
+  color: var(--color-fg-strong);
+  border-bottom-color: var(--color-fg-strong);
 }
 
 /* Overview and installation stay together; the file reader is the main content. */
@@ -2311,22 +2311,12 @@ html[data-theme="light"] .card {
 }
 
 .form-input {
-  width: 100%;
-  padding: 0.625rem 0.75rem;
-  background-color: var(--color-base-950);
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.5rem;
-  color: var(--color-fg-strong);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.875rem;
-  box-sizing: border-box;
+  width: 100%; min-height: var(--control-height); padding: 9px 12px;
+  background: var(--control-bg); border: 1px solid var(--control-border);
+  border-radius: var(--control-radius); color: var(--color-fg-strong);
+  font: 14px/1.6 var(--font-sans); box-sizing: border-box;
 }
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-neon-500);
-  box-shadow: 0 0 0 1px var(--color-neon-500);
-}
+.form-input:focus { outline: none; border-color: var(--color-neon-400); box-shadow: 0 0 0 3px var(--focus-ring); }
 
 .modal-footer {
   display: flex;
@@ -2338,13 +2328,13 @@ html[data-theme="light"] .card {
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-sans);
   cursor: pointer;
   border: none;
 }
 
 .modal-footer .btn-secondary {
-  background: transparent;
+  background: var(--color-base-900);
   border: 1px solid var(--color-base-800);
   color: var(--color-fg-strong);
 }
