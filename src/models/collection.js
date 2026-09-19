@@ -218,7 +218,7 @@ const CollectionModel = {
   listCollectionSkills(collectionId, viewer) {
     const visibility = collectionBrowseVisibilityPredicate(viewer);
     return db.prepare(`
-      SELECT s.*, u.username as owner_username, u.name as owner_name
+      SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
       FROM collection_skills cs
       JOIN skills s ON s.id = cs.skill_id
       LEFT JOIN users u ON s.owner_id = u.id
@@ -231,7 +231,7 @@ const CollectionModel = {
 
   listAllCollectionSkills(collectionId) {
     return db.prepare(`
-      SELECT s.*, u.username as owner_username, u.name as owner_name
+      SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
       FROM collection_skills cs
       JOIN skills s ON s.id = cs.skill_id
       LEFT JOIN users u ON s.owner_id = u.id

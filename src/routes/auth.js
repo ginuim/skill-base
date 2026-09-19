@@ -1,6 +1,7 @@
 const db = require('../database');
 const UserModel = require('../models/user');
 const { verifyPassword, hashPassword, generateCliCode, generatePAT } = require('../utils/crypto');
+const { normalizeAvatarInput } = require('../utils/avatars');
 
 async function authRoutes(fastify, options) {
   // POST /login - User login
@@ -41,6 +42,7 @@ async function authRoutes(fastify, options) {
         id: user.id,
         username: user.username,
         name: user.name || null,
+        avatar: user.avatar || null,
         role: user.role,
         is_super_admin: user.is_super_admin || 0
       }
@@ -107,7 +109,7 @@ async function authRoutes(fastify, options) {
     return {
       ok: true,
       token,
-      user: { id: user.id, username: user.username, name: user.name || null }
+      user: { id: user.id, username: user.username, name: user.name || null, avatar: user.avatar || null }
     };
   });
 
@@ -118,15 +120,20 @@ async function authRoutes(fastify, options) {
     return request.user;
   });
 
-  // PATCH /me - Update personal info (username and name)
+  // PATCH /me - Update personal info (username, name, avatar)
   fastify.patch('/me', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
-    const { username, name } = request.body || {};
+    const { username, name, avatar } = request.body || {};
+    const normalizedAvatar = normalizeAvatarInput(avatar);
 
     // At least one field must be provided
-    if (username === undefined && name === undefined) {
+    if (username === undefined && name === undefined && avatar === undefined) {
       return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'At least one field must be provided' });
+    }
+
+    if (avatar !== undefined && normalizedAvatar === false) {
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Invalid avatar' });
     }
 
     // Validate username
@@ -144,7 +151,8 @@ async function authRoutes(fastify, options) {
 
     UserModel.updateProfile(request.user.id, {
       username: username ? username.trim() : undefined,
-      name: name !== undefined ? name : undefined
+      name: name !== undefined ? name : undefined,
+      avatar: avatar !== undefined ? normalizedAvatar : undefined
     });
     const updated = UserModel.findById(request.user.id);
 

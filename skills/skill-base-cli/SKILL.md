@@ -30,6 +30,12 @@ Assistants should complete operations by **running terminal commands**. Package 
 - Users want to deploy, start, or maintain the Skill Base server itself (use `skill-base-web-deploy` instead).
 
 
+Web detail pages offer AI Agent prompts and CLI commands bound to the selected version and site. When using these, skip CLI installation if already available and choose the current agent's install directory via `skb install --help`.
+
+Web contributor profiles at `/users/:id` list skills the user published versions for. Publishing via `skb publish` or GitHub import contributes to the same history; no separate CLI profile command is required.
+
+The Web publish form now reveals confirmation after content is read. CLI publish and GitHub-import arguments are unchanged.
+
 ## Environment
 
 - Node.js >= 18

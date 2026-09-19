@@ -127,6 +127,8 @@ skb search vue
 skb search "react component"
 ```
 
+Web 技能详情页提供「AI Agent / 命令行」安装方式切换，可复制包含 CLI 安装、站点配置和当前浏览版本的完整命令。私有技能会包含登录步骤；AI Agent Prompt 会提示助手确认对应的技能安装目录。
+
 ### `skb install <target>`
 
 ```bash
@@ -409,3 +411,9 @@ skb update my-awesome-skill
 ## 系统要求
 
 - Node.js >= 18
+
+Web 发布页按“准备内容 → 确认并发布”展示，GitHub 分支和子目录位于高级选项；CLI 发布参数与流程不变。
+
+## Web 贡献主页
+
+通过 `skb publish` 或 GitHub 导入产生的版本会计入发布者贡献。在 Web 技能列表点击贡献者头像可进入 `/users/:id`，查看其贡献的技能、发布版本数及贡献技能累计下载量；列表和统计遵循当前访问者的技能权限。CLI 命令和参数无需变更。

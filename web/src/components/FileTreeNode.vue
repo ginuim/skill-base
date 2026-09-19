@@ -4,7 +4,12 @@
     <div
       v-if="node.type === 'directory'"
       class="file-tree-item"
+      role="button"
+      tabindex="0"
+      :aria-expanded="!!node.isOpen"
       @click="toggleFolder"
+      @keydown.enter.prevent="toggleFolder"
+      @keydown.space.prevent="toggleFolder"
     >
       <ChevronDown
         class="w-4 h-4 opacity-70 flex-shrink-0 text-neon-400 transition-transform"

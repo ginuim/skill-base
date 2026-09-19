@@ -59,18 +59,24 @@ const { t } = useI18n()
   background: transparent;
   color: var(--color-base-400);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.view-mode-btn:hover {
+.view-mode-btn:hover,
+.view-mode-btn:focus-visible {
   color: var(--color-fg-strong);
+  outline: none;
+}
+
+.view-mode-btn:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--color-base-500);
 }
 
 .view-mode-btn--active {
-  background: rgba(var(--color-neon-rgb), 0.12);
-  color: var(--color-neon-400);
+  background: color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+  color: var(--color-fg-strong);
 }
 
 .view-mode-btn-label {

@@ -1,0 +1,297 @@
+/* Content-first forms: sections stay on the page, controls carry their own affordance. */
+.flat-page {
+  max-width: var(--page-form);
+  margin: 0 auto;
+  padding: 32px 32px 72px;
+}
+.flat-back {
+  display: inline-block;
+  font-size: 0.8125rem;
+  color: var(--color-base-400);
+  text-decoration: none;
+}
+.flat-back:hover {
+  color: var(--color-fg-strong);
+}
+.flat-header {
+  margin: 32px 0;
+}
+.flat-header h1 {
+  color: var(--color-fg-strong);
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+.flat-header p {
+  margin-top: 10px;
+  color: var(--color-base-400);
+  font-size: 14px;
+}
+.flat-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+}
+.flat-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flat-page label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-fg-strong);
+}
+.flat-page input:not([type='file']):not([type='checkbox']):not([type='radio']),
+.flat-page textarea,
+.flat-page select {
+  width: 100%;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  min-height: var(--control-height);
+  border-radius: var(--control-radius);
+  color: var(--color-fg-strong);
+  padding: 9px 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.flat-page input::placeholder,
+.flat-page textarea::placeholder {
+  color: var(--color-base-400);
+}
+.flat-page input[readonly] {
+  background: transparent;
+  padding-left: 0;
+  font-family: var(--font-mono);
+}
+.flat-page textarea {
+  resize: vertical;
+}
+.flat-page :is(input, textarea, select, button, summary, a):focus-visible {
+  outline: 2px solid var(--color-neon-400);
+  outline-offset: 3px;
+}
+.flat-page .flat-hint {
+  color: var(--color-base-400);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.flat-page .flat-primary,
+.flat-page .flat-secondary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: var(--control-radius);
+  font: 500 14px/1.5 var(--font-sans);
+  min-height: var(--control-height);
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background-color 150ms;
+}
+.flat-page .flat-primary {
+  background: var(--color-fg-strong);
+  color: var(--color-base-950);
+}
+.flat-page .flat-secondary {
+  background: var(--color-base-900);
+  color: var(--color-fg-strong);
+}
+.flat-page .flat-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-fg-strong) 82%, var(--color-base-950));
+}
+.flat-page .flat-secondary:hover:not(:disabled) { background: var(--color-base-800); }
+.flat-page button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.flat-page .flat-link,
+.flat-page summary {
+  color: var(--color-fg-strong);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.flat-page summary {
+  width: fit-content;
+}
+.flat-page summary::marker {
+  color: var(--color-base-400);
+}
+.flat-page .flat-link {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.flat-error {
+  color: var(--color-danger, #dc2626);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .flat-page {
+    padding: 24px 20px 48px;
+  }
+  .flat-header {
+    margin: 28px 0;
+  }
+  .flat-header h1 {
+    font-size: 24px;
+  }
+}
+
+/* Administration shares the flat page rhythm; tables scroll within their own region. */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 36px 0 24px;
+}
+.admin-list-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+.admin-table-scroll {
+  overflow-x: auto;
+}
+.admin-page table {
+  font-size: 14px;
+}
+.admin-page th {
+  background: transparent;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.admin-page td {
+  border-bottom: 1px solid var(--color-base-800);
+}
+.admin-page th:first-child,
+.admin-page td:first-child {
+  padding-left: 0;
+}
+.admin-page th:last-child,
+.admin-page td:last-child {
+  text-align: right;
+  padding-right: 0;
+  white-space: nowrap;
+}
+.flat-page input.admin-search-input:not([type='file']):not([type='checkbox']):not([type='radio']) {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+.flat-page input.pr-20:not([type='file']):not([type='checkbox']):not([type='radio']) {
+  padding-right: 80px;
+}
+.admin-page select {
+  padding-right: 40px;
+}
+.admin-dialog {
+  background: var(--color-base-950);
+  border-radius: 12px;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+html[data-theme='dark'] .admin-dialog {
+  background: color-mix(in srgb, var(--color-base-950) 96%, var(--color-fg-strong));
+}
+.admin-page > .fixed.inset-0 {
+  background: rgb(0 0 0 / 38%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  padding: 16px;
+}
+.admin-dialog > div:first-child {
+  border-bottom: 0;
+  padding: 24px 24px 12px;
+}
+.admin-dialog h3 {
+  font-size: 20px;
+  letter-spacing: -0.025em;
+}
+.admin-dialog > div:first-child > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--control-radius);
+}
+.admin-dialog > div:first-child > button:hover {
+  background: var(--color-base-900);
+}
+.admin-dialog [role='tablist'] {
+  gap: 24px;
+  padding: 0 24px;
+}
+.admin-dialog [role='tab'] {
+  padding: 12px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--color-base-400);
+  font-weight: 500;
+}
+.admin-dialog [role='tab'][aria-selected='true'] {
+  color: var(--color-fg-strong);
+  border-bottom-color: var(--color-fg-strong);
+}
+.flat-page .admin-dialog label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.flat-page .admin-dialog input:not([type='file']):not([type='radio']):not([type='checkbox']),
+.flat-page .admin-dialog select {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-size: 14px;
+}
+.admin-dialog input[type='radio'],
+.admin-dialog input[type='checkbox'] {
+  accent-color: var(--color-neon-400);
+  flex-shrink: 0;
+}
+.admin-dialog form > .border-t,
+.admin-dialog > .border-t {
+  padding: 16px 24px 24px;
+  border-top: 0;
+  background: transparent;
+}
+.admin-dialog button:focus-visible {
+  outline: 2px solid var(--color-neon-400);
+  outline-offset: 3px;
+}
+.admin-page td > span.rounded-full {
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+@media (max-width: 640px) {
+  .admin-page table {
+    min-width: 580px;
+  }
+  .admin-toolbar {
+    margin-top: 28px;
+  }
+  .admin-page .admin-dialog {
+    margin: 0;
+  }
+}
+
+.admin-page { max-width: var(--page-wide); }
+.flat-page input[readonly] { border-color: transparent; }
+.flat-page :is(input, select, textarea):focus-visible {
+  border-color: var(--color-neon-400);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.flat-page :is(input, select, textarea):disabled { opacity: .55; cursor: not-allowed; background: var(--color-base-900); }
+.flat-page :is(input, textarea)[aria-invalid='true'] { border-color: var(--color-danger); }
+input:autofill { -webkit-text-fill-color: var(--color-fg-strong); box-shadow: 0 0 0 1000px var(--control-bg) inset; }

@@ -180,6 +180,8 @@ function createSkill(skillId, name, ownerId) {
 {
   "id": 1,
   "username": "zhangsan",
+  "name": "张三",
+  "avatar": "fox.png",
   "role": "developer",
   "status": "active",
   "created_at": "2026-02-01T00:00:00.000Z"
@@ -192,18 +194,19 @@ function createSkill(skillId, name, ownerId) {
 
 **PATCH** `/api/v1/auth/me`
 
-更新当前用户的个人信息（用户名等）。
+更新当前用户的姓名和头像。
 
 **认证:** 需要 Session 或 PAT
 
 **请求体:**
 ```json
 {
-  "username": "zhangsan_new"
+  "name": "张三",
+  "avatar": "fox.png"
 }
 ```
 
-> 支持部分更新。注意：不能通过此接口修改 `role` 和 `status`，这些字段仅管理员可修改。
+> 支持部分更新。`avatar` 必须是服务端预设文件名，传 `null` 清除。不能通过此接口修改 `role` 和 `status`，这些字段仅管理员可修改。用户名当前不可改。
 
 **响应 200:**
 ```json

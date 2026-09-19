@@ -1,6 +1,9 @@
 const UserModel = require('../models/user');
 const { hashPassword } = require('../utils/crypto');
 const db = require('../database');
+const SkillModel = require('../models/skill');
+const ContributionModel = require('../models/contribution');
+const { formatSkill } = require('../utils/format-skill');
 
 async function usersRoutes(fastify, options) {
   // GET /search - User search (login required only, no admin permission needed)
@@ -13,7 +16,7 @@ async function usersRoutes(fastify, options) {
 
     if (!trimmed) {
       const users = db.prepare(`
-        SELECT id, username, name, status
+        SELECT id, username, name, avatar, status
         FROM users
         WHERE status = 'active'
         ORDER BY username ASC
@@ -24,7 +27,7 @@ async function usersRoutes(fastify, options) {
 
     const pattern = `%${trimmed}%`;
     const users = db.prepare(`
-      SELECT id, username, name, status
+      SELECT id, username, name, avatar, status
       FROM users
       WHERE (username LIKE ? OR name LIKE ?) AND status = 'active'
       ORDER BY username ASC
@@ -32,6 +35,37 @@ async function usersRoutes(fastify, options) {
     `).all(pattern, pattern);
 
     return reply.send({ users });
+  });
+
+  // Public identity plus contributions filtered by the viewer's normal skill visibility.
+  fastify.get('/:user_id/profile', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
+    const rawId = String(request.params.user_id);
+    const userId = Number(rawId);
+    if (!/^[1-9]\d*$/.test(rawId) || !Number.isSafeInteger(userId)) {
+      return reply.code(404).send({ detail: 'User not found' });
+    }
+    const user = UserModel.findById(userId);
+    if (!user) return reply.code(404).send({ detail: 'User not found' });
+
+    const contributions = ContributionModel.byUser(userId);
+    const visibleSkills = SkillModel.search('', request.user)
+      .filter(skill => contributions.has(skill.id))
+      .sort((a, b) => contributions.get(b.id).last_contributed_at.localeCompare(contributions.get(a.id).last_contributed_at) || a.id.localeCompare(b.id));
+    const people = ContributionModel.forSkills(visibleSkills.map(skill => skill.id));
+    const skills = visibleSkills.map(skill => ({
+      ...formatSkill(skill, request.user),
+      contributors: people.get(skill.id) || [],
+      contribution: contributions.get(skill.id)
+    }));
+    return {
+      user: { id: user.id, username: user.username, name: user.name, avatar: user.avatar || null, created_at: user.created_at },
+      stats: {
+        skill_count: skills.length,
+        version_count: skills.reduce((sum, skill) => sum + skill.contribution.version_count, 0),
+        download_count: skills.reduce((sum, skill) => sum + skill.download_count, 0)
+      },
+      skills
+    };
   });
 
   // Routes below require admin permission
@@ -125,6 +159,7 @@ async function usersRoutes(fastify, options) {
       id: user.id,
       username: user.username,
       name: user.name,
+      avatar: user.avatar || null,
       role: user.role,
       status: user.status,
       is_super_admin: user.is_super_admin || 0,

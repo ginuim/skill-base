@@ -1,11 +1,9 @@
 <template>
-  <nav class="navbar sticky top-0 z-50 bg-base-950/80 backdrop-blur-md border-b border-base-800">
+  <nav class="navbar sticky top-0 bg-base-950/80 backdrop-blur-md border-b border-base-800">
     <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="sb-nav-main">
-        <router-link to="/" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
-          <Package class="sb-nav-brand-icon" :size="22" :stroke-width="2" aria-hidden="true" />
-          <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">Skill</span>
-          <span class="text-fg-strong font-bold">Base</span>
+        <router-link to="/" aria-label="Skill Base" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
+          <SkillBaseBrand />
         </router-link>
 
         <div class="sb-nav-links">
@@ -41,7 +39,7 @@
           </button>
 
           <div class="lang-switcher" :class="{ active: showLangMenu }">
-            <button type="button" class="lang-switcher-trigger navbar-surface-btn sb-nav-action-btn" @click.stop="toggleLangMenu">
+            <button type="button" class="lang-switcher-trigger navbar-surface-btn sb-nav-action-btn" :aria-label="t('nav.language')" @click.stop="toggleLangMenu">
               <Globe :size="14" :stroke-width="2.2" aria-hidden="true" />
               <span>{{ currentLang === 'zh' ? '中文' : 'English' }}</span>
               <ChevronDown class="lang-chevron" :size="12" :stroke-width="2.5" aria-hidden="true" />
@@ -54,10 +52,20 @@
 
           <div v-if="authStore.isLoggedIn" class="navbar-user-dropdown" :class="{ active: showUserMenu }">
             <button type="button" class="navbar-user-btn navbar-surface-btn sb-nav-action-btn" @click.stop="toggleUserMenu">
+              <UserAvatar
+                :avatar="authStore.user?.avatar"
+                :name="authStore.user?.name"
+                :username="authStore.username"
+                size-class="w-6 h-6 text-[10px]"
+              />
               <span class="username">{{ authStore.displayName }}</span>
               <ChevronDown :size="16" :stroke-width="2" aria-hidden="true" />
             </button>
             <div class="navbar-user-menu">
+              <router-link :to="`/users/${authStore.user?.id}`" class="navbar-user-menu-item" @click="showUserMenu = false">
+                <Users :size="16" :stroke-width="2" aria-hidden="true" />
+                {{ t('profile.myPage') }}
+              </router-link>
               <router-link to="/settings" class="navbar-user-menu-item" @click="showUserMenu = false">
                 <Settings :size="16" :stroke-width="2" aria-hidden="true" />
                 {{ t('nav.settings') }}
@@ -111,12 +119,14 @@
 </template>
 
 <script setup lang="ts">
+import SkillBaseBrand from './SkillBaseBrand.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
 import { useTheme } from '@/composables/useTheme'
 import { collectionsApi } from '@/services/api'
+import UserAvatar from '@/components/UserAvatar.vue'
 import {
   Home,
   Upload,
@@ -332,13 +342,8 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.sb-nav-brand-skill {
-  /* filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45)); */
-}
-
 .sb-nav-brand-icon {
   color: var(--color-neon-400);
-  /* filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45)); */
   flex-shrink: 0;
 }
 
@@ -353,8 +358,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  font-family: 'JetBrains Mono', monospace;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
   color: var(--color-base-400);
   font-size: 0.875rem;
   padding: 0.35rem 0.6rem;
@@ -370,8 +374,7 @@ onUnmounted(() => {
 
 .sb-nav-link.is-active {
   color: var(--color-fg-strong);
-  background: linear-gradient(180deg, rgba(var(--color-neon-rgb), 0.1), color-mix(in srgb, var(--color-fg-strong) 2%, transparent));
-  box-shadow: inset 0 0 0 1px rgba(var(--color-neon-rgb), 0.18);
+  background: color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
 }
 
 .sb-nav-link-icon {
@@ -390,7 +393,6 @@ onUnmounted(() => {
 
 .sb-nav-link.is-active .sb-nav-link-icon {
   opacity: 1;
-  color: var(--color-neon-400);
 }
 
 .sb-nav-mobile-link .sb-nav-link-icon {
@@ -399,17 +401,16 @@ onUnmounted(() => {
 
 .sb-nav-mobile-link.is-active .sb-nav-link-icon {
   opacity: 1;
-  color: var(--color-neon-400);
 }
 
 .sb-nav-link-prefix {
   min-width: 1.5rem;
-  color: var(--color-neon-400);
+  color: var(--color-base-500);
 }
 
 .sb-nav-mobile-marker {
   min-width: 1.5rem;
-  color: var(--color-neon-400);
+  color: var(--color-base-500);
 }
 
 .sb-nav-controls {
@@ -429,15 +430,14 @@ onUnmounted(() => {
   border-radius: 0.75rem;
   background: color-mix(in srgb, var(--color-base-900) 84%, transparent);
   color: var(--color-fg);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
 .sb-nav-toggle:hover,
 .sb-nav-toggle:focus-visible {
-  border-color: var(--color-neon-500);
-  color: var(--color-neon-400);
+  border-color: var(--color-base-600);
+  color: var(--color-fg-strong);
   outline: none;
-  box-shadow: 0 0 0 1px rgba(var(--color-neon-rgb), 0.25);
 }
 
 .sb-nav-mobile {
@@ -467,7 +467,6 @@ onUnmounted(() => {
   padding: 0.875rem 0.9rem;
   border-radius: 0.75rem;
   text-decoration: none;
-  font-family: 'JetBrains Mono', monospace;
   font-size: 0.875rem;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
@@ -481,14 +480,13 @@ onUnmounted(() => {
 
 .sb-nav-mobile-link.is-active {
   color: var(--color-fg-strong);
-  background: rgba(var(--color-neon-rgb), 0.1);
+  background: color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
 }
 
 .navbar-user {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
 }
 
@@ -528,19 +526,19 @@ onUnmounted(() => {
 }
 
 .lang-switcher-trigger:hover {
-  border-color: var(--color-neon-500);
-  color: var(--color-neon-400);
-  background-color: rgba(var(--color-neon-rgb), 0.12);
+  border-color: var(--color-base-600);
+  color: var(--color-fg-strong);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
 }
 
 .lang-switcher.active .lang-switcher-trigger {
-  border-color: var(--color-neon-500);
-  color: var(--color-neon-400);
-  background-color: rgba(var(--color-neon-rgb), 0.1);
+  border-color: var(--color-base-600);
+  color: var(--color-fg-strong);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
 }
 
 .lang-switcher.active .lang-switcher-trigger:hover {
-  background-color: rgba(var(--color-neon-rgb), 0.12);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
 }
 
 .lang-chevron {
@@ -585,18 +583,17 @@ onUnmounted(() => {
   transition: background-color 0.2s ease, color 0.2s ease;
   text-align: left;
   white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
 }
 
 .lang-switcher-option:hover {
-  background-color: rgba(var(--color-neon-rgb), 0.14);
-  color: var(--color-neon-400);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
+  color: var(--color-fg-strong);
 }
 
 .lang-switcher-option.active {
-  color: var(--color-neon-400);
+  color: var(--color-fg-strong);
   font-weight: 600;
-  background-color: rgba(var(--color-neon-rgb), 0.08);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
 }
 
 .navbar-user-dropdown {
@@ -615,23 +612,22 @@ onUnmounted(() => {
   color: var(--color-base-400);
   font-size: 0.875rem;
   text-decoration: none;
-  font-family: 'JetBrains Mono', monospace;
 }
 
 .navbar-user-btn:hover {
-  border-color: var(--color-neon-500);
-  color: var(--color-neon-400);
-  background-color: rgba(var(--color-neon-rgb), 0.12);
+  border-color: var(--color-base-600);
+  color: var(--color-fg-strong);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
 }
 
 .navbar-user-dropdown.active .navbar-user-btn {
-  border-color: var(--color-neon-500);
-  color: var(--color-neon-400);
-  background-color: rgba(var(--color-neon-rgb), 0.1);
+  border-color: var(--color-base-600);
+  color: var(--color-fg-strong);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
 }
 
 .navbar-user-dropdown.active .navbar-user-btn:hover {
-  background-color: rgba(var(--color-neon-rgb), 0.12);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
 }
 
 .navbar-user-menu {
@@ -668,12 +664,11 @@ onUnmounted(() => {
   border: none;
   background: none;
   text-align: left;
-  font-family: 'JetBrains Mono', monospace;
 }
 
 .navbar-user-menu-item:hover {
-  background-color: rgba(var(--color-neon-rgb), 0.14);
-  color: var(--color-neon-400);
+  background-color: color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
+  color: var(--color-fg-strong);
 }
 
 .navbar-user-logout {
@@ -692,27 +687,12 @@ onUnmounted(() => {
 }
 
 .sb-nav-login-btn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border-radius: 0.5rem;
-  text-decoration: none;
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  background-color: transparent;
-  border: 1px solid var(--color-neon-500);
-  color: var(--color-neon-400);
-  box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.12);
-  white-space: nowrap;
+  font-size: 14px; font-weight: 500; border-radius: var(--control-radius);
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+  background: var(--color-fg-strong); color: var(--color-base-950); border: 1px solid transparent;
 }
-
-.sb-nav-login-btn:hover,
-.sb-nav-login-btn:focus-visible {
-  background-color: rgba(var(--color-neon-rgb), 0.12);
-  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.22);
-  color: var(--color-neon-500);
-  outline: none;
-}
+.sb-nav-login-btn:hover { background: color-mix(in srgb, var(--color-fg-strong) 82%, var(--color-base-950)); }
+.sb-nav-login-btn:focus-visible { outline: 2px solid var(--color-neon-400); outline-offset: 3px; }
 
 @media (max-width: 767px) {
   .sb-nav-links {
@@ -727,5 +707,14 @@ onUnmounted(() => {
   .navbar-user {
     gap: 0.5rem;
   }
+}
+@media (max-width: 420px) {
+  .sb-nav-brand { gap: 6px; font-size: 16px; }
+  .sb-nav-brand :deep(.skill-base-brand > span) { display: none; }
+  .navbar-user-btn .username { display: none; }
+  .navbar .container { gap: 8px; }
+}
+@media (max-width: 360px) {
+  .lang-switcher-trigger > span { display: none; }
 }
 </style>

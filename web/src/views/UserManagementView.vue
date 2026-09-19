@@ -1,33 +1,21 @@
 <template>
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+  <main class="flat-page admin-page">
     <!-- 面包屑 -->
-    <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-      <span class="text-neon-400">~</span>
-      <span class="opacity-50">/</span>
-      <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('nav.home') }}</router-link>
-      <span class="opacity-50">/</span>
-      <span class="text-fg-strong">admin</span>
-      <span class="opacity-50">/</span>
-      <span class="text-fg-strong">users</span>
-    </div>
+    <router-link to="/" class="flat-back">← {{ t('nav.home') }}</router-link>
 
-    <!-- 页面标题 -->
-    <div class="skill-card p-8 relative overflow-hidden">
-      <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ADMIN-USERS</div>
+    <div>
 
-      <div class="mb-8 border-b border-base-800 pb-6">
-        <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
-          <span class="text-neon-400 font-mono font-normal opacity-70">></span>
+      <div class="flat-header">
+        <h1 class="text-fg-strong mb-2 flex items-center gap-3">
           <span>{{ t('admin.heading') }}</span>
         </h1>
-        <p class="text-base-400 text-sm font-mono">{{ t('admin.subtitle') }}</p>
+        <p class="text-base-400 text-sm ">{{ t('admin.subtitle').replace(/^\/\/\s*/, '') }}</p>
       </div>
 
-      <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono mb-0">
-          <span class="text-neon-400">#</span> {{ t('admin.userList') }}
+      <div class="admin-toolbar">
+        <h2 class="admin-list-title"> {{ t('admin.userList') }}
         </h2>
-        <button class="btn-primary px-4 py-2.5 rounded-lg font-mono flex items-center gap-2" @click="showAddUserModal">
+        <button class="flat-primary px-4 py-2.5 rounded-lg  flex items-center gap-2" @click="showAddUserModal">
           <Plus :size="16" :stroke-width="2" aria-hidden="true" />
           <span>{{ t('admin.addUser') }}</span>
         </button>
@@ -41,7 +29,7 @@
               type="text"
               v-model="searchQuery"
               :placeholder="t('admin.searchPlaceholder')"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
+              class="admin-search-input w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
             />
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-400">
               <Search :size="16" :stroke-width="2" aria-hidden="true" />
@@ -59,7 +47,7 @@
         <div class="relative min-w-[140px]">
           <select
             v-model="statusFilter"
-            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 pr-10 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors appearance-none cursor-pointer"
+            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 pr-10  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors appearance-none cursor-pointer"
           >
             <option value="">{{ t('admin.allStatus') }}</option>
             <option value="active">{{ t('admin.active') }}</option>
@@ -70,16 +58,16 @@
       </div>
 
       <!-- 用户列表 -->
-      <div class="border border-base-800 rounded-xl overflow-hidden">
+      <div class="admin-table-scroll">
         <table class="w-full">
           <thead>
-            <tr class="bg-base-950">
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('admin.thUsername') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('admin.thName') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('admin.thRole') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('admin.thStatus') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('admin.thCreatedAt') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('admin.thActions') }}</th>
+            <tr class="admin-table-heading">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('admin.thUsername') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('admin.thName') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('admin.thRole') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('admin.thStatus') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('admin.thCreatedAt') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('admin.thActions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -91,7 +79,7 @@
             <tr v-else-if="paginatedUsers.length === 0" class="border-t border-base-800">
               <td colspan="6" class="px-4 py-12 text-center">
                 <div class="text-4xl mb-4 opacity-30">📦</div>
-                <p class="text-base-400 font-mono">{{ t('admin.emptyState') }}</p>
+                <p class="text-base-400 ">{{ t('admin.emptyState') }}</p>
               </td>
             </tr>
             <tr
@@ -100,11 +88,11 @@
               :key="user.id"
               class="border-t border-base-800 hover:bg-white/5 transition-colors"
             >
-              <td class="px-4 py-4 font-mono text-fg-strong">{{ user.username }}</td>
-              <td class="px-4 py-4 font-mono text-fg-strong">{{ user.name || '-' }}</td>
+              <td class="px-4 py-4  text-fg-strong">{{ user.username }}</td>
+              <td class="px-4 py-4  text-fg-strong">{{ user.name || '-' }}</td>
               <td class="px-4 py-4">
                 <span
-                  class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full font-mono"
+                  class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full "
                   :class="user.role === 'admin' ? 'bg-neon-400/10 text-neon-400 border border-neon-400/30' : 'bg-blue-500/10 text-blue-400 border border-blue-500/30'"
                 >
                   <Shield v-if="user.role === 'admin'" :size="12" :stroke-width="2" aria-hidden="true" />
@@ -112,12 +100,12 @@
                   {{ user.role === 'admin' ? t('admin.roleAdmin') : t('admin.roleUser') }}
                 </span>
               </td>
-              <td class="px-4 py-4 font-mono">
+              <td class="px-4 py-4 ">
                 <span :class="user.status === 'disabled' ? 'text-red-400' : 'text-neon-400'">
                   {{ user.status === 'disabled' ? t('admin.disabled') : t('admin.active') }}
                 </span>
               </td>
-              <td class="px-4 py-4 font-mono text-base-400 text-sm">{{ formatDate(user.created_at) }}</td>
+              <td class="px-4 py-4  text-base-400 text-sm">{{ formatDate(user.created_at) }}</td>
               <td class="px-4 py-4">
                 <button
                   class="p-2 text-base-400 hover:text-neon-400 hover:bg-neon-400/10 rounded-lg transition-colors"
@@ -134,15 +122,15 @@
         <!-- 分页 -->
         <div v-if="totalPages > 1" class="flex items-center justify-center gap-4 px-4 py-4 border-t border-base-800">
           <button
-            class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:border-neon-400 hover:text-neon-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 rounded-lg  text-sm border border-base-800 text-base-400 hover:border-neon-400 hover:text-neon-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="currentPage === 1"
             @click="currentPage--"
           >
             {{ t('admin.prevPage') }}
           </button>
-          <span class="text-base-400 font-mono text-sm">{{ currentPage }} / {{ totalPages }}</span>
+          <span class="text-base-400  text-sm">{{ currentPage }} / {{ totalPages }}</span>
           <button
-            class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:border-neon-400 hover:text-neon-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 rounded-lg  text-sm border border-base-800 text-base-400 hover:border-neon-400 hover:text-neon-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="currentPage === totalPages"
             @click="currentPage++"
           >
@@ -154,10 +142,9 @@
 
     <!-- 添加用户弹窗 -->
     <div v-if="showAddModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeAddModal">
-      <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 transform transition-all flex flex-col max-h-[90vh]">
+      <div class="admin-dialog w-full max-w-lg mx-4 transform transition-all flex flex-col max-h-[90vh]">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800 shrink-0">
-          <h3 class="text-lg font-semibold text-fg-strong font-mono flex items-center gap-2">
-            <span class="text-neon-400 opacity-70">></span>
+          <h3 class="text-lg font-semibold text-fg-strong  flex items-center gap-2">
             {{ t('admin.addModal') }}
           </h3>
           <button type="button" class="text-base-400 hover:text-fg-strong transition-colors" @click="closeAddModal">
@@ -169,7 +156,7 @@
             type="button"
             role="tab"
             :aria-selected="addModalTab === 'basic'"
-            class="px-3 py-1.5 rounded font-mono text-sm border transition-colors"
+            class="px-3 py-1.5 rounded  text-sm border transition-colors"
             :class="addModalTab === 'basic' ? 'border-neon-400 text-neon-400 bg-neon-400/5' : 'border-base-800 text-base-400 hover:text-fg-strong'"
             @click="addModalTab = 'basic'"
           >
@@ -179,7 +166,7 @@
             type="button"
             role="tab"
             :aria-selected="addModalTab === 'skills'"
-            class="px-3 py-1.5 rounded font-mono text-sm border transition-colors"
+            class="px-3 py-1.5 rounded  text-sm border transition-colors"
             :class="addModalTab === 'skills' ? 'border-neon-400 text-neon-400 bg-neon-400/5' : 'border-base-800 text-base-400 hover:text-fg-strong'"
             @click="addModalTab = 'skills'"
           >
@@ -190,20 +177,20 @@
           <div class="flex-1 min-h-0 flex flex-col min-h-0">
             <div v-show="addModalTab === 'basic'" class="flex-1 min-h-0 overflow-y-auto p-6 space-y-5">
               <div>
-                <label class="font-mono text-base-400 mb-2 block text-sm">
-                  <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">username</span> <span class="text-neon-400 opacity-70">=</span>
+                <label class=" text-base-400 mb-2 block text-sm">
+                  {{ t('admin.thUsername') }}
                 </label>
                 <input
                   type="text"
                   v-model="addForm.username"
                   required
                   autocomplete="off"
-                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
                 />
               </div>
               <div>
-                <label class="font-mono text-base-400 mb-2 block text-sm">
-                  <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">password</span> <span class="text-neon-400 opacity-70">=</span>
+                <label class=" text-base-400 mb-2 block text-sm">
+                  {{ t('admin.password') }}
                 </label>
                 <div class="relative">
                   <input
@@ -211,7 +198,7 @@
                     v-model="addForm.password"
                     required
                     autocomplete="new-password"
-                    class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-20"
+                    class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-20"
                   />
                   <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                     <button type="button" class="p-1.5 text-base-400 hover:text-neon-400 rounded transition-colors" @click="showPassword = !showPassword">
@@ -225,17 +212,17 @@
                 </div>
               </div>
               <div>
-                <label class="font-mono text-base-400 mb-2 block text-sm">
-                  <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">name</span> <span class="text-neon-400 opacity-70">=</span>
+                <label class=" text-base-400 mb-2 block text-sm">
+                  {{ t('admin.thName') }}
                 </label>
                 <input
                   type="text"
                   v-model="addForm.name"
-                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
                 />
               </div>
               <div>
-                <label class="font-mono text-base-400 mb-3 block text-sm">{{ t('admin.roleLabel') }}</label>
+                <label class=" text-base-400 mb-3 block text-sm">{{ t('admin.roleLabel') }}</label>
                 <div class="flex gap-6">
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input
@@ -244,7 +231,7 @@
                       value="developer"
                       class="w-4 h-4 accent-neon-400"
                     />
-                    <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleUser') }}</span>
+                    <span class="text-fg-strong  text-sm">{{ t('admin.roleUser') }}</span>
                   </label>
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input
@@ -253,24 +240,24 @@
                       value="admin"
                       class="w-4 h-4 accent-neon-400"
                     />
-                    <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleAdmin') }}</span>
+                    <span class="text-fg-strong  text-sm">{{ t('admin.roleAdmin') }}</span>
                   </label>
                 </div>
               </div>
             </div>
             <div v-show="addModalTab === 'skills'" class="flex flex-col flex-1 min-h-0 overflow-hidden p-6 space-y-3">
-              <label class="font-mono text-base-400 block text-sm mb-0 shrink-0">{{ t('admin.skillsLabel') }}</label>
-              <p class="text-xs text-base-500 font-mono shrink-0">{{ t('admin.skillsHintAdd') }}</p>
-              <div v-if="skillsListLoading" class="text-base-400 font-mono text-xs py-4 shrink-0">…</div>
+              <label class=" text-base-400 block text-sm mb-0 shrink-0">{{ t('admin.skillsLabel') }}</label>
+              <p class="text-xs text-base-500  shrink-0">{{ t('admin.skillsHintAdd') }}</p>
+              <div v-if="skillsListLoading" class="text-base-400  text-xs py-4 shrink-0">…</div>
               <template v-else>
-                <div v-if="allSkills.length === 0" class="text-base-500 text-xs font-mono shrink-0">{{ t('admin.skillsEmpty') }}</div>
+                <div v-if="allSkills.length === 0" class="text-base-500 text-xs  shrink-0">{{ t('admin.skillsEmpty') }}</div>
                 <template v-else>
                   <div class="um-picker-filter-row shrink-0">
                     <input
                       v-model="skillPickerFilter"
                       type="text"
                       :placeholder="t('admin.skillsFilterPlaceholder')"
-                      class="um-picker-name-search w-full bg-base-950 border border-base-800 rounded-lg px-3 py-2 font-mono text-sm text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400"
+                      class="um-picker-name-search w-full bg-base-950 border border-base-800 rounded-lg px-3 py-2  text-sm text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400"
                     />
                     <div
                       v-if="availableTagsFromSkills.length > 0"
@@ -330,7 +317,7 @@
                       </div>
                     </div>
                   </div>
-                  <div v-if="filteredSkillsForPicker.length === 0" class="text-base-500 text-xs font-mono py-2 shrink-0">{{ t('admin.skillsNoMatch') }}</div>
+                  <div v-if="filteredSkillsForPicker.length === 0" class="text-base-500 text-xs  py-2 shrink-0">{{ t('admin.skillsNoMatch') }}</div>
                   <div
                     v-else
                     class="tag-filter-options um-skill-options um-skill-options--modal flex-1 min-h-0 overflow-y-auto"
@@ -358,13 +345,13 @@
             </div>
           </div>
           <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-base-800 shrink-0 bg-base-900">
-            <button type="button" class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:text-fg-strong transition-colors" @click="closeAddModal">
+            <button type="button" class="px-4 py-2 rounded-lg  text-sm border border-base-800 text-base-400 hover:text-fg-strong transition-colors" @click="closeAddModal">
               {{ t('admin.cancel') }}
             </button>
             <button
               type="submit"
               :disabled="isAdding"
-              class="btn-primary px-4 py-2 rounded-lg font-mono text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flat-primary px-4 py-2 rounded-lg  text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span v-if="isAdding" class="spinner spinner-sm"></span>
               <template v-else>{{ t('admin.confirmAdd') }}</template>
@@ -376,10 +363,9 @@
 
     <!-- 编辑用户弹窗 -->
     <div v-if="showEditModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeEditModal">
-      <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 transform transition-all flex flex-col max-h-[90vh]">
+      <div class="admin-dialog w-full max-w-lg mx-4 transform transition-all flex flex-col max-h-[90vh]">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800 shrink-0">
-          <h3 class="text-lg font-semibold text-fg-strong font-mono flex items-center gap-2">
-            <span class="text-neon-400 opacity-70">></span>
+          <h3 class="text-lg font-semibold text-fg-strong  flex items-center gap-2">
             {{ t('admin.editModal') }}
           </h3>
           <button type="button" class="text-base-400 hover:text-fg-strong transition-colors" @click="closeEditModal">
@@ -391,7 +377,7 @@
             type="button"
             role="tab"
             :aria-selected="editModalTab === 'basic'"
-            class="px-3 py-1.5 rounded font-mono text-sm border transition-colors"
+            class="px-3 py-1.5 rounded  text-sm border transition-colors"
             :class="editModalTab === 'basic' ? 'border-neon-400 text-neon-400 bg-neon-400/5' : 'border-base-800 text-base-400 hover:text-fg-strong'"
             @click="editModalTab = 'basic'"
           >
@@ -401,7 +387,7 @@
             type="button"
             role="tab"
             :aria-selected="editModalTab === 'skills'"
-            class="px-3 py-1.5 rounded font-mono text-sm border transition-colors"
+            class="px-3 py-1.5 rounded  text-sm border transition-colors"
             :class="editModalTab === 'skills' ? 'border-neon-400 text-neon-400 bg-neon-400/5' : 'border-base-800 text-base-400 hover:text-fg-strong'"
             @click="editModalTab = 'skills'"
           >
@@ -412,29 +398,29 @@
           <div class="flex-1 min-h-0 flex flex-col min-h-0">
             <div v-show="editModalTab === 'basic'" class="flex-1 min-h-0 overflow-y-auto p-6 space-y-5">
               <div>
-                <label class="font-mono text-base-400 mb-2 block text-sm">
-                  <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">username</span> <span class="text-neon-400 opacity-70">=</span>
+                <label class=" text-base-400 mb-2 block text-sm">
+                  {{ t('admin.thUsername') }}
                 </label>
                 <input
                   type="text"
                   :value="editForm.username"
                   disabled
-                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-base-400 cursor-not-allowed"
+                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3  text-base-400 cursor-not-allowed"
                 />
               </div>
               <div>
-                <label class="font-mono text-base-400 mb-2 block text-sm">
-                  <span class="text-neon-400 opacity-70">let</span> <span class="text-fg-strong">name</span> <span class="text-neon-400 opacity-70">=</span>
+                <label class=" text-base-400 mb-2 block text-sm">
+                  {{ t('admin.thName') }}
                 </label>
                 <input
                   type="text"
                   v-model="editForm.name"
                   autocomplete="off"
-                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
+                  class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors"
                 />
               </div>
               <div>
-                <label class="font-mono text-base-400 mb-3 block text-sm">{{ t('admin.roleLabel') }}</label>
+                <label class=" text-base-400 mb-3 block text-sm">{{ t('admin.roleLabel') }}</label>
                 <div class="flex gap-6">
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input
@@ -443,7 +429,7 @@
                       value="developer"
                       class="w-4 h-4 accent-neon-400"
                     />
-                    <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleUser') }}</span>
+                    <span class="text-fg-strong  text-sm">{{ t('admin.roleUser') }}</span>
                   </label>
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input
@@ -452,15 +438,15 @@
                       value="admin"
                       class="w-4 h-4 accent-neon-400"
                     />
-                    <span class="text-fg-strong font-mono text-sm">{{ t('admin.roleAdmin') }}</span>
+                    <span class="text-fg-strong  text-sm">{{ t('admin.roleAdmin') }}</span>
                   </label>
                 </div>
               </div>
               <div>
                 <div class="flex items-center justify-between">
                   <div>
-                    <label class="font-mono text-base-400 block text-sm">{{ t('admin.statusLabel') }}</label>
-                    <p class="text-xs text-base-500 font-mono mt-1">{{ editForm.disabled ? t('admin.statusDisabled') : t('admin.statusActive') }}</p>
+                    <label class=" text-base-400 block text-sm">{{ t('admin.statusLabel') }}</label>
+                    <p class="text-xs text-base-500  mt-1">{{ editForm.disabled ? t('admin.statusDisabled') : t('admin.statusActive') }}</p>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" :checked="!editForm.disabled" @change="editForm.disabled = !editForm.disabled" class="sr-only peer">
@@ -471,12 +457,12 @@
               <div>
                 <div class="flex items-center justify-between">
                   <div>
-                    <label class="font-mono text-base-400 block text-sm">{{ t('admin.resetPassword') }}</label>
-                    <p class="text-xs text-base-500 font-mono mt-1">{{ t('admin.resetPasswordHint') }}</p>
+                    <label class=" text-base-400 block text-sm">{{ t('admin.resetPassword') }}</label>
+                    <p class="text-xs text-base-500  mt-1">{{ t('admin.resetPasswordHint') }}</p>
                   </div>
                   <button
                     type="button"
-                    class="px-3 py-1.5 rounded-lg font-mono text-xs border border-base-800 text-base-400 hover:border-neon-400 hover:text-neon-400 transition-colors"
+                    class="px-3 py-1.5 rounded-lg  text-xs border border-base-800 text-base-400 hover:border-neon-400 hover:text-neon-400 transition-colors"
                     @click="showResetPassword = !showResetPassword"
                   >
                     {{ showResetPassword ? t('admin.cancelReset') : t('admin.doReset') }}
@@ -489,7 +475,7 @@
                       v-model="editForm.newPassword"
                       :placeholder="t('admin.newPasswordPlaceholder')"
                       autocomplete="new-password"
-                      class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-16"
+                      class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-3  text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pr-16"
                     />
                     <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                       <button type="button" class="p-1.5 text-base-400 hover:text-neon-400 rounded transition-colors" @click="showEditPassword = !showEditPassword">
@@ -505,18 +491,18 @@
               </div>
             </div>
             <div v-show="editModalTab === 'skills'" class="flex flex-col flex-1 min-h-0 overflow-hidden p-6 space-y-3">
-              <label class="font-mono text-base-400 block text-sm mb-0 shrink-0">{{ t('admin.skillsLabel') }}</label>
-              <p class="text-xs text-base-500 font-mono shrink-0">{{ t('admin.skillsHintEdit') }}</p>
-              <div v-if="skillsListLoading" class="text-base-400 font-mono text-xs py-4 shrink-0">…</div>
+              <label class=" text-base-400 block text-sm mb-0 shrink-0">{{ t('admin.skillsLabel') }}</label>
+              <p class="text-xs text-base-500  shrink-0">{{ t('admin.skillsHintEdit') }}</p>
+              <div v-if="skillsListLoading" class="text-base-400  text-xs py-4 shrink-0">…</div>
               <template v-else>
-                <div v-if="allSkills.length === 0" class="text-base-500 text-xs font-mono shrink-0">{{ t('admin.skillsEmpty') }}</div>
+                <div v-if="allSkills.length === 0" class="text-base-500 text-xs  shrink-0">{{ t('admin.skillsEmpty') }}</div>
                 <template v-else>
                   <div class="um-picker-filter-row shrink-0">
                     <input
                       v-model="skillPickerFilter"
                       type="text"
                       :placeholder="t('admin.skillsFilterPlaceholder')"
-                      class="um-picker-name-search w-full bg-base-950 border border-base-800 rounded-lg px-3 py-2 font-mono text-sm text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400"
+                      class="um-picker-name-search w-full bg-base-950 border border-base-800 rounded-lg px-3 py-2  text-sm text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400"
                     />
                     <div
                       v-if="availableTagsFromSkills.length > 0"
@@ -576,7 +562,7 @@
                       </div>
                     </div>
                   </div>
-                  <div v-if="filteredSkillsForPicker.length === 0" class="text-base-500 text-xs font-mono py-2 shrink-0">{{ t('admin.skillsNoMatch') }}</div>
+                  <div v-if="filteredSkillsForPicker.length === 0" class="text-base-500 text-xs  py-2 shrink-0">{{ t('admin.skillsNoMatch') }}</div>
                   <div
                     v-else
                     class="tag-filter-options um-skill-options um-skill-options--modal flex-1 min-h-0 overflow-y-auto"
@@ -608,13 +594,13 @@
             </div>
           </div>
           <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-base-800 shrink-0 bg-base-900">
-            <button type="button" class="px-4 py-2 rounded-lg font-mono text-sm border border-base-800 text-base-400 hover:text-fg-strong transition-colors" @click="closeEditModal">
+            <button type="button" class="px-4 py-2 rounded-lg  text-sm border border-base-800 text-base-400 hover:text-fg-strong transition-colors" @click="closeEditModal">
               {{ t('admin.cancel') }}
             </button>
             <button
               type="submit"
               :disabled="isEditing"
-              class="btn-primary px-4 py-2 rounded-lg font-mono text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flat-primary px-4 py-2 rounded-lg  text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span v-if="isEditing" class="spinner spinner-sm"></span>
               <template v-else>{{ t('admin.confirmSave') }}</template>

@@ -1,31 +1,20 @@
 <template>
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-    <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-      <span class="text-neon-400">~</span>
-      <span class="opacity-50">/</span>
-      <router-link to="/" class="hover:text-fg-strong transition-colors">{{ t('nav.home') }}</router-link>
-      <span class="opacity-50">/</span>
-      <span class="text-fg-strong">admin</span>
-      <span class="opacity-50">/</span>
-      <span class="text-fg-strong">collections</span>
-    </div>
+  <main class="flat-page admin-page">
+    <router-link to="/" class="flat-back">← {{ t('nav.home') }}</router-link>
 
-    <div class="skill-card p-8 relative overflow-hidden">
-      <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">ADMIN-COLLECTIONS</div>
+    <div>
 
-      <div class="mb-8 border-b border-base-800 pb-6">
-        <h1 class="text-2xl font-bold text-fg-strong mb-2 flex items-center gap-3">
-          <span class="text-neon-400 font-mono font-normal opacity-70">></span>
+      <div class="flat-header">
+        <h1 class="text-fg-strong mb-2 flex items-center gap-3">
           <span>{{ t('collectionAdmin.heading') }}</span>
         </h1>
-        <p class="text-base-400 text-sm font-mono">{{ t('collectionAdmin.subtitle') }}</p>
+        <p class="text-base-400 text-sm ">{{ t('collectionAdmin.subtitle').replace(/^\/\/\s*/, '') }}</p>
       </div>
 
-      <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h2 class="flex items-center gap-2 text-lg font-semibold text-fg-strong pb-3 border-b border-base-800 font-mono mb-0">
-          <span class="text-neon-400">#</span> {{ t('collectionAdmin.listHeading') }}
+      <div class="admin-toolbar">
+        <h2 class="admin-list-title"> {{ t('collectionAdmin.listHeading') }}
         </h2>
-        <button type="button" class="btn-primary px-4 py-2.5 rounded-lg font-mono flex items-center gap-2" @click="openAddModal">
+        <button type="button" class="flat-primary px-4 py-2.5 rounded-lg  flex items-center gap-2" @click="openAddModal">
           <Plus :size="16" :stroke-width="2" aria-hidden="true" />
           <span>{{ t('collectionAdmin.addCollection') }}</span>
         </button>
@@ -38,7 +27,7 @@
               v-model="searchQuery"
               type="text"
               :placeholder="t('collectionAdmin.searchPlaceholder')"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none focus:ring-1 focus:ring-neon-400 transition-colors pl-10"
+              class="admin-search-input w-full"
             />
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-400">
               <Search :size="16" :stroke-width="2" aria-hidden="true" />
@@ -47,16 +36,16 @@
         </div>
       </div>
 
-      <div class="border border-base-800 rounded-xl overflow-hidden">
+      <div class="admin-table-scroll">
         <table class="w-full">
           <thead>
-            <tr class="bg-base-950">
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('collectionAdmin.thName') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('collectionAdmin.thSlug') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('collectionAdmin.thDescription') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('collectionAdmin.thSkills') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('collectionAdmin.thSort') }}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400 font-mono uppercase tracking-wider">{{ t('collectionAdmin.thActions') }}</th>
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thName') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thSlug') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thDescription') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thSkills') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thSort') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-base-400  uppercase tracking-wider">{{ t('collectionAdmin.thActions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -68,7 +57,7 @@
               </tr>
             </template>
             <tr v-else-if="filteredCollections.length === 0" class="border-t border-base-800">
-              <td colspan="6" class="px-4 py-12 text-center text-base-400 font-mono">{{ t('collectionAdmin.emptyState') }}</td>
+              <td colspan="6" class="px-4 py-12 text-center text-base-400 ">{{ t('collectionAdmin.emptyState') }}</td>
             </tr>
             <tr
               v-else
@@ -76,11 +65,11 @@
               :key="collection.id"
               class="border-t border-base-800 hover:bg-white/5 transition-colors"
             >
-              <td class="px-4 py-4 font-mono text-fg-strong">{{ collection.name }}</td>
-              <td class="px-4 py-4 font-mono text-neon-400">{{ collection.slug }}</td>
-              <td class="px-4 py-4 font-mono text-base-400 max-w-md truncate">{{ collection.description || t('state.noDesc') }}</td>
-              <td class="px-4 py-4 font-mono text-base-400">{{ collection.skill_count ?? 0 }}</td>
-              <td class="px-4 py-4 font-mono text-base-400">{{ collection.sort_order ?? 0 }}</td>
+              <td class="px-4 py-4  text-fg-strong">{{ collection.name }}</td>
+              <td class="px-4 py-4  text-neon-400">{{ collection.slug }}</td>
+              <td class="px-4 py-4  text-base-400 max-w-md truncate">{{ collection.description || t('state.noDesc') }}</td>
+              <td class="px-4 py-4  text-base-400">{{ collection.skill_count ?? 0 }}</td>
+              <td class="px-4 py-4  text-base-400">{{ collection.sort_order ?? 0 }}</td>
               <td class="px-4 py-4">
                 <div class="flex items-center gap-2">
                   <button type="button" class="p-2 text-base-400 hover:text-neon-400 hover:bg-neon-400/10 rounded-lg transition-colors" :title="t('collectionAdmin.editMembers')" @click="openMembersModal(collection)">
@@ -100,42 +89,42 @@
       </div>
     </div>
 
-    <div v-if="showFormModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeFormModal">
-      <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-lg mx-4">
+    <div v-if="showFormModal" class="fixed inset-0 flex items-center justify-center z-50" @click.self="closeFormModal">
+      <div class="admin-dialog w-full max-w-lg mx-4">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
-          <h3 class="text-lg font-semibold text-fg-strong font-mono">{{ isEditing ? t('collectionAdmin.editModal') : t('collectionAdmin.addModal') }}</h3>
+          <h3 class="text-lg font-semibold text-fg-strong ">{{ isEditing ? t('collectionAdmin.editModal') : t('collectionAdmin.addModal') }}</h3>
           <button type="button" class="text-base-400 hover:text-fg-strong" @click="closeFormModal">
             <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
         <form class="px-6 py-4 space-y-4" @submit.prevent="saveForm">
           <div>
-            <label class="block text-sm text-base-400 font-mono mb-2">{{ t('collectionAdmin.thName') }}</label>
-            <input v-model="form.name" type="text" class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none" :placeholder="t('collectionAdmin.namePlaceholder')" />
+            <label class="block text-sm text-base-400  mb-2">{{ t('collectionAdmin.thName') }}</label>
+            <input v-model="form.name" type="text" class="w-full" :placeholder="t('collectionAdmin.namePlaceholder')" />
           </div>
           <div>
-            <label class="block text-sm text-base-400 font-mono mb-2">{{ t('collectionAdmin.thSlug') }}</label>
+            <label class="block text-sm text-base-400  mb-2">{{ t('collectionAdmin.thSlug') }}</label>
             <input
               v-model="form.slug"
               type="text"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none"
+              class="w-full"
               :placeholder="t('collectionAdmin.slugPlaceholder')"
               autocapitalize="off"
               autocomplete="off"
               spellcheck="false"
             />
-            <p class="mt-1.5 text-xs text-base-500 font-mono">{{ t('collectionAdmin.slugHint') }}</p>
+            <p class="mt-1.5 text-xs text-base-500 ">{{ t('collectionAdmin.slugHint') }}</p>
           </div>
           <div>
-            <label class="block text-sm text-base-400 font-mono mb-2">{{ t('collectionAdmin.thDescription') }}</label>
+            <label class="block text-sm text-base-400  mb-2">{{ t('collectionAdmin.thDescription') }}</label>
             <textarea
               v-model="form.description"
               rows="3"
               :maxlength="MAX_COLLECTION_DESCRIPTION_LENGTH"
-              class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none"
+              class="w-full"
               :placeholder="t('collectionAdmin.descriptionPlaceholder')"
             ></textarea>
-            <p class="mt-1.5 text-xs text-base-500 font-mono">
+            <p class="mt-1.5 text-xs text-base-500 ">
               {{ t('collectionAdmin.descriptionMaxHint', { max: MAX_COLLECTION_DESCRIPTION_LENGTH }) }}
               <span :class="form.description.length > MAX_COLLECTION_DESCRIPTION_LENGTH ? 'text-red-400' : 'text-base-400'">
                 ({{ form.description.length }}/{{ MAX_COLLECTION_DESCRIPTION_LENGTH }})
@@ -143,14 +132,14 @@
             </p>
           </div>
           <div>
-            <label class="block text-sm text-base-400 font-mono mb-2">{{ t('collectionAdmin.thSort') }}</label>
-            <input v-model.number="form.sort_order" type="number" class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none" />
+            <label class="block text-sm text-base-400  mb-2">{{ t('collectionAdmin.thSort') }}</label>
+            <input v-model.number="form.sort_order" type="number" class="w-full" />
           </div>
           <div class="flex justify-end gap-3 pt-2">
             <button type="button" class="px-4 py-2 rounded-lg border border-base-800 text-base-400 hover:text-fg-strong" @click="closeFormModal">
               {{ t('admin.cancel') }}
             </button>
-            <button type="submit" class="btn-primary px-4 py-2 rounded-lg font-mono disabled:opacity-50" :disabled="isSaving">
+            <button type="submit" class="flat-primary px-4 py-2 rounded-lg  disabled:opacity-50" :disabled="isSaving">
               <span v-if="isSaving" class="spinner spinner-sm"></span>
               <template v-else>{{ t('admin.confirmSave') }}</template>
             </button>
@@ -159,10 +148,10 @@
       </div>
     </div>
 
-    <div v-if="showMembersModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" @click.self="closeMembersModal">
-      <div class="bg-base-900 border border-base-800 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
+    <div v-if="showMembersModal" class="fixed inset-0 flex items-center justify-center z-50" @click.self="closeMembersModal">
+      <div class="admin-dialog w-full max-w-2xl mx-4 flex flex-col">
         <div class="flex items-center justify-between px-6 py-4 border-b border-base-800">
-          <h3 class="text-lg font-semibold text-fg-strong font-mono">{{ t('collectionAdmin.membersModal') }}</h3>
+          <h3 class="text-lg font-semibold text-fg-strong ">{{ t('collectionAdmin.membersModal') }}</h3>
           <button type="button" class="text-base-400 hover:text-fg-strong" @click="closeMembersModal">
             <X :size="20" :stroke-width="2" aria-hidden="true" />
           </button>
@@ -172,15 +161,15 @@
             v-model="skillSearchQuery"
             type="text"
             :placeholder="t('collectionAdmin.skillSearchPlaceholder')"
-            class="w-full bg-base-950 border border-base-800 rounded-lg px-4 py-2.5 font-mono text-fg-strong focus:border-neon-400 focus:outline-none"
+            class="w-full"
           />
-          <p class="mt-2 text-xs text-base-500 font-mono">
+          <p class="mt-2 text-xs text-base-500 ">
             {{ t('collectionAdmin.maxSkillsHint') }}
             <span class="text-base-400">({{ selectedSkillIds.length }}/10)</span>
           </p>
         </div>
         <div class="px-6 py-4 overflow-y-auto flex-1">
-          <div v-if="filteredSkills.length === 0" class="text-sm text-base-400 font-mono py-8 text-center">{{ t('collectionAdmin.noSkills') }}</div>
+          <div v-if="filteredSkills.length === 0" class="text-sm text-base-400  py-8 text-center">{{ t('collectionAdmin.noSkills') }}</div>
           <label
             v-for="skill in filteredSkills"
             :key="skill.id"
@@ -188,8 +177,8 @@
           >
             <input v-model="selectedSkillIds" type="checkbox" :value="skill.id" class="mt-1" />
             <span class="min-w-0">
-              <span class="block text-fg-strong font-mono">{{ skill.name }}</span>
-              <span class="block text-xs text-base-400 font-mono truncate">{{ skill.id }}</span>
+              <span class="block text-fg-strong ">{{ skill.name }}</span>
+              <span class="block text-xs text-base-400  truncate">{{ skill.id }}</span>
             </span>
           </label>
         </div>
@@ -197,7 +186,7 @@
           <button type="button" class="px-4 py-2 rounded-lg border border-base-800 text-base-400 hover:text-fg-strong" @click="closeMembersModal">
             {{ t('admin.cancel') }}
           </button>
-          <button type="button" class="btn-primary px-4 py-2 rounded-lg font-mono disabled:opacity-50" :disabled="isSavingMembers || selectedSkillIds.length > MAX_COLLECTION_SKILLS" @click="saveMembers">
+          <button type="button" class="flat-primary px-4 py-2 rounded-lg  disabled:opacity-50" :disabled="isSavingMembers || selectedSkillIds.length > MAX_COLLECTION_SKILLS" @click="saveMembers">
             <span v-if="isSavingMembers" class="spinner spinner-sm"></span>
             <template v-else>{{ t('admin.confirmSave') }}</template>
           </button>

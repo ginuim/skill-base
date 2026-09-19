@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen pt-12 pb-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
+  <div class="diff-page min-h-screen pt-8 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center py-20">
         <div class="spinner"></div>
@@ -21,55 +21,56 @@
       <!-- Diff Content -->
       <template v-else>
         <!-- Breadcrumb -->
-        <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-          <span class="text-neon-400">~</span>
-          <span class="opacity-50">/</span>
-          <router-link to="/" class="hover:text-fg-strong transition-colors">home</router-link>
-          <span class="opacity-50">/</span>
-          <router-link :to="`/skills/${skillId}`" class="hover:text-fg-strong transition-colors">{{ skill?.name || skillId }}</router-link>
-          <span class="opacity-50">/</span>
-          <span class="text-fg-strong">diff</span>
-        </div>
+        <nav class="diff-breadcrumb" :aria-label="t('skill.breadcrumbHome')">
+          <router-link to="/">{{ t('skill.breadcrumbHome') }}</router-link>
+          <span aria-hidden="true">/</span>
+          <router-link :to="`/skills/${skillId}`">{{ skill?.name || skillId }}</router-link>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{{ t('diff.breadcrumbCurrent') }}</span>
+        </nav>
+
+        <header class="diff-heading">
+          <h1>{{ t('diff.breadcrumbCurrent') }}</h1>
+          <p>{{ skill?.name || skillId }}</p>
+        </header>
 
         <!-- Controls -->
-        <div class="card p-6 mb-6 relative">
-          <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">GIT-DIFF</div>
-          
-          <div class="flex flex-wrap items-center gap-4">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono text-base-400">{{ t('diff.old') }}</span>
-              <select v-model="currentVersionA" class="bg-base-950 border border-base-800 text-fg-strong font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
+        <section class="diff-controls">
+          <div class="diff-version-controls">
+            <label class="diff-version-field">
+              <span class="diff-field-label">{{ t('diff.old') }}</span>
+              <select v-model="currentVersionA" class="diff-version-select">
                 <option value="">{{ t('diff.selectVersion') }}</option>
                 <option v-for="(v, index) in versions" :key="v.version" :value="v.version">
                   {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
                 </option>
               </select>
-            </div>
-            <span class="font-mono text-base-600">-></span>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono text-base-400">{{ t('diff.new') }}</span>
-              <select v-model="currentVersionB" class="bg-base-950 border border-base-800 text-fg-strong font-mono text-xs rounded-lg px-3 py-2 focus:border-neon-500 focus:outline-none w-48">
+            </label>
+            <span class="diff-version-arrow" aria-hidden="true">→</span>
+            <label class="diff-version-field">
+              <span class="diff-field-label">{{ t('diff.new') }}</span>
+              <select v-model="currentVersionB" class="diff-version-select">
                 <option value="">{{ t('diff.selectVersion') }}</option>
                 <option v-for="(v, index) in versions" :key="v.version" :value="v.version">
                   {{ v.version }} {{ index === 0 ? t('skill.latestTag') : '' }}
                 </option>
               </select>
-            </div>
+            </label>
             <button 
               @click="performDiff"
-              class="btn-primary flex items-center gap-2 ml-2 text-xs px-4 py-2"
+              class="diff-compare-button"
               :disabled="isComputing"
             >
               <RefreshCw v-if="!isComputing" :size="14" :stroke-width="2" aria-hidden="true" />
               <div v-else class="spinner spinner-sm"></div>
-              {{ isComputing ? t('diff.computingDiff') : 'Diff' }}
+              {{ isComputing ? t('diff.computingDiff') : t('diff.recalculate') }}
             </button>
           </div>
 
-          <div class="flex flex-wrap items-center justify-between mt-6 pt-6 border-t border-base-800 gap-4">
-            <div class="flex items-center gap-3">
-              <span class="text-xs font-mono text-base-400">{{ t('diff.file') }}</span>
-              <span class="text-xs font-mono px-2 py-1 rounded bg-base-950 border border-base-800 text-neon-400">
+          <div class="diff-toolbar">
+            <div class="diff-file-selection">
+              <span class="diff-field-label">{{ t('diff.file') }}</span>
+              <span class="diff-current-path">
                 {{ currentFilePath || t('diff.allFiles') }}
               </span>
               <button v-if="currentFilePath" @click="clearFileSelection" class="text-xs text-base-400 hover:text-fg-strong">
@@ -77,44 +78,46 @@
               </button>
             </div>
 
-            <div class="flex rounded-lg overflow-hidden border border-base-800">
+            <div class="diff-view-tabs">
               <button 
                 @click="outputFormat = 'side-by-side'"
-                class="px-4 py-1.5 text-xs font-mono transition-colors"
-                :class="outputFormat === 'side-by-side' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-fg-strong'"
+                class="diff-view-tab"
+                :class="{ 'is-active': outputFormat === 'side-by-side' }"
+                :aria-pressed="outputFormat === 'side-by-side'"
               >
-                {{ t('diff.split') }}
+                {{ t('diff.sideBySide') }}
               </button>
               <button 
                 @click="outputFormat = 'line-by-line'"
-                class="px-4 py-1.5 text-xs font-mono transition-colors border-l border-base-800"
-                :class="outputFormat === 'line-by-line' ? 'bg-neon-400/10 border-neon-500 text-neon-400 border' : 'bg-transparent text-base-400 hover:text-fg-strong'"
+                class="diff-view-tab"
+                :class="{ 'is-active': outputFormat === 'line-by-line' }"
+                :aria-pressed="outputFormat === 'line-by-line'"
               >
-                {{ t('diff.unifiedView') }}
+                {{ t('diff.unified') }}
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Stats -->
-        <div v-if="diffStats.added > 0 || diffStats.removed > 0" class="flex items-center gap-6 py-3 px-4 mb-6 text-xs bg-base-950 border border-base-800 rounded-lg">
+        <div v-if="diffStats.added > 0 || diffStats.removed > 0" class="diff-stats">
           <span class="text-green-400 font-mono">+{{ diffStats.added }} {{ t('diff.linesAdded') }}</span>
           <span class="text-red-400 font-mono">-{{ diffStats.removed }} {{ t('diff.linesRemoved') }}</span>
           <span class="text-base-400 font-mono">{{ changedFiles.length }}{{ t('diff.filesChanged') }}</span>
         </div>
 
         <!-- Changed Files List -->
-        <div v-if="changedFiles.length > 0 && !currentFilePath" class="card mb-6">
-          <div class="px-4 py-3 bg-base-950/50 border-b border-base-800 flex items-center gap-2 text-xs">
-            <span class="text-neon-400">ls</span>
-            <span class="opacity-50">--changed</span>
+        <div v-if="changedFiles.length > 0 && !currentFilePath" class="diff-files">
+          <div class="diff-section-heading">
+            {{ t('diff.changedFiles') }}
           </div>
           <div class="max-h-64 overflow-y-auto">
-            <div 
+            <button
+              type="button"
               v-for="(change, index) in changedFiles" 
               :key="change.file"
               @click="selectChangedFile(change.file, index)"
-              class="flex items-center gap-3 px-4 py-3 border-b border-base-800 cursor-pointer hover:bg-white/5 transition-colors"
+              class="diff-file-row"
               :class="{ 'bg-neon-400/5': selectedFileIndex === index }"
             >
               <span 
@@ -127,13 +130,13 @@
               >
                 {{ statusLabels[change.status] }}
               </span>
-              <span class="text-sm font-mono text-base-400">{{ change.file }}</span>
-            </div>
+              <span class="diff-file-path">{{ change.file }}</span>
+            </button>
           </div>
         </div>
 
         <!-- Diff Output -->
-        <div class="card overflow-hidden min-h-[300px]">
+        <div class="diff-result min-h-[300px]">
           <div v-if="isComputing" class="flex flex-col items-center justify-center py-24">
             <div class="spinner mb-4"></div>
             <p class="text-sm text-base-400 font-mono">{{ t('diff.computing') }}</p>
@@ -147,7 +150,7 @@
 
         <!-- Back Button -->
         <div class="mt-8 pb-16">
-          <router-link :to="`/skills/${skillId}`" class="btn-secondary flex items-center gap-2 text-sm px-4 py-2 w-fit">
+          <router-link :to="`/skills/${skillId}`" class="diff-back">
             <ArrowLeft :size="14" :stroke-width="2" aria-hidden="true" />
             {{ t('diff.back') }}
           </router-link>
@@ -200,6 +203,16 @@ const statusLabels = {
   added: t('diff.added'),
   deleted: t('diff.deleted'),
   modified: t('diff.modified')
+}
+
+// v-html 状态位使用的 lucide 内联图标（与页面其它位置的 lucide 图标保持一致）
+function stateIcon(paths: string): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;margin:0 auto 16px;color:var(--color-base-600)">${paths}</svg>`
+}
+const STATE_ICONS = {
+  error: stateIcon('<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>'),
+  binary: stateIcon('<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>'),
+  same: stateIcon('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>')
 }
 
 const BINARY_EXTS = new Set([
@@ -487,15 +500,42 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.card {
-  background-color: var(--color-base-900);
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.75rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-html[data-theme="light"] .card {
-  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.12);
+.diff-breadcrumb { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; font-size: 13px; color: var(--color-base-400); overflow-wrap: anywhere; }
+.diff-breadcrumb a:hover, .diff-back:hover { color: var(--color-fg-strong); }
+.diff-heading { margin-bottom: 28px; }
+.diff-heading h1 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.25; color: var(--color-fg-strong); }
+.diff-heading p { margin-top: 12px; font-size: 14px; color: var(--color-base-400); overflow-wrap: anywhere; }
+.diff-controls { margin-bottom: 24px; }
+.diff-version-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.diff-version-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.diff-field-label { font-size: 12px; color: var(--color-base-400); }
+.diff-version-select { width: 240px; max-width: 100%; padding: 10px 12px; border: 1px solid var(--color-base-800); border-radius: var(--control-radius); min-height: var(--control-height); background: var(--control-bg); color: var(--color-fg-strong); font-family: var(--font-sans); font-size: 14px; }
+.diff-version-arrow { padding-bottom: 9px; color: var(--color-base-400); }
+.diff-compare-button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--color-fg-strong); border-radius: var(--control-radius); min-height: var(--control-height); background: var(--color-fg-strong); color: var(--color-base-950); font-size: 13px; cursor: pointer; }
+.diff-compare-button:disabled { opacity: .5; cursor: wait; }
+.diff-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 28px; border-bottom: 1px solid var(--color-base-800); }
+.diff-file-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; padding-bottom: 10px; }
+.diff-current-path, .diff-file-path { min-width: 0; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 12px; color: var(--color-fg); }
+.diff-view-tabs { display: flex; gap: 8px; }
+.diff-view-tab { padding: 10px 16px; border-bottom: 2px solid transparent; font-size: 14px; color: var(--color-base-400); cursor: pointer; }
+.diff-view-tab:hover { color: var(--color-fg-strong); }
+.diff-view-tab.is-active { color: var(--color-neon-400); border-bottom-color: var(--color-neon-500); }
+.diff-stats { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-bottom: 24px; font-size: 12px; }
+.diff-files { margin-bottom: 28px; }
+.diff-section-heading { padding-bottom: 12px; font-size: 14px; font-weight: 600; color: var(--color-fg-strong); border-bottom: 1px solid var(--color-base-800); }
+.diff-file-row { display: flex; align-items: start; gap: 12px; width: 100%; padding: 12px 0; text-align: left; border-bottom: 1px solid var(--color-base-800); cursor: pointer; }
+.diff-file-row > span:first-child { flex-shrink: 0; }
+.diff-file-row:hover { background: var(--color-base-900); }
+.diff-result { min-width: 0; overflow: hidden; }
+.diff-back { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-base-400); }
+.diff-page :is(button, select, a):focus-visible { outline: 2px solid var(--color-neon-500); outline-offset: 3px; }
+@media (max-width: 600px) {
+  .diff-version-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .diff-version-select { width: 100%; }
+  .diff-version-arrow { display: none; }
+  .diff-toolbar { align-items: stretch; }
+  .diff-file-selection, .diff-view-tabs { width: 100%; }
+  .diff-view-tab { flex: 1; }
 }
 
 .diff-output :deep(.d2h-wrapper) {
@@ -505,6 +545,7 @@ html[data-theme="light"] .card {
 .diff-output :deep(.d2h-file-wrapper) {
   background-color: var(--color-base-900);
   border: none;
+  border-radius: 0;
 }
 
 .diff-output :deep(.d2h-file-header) {
@@ -530,7 +571,7 @@ html[data-theme="light"] .card {
 
 .diff-output :deep(.d2h-code-line),
 .diff-output :deep(.d2h-code-side-line) {
-  background-color: var(--color-base-900);
+  background-color: transparent;
   color: var(--color-fg);
 }
 
@@ -539,30 +580,34 @@ html[data-theme="light"] .card {
   font-family: 'JetBrains Mono', monospace;
 }
 
-.diff-output :deep(.d2h-ins) {
+.diff-output :deep(.d2h-ins),
+.diff-output :deep(.d2h-file-diff .d2h-ins.d2h-change) {
   background-color: rgba(34, 197, 94, 0.18);
 }
 
-.diff-output :deep(.d2h-del) {
+.diff-output :deep(.d2h-del),
+.diff-output :deep(.d2h-file-diff .d2h-del.d2h-change) {
   background-color: rgba(248, 113, 113, 0.18);
 }
 
-html[data-theme="light"] .diff-output :deep(.d2h-ins) {
+:global(html[data-theme="light"] .diff-page .diff-output .d2h-ins) {
   background-color: rgba(34, 197, 94, 0.22);
 }
 
-html[data-theme="light"] .diff-output :deep(.d2h-del) {
+:global(html[data-theme="light"] .diff-page .diff-output .d2h-del) {
   background-color: rgba(248, 113, 113, 0.15);
 }
 
 .diff-output :deep(.d2h-code-line ins),
 .diff-output :deep(.d2h-code-side-line ins) {
-  color: #15803d;
+  background-color: rgba(34, 197, 94, 0.28);
+  color: inherit;
 }
 
 .diff-output :deep(.d2h-code-line del),
 .diff-output :deep(.d2h-code-side-line del) {
-  color: #be123c;
+  background-color: rgba(248, 113, 113, 0.28);
+  color: inherit;
 }
 
 .diff-output :deep(.d2h-info) {

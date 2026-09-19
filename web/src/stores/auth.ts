@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authApi, usersApi, type User } from '@/services/api'
+import { authApi, type User } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -60,16 +60,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function updateProfile(data: { name?: string; email?: string }) {
+  async function updateProfile(data: { name?: string; avatar?: string | null }) {
     if (!user.value) return false
 
     try {
-      const response = await usersApi.update(user.value.id, data)
-      user.value = { ...user.value, ...response }
+      const response = await authApi.updateMe(data)
+      user.value = response.user
       return true
     } catch (err: any) {
       error.value = err.message || '更新失败'
-      return false
+      throw err
     }
   }
 

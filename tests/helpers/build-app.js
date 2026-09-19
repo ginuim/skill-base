@@ -38,6 +38,8 @@ async function buildTestApp() {
   clearModule('../../src/routes/users');
   clearModule('../../src/routes/tags');
   clearModule('../../src/routes/collections');
+  clearModule('../../src/models/contribution');
+  clearModule('../../src/utils/format-skill');
   clearModule('../../src/models/user');
   clearModule('../../src/models/skill');
   clearModule('../../src/models/version');

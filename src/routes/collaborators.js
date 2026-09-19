@@ -17,7 +17,7 @@ async function collaboratorsRoutes(fastify, options) {
     
     const collaborators = db.prepare(`
       SELECT sc.id, sc.role, sc.created_at,
-             u.id as user_id, u.username, u.name, u.status,
+             u.id as user_id, u.username, u.name, u.avatar, u.status,
              cb.id as created_by_id, cb.username as created_by_username
       FROM skill_collaborators sc
       JOIN users u ON sc.user_id = u.id
@@ -29,7 +29,7 @@ async function collaboratorsRoutes(fastify, options) {
     const result = collaborators.map(c => {
       const item = {
         id: c.id,
-        user: { id: c.user_id, username: c.username, name: c.name, status: c.status },
+        user: { id: c.user_id, username: c.username, name: c.name, avatar: c.avatar || null, status: c.status },
         role: c.role,
         created_at: c.created_at
       };
@@ -256,9 +256,11 @@ async function collaboratorsRoutes(fastify, options) {
     const fs = require('fs');
     const path = require('path');
     const { getDataDir } = require('../utils/zip');
-    const skillDir = path.join(getDataDir(), skill_id);
-    if (fs.existsSync(skillDir)) {
-      fs.rmSync(skillDir, { recursive: true, force: true });
+    // ZIP 存档与截图都在 data/skills/<skill_id>/；早期代码误删 data/<skill_id>，两者都兜底清理
+    for (const skillDir of [path.join(getDataDir(), 'skills', skill_id), path.join(getDataDir(), skill_id)]) {
+      if (fs.existsSync(skillDir)) {
+        fs.rmSync(skillDir, { recursive: true, force: true });
+      }
     }
     
     return reply.send({

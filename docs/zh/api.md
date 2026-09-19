@@ -130,12 +130,43 @@
 {
   "id": "string",
   "username": "string",
+  "name": "string",
+  "avatar": "fox.png",
   "role": "string",
   "is_super_admin": 0
 }
 ```
 
 `is_super_admin` 为 `1` 时表示 **超级管理员**（首个迁移的管理员或初始化时创建的首个管理员），用于保护至少保留一名超级管理员；全局标签库由任意 **管理员**（`role === 'admin'`）维护，所有管理员均可创建/重命名/删除全局标签，并为所管理的 Skill 分配标签。
+
+`avatar` 为预设头像文件名（如 `fox.png`），对应静态资源 `/avatars/<filename>`；未设置时为 `null`。
+
+---
+
+### 6. 更新当前用户信息
+
+**PATCH** `/api/v1/auth/me`
+
+更新当前登录用户的姓名和头像。用户名不可通过此接口修改。
+
+**认证:** 需要已登录身份
+
+**请求体:**
+```json
+{
+  "name": "string",
+  "avatar": "fox.png"
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `name` | string | 可选，显示名 |
+| `avatar` | string \| null | 可选，预设头像文件名；`null` 或 `""` 清除头像 |
+
+**错误码:**
+- `400` - 参数无效或头像不在预设列表中
+- `401` - 未认证
 
 ---
 
@@ -386,6 +417,57 @@
 - `400` - `tag_ids` 不是数组
 - `403` - 无管理权限
 - `404` - Skill not found
+
+---
+
+### 10. Skill 截图（screenshots）
+
+每个 Skill 可选挂一组截图（类似 App Store），存储于 `data/skills/<skill_id>/screenshots/`，`skills.screenshots` 列为 JSON 数组。**GET** `/api/v1/skills/:skill_id` 的响应包含：
+
+```json
+{
+  "screenshots": [
+    { "id": "uuid", "url": "skills/:skill_id/screenshots/:shot_id/file", "created_at": "ISO 时间" }
+  ]
+}
+```
+
+`url` 为相对 API 前缀的路径，完整地址即 `/api/v1/` + `url`。
+
+限制（可用环境变量调整）：
+- 单张大小上限：`SKILL_BASE_SCREENSHOT_MAX_MB`（默认 5 MB）
+- 每个 Skill 张数上限：`SKILL_BASE_SCREENSHOT_MAX_COUNT`（默认 10）
+- 仅允许 PNG / JPEG / WebP / GIF
+
+#### 上传截图
+
+**POST** `/api/v1/skills/:skill_id/screenshots`
+
+**认证:** 需要 Session；需为该 Skill 的 **所有者或协作者**。multipart 表单，文件字段名 `image`。
+
+**响应:** `{ "ok": true, "skill_id": "...", "screenshot": {...}, "screenshots": [...] }`
+
+**错误码:** `400` - 缺文件 / 类型非法 / 超大小 / 超张数；`403` - 无权限；`404` - Skill not found
+
+#### 读取截图文件
+
+**GET** `/api/v1/skills/:skill_id/screenshots/:shot_id/file`
+
+按 Skill 可见性控制访问（私有 Skill 仅协作者可见），返回图片二进制。
+
+#### 删除截图
+
+**DELETE** `/api/v1/skills/:skill_id/screenshots/:shot_id`
+
+**认证:** 所有者或协作者。同时删除磁盘文件。**响应:** `{ "ok": true, "screenshots": [...] }`
+
+#### 排序截图
+
+**PUT** `/api/v1/skills/:skill_id/screenshots`
+
+**认证:** 所有者或协作者。请求体 `{ "screenshot_ids": ["id1", "id2"] }`，未列出的 id 保持原相对顺序排在末尾。
+
+删除 Skill 时截图文件随 `data/skills/<skill_id>/` 一并清理。
 
 ---
 
@@ -752,3 +834,13 @@
 | `zip_path` | string | ZIP 文件路径 |
 | `uploader` | object | 上传者信息 `{id, username}` |
 | `created_at` | string | 创建时间 |
+
+## 贡献者与用户主页
+
+**GET** `/api/v1/users/:user_id/profile`（可匿名访问）
+
+返回 `user`（仅 `id`、`username`、`name`、`avatar`、`created_at`）、`stats` 和 `skills`。`stats` 含 `skill_count`、`version_count`、`download_count`，只统计访问者有权限查看的技能。`download_count` 是贡献技能的总下载量，并非个人下载归因。无效或不存在的用户返回 404。用户管理端点权限不变。
+
+贡献仅从 `skill_versions.uploader_id` 统计：同一用户多次发布一个技能，只计一个贡献技能，但每个版本分别计数。仅为 owner/collaborator 而未发布版本的用户不计入。技能按该用户最近贡献时间排序；没有可见贡献时返回空列表和零统计。
+
+技能列表、详情、集合详情及用户主页的技能对象附带 `contributors` 数组，按最近贡献时间倒序、用户 ID 升序稳定排列。每项包含 `id`、`username`、`name`、`avatar`、`version_count`、`last_contributed_at`。用户主页每个技能另附 `contribution`（该用户对该技能的 `skill_id`、`version_count`、`last_contributed_at`）。不增加数据库表或部署配置。

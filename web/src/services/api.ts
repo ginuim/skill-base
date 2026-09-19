@@ -146,6 +146,7 @@ export interface User {
   username: string
   name: string | null
   email: string | null
+  avatar?: string | null
   role: 'admin' | 'developer'
   is_super_admin?: number
   /** 账号状态；列表/详情接口返回，登录响应可能省略 */
@@ -177,6 +178,8 @@ export const authApi = {
   login: (data: LoginRequest) => apiPost<{ user: User }>('/auth/login', data),
   logout: () => apiPost('/auth/logout'),
   me: () => apiGet<User>('/auth/me'),
+  updateMe: (data: { name?: string; username?: string; avatar?: string | null }) =>
+    apiPatch<{ ok: boolean; user: User }>('/auth/me', data),
 }
 
 // ===== Skills API =====
@@ -186,10 +189,39 @@ export interface SkillCollaboratorUser {
   id: number
   username: string
   name: string | null
+  avatar?: string | null
   email?: string | null
 }
 
+/** 技能截图（App Store 风格，选填） */
+export interface SkillScreenshot {
+  id: string
+  /** 相对 API 前缀的路径，用 screenshotsApi.fileUrl 拼成完整 URL */
+  url: string
+  created_at: string | null
+}
+
+export interface SkillContributor {
+  id: number
+  username: string
+  name: string | null
+  avatar: string | null
+  version_count: number
+  last_contributed_at: string
+}
+
+export interface UserProfile {
+  user: Pick<User, 'id' | 'username' | 'name' | 'avatar' | 'created_at'>
+  stats: { skill_count: number; version_count: number; download_count: number }
+  skills: Skill[]
+}
+
+export const profilesApi = {
+  get: (id: string) => apiGet<UserProfile>(`/users/${encodeURIComponent(id)}/profile`),
+}
+
 export interface Skill {
+  contributors?: SkillContributor[]
   id: string
   name: string
   description: string
@@ -206,6 +238,7 @@ export interface Skill {
   is_favorited?: boolean
   tags: Tag[]
   collections: Collection[]
+  screenshots: SkillScreenshot[]
 }
 
 export interface SkillVersion {
@@ -279,6 +312,25 @@ export const skillsApi = {
 }
 
 // ===== Versions API =====
+
+export const screenshotsApi = {
+  /** 后端返回相对 API 前缀的路径，这里拼成完整 URL */
+  fileUrl: (shot: SkillScreenshot) => `${API_BASE}/${shot.url}`,
+  upload: (skillId: string, file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return apiPost<{ ok: boolean; skill_id: string; screenshot: SkillScreenshot; screenshots: SkillScreenshot[] }>(
+      `/skills/${skillId}/screenshots`,
+      form
+    )
+  },
+  remove: (skillId: string, shotId: string) =>
+    apiDelete<{ ok: boolean; skill_id: string; screenshots: SkillScreenshot[] }>(`/skills/${skillId}/screenshots/${shotId}`),
+  reorder: (skillId: string, screenshotIds: string[]) =>
+    apiPut<{ ok: boolean; skill_id: string; screenshots: SkillScreenshot[] }>(`/skills/${skillId}/screenshots`, {
+      screenshot_ids: screenshotIds,
+    }),
+}
 
 export const versionsApi = {
   list: (skillId: string) => apiGet<{ versions: SkillVersion[] }>(`/skills/${skillId}/versions`),

@@ -3,7 +3,7 @@ const modelCache = require('../utils/model-cache');
 
 function queryById(id) {
   return db.prepare(`
-    SELECT s.*, u.username as owner_username, u.name as owner_name
+    SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
     FROM skills s
     LEFT JOIN users u ON s.owner_id = u.id
     WHERE s.id = ?
@@ -36,7 +36,7 @@ const SkillModel = {
           const pattern = `%${normalizedQuery}%`;
           if (isAdmin) {
             return db.prepare(`
-              SELECT s.*, u.username as owner_username, u.name as owner_name
+              SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
               FROM skills s
               LEFT JOIN users u ON s.owner_id = u.id
               WHERE s.name LIKE ? OR s.description LIKE ?
@@ -45,7 +45,7 @@ const SkillModel = {
           }
           if (viewer) {
             return db.prepare(`
-              SELECT s.*, u.username as owner_username, u.name as owner_name
+              SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
               FROM skills s
               LEFT JOIN users u ON s.owner_id = u.id
               LEFT JOIN skill_collaborators sc_view ON s.id = sc_view.skill_id AND sc_view.user_id = ?
@@ -55,7 +55,7 @@ const SkillModel = {
             `).all(viewer.id, pattern, pattern);
           }
           return db.prepare(`
-            SELECT s.*, u.username as owner_username, u.name as owner_name
+            SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
             FROM skills s
             LEFT JOIN users u ON s.owner_id = u.id
             WHERE (s.name LIKE ? OR s.description LIKE ?) AND s.visibility = 'public'
@@ -65,7 +65,7 @@ const SkillModel = {
 
         if (isAdmin) {
           return db.prepare(`
-            SELECT s.*, u.username as owner_username, u.name as owner_name
+            SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
             FROM skills s
             LEFT JOIN users u ON s.owner_id = u.id
             ORDER BY s.updated_at DESC
@@ -73,7 +73,7 @@ const SkillModel = {
         }
         if (viewer) {
           return db.prepare(`
-            SELECT s.*, u.username as owner_username, u.name as owner_name
+            SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
             FROM skills s
             LEFT JOIN users u ON s.owner_id = u.id
             LEFT JOIN skill_collaborators sc_view ON s.id = sc_view.skill_id AND sc_view.user_id = ?
@@ -82,7 +82,7 @@ const SkillModel = {
           `).all(viewer.id);
         }
         return db.prepare(`
-          SELECT s.*, u.username as owner_username, u.name as owner_name
+          SELECT s.*, u.username as owner_username, u.name as owner_name, u.avatar as owner_avatar
           FROM skills s
           LEFT JOIN users u ON s.owner_id = u.id
           WHERE s.visibility = 'public'

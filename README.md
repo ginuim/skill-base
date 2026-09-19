@@ -32,13 +32,16 @@ Skill Base turns Skills into **publishable, versioned, and installable** team as
 |------------|-----|
 | **Publish** | Web upload, `skb publish`, or GitHub import from public repos |
 | **Install / update / delete** | `skb install` / `skb update` / `skb delete` with IDE Skill paths and local install tracking; `skb install --collection <id-or-slug>` for curated packs |
-| **Browse** | Web UI for search, version switching, changelogs, tags, collections (max 10 skills), favorites |
+| **Browse** | Web UI for search, version switching, changelogs, tags, collections (max 10 skills), favorites, and skill detail pages with copyable AI Agent prompts and CLI commands for the selected version, avatars of actual version contributors, a file reader directly below the introduction, an independent installation sidebar, and a dedicated effect preview tab without decorative cards or shadows |
+| **Contributions** | Compact skill lists show up to three contributor avatars plus an overflow menu. Click an avatar to open `/users/:id`: contributed skills, published version count, and downloads of those skills, filtered by viewer access. Contributions come from version uploaders, not membership. |
 | **Desktop** | Native desktop client — [download](docs/desktop.md) |
 | **Visibility** | `public` / `private` skills; owner / collaborator / user permissions |
 
 <p align="center">
   <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-market.png" alt="Skill Base desktop — Skill Market" width="720" />
 </p>
+
+The version diff page follows the skill detail page’s open layout, with flat version controls, underline view tabs, and scrollable code differences. The publish and account settings pages use flat sections without decorative cards. GitHub import reveals review fields after preview; branch/subdirectory options, avatar choices, and password changes expand on demand.
 
 ## Quick start
 
@@ -112,3 +115,9 @@ Full note: [docs/author.md](docs/author.md).
 ## License
 
 [MIT](LICENSE)
+
+### Web visual system
+
+The Web UI uses shared neutral buttons and form controls, light/dark themes, and a responsive two-column sign-in page. See [the visual guidelines](docs/zh/design-system.md).
+
+Skills can be downloaded as ZIP files without Node.js or skb. Public skills need no sign-in; private skills require an authorized account. The detail page includes manual import instructions and a direct-download AI prompt for the selected version.

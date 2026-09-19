@@ -110,7 +110,7 @@ const caseStyle = computed(() => ({
   display: flex;
   flex-shrink: 0;
   filter:
-    drop-shadow(0 20px 34px rgba(0, 0, 0, 0.28))
+    drop-shadow(0 10px 20px rgba(0, 0, 0, 0.28))
     drop-shadow(0 4px 10px rgba(0, 0, 0, 0.18));
   transition: transform 0.25s ease, filter 0.25s ease;
 }
@@ -118,19 +118,19 @@ const caseStyle = computed(() => ({
 .cd-cover--interactive:hover {
   transform: translateY(-6px) rotate(-0.35deg);
   filter:
-    drop-shadow(0 26px 42px rgba(0, 0, 0, 0.34))
+    drop-shadow(0 12px 24px rgba(0, 0, 0, 0.34))
     drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
 }
 
 html[data-theme="light"] .cd-cover {
   filter:
-    drop-shadow(0 18px 28px rgba(15, 23, 42, 0.12))
+    drop-shadow(0 8px 16px rgba(15, 23, 42, 0.12))
     drop-shadow(0 3px 8px rgba(15, 23, 42, 0.08));
 }
 
 html[data-theme="light"] .cd-cover--interactive:hover {
   filter:
-    drop-shadow(0 24px 36px rgba(15, 23, 42, 0.16))
+    drop-shadow(0 10px 20px rgba(15, 23, 42, 0.16))
     drop-shadow(0 6px 12px rgba(15, 23, 42, 0.1));
 }
 

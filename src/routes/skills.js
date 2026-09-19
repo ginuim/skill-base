@@ -5,14 +5,15 @@ const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
 const FavoriteModel = require('../models/favorite');
 const TagModel = require('../models/tag');
-const CollectionModel = require('../models/collection');
 const { getZipPath, resolveZipPath } = require('../utils/zip');
 const { canManageSkill, canViewSkill } = require('../utils/permission');
-const { parseWebhookUrlField, notifySkillWebhook, canViewSkillWebhook } = require('../utils/skill-webhook');
+const { parseWebhookUrlField, notifySkillWebhook } = require('../utils/skill-webhook');
+const { formatSkill } = require('../utils/format-skill');
+const ContributionModel = require('../models/contribution');
 
 function listCollaboratorUsersForSkillDetail(skillId) {
   const rows = db.prepare(`
-    SELECT u.id as user_id, u.username, u.name
+    SELECT u.id as user_id, u.username, u.name, u.avatar
     FROM skill_collaborators sc
     JOIN users u ON sc.user_id = u.id
     WHERE sc.skill_id = ? AND sc.role = 'collaborator'
@@ -21,54 +22,9 @@ function listCollaboratorUsersForSkillDetail(skillId) {
   return rows.map((r) => ({
     id: r.user_id,
     username: r.username,
-    name: r.name
+    name: r.name,
+    avatar: r.avatar || null
   }));
-}
-
-// Format skill, convert owner to object
-function formatSkill(skill, currentUser) {
-  if (!skill) return null;
-  const result = {
-    id: skill.id,
-    name: skill.name,
-    description: skill.description,
-    latest_version: skill.latest_version,
-    favorite_count: skill.favorite_count || 0,
-    download_count: skill.download_count || 0,
-    tags: TagModel.listSkillTags(skill.id),
-    collections: CollectionModel.listSkillCollections(skill.id),
-    owner: {
-      id: skill.owner_id,
-      username: skill.owner_username,
-      name: skill.owner_name
-    },
-    created_at: skill.created_at,
-    updated_at: skill.updated_at
-  };
-  result.visibility = skill.visibility || 'public';
-
-  if (currentUser) {
-    if (currentUser.role === 'admin' || currentUser.id === skill.owner_id) {
-      result.permission = 'owner';
-    } else {
-      const collab = db.prepare('SELECT role FROM skill_collaborators WHERE skill_id = ? AND user_id = ?').get(skill.id, currentUser.id);
-      if (collab) {
-        result.permission = collab.role;
-      } else {
-        result.permission = 'user';
-      }
-    }
-  } else {
-    result.permission = 'user';
-  }
-
-  result.is_favorited = currentUser ? FavoriteModel.isFavorited(currentUser.id, skill.id) : false;
-
-  if (canViewSkillWebhook(currentUser, result.permission)) {
-    result.webhook_url = skill.webhook_url || null;
-  }
-
-  return result;
 }
 
 // Format version, convert uploader to object
@@ -107,7 +63,10 @@ async function skillsRoutes(fastify, options) {
   fastify.get('/', { preHandler: [fastify.optionalAuth] }, async (request, reply) => {
     const { q } = request.query;
     const skills = SkillModel.search(q, request.user);
-    const formattedSkills = skills.map(skill => formatSkill(skill, request.user));
+    const contributors = ContributionModel.forSkills(skills.map(skill => skill.id));
+    const formattedSkills = skills.map(skill => ({
+      ...formatSkill(skill, request.user), contributors: contributors.get(skill.id) || []
+    }));
 
     return {
       skills: formattedSkills,
@@ -134,6 +93,7 @@ async function skillsRoutes(fastify, options) {
     }
 
     const formatted = formatSkill(skill, request.user);
+    formatted.contributors = ContributionModel.forSkills([skill_id]).get(skill_id) || [];
     formatted.collaborators = listCollaboratorUsersForSkillDetail(skill_id);
     return formatted;
   });

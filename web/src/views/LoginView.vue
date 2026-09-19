@@ -1,99 +1,74 @@
 <template>
   <div class="login-container">
-    <div class="login-shell">
-      <!-- Logo -->
-      <div class="login-brand">
-        <span class="login-brand-icon">
-          <Package :size="28" :stroke-width="2" aria-hidden="true" />
-        </span>
-        <span class="login-brand-text">Skill Base</span>
-      </div>
+    <div class="login-panel">
+    <section class="flat-page login-shell" aria-labelledby="login-heading">
+      <router-link to="/" class="login-brand">
+        <SkillBaseBrand />
+      </router-link>
 
-      <!-- 登录卡片 -->
-      <div class="login-card">
-        <!-- 装饰性代码角标 -->
-        <div class="login-card-badge">AUTH-REQ</div>
+      <header class="flat-header login-header">
+        <h1 id="login-heading">{{ t('login.heading') }}</h1>
+        <p>{{ t('login.subtitle') }}</p>
+      </header>
 
-        <div class="login-header">
-          <h1 class="login-title">
-            <span class="login-title-prompt">></span>
-            Sign In
-          </h1>
-          <p class="login-subtitle">
-            {{ t('login.subtitle') }}
-          </p>
+      <form @submit.prevent="handleLogin" class="flat-form" :aria-busy="authStore.isLoading">
+        <div class="flat-field">
+          <label for="username">{{ t('login.username') }}</label>
+          <input
+            id="username"
+            v-model="username"
+            name="username"
+            type="text"
+            :placeholder="t('login.errUsername')"
+            autocomplete="username"
+            autocapitalize="none"
+            :spellcheck="false"
+            required
+            :disabled="authStore.isLoading"
+          />
         </div>
-
-        <!-- 错误信息容器 -->
-        <div v-if="authStore.error" class="login-error" role="alert">
-          {{ authStore.error }}
+        <div class="flat-field">
+          <label for="password">{{ t('login.password') }}</label>
+          <input
+            id="password"
+            v-model="password"
+            name="password"
+            type="password"
+            :placeholder="t('login.errPassword')"
+            autocomplete="current-password"
+            required
+            :disabled="authStore.isLoading"
+          />
         </div>
-
-        <form @submit.prevent="handleLogin" class="login-form">
-          <!-- Username -->
-          <div class="login-field">
-            <label for="username" class="login-label">
-              <span class="login-keyword">const</span> <span class="login-label-name">username</span> <span class="login-equals">=</span>
-            </label>
-            <div>
-              <input
-                type="text"
-                id="username"
-                v-model="username"
-                placeholder="&quot;operator&quot;"
-                autocomplete="username"
-                required
-                :disabled="authStore.isLoading"
-                class="login-input"
-              >
-            </div>
-          </div>
-
-          <!-- Password -->
-          <div class="login-field">
-            <label for="password" class="login-label">
-              <span class="login-keyword">const</span> <span class="login-label-name">password</span> <span class="login-equals">=</span>
-            </label>
-            <div>
-              <input
-                type="password"
-                id="password"
-                v-model="password"
-                placeholder="••••••••"
-                autocomplete="current-password"
-                required
-                :disabled="authStore.isLoading"
-                class="login-input"
-              >
-            </div>
-          </div>
-
-          <!-- Submit Button -->
-          <div class="login-actions">
-            <button
-              type="submit"
-              :disabled="authStore.isLoading"
-              class="login-submit"
-            >
-              <Play v-if="!authStore.isLoading" class="btn-devtools-icon" :size="18" :stroke-width="2" aria-hidden="true" />
-              <span v-if="authStore.isLoading" class="spinner"></span>
-              <span>{{ authStore.isLoading ? t('login.loading') : t('login.submit') }}</span>
-            </button>
-          </div>
-        </form>
+        <p v-if="authStore.error" class="flat-error" role="alert">{{ authStore.error }}</p>
+        <button type="submit" class="flat-primary login-submit" :disabled="authStore.isLoading">
+          <span v-if="authStore.isLoading" class="spinner spinner-sm" aria-hidden="true"></span>
+          <span aria-live="polite">{{ authStore.isLoading ? t('login.loading') : t('login.submit') }}</span>
+          <ArrowRight v-if="!authStore.isLoading" :size="16" aria-hidden="true" />
+        </button>
+      </form>
+      <router-link to="/" class="flat-back login-back">← {{ t('nav.home') }}</router-link>
+    </section>
+    <aside class="login-visual" aria-labelledby="login-visual-heading">
+      <div class="login-art" aria-hidden="true">
+        <CollectionBookCover :name="t('login.demoCollection')" :description="t('login.demoDescription')" :skill-count="3" :color-index="4" />
+        <div class="login-skill-preview"><Package :size="20" /><span>SKILL.md</span><Check :size="16" /></div>
       </div>
-
-      <!-- 底部提示 -->
-      <div class="login-status">
-        <span class="login-status-dot"></span>
-        <span class="login-status-text">Secure Connection Established</span>
+      <div class="login-visual-copy">
+        <p class="login-visual-label">AGENT SKILLS, TOGETHER</p>
+        <h2 id="login-visual-heading">{{ t('login.visualTitle') }}</h2>
+        <p>{{ t('login.visualDescription') }}</p>
+        <ul class="login-features"><li v-for="key in ['manage', 'versions', 'collections']" :key="key">{{ t(`login.feature.${key}`) }}</li></ul>
       </div>
+    </aside>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Package, Play } from 'lucide-vue-next'
+import SkillBaseBrand from '@/components/SkillBaseBrand.vue'
+import CollectionBookCover from '@/components/CollectionBookCover.vue'
+import { Package, Check, ArrowRight } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -139,287 +114,34 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-.login-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background-color: var(--color-base-950);
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 64px 64px;
-  color: var(--color-fg);
-  font-family: 'Inter', system-ui, sans-serif;
+.login-container { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 48px 24px; background: var(--color-base-900); }
+.login-panel { width: min(960px, 100%); display: grid; grid-template-columns: 1fr 1fr; background: var(--color-base-950); border: 1px solid var(--color-base-800); border-radius: 14px; overflow: hidden; box-shadow: 0 16px 48px rgb(0 0 0 / 6%); }
+.login-shell { width: 100%; max-width: 440px; margin: auto; padding: 48px 40px; }
+.login-brand { display: inline-flex; text-decoration: none; }
+.login-header { margin: 40px 0 28px; }
+.login-header p { line-height: 1.7; }
+.login-shell .flat-form { gap: 20px; }
+.login-shell input { min-height: 44px; }
+.login-shell .login-submit { width: 100%; min-height: 44px; margin-top: 4px; font-size: 14px; }
+.login-back { margin-top: 24px; }
+.login-visual { display: flex; flex-direction: column; justify-content: center; gap: 40px; padding: 48px 40px; background: color-mix(in srgb, var(--color-base-900) 95%, var(--color-neon-400)); }
+.login-art { position: relative; align-self: center; padding: 0 24px 20px; }
+.login-skill-preview { position: absolute; bottom: 0; right: 0; display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 1px solid var(--color-base-800); border-radius: 8px; background: var(--color-base-950); color: var(--color-fg-strong); font: 12px var(--font-mono); box-shadow: 0 6px 20px rgb(0 0 0 / 5%); }
+.login-skill-preview svg { color: var(--color-neon-400); }
+.login-visual-label { font-size: 10px; letter-spacing: .13em; color: var(--color-base-400); margin-bottom: 12px; }
+.login-visual-copy h2 { font-size: 26px; line-height: 1.35; font-weight: 650; letter-spacing: -.03em; color: var(--color-fg-strong); text-wrap: balance; }
+.login-visual-copy > p:not(.login-visual-label) { font-size: 14px; line-height: 1.8; margin-top: 12px; color: var(--color-base-400); }
+.login-features { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 24px; font-size: 12px; color: var(--color-base-400); }
+@media (max-width: 820px) {
+ .login-panel { max-width: 400px; grid-template-columns: 1fr; }
+ .login-visual { display: none; }
+ .login-shell { padding: 32px; }
 }
-
-.login-shell {
-  width: 100%;
-  max-width: 28rem;
+@media (max-width: 640px) {
+ .login-container { padding: 40px 20px; background: var(--color-base-950); }
+ .login-panel { border: 0; box-shadow: none; }
+ .login-shell { padding: 0; }
+ .login-shell input { font-size: 16px; }
 }
-
-.login-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  font-size: 1.5rem;
-  line-height: 1;
-  letter-spacing: -0.025em;
-  user-select: none;
-}
-
-.login-brand-icon {
-  color: var(--color-neon-400);
-  filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.4));
-}
-
-.login-brand-text {
-  color: var(--color-fg-strong);
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-}
-
-.login-card {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.75rem;
-  padding: 2rem;
-  background: var(--color-base-900);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-}
-
-.login-card-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 0.25rem 0.5rem;
-  border-bottom-left-radius: 0.5rem;
-  background: var(--color-base-800);
-  color: var(--color-base-400);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  opacity: 0.5;
-  user-select: none;
-}
-
-.login-header {
-  margin-bottom: 2rem;
-}
-
-.login-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0 0 0.5rem;
-  color: var(--color-fg-strong);
-  font-size: 2.25rem;
-  line-height: 1;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.login-title-prompt {
-  color: var(--color-neon-400);
-  opacity: 0.7;
-  font-weight: 400;
-}
-
-.login-subtitle {
-  margin: 0;
-  color: var(--color-base-400);
-  font-size: 0.875rem;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.login-error {
-  margin-bottom: 1.5rem;
-  padding: 0.75rem;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 0.5rem;
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
-  font-size: 0.875rem;
-  font-family: 'JetBrains Mono', monospace;
-  overflow-wrap: anywhere;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.login-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.login-label {
-  display: block;
-  color: var(--color-base-400);
-  font-size: 0.875rem;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.login-keyword,
-.login-equals {
-  color: var(--color-neon-400);
-  opacity: 0.7;
-}
-
-.login-label-name {
-  color: var(--color-fg-strong);
-}
-
-.login-input {
-  display: block;
-  width: 100%;
-  height: 3rem;
-  padding: 0 1rem;
-  box-sizing: border-box;
-  margin: 0;
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.5rem;
-  background: var(--color-base-950);
-  color: var(--color-fg-strong);
-  font-size: 0.875rem;
-  line-height: calc(3rem - 2px);
-  font-family: 'JetBrains Mono', monospace;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.login-input::placeholder {
-  color: rgba(161, 161, 170, 0.5);
-}
-
-.login-input:focus {
-  outline: none;
-  border-color: var(--color-neon-500);
-  box-shadow: 0 0 0 1px var(--color-neon-500);
-}
-
-.login-input:disabled,
-.login-submit:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.login-actions {
-  padding-top: 0.5rem;
-}
-
-.login-submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  width: 100%;
-  min-height: 3rem;
-  padding: 0 1.25rem;
-  border: 1px solid var(--color-neon-500);
-  border-radius: 0.5rem;
-  background: transparent;
-  color: var(--color-neon-400);
-  font-size: 0.875rem;
-  font-family: 'JetBrains Mono', monospace;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.1);
-}
-
-.login-submit:hover:not(:disabled) {
-  background: rgba(var(--color-neon-rgb), 0.1);
-  box-shadow: 0 0 20px rgba(var(--color-neon-rgb), 0.2);
-}
-
-.login-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
-  color: var(--color-base-400);
-  font-size: 0.75rem;
-  font-family: 'JetBrains Mono', monospace;
-  text-align: center;
-}
-
-.login-status-dot {
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 9999px;
-  background: var(--color-neon-400);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.login-status-text {
-  opacity: 0.5;
-}
-
-.login-container ::selection {
-  background: rgba(var(--color-neon-rgb), 0.3);
-  color: var(--color-fg-strong);
-}
-
-.spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(var(--color-neon-rgb), 0.3);
-  border-radius: 50%;
-  border-top-color: var(--color-neon-400);
-  animation: spin 1s linear infinite;
-  vertical-align: middle;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.btn-devtools-icon {
-  display: inline-block;
-  flex-shrink: 0;
-  vertical-align: middle;
-  margin-right: 6px;
-}
-
-input.login-input:-webkit-autofill,
-input.login-input:-webkit-autofill:hover,
-input.login-input:-webkit-autofill:focus,
-input.login-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px var(--color-base-950) inset !important;
-  -webkit-text-fill-color: var(--color-fg-strong) !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-}
-</style>
-
-<style>
-html[data-theme="light"] .login-container {
-  background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
-}
-
-html[data-theme="light"] .login-container ::selection {
-  background: rgba(0, 200, 130, 0.28);
-  color: var(--color-fg-strong);
-}
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
 </style>

@@ -1,384 +1,356 @@
 <template>
-    <main class="page-content">
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8 pb-16" style="max-width: 720px;">
-        <!-- 面包屑 -->
-        <div class="text-sm text-base-400 font-mono mb-6 flex items-center gap-2">
-          <span class="text-neon-400">~</span>
-          <span class="opacity-50">/</span>
-          <router-link to="/" class="hover:text-fg-strong transition-colors">home</router-link>
-          <span class="opacity-50">/</span>
-          <span class="text-fg-strong">publish</span>
-        </div>
-
-        <div class="card publish-card relative overflow-hidden p-8">
-          <div class="absolute top-0 right-0 bg-base-800 text-base-400 text-[10px] font-mono px-2 py-1 rounded-bl-lg opacity-50 select-none">CMD-PUB</div>
-
-          <h1 class="text-2xl font-bold text-fg-strong mb-6 flex items-center gap-3">
-            <span class="text-neon-400 font-mono font-normal opacity-70">></span>
-            <span>{{ t('publish.title') }}</span>
-          </h1>
-
-          <div class="publish-mode-tabs" role="tablist" :aria-label="t('publish.modeTablistLabel')">
+  <main class="flat-page publish-page">
+    <router-link to="/" class="flat-back">← {{ t('nav.home') }}</router-link>
+    <header class="flat-header">
+      <h1>{{ t('publish.pageHeading') }}</h1>
+      <p>{{ t('publish.pageHint') }}</p>
+    </header>
+    <div
+      class="publish-mode-tabs"
+      role="group"
+      :aria-label="t('publish.modeTablistLabel')"
+    >
+      <button
+        v-for="mode in ['upload', 'write', 'github'] as const"
+        :key="mode"
+        type="button"
+        :aria-pressed="publishMode === mode"
+        :class="{ active: publishMode === mode }"
+        :disabled="isPublishing || isPreviewLoading"
+        @click="setPublishMode(mode)"
+      >
+        {{
+          t(
+            mode === 'upload'
+              ? 'publish.tabUpload'
+              : mode === 'write'
+                ? 'publish.tabWrite'
+                : 'publish.tabGithub',
+          )
+        }}
+      </button>
+    </div>
+    <form @submit.prevent="handlePublish" class="flat-form publish-form">
+      <div v-if="error" ref="errorBannerRef" class="flat-error" role="alert">
+        {{ error }}
+      </div>
+      <section class="source-section">
+        <h2 class="publish-step">
+          <span>01</span>{{ t('publish.sourceStep') }}
+        </h2>
+        <div
+          v-show="publishMode === 'github'"
+          class="flat-form github-import-panel"
+        >
+          <div class="flat-field">
+            <label for="github-source">{{ t('publish.repositoryLabel') }}</label
+            ><input
+              id="github-source"
+              v-model="githubSource"
+              :disabled="isPublishing || isPreviewLoading"
+              :placeholder="t('publish.githubSourcePlaceholder')"
+              autocomplete="off"
+            />
+            <p class="flat-hint">{{ t('publish.repositoryHint') }}</p>
+          </div>
+          <details class="github-advanced">
+            <summary>{{ t('publish.advancedOptions') }}</summary>
+            <div class="publish-two-fields">
+              <div class="flat-field">
+                <label for="github-ref">{{ t('publish.githubRef') }}</label
+                ><input
+                  id="github-ref"
+                  v-model="githubRef"
+                  :disabled="isPublishing || isPreviewLoading"
+                  :placeholder="t('publish.githubRefPlaceholder')"
+                />
+              </div>
+              <div class="flat-field">
+                <label for="github-subpath">{{
+                  t('publish.githubSubpath')
+                }}</label
+                ><input
+                  id="github-subpath"
+                  v-model="githubSubpath"
+                  :disabled="isPublishing || isPreviewLoading"
+                  :placeholder="t('publish.githubSubpathPlaceholder')"
+                />
+              </div>
+            </div>
+          </details>
+          <div class="github-actions">
             <button
               type="button"
-              role="tab"
-              :aria-selected="publishMode === 'upload'"
-              class="publish-mode-tab"
-              :class="{ active: publishMode === 'upload' }"
-              @click="setPublishMode('upload')"
+              :class="githubPreview ? 'flat-secondary' : 'flat-primary'"
+              :disabled="
+                isPublishing || isPreviewLoading || !githubSource.trim()
+              "
+              :aria-busy="isPreviewLoading"
+              @click="runGithubPreview"
             >
-              {{ t('publish.tabUpload') }}
-            </button>
-            <button
+              <span v-if="isPreviewLoading" class="spinner spinner-sm"></span
+              >{{
+                isPreviewLoading
+                  ? t('publish.githubPreviewing')
+                  : t('publish.readRepository')
+              }}</button
+            ><button
+              v-if="githubPreview"
               type="button"
-              role="tab"
-              :aria-selected="publishMode === 'write'"
-              class="publish-mode-tab"
-              :class="{ active: publishMode === 'write' }"
-              @click="setPublishMode('write')"
+              class="flat-secondary"
+              :disabled="isPublishing || isPreviewLoading"
+              @click="clearGithubImport"
             >
-              {{ t('publish.tabWrite') }}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              :aria-selected="publishMode === 'github'"
-              class="publish-mode-tab"
-              :class="{ active: publishMode === 'github' }"
-              @click="setPublishMode('github')"
-            >
-              {{ t('publish.tabGithub') }}
+              {{ t('publish.githubClear') }}
             </button>
           </div>
-
-          <form @submit.prevent="handlePublish" class="space-y-6">
-            <div
-              v-if="error"
-              ref="errorBannerRef"
-              class="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-              role="alert"
-              aria-live="assertive"
+          <div
+            class="github-connection"
+            :class="githubConnectBannerClass"
+            role="status"
+          >
+            <span>{{ githubConnectTitle }}</span
+            ><button
+              type="button"
+              class="flat-link"
+              :disabled="githubConnect.state === 'checking'"
+              @click="fetchGithubConnectivity"
             >
-              {{ error }}
-            </div>
-            <!-- GitHub 导入 -->
-            <div v-show="publishMode === 'github'" class="github-import-panel form-group">
-              <div class="github-import-header">
-                <div class="min-w-0">
-                  <label class="form-label font-mono text-neon-400 mb-1 block">{{ t('publish.githubHeading') }}</label>
-                  <p class="github-import-hint">{{ t('publish.githubHint') }}</p>
-                </div>
-                <button
-                  type="button"
-                  class="github-connect-action"
-                  :disabled="githubConnect.state === 'checking'"
-                  @click="fetchGithubConnectivity"
-                >
-                  {{ githubConnect.state === 'checking' ? t('publish.githubConnectChecking') : t('publish.githubConnectRetry') }}
-                </button>
-              </div>
-
-              <div
-                class="github-connect-banner font-mono text-sm rounded-lg border"
-                :class="githubConnectBannerClass"
-              >
-                <p class="font-medium leading-snug">{{ githubConnectTitle }}</p>
-                <p v-if="githubConnectDetailLine" class="text-xs opacity-90 break-all">{{ githubConnectDetailLine }}</p>
-                <p v-if="publishMode === 'github' && githubConnect.state === 'fail'" class="text-xs opacity-80 mt-2">
-                  {{ t('publish.githubConnectHintNetwork') }}
-                </p>
-              </div>
-
-              <div class="github-source-card">
-                <div>
-                  <label for="github-source" class="github-field-label required">{{ t('publish.tabGithub') }}</label>
-                  <input
-                    id="github-source"
-                    v-model="githubSource"
-                    type="text"
-                    class="rounded-lg px-4 py-2.5 w-full github-source-input"
-                    :disabled="isPublishing || isPreviewLoading"
-                    :placeholder="t('publish.githubSourcePlaceholder')"
-                    autocomplete="off"
-                  >
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="github-field-label">{{ t('publish.githubRef') }}</label>
-                    <input
-                      v-model="githubRef"
-                      type="text"
-                      class="rounded-lg px-4 py-2.5 w-full"
-                      :disabled="isPublishing || isPreviewLoading"
-                      :placeholder="t('publish.githubRefPlaceholder')"
-                      autocomplete="off"
-                    >
-                  </div>
-                  <div>
-                    <label class="github-field-label">{{ t('publish.githubSubpath') }}</label>
-                    <input
-                      v-model="githubSubpath"
-                      type="text"
-                      class="rounded-lg px-4 py-2.5 w-full"
-                      :disabled="isPublishing || isPreviewLoading"
-                      :placeholder="t('publish.githubSubpathPlaceholder')"
-                      autocomplete="off"
-                    >
-                  </div>
-                </div>
-
-                <div class="github-import-actions">
-                  <button
-                    type="button"
-                    class="btn btn-primary px-4 py-2 rounded-lg flex items-center gap-2"
-                    :disabled="isPublishing || isPreviewLoading || !githubSource.trim()"
-                    :aria-busy="isPreviewLoading"
-                    @click="runGithubPreview"
-                  >
-                    <span v-if="isPreviewLoading" class="spinner spinner-sm" aria-hidden="true"></span>
-                    {{ isPreviewLoading ? t('publish.githubPreviewing') : t('publish.githubPreview') }}
-                  </button>
-                  <button
-                    v-if="githubPreview"
-                    type="button"
-                    class="github-clear-action"
-                    @click="clearGithubImport"
-                  >
-                    {{ t('publish.githubClear') }}
-                  </button>
-                </div>
-              </div>
-
-              <div v-if="githubPreview" class="github-preview-card">
-                <div class="github-preview-kicker">{{ t('publish.githubPreviewOk', { id: githubTargetId }) }}</div>
-                <p v-if="githubRepoLabel" class="github-preview-repo">{{ githubRepoLabel }}</p>
-                <p v-if="githubConflictMessage" class="github-conflict-message">{{ githubConflictMessage }}</p>
-              </div>
-            </div>
-
-            <!-- 文件上传 -->
-            <div v-show="publishMode === 'upload'" class="form-group">
-              <label class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.uploadFile') }}</label>
-              <div
-                id="drop-zone"
-                class="drop-zone"
-                :class="{ 'drag-over': isDragging }"
-                @dragover.prevent="isDragging = true"
-                @dragleave.prevent="isDragging = false"
-                @drop.prevent="handleDrop"
+              {{ t('publish.githubConnectRetry') }}
+            </button>
+            <p v-if="githubConnect.state === 'fail'">
+              {{ githubConnectDetailLine }}
+              {{ t('publish.githubConnectHintNetwork') }}
+            </p>
+          </div>
+        </div>
+        <div v-show="publishMode === 'upload'">
+          <div
+            id="drop-zone"
+            class="drop-zone"
+            :class="{ 'drag-over': isDragging }"
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="handleDragLeave"
+            @drop.prevent="handleDrop"
+          >
+            <Upload :size="28" :stroke-width="1.5" aria-hidden="true" />
+            <h3>{{ t('publish.dropZoneText') }}</h3>
+            <p class="flat-hint">{{ t('publish.dropZoneHint') }}</p>
+            <div class="upload-actions">
+              <button
+                type="button"
+                class="flat-primary"
+                :disabled="isPublishing"
                 @click="triggerFileInput"
               >
-                <div class="drop-zone-icon">
-                  <Upload :size="32" :stroke-width="2" aria-hidden="true" />
-                </div>
-                <div class="drop-zone-text">{{ t('publish.dropZoneText') }}</div>
-                <div class="drop-zone-subtitle">{{ t('publish.dropZoneSubtitle') }}</div>
-                <div class="drop-zone-hint">{{ t('publish.dropZoneHint') }}</div>
-              </div>
-
-              <input
-                ref="fileInput"
-                type="file"
-                webkitdirectory
-                directory
-                multiple
-                class="hidden"
-                @change="handleFileSelect"
-              >
-
-              <div class="divider">
-                <span>OR</span>
-              </div>
-
-              <div class="text-center">
-                <label class="btn btn-secondary zip-select-btn px-4 py-2 rounded-lg cursor-pointer">
-                  <span class="text-neon-400">📎</span>
-                  <span>{{ t('publish.selectZip') }}</span>
-                  <input type="file" ref="zipInput" class="hidden" accept=".zip" @change="handleZipSelect">
-                </label>
-              </div>
-
-              <div id="file-preview" class="file-preview" :class="{ 'visible': selectedFiles.length > 0 }">
-                <div class="file-preview-header">
-                  <span>{{ t('publish.selectedFiles') }}</span>
-                  <button type="button" class="file-preview-clear" @click="clearFiles">[ clear ]</button>
-                </div>
-                <div id="file-preview-list" class="file-preview-list">
-                  <div v-for="file in selectedFiles.slice(0, 20)" :key="file.name" class="file-item">
-                    {{ file.name }} ({{ formatFileSize(file.size) }})
-                  </div>
-                  <div v-if="selectedFiles.length > 20" class="mt-2 text-neon-400">
-                    {{ t('publish.moreFiles', { count: selectedFiles.length - 20 }) }}
-                  </div>
-                </div>
-                <div id="file-preview-summary" class="file-preview-summary">
-                  {{ t('publish.totalFiles', { count: selectedFiles.length }) }}
-                </div>
-              </div>
-            </div>
-
-            <!-- 在线编写 -->
-            <div v-show="publishMode === 'write'" class="form-group write-skill-panel">
-              <div class="write-skill-header">
-                <div class="min-w-0">
-                  <label for="skill-md-editor" class="form-label font-mono text-neon-400 mb-1 block">
-                    {{ t('publish.writeHeading') }}
-                  </label>
-                  <p class="write-skill-hint">{{ t('publish.writeHint') }}</p>
-                </div>
-                <button
-                  type="button"
-                  class="write-reset-action"
-                  :disabled="isPublishing"
-                  @click="resetSkillMdTemplate"
-                >
-                  {{ t('publish.writeResetTemplate') }}
-                </button>
-              </div>
-              <textarea
-                id="skill-md-editor"
-                v-model="skillMdDraft"
-                rows="18"
-                class="rounded-lg px-4 py-2.5 w-full write-skill-editor"
+                {{ t('publish.chooseFolder') }}</button
+              ><button
+                type="button"
+                class="flat-secondary"
                 :disabled="isPublishing"
-                :placeholder="t('publish.writePlaceholder')"
-                spellcheck="false"
-              ></textarea>
-            </div>
-
-            <!-- Skill 选择 -->
-            <div class="form-group">
-              <label for="skill-select" class="form-label font-mono text-base-400 mb-2 block">{{ t('publish.selectSkill') }}</label>
-              <select
-                id="skill-select"
-                v-model="selectedExistingId"
-                class="rounded-lg px-4 py-2.5 w-full"
-                :disabled="isPublishing || publishMode === 'github'"
+                @click="zipInput?.click()"
               >
-                <option value="">-- {{ t('publish.createNewSkill') }} --</option>
-                <option
-                  v-for="skill in mySkills"
-                  :key="skill.id"
-                  :value="skill.id"
-                >
-                  {{ skill.name }}
-                </option>
-              </select>
-              <p class="form-hint">{{ t('publish.skillSelectHint') }}</p>
-            </div>
-
-            <!-- Skill 元信息 (只读) -->
-            <div class="skill-meta-readonly space-y-4 pt-4 border-t border-base-800">
-              <div class="form-group">
-                <label for="skill-id" class="form-label font-mono text-base-400 mb-2 block required">{{ publishMode === 'github' && githubPreview ? t('publish.targetSkillId') : t('publish.skillId') }}</label>
-                <input
-                  type="text"
-                  id="skill-id"
-                  v-model="activeSkillIdModel"
-                  :readonly="!(publishMode === 'github' && githubPreview)"
-                  :placeholder="t('publish.skillIdPlaceholder')"
-                  pattern="[a-z0-9\-_]+"
-                  class="rounded-lg px-4 py-2.5 w-full"
-                >
-                <p class="form-hint">{{ publishMode === 'github' && githubPreview ? t('publish.targetSkillIdHint') : t('publish.skillIdHint') }}</p>
-              </div>
-
-              <div class="form-group">
-                <label for="skill-name" class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.skillName') }}</label>
-                <input
-                  type="text"
-                  id="skill-name"
-                  v-model="form.name"
-                  readonly
-                  :placeholder="t('publish.skillNamePlaceholder')"
-                  class="rounded-lg px-4 py-2.5 w-full"
-                >
-              </div>
-
-              <div class="form-group">
-                <label for="skill-description" class="form-label font-mono text-base-400 mb-2 block required">{{ t('publish.description') }}</label>
-                <textarea
-                  id="skill-description"
-                  v-model="form.description"
-                  rows="3"
-                  readonly
-                  maxlength="500"
-                  :placeholder="t('publish.descriptionPlaceholder')"
-                  class="rounded-lg px-4 py-2.5 w-full"
-                ></textarea>
-                <p class="form-hint"><span class="text-neon-400">{{ form.description.length }}</span> / 500 chars</p>
-              </div>
-
-              <div v-if="showVisibilitySelector" class="form-group">
-                <label for="skill-visibility" class="form-label font-mono text-base-400 mb-2 block">{{ t('publish.visibilityLabel') }}</label>
-                <select
-                  id="skill-visibility"
-                  v-model="newSkillVisibility"
-                  class="rounded-lg px-4 py-2.5 w-full"
-                >
-                  <option value="public">{{ t('visibility.public') }}</option>
-                  <option value="private">{{ t('visibility.private') }}</option>
-                </select>
-                <p class="form-hint">{{ t('publish.visibilityHint') }}</p>
-              </div>
-            </div>
-
-            <!-- 更新说明 -->
-            <div class="form-group pt-4 border-t border-base-800">
-              <label for="changelog" class="form-label font-mono text-base-400 mb-2 block">{{ t('publish.changelog') }}</label>
-              <textarea
-                id="changelog"
-                v-model="form.changelog"
-                rows="4"
-                :disabled="isPublishing"
-                :placeholder="t('publish.changelogPlaceholder')"
-                class="rounded-lg px-4 py-2.5 w-full"
-              ></textarea>
-            </div>
-
-            <!-- 解析成功提示 -->
-            <div
-              v-if="parseNotice"
-              class="parse-success"
-              role="status"
-              aria-live="polite"
-            >
-              <div class="parse-success-title">{{ t('publish.parseSuccessTitle') }}</div>
-              <div class="parse-success-text">{{ parseNotice }}</div>
-            </div>
-
-            <!-- 进度条 -->
-            <div v-if="isPublishing" class="progress-container visible">
-              <div class="progress-bar-wrapper">
-                <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-              </div>
-              <p class="progress-text">{{ progressText }}</p>
-            </div>
-
-            <!-- 提交按钮 -->
-            <div class="flex gap-4 justify-end pt-6 border-t border-base-800 mt-8">
-              <router-link to="/" class="btn btn-secondary px-6 py-2.5 rounded-lg">{{ t('common.cancel') }}</router-link>
-              <button
-                type="submit"
-                id="submit-btn"
-                :disabled="!canPublish || isPublishing"
-                class="btn btn-primary px-6 py-2.5 rounded-lg flex items-center gap-2"
-              >
-                <Upload v-if="!isPublishing" :size="16" :stroke-width="2" aria-hidden="true" />
-                <span v-if="isPublishing" class="spinner spinner-sm"></span>
-                {{ isPublishing ? t('publish.publishing') : t('publish.publishBtn') }}
+                {{ t('publish.selectZip') }}
               </button>
             </div>
-          </form>
+          </div>
+          <input
+            ref="fileInput"
+            type="file"
+            webkitdirectory
+            directory
+            multiple
+            class="hidden"
+            @change="handleFileSelect"
+          />
+          <input
+            ref="zipInput"
+            type="file"
+            accept=".zip"
+            class="hidden"
+            @change="handleZipSelect"
+          />
+          <details v-if="selectedFiles.length" class="file-preview">
+            <summary>
+              {{ t('publish.totalFiles', { count: selectedFiles.length }) }}
+            </summary>
+            <div class="file-preview-list">
+              <div v-for="file in selectedFiles.slice(0, 20)" :key="file.name">
+                {{ file.name }} <span>{{ formatFileSize(file.size) }}</span>
+              </div>
+              <p v-if="selectedFiles.length > 20">
+                {{
+                  t('publish.moreFiles', { count: selectedFiles.length - 20 })
+                }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="flat-link"
+              @click="clearFiles"
+              :disabled="isPublishing"
+            >
+              {{ t('publish.clearSelection') }}
+            </button>
+          </details>
+        </div>
+        <div v-show="publishMode === 'write'" class="flat-form">
+          <div class="write-header">
+            <label for="skill-md-editor">SKILL.md</label
+            ><button
+              type="button"
+              class="flat-link"
+              :disabled="isPublishing"
+              @click="resetSkillMdTemplate"
+            >
+              {{ t('publish.writeResetTemplate') }}
+            </button>
+          </div>
+          <p class="flat-hint">{{ t('publish.writeHint') }}</p>
+          <textarea
+            id="skill-md-editor"
+            v-model="skillMdDraft"
+            rows="15"
+            class="write-skill-editor"
+            :disabled="isPublishing"
+            :placeholder="t('publish.writePlaceholder')"
+            spellcheck="false"
+          ></textarea>
+        </div>
+      </section>
+      <section v-if="showConfirmation" class="confirmation-section">
+        <h2 class="publish-step">
+          <span>02</span>{{ t('publish.confirmStep') }}
+        </h2>
+        <p
+          v-if="githubRepoLabel && publishMode === 'github'"
+          class="flat-hint source-repo"
+        >
+          {{ githubRepoLabel }}
+        </p>
+        <p
+          v-if="githubConflictMessage && publishMode === 'github'"
+          class="flat-error"
+        >
+          {{ githubConflictMessage }}
+        </p>
+        <div class="flat-form">
+          <div v-if="publishMode !== 'github'" class="flat-field">
+            <label for="skill-select">{{ t('publish.selectSkill') }}</label
+            ><select
+              id="skill-select"
+              v-model="selectedExistingId"
+              :disabled="isPublishing"
+            >
+              <option value="">{{ t('publish.createNewSkill') }}</option>
+              <option
+                v-for="skill in mySkills"
+                :key="skill.id"
+                :value="skill.id"
+              >
+                {{ skill.name }}
+              </option>
+            </select>
+            <p class="flat-hint">{{ t('publish.skillSelectHint') }}</p>
+          </div>
+          <div class="flat-field">
+            <label for="skill-id">{{
+              publishMode === 'github'
+                ? t('publish.targetSkillId')
+                : t('publish.skillId')
+            }}</label
+            ><input
+              id="skill-id"
+              v-model="activeSkillIdModel"
+              :readonly="publishMode !== 'github'"
+              :disabled="isPublishing"
+              pattern="[a-z0-9\-_]+"
+            />
+            <p v-if="publishMode === 'github'" class="flat-hint">
+              {{ t('publish.targetSkillIdHint') }}
+            </p>
+          </div>
+          <dl class="skill-summary">
+            <div>
+              <dt>{{ t('publish.skillName') }}</dt>
+              <dd>{{ form.name }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('publish.description') }}</dt>
+              <dd>{{ form.description || t('state.noDesc') }}</dd>
+            </div>
+          </dl>
+          <div v-if="showVisibilitySelector" class="flat-field">
+            <label for="skill-visibility">{{
+              t('publish.visibilityLabel')
+            }}</label
+            ><select
+              id="skill-visibility"
+              v-model="newSkillVisibility"
+              :disabled="isPublishing"
+            >
+              <option value="public">{{ t('visibility.public') }}</option>
+              <option value="private">{{ t('visibility.private') }}</option>
+            </select>
+            <p class="flat-hint">{{ t('publish.visibilityHint') }}</p>
+          </div>
+          <div class="flat-field">
+            <label for="changelog">{{ t('publish.changelog') }}</label
+            ><textarea
+              id="changelog"
+              v-model="form.changelog"
+              rows="3"
+              :disabled="isPublishing"
+              :placeholder="t('publish.changelogPlaceholder')"
+            ></textarea>
+          </div>
+          <p v-if="parseNotice" class="flat-hint" role="status">
+            {{ parseNotice }}
+          </p>
+        </div>
+      </section>
+      <div v-if="isPublishing" class="progress-container" role="status">
+        <progress
+          :value="progress"
+          max="100"
+          :aria-label="t('publish.publishing')"
+        ></progress>
+        <p class="flat-hint">{{ progressText }}</p>
+      </div>
+      <div v-if="showConfirmation" class="publish-footer">
+        <p class="flat-hint">{{ t('publish.reviewHint') }}</p>
+        <div>
+          <router-link to="/" class="flat-secondary">{{
+            t('common.cancel')
+          }}</router-link
+          ><button
+            type="submit"
+            id="submit-btn"
+            :disabled="!canPublish || isPublishing || isPreviewLoading"
+            class="flat-primary"
+          >
+            <span v-if="isPublishing" class="spinner spinner-sm"></span
+            >{{
+              isPublishing ? t('publish.publishing') : t('publish.publishBtn')
+            }}
+          </button>
         </div>
       </div>
-    </main>
+    </form>
+  </main>
 </template>
 
 <script setup lang="ts">
 import { Upload } from 'lucide-vue-next'
-import { ref, computed, onMounted, onUnmounted, reactive, watch, nextTick } from 'vue'
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  reactive,
+  watch,
+  nextTick,
+} from 'vue'
 import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
 import { skillsApi } from '@/services/api'
@@ -398,7 +370,7 @@ const fileInput = ref<HTMLInputElement>()
 const zipInput = ref<HTMLInputElement>()
 const mySkills = ref<Skill[]>([])
 
-const selectedFiles = ref<{name: string, size: number}[]>([])
+const selectedFiles = ref<{ name: string; size: number }[]>([])
 const selectedZipBlob = ref<Blob | null>(null)
 const selectedFileName = ref('')
 
@@ -455,6 +427,15 @@ const form = ref({
   changelog: '',
 })
 const newSkillVisibility = ref<'public' | 'private'>('public')
+const showConfirmation = computed(() =>
+  publishMode.value === 'github'
+    ? !!githubPreview.value
+    : !!form.value.name && !!form.value.skillId,
+)
+watch([githubSource, githubRef, githubSubpath], () => {
+  githubPreview.value = null
+  githubTargetId.value = ''
+})
 
 const isNewSkill = computed(() => selectedExistingId.value === '')
 const isGithubTargetExisting = computed(() => {
@@ -471,11 +452,13 @@ const showVisibilitySelector = computed(() => {
 
 const activeSkillIdModel = computed({
   get() {
-    if (publishMode.value === 'github' && githubPreview.value) return githubTargetId.value
+    if (publishMode.value === 'github' && githubPreview.value)
+      return githubTargetId.value
     return form.value.skillId
   },
   set(v: string) {
-    if (publishMode.value === 'github' && githubPreview.value) githubTargetId.value = v
+    if (publishMode.value === 'github' && githubPreview.value)
+      githubTargetId.value = v
     else form.value.skillId = v
   },
 })
@@ -488,7 +471,8 @@ const githubConnectBannerClass = computed(() => {
 })
 
 const githubConnectTitle = computed(() => {
-  if (githubConnect.state === 'checking') return t('publish.githubConnectChecking')
+  if (githubConnect.state === 'checking')
+    return t('publish.githubConnectChecking')
   if (githubConnect.state === 'ok') {
     return t('publish.githubConnectOk', { ms: githubConnect.latency_ms ?? 0 })
   }
@@ -497,8 +481,10 @@ const githubConnectTitle = computed(() => {
 })
 
 const githubConnectDetailLine = computed(() => {
-  if (githubConnect.state === 'fail' && githubConnect.detail) return githubConnect.detail
-  if (githubConnect.state === 'fail' && githubConnect.error) return githubConnect.error
+  if (githubConnect.state === 'fail' && githubConnect.detail)
+    return githubConnect.detail
+  if (githubConnect.state === 'fail' && githubConnect.error)
+    return githubConnect.error
   return ''
 })
 
@@ -523,7 +509,11 @@ const canPublish = computed(() => {
     if (!githubPreview.value) return false
     const tId = githubTargetId.value.trim()
     if (!/^[a-z0-9\-_]+$/.test(tId)) return false
-    if (githubPreview.value.conflict && tId === githubPreview.value.default_skill_id) return false
+    if (
+      githubPreview.value.conflict &&
+      tId === githubPreview.value.default_skill_id
+    )
+      return false
     const mine = mySkills.value.some((s) => s.id === tId)
     if (!mine && !(form.value.name || '').trim()) return false
     return true
@@ -531,9 +521,13 @@ const canPublish = computed(() => {
   if (publishMode.value === 'write') {
     if (!skillMdDraft.value.trim()) return false
     const parsed = parseSkillMdText(skillMdDraft.value)
-    const skillId = skillIdFromParsedName(parsed.name, form.value.skillId).trim()
+    const skillId = skillIdFromParsedName(
+      parsed.name,
+      form.value.skillId,
+    ).trim()
     if (!/^[a-z0-9\-_]+$/.test(skillId)) return false
-    if (selectedExistingId.value && selectedExistingId.value !== skillId) return false
+    if (selectedExistingId.value && selectedExistingId.value !== skillId)
+      return false
     if (isNewSkill.value) {
       return !!(parsed.name || form.value.name).trim()
     }
@@ -548,14 +542,22 @@ const canPublish = computed(() => {
 onMounted(async () => {
   try {
     const response = await skillsApi.list()
-    mySkills.value = response.skills.filter((s: Skill) => s.permission === 'owner' || s.permission === 'collaborator')
+    mySkills.value = response.skills.filter(
+      (s: Skill) => s.permission === 'owner' || s.permission === 'collaborator',
+    )
   } catch (err) {
     console.error('Failed to load skills:', err)
   }
 })
 
 function setPublishMode(mode: PublishMode) {
-  if (mode === publishMode.value) return
+  if (
+    isPublishing.value ||
+    isPreviewLoading.value ||
+    mode === publishMode.value
+  )
+    return
+  error.value = ''
   if (mode === 'upload') {
     clearGithubImport()
   }
@@ -613,12 +615,16 @@ async function runGithubPreview() {
   error.value = ''
   clearParseNotice()
   try {
-    const body: { source: string; ref?: string; subpath?: string } = { source: src }
+    const body: { source: string; ref?: string; subpath?: string } = {
+      source: src,
+    }
     if (githubRef.value.trim()) body.ref = githubRef.value.trim()
     if (githubSubpath.value.trim()) body.subpath = githubSubpath.value.trim()
     const p = await skillsApi.importGithubPreview(body)
     githubPreview.value = p
-    githubTargetId.value = p.conflict ? p.suggested_skill_id : p.default_skill_id
+    githubTargetId.value = p.conflict
+      ? p.suggested_skill_id
+      : p.default_skill_id
     form.value.skillId = githubTargetId.value
     form.value.name = (p.name || '').trim()
     form.value.description = (p.description || '').trim().slice(0, DESC_MAX)
@@ -628,7 +634,9 @@ async function runGithubPreview() {
     selectedExistingId.value = ''
     if (fileInput.value) fileInput.value.value = ''
     if (zipInput.value) zipInput.value.value = ''
-    globalToast.success(t('publish.githubPreviewOk', { id: githubTargetId.value }))
+    globalToast.success(
+      t('publish.githubPreviewOk', { id: githubTargetId.value }),
+    )
   } catch (err: any) {
     githubPreview.value = null
     error.value = err.message || t('publish.githubPreviewFailed')
@@ -644,7 +652,10 @@ async function handleGithubImport() {
     error.value = t('publish.invalidSkillId')
     return
   }
-  if (githubPreview.value.conflict && skillId === githubPreview.value.default_skill_id) {
+  if (
+    githubPreview.value.conflict &&
+    skillId === githubPreview.value.default_skill_id
+  ) {
     error.value = t('publish.githubMustChangeId')
     return
   }
@@ -674,7 +685,9 @@ async function handleGithubImport() {
       changelog: form.value.changelog.trim(),
       ...(!mine ? { visibility: newSkillVisibility.value } : {}),
       ...(githubRef.value.trim() ? { ref: githubRef.value.trim() } : {}),
-      ...(githubSubpath.value.trim() ? { subpath: githubSubpath.value.trim() } : {}),
+      ...(githubSubpath.value.trim()
+        ? { subpath: githubSubpath.value.trim() }
+        : {}),
     }
     await skillsApi.importGithub(body)
     clearInterval(progressInterval)
@@ -704,8 +717,14 @@ function currentWriteTemplate(): string {
   const bodyPlaceholder = t('publish.writeBodyPlaceholder')
   if (selectedExistingId.value) {
     const skill = mySkills.value.find((s) => s.id === selectedExistingId.value)
-    const name = (skill?.name || skill?.id || t('publish.writeDefaultName')).trim()
-    const description = (skill?.description || t('publish.writeDefaultDescription')).trim()
+    const name = (
+      skill?.name ||
+      skill?.id ||
+      t('publish.writeDefaultName')
+    ).trim()
+    const description = (
+      skill?.description || t('publish.writeDefaultDescription')
+    ).trim()
     return buildSkillMdTemplate({ name, description, bodyPlaceholder })
   }
   return buildSkillMdTemplate({
@@ -752,7 +771,7 @@ watch(selectedExistingId, () => {
 })
 
 function pickSkillMdPath(paths: string[]) {
-  const matches = paths.filter(p => /(^|\/)SKILL\.md$/i.test(p))
+  const matches = paths.filter((p) => /(^|\/)SKILL\.md$/i.test(p))
   if (!matches.length) return null
   return matches.slice().sort((a, b) => a.length - b.length)[0]
 }
@@ -827,11 +846,15 @@ function parseSkillMdText(full: string) {
     })
     if (para) description = para.replace(/\s*\n\s*/g, ' ').trim()
   }
-  if (description.length > DESC_MAX) description = description.slice(0, DESC_MAX)
+  if (description.length > DESC_MAX)
+    description = description.slice(0, DESC_MAX)
   return { name, description }
 }
 
-function applyAutofillFromSkill(slugFromPackage: string, parsed: {name: string, description: string}) {
+function applyAutofillFromSkill(
+  slugFromPackage: string,
+  parsed: { name: string; description: string },
+) {
   if (slugFromPackage) form.value.skillId = slugFromPackage
   form.value.name = parsed.name || ''
   form.value.description = parsed.description || ''
@@ -847,9 +870,11 @@ function showParseSuccessNotice() {
     skillId: form.value.skillId || '-',
     name: form.value.name || '-',
   })
-  globalToast.success(t('publish.parseSuccessToast', {
-    skillId: form.value.skillId || '-',
-  }))
+  globalToast.success(
+    t('publish.parseSuccessToast', {
+      skillId: form.value.skillId || '-',
+    }),
+  )
 }
 
 async function readSkillMdFromZipInstance(zip: JSZip, fileList: string[]) {
@@ -905,9 +930,14 @@ async function handleFileSelect(event: Event) {
     }
 
     const skillText = await readSkillMdFromZipInstance(zip, paths)
-    const parsed = skillText != null ? parseSkillMdText(skillText) : { name: '', description: '' }
+    const parsed =
+      skillText != null
+        ? parseSkillMdText(skillText)
+        : { name: '', description: '' }
     const firstFile = files[0]
-    const rootSlug = firstFile ? slugifySkillId(firstFile.webkitRelativePath.split('/')[0] || '') : ''
+    const rootSlug = firstFile
+      ? slugifySkillId(firstFile.webkitRelativePath.split('/')[0] || '')
+      : ''
 
     selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
     selectedFileName.value = 'skill-package.zip'
@@ -946,18 +976,19 @@ async function processZipFile(file: File, slug: string) {
     zip.forEach((relPath, zf) => {
       if (!zf.dir) paths.push(relPath)
     })
-    
+
     if (!pickSkillMdPath(paths)) {
       error.value = 'zip 中未找到 SKILL.md'
       return
     }
 
     const text = await readSkillMdFromZipInstance(zip, paths)
-    const parsed = text != null ? parseSkillMdText(text) : { name: '', description: '' }
-    
+    const parsed =
+      text != null ? parseSkillMdText(text) : { name: '', description: '' }
+
     selectedZipBlob.value = file
     selectedFileName.value = file.name
-    selectedFiles.value = paths.map(p => ({ name: p, size: 0 }))
+    selectedFiles.value = paths.map((p) => ({ name: p, size: 0 }))
     applyAutofillFromSkill(slug, parsed)
     showParseSuccessNotice()
   } catch (err: any) {
@@ -966,7 +997,14 @@ async function processZipFile(file: File, slug: string) {
 }
 
 // drop zone
+function handleDragLeave(event: DragEvent) {
+  const zone = event.currentTarget as HTMLElement
+  if (event.relatedTarget instanceof Node && zone.contains(event.relatedTarget)) return
+  isDragging.value = false
+}
+
 async function handleDrop(event: DragEvent) {
+  if (isPublishing.value) return
   isDragging.value = false
   error.value = ''
   clearParseNotice()
@@ -1027,7 +1065,10 @@ async function handleDrop(event: DragEvent) {
     }
 
     const skillText = await readSkillMdFromZipInstance(zip, paths)
-    const parsed = skillText != null ? parseSkillMdText(skillText) : { name: '', description: '' }
+    const parsed =
+      skillText != null
+        ? parseSkillMdText(skillText)
+        : { name: '', description: '' }
 
     selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
     selectedFileName.value = 'skill-package.zip'
@@ -1038,7 +1079,13 @@ async function handleDrop(event: DragEvent) {
   }
 }
 
-async function traverseEntry(entry: any, zip: JSZip, path: string, fileList: string[], onFile: (size: number, fullPath: string) => void) {
+async function traverseEntry(
+  entry: any,
+  zip: JSZip,
+  path: string,
+  fileList: string[],
+  onFile: (size: number, fullPath: string) => void,
+) {
   if (entry.isFile) {
     const file = await new Promise<File>((resolve, reject) => {
       entry.file(resolve, reject)
@@ -1050,7 +1097,7 @@ async function traverseEntry(entry: any, zip: JSZip, path: string, fileList: str
   } else if (entry.isDirectory) {
     const dirPath = path + entry.name + '/'
     const reader = entry.createReader()
-    
+
     const entries = await new Promise<any[]>((resolve, reject) => {
       const results: any[] = []
       const readEntries = () => {
@@ -1110,7 +1157,8 @@ async function handleWritePublish() {
     return
   }
   if (selectedExistingId.value && selectedExistingId.value !== skillId) {
-    error.value = '上传包的 Skill ID 与下拉框所选已有 Skill 不一致，请重新选择或更换压缩包'
+    error.value =
+      '上传包的 Skill ID 与下拉框所选已有 Skill 不一致，请重新选择或更换压缩包'
     return
   }
   if (isNewSkill.value) {
@@ -1173,7 +1221,7 @@ async function handleWritePublish() {
 }
 
 async function handlePublish() {
-  if (isPublishing.value) return
+  if (isPublishing.value || isPreviewLoading.value || !canPublish.value) return
   if (publishMode.value === 'github') {
     await handleGithubImport()
     return
@@ -1185,7 +1233,7 @@ async function handlePublish() {
   if (!selectedZipBlob.value) return
 
   error.value = ''
-  
+
   const skillId = form.value.skillId.trim()
   if (!skillId) {
     error.value = '无法从上传包得到 Skill ID，请使用合法文件夹名或 zip 文件名'
@@ -1197,7 +1245,8 @@ async function handlePublish() {
   }
 
   if (selectedExistingId.value && selectedExistingId.value !== skillId) {
-    error.value = '上传包的 Skill ID 与下拉框所选已有 Skill 不一致，请重新选择或更换压缩包'
+    error.value =
+      '上传包的 Skill ID 与下拉框所选已有 Skill 不一致，请重新选择或更换压缩包'
     return
   }
 
@@ -1232,13 +1281,13 @@ async function handlePublish() {
     const formData = new FormData()
     formData.append('zip_file', selectedZipBlob.value, selectedFileName.value)
     formData.append('skill_id', skillId)
-    
+
     if (isNewSkill.value) {
       formData.append('name', form.value.name.trim())
       formData.append('description', form.value.description.trim())
       formData.append('visibility', newSkillVisibility.value)
     }
-    
+
     if (form.value.changelog.trim()) {
       formData.append('changelog', form.value.changelog.trim())
     }
@@ -1260,568 +1309,190 @@ async function handlePublish() {
 </script>
 
 <style scoped>
-.page-content {
-  background-image: none;
-  padding-top: 2rem;
-  min-height: calc(100vh - 64px);
+.publish-page {
+  max-width: 960px;
 }
-
-.card {
-  background-color: var(--color-base-900);
-  border: 1px solid var(--color-base-800);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  border-radius: 0.75rem;
-}
-
-html[data-theme="light"] .card {
-  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.12);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-input[type="text"],
-textarea,
-select {
-  font-family: 'JetBrains Mono', monospace !important;
-  background-color: var(--color-base-950) !important;
-  border-color: var(--color-base-800) !important;
-  color: var(--color-fg-strong) !important;
-  -webkit-text-fill-color: var(--color-fg-strong) !important;
-}
-input::placeholder,
-textarea::placeholder {
-  color: var(--color-base-400) !important;
-  -webkit-text-fill-color: var(--color-base-400) !important;
-}
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--color-neon-400) !important;
-  box-shadow: 0 0 0 1px rgba(var(--color-neon-rgb), 0.45) !important;
-}
-input[readonly],
-textarea[readonly] {
-  background-color: color-mix(in srgb, var(--color-base-950) 50%, transparent) !important;
-  color: var(--color-fg) !important;
-  -webkit-text-fill-color: var(--color-fg) !important;
-  border-color: var(--color-base-800) !important;
-}
-input:disabled,
-textarea:disabled,
-select:disabled {
-  color: var(--color-fg) !important;
-  -webkit-text-fill-color: var(--color-fg) !important;
-  opacity: 1 !important;
-}
-
-.drop-zone {
-  border: 1px dashed var(--color-base-800);
-  border-radius: 0.5rem;
-  background-color: var(--color-base-950);
-  min-height: 160px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-family: 'JetBrains Mono', monospace;
-}
-.drop-zone:hover,
-.drop-zone.drag-over {
-  border-color: var(--color-neon-400);
-  background-color: rgba(var(--color-neon-rgb), 0.04);
-}
-.drop-zone-icon {
-  color: var(--color-neon-400);
-  opacity: 0.5;
-  margin-bottom: 0.5rem;
-}
-.drop-zone-text {
-  color: var(--color-fg-strong);
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-}
-.drop-zone-subtitle {
-  color: var(--color-neon-400);
-  font-size: 0.75rem;
-  cursor: pointer;
-  opacity: 0.8;
-}
-.drop-zone-subtitle:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-.drop-zone-hint {
-  font-size: 0.6875rem;
-  color: var(--color-base-400);
-  margin-top: 1rem;
-  max-width: 80%;
-  text-align: center;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 1.5rem 0;
-  color: var(--color-base-800);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-}
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background-color: var(--color-base-800);
-}
-.divider span {
-  padding: 0 1rem;
-  color: var(--color-base-400);
-}
-
-.file-preview {
-  background-color: var(--color-base-950);
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.5rem;
-  margin-top: 1rem;
-  padding: 1rem;
-  display: none;
-}
-.file-preview.visible {
-  display: block;
-}
-.file-preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.875rem;
-  color: var(--color-neon-400);
-}
-.file-preview-clear {
-  color: var(--color-base-400);
-  background: none;
-  border: none;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-.file-preview-clear:hover {
-  color: #ef4444;
-}
-.file-preview-list {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--color-base-400);
-  max-height: 150px;
-  overflow-y: auto;
-}
-.file-preview-list .file-item {
-  padding: 0.25rem 0;
-  border-bottom: 1px dashed var(--color-base-800);
-}
-.file-preview-list .file-item:last-child {
-  border-bottom: none;
-}
-.file-preview-summary {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--color-base-800);
-  font-size: 0.75rem;
-  color: var(--color-base-400);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.parse-success {
-  padding: 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(var(--color-neon-rgb), 0.3);
-  background: rgba(var(--color-neon-rgb), 0.08);
-}
-
-.parse-success-title {
-  color: var(--color-neon-400);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.875rem;
-  font-weight: 700;
-  margin-bottom: 0.375rem;
-}
-
-.parse-success-text {
-  color: var(--color-fg);
-  font-size: 0.875rem;
-  line-height: 1.6;
-}
-
-.progress-container {
-  margin-top: 1.5rem;
-  display: none;
-}
-.progress-container.visible {
-  display: block;
-}
-.progress-bar-wrapper {
-  height: 6px;
-  background-color: var(--color-base-950);
-  border-radius: 999px;
-  overflow: hidden;
-  border: 1px solid var(--color-base-800);
-}
-.progress-bar {
-  height: 100%;
-  background-color: var(--color-neon-400);
-  width: 0%;
-  transition: width 0.3s ease;
-  box-shadow: 0 0 10px var(--color-neon-400);
-}
-.progress-text {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--color-neon-400);
-  text-align: center;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.form-hint {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--color-base-400);
-  margin-top: 0.5rem;
-}
-
-.spinner {
-  border: 2px solid rgba(var(--color-neon-rgb),0.3);
-  border-radius: 50%;
-  border-top-color: var(--color-neon-400);
-  width: 16px;
-  height: 16px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-}
-.spinner-sm {
-  width: 14px;
-  height: 14px;
-  border-width: 2px;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .publish-mode-tabs {
-  display: inline-flex;
-  padding: 4px;
-  border-radius: 9999px;
-  background-color: var(--color-base-950);
-  border: 1px solid var(--color-base-800);
-  gap: 2px;
-  margin-bottom: 1.5rem;
-}
-.publish-mode-tab {
-  border: none;
-  border-radius: 9999px;
-  padding: 0.5rem 1.15rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-  background: transparent;
-  color: var(--color-base-400);
-}
-.publish-mode-tab:hover {
-  color: var(--color-fg);
-}
-.publish-mode-tab.active {
-  background: rgba(var(--color-neon-rgb), 0.12);
-  color: var(--color-neon-400);
-  box-shadow: 0 0 0 1px rgba(var(--color-neon-rgb), 0.35);
-}
-
-.write-skill-panel {
-  border: 1px solid var(--color-base-800);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  background: color-mix(in srgb, var(--color-base-900) 82%, transparent);
-}
-.write-skill-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: 28px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--color-base-800);
 }
-.write-skill-hint {
+.publish-mode-tabs button {
+  padding: 12px 0;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
   color: var(--color-base-400);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
-  line-height: 1.65;
-}
-.write-reset-action {
-  flex-shrink: 0;
-  border: 1px solid var(--color-base-700);
-  border-radius: 999px;
-  padding: 0.45rem 0.75rem;
-  background: color-mix(in srgb, var(--color-base-950) 72%, transparent);
-  color: var(--color-base-300);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: 14px;
   cursor: pointer;
 }
-.write-reset-action:hover:not(:disabled) {
-  border-color: rgba(var(--color-neon-rgb), 0.45);
+.publish-mode-tabs button.active {
   color: var(--color-fg-strong);
-}
-.write-reset-action:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-.write-skill-editor {
-  min-height: 18rem;
-  resize: vertical;
-  line-height: 1.55;
-}
-@media (max-width: 640px) {
-  .write-skill-header {
-    display: grid;
-  }
-  .write-reset-action {
-    width: 100%;
-  }
-}
-
-.github-import-panel {
-  border: 1px solid var(--color-base-800);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  background:
-    radial-gradient(circle at top right, rgba(var(--color-neon-rgb), 0.08), transparent 36%),
-    color-mix(in srgb, var(--color-base-900) 82%, transparent);
-}
-
-.github-import-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.github-import-hint {
-  max-width: 38rem;
-  color: var(--color-base-400);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
-  line-height: 1.65;
-}
-
-.github-connect-action {
-  flex-shrink: 0;
-  border: 1px solid var(--color-base-700);
-  border-radius: 999px;
-  padding: 0.45rem 0.75rem;
-  background: color-mix(in srgb, var(--color-base-950) 72%, transparent);
-  color: var(--color-base-300);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-}
-
-.github-connect-action:hover:not(:disabled) {
-  border-color: rgba(var(--color-neon-rgb), 0.45);
-  color: var(--color-fg-strong);
-  background: rgba(var(--color-neon-rgb), 0.06);
-}
-
-.github-connect-action:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
-.github-connect-banner {
-  margin-bottom: 1rem;
-  padding: 0.75rem 0.875rem;
-}
-
-.github-source-card {
-  display: grid;
-  gap: 1rem;
-  border: 1px solid rgba(var(--color-neon-rgb), 0.24);
-  border-radius: 0.875rem;
-  padding: 1rem;
-  background: color-mix(in srgb, var(--color-base-950) 72%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.github-field-label {
-  display: block;
-  margin-bottom: 0.375rem;
-  color: var(--color-base-300);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  border-bottom-color: var(--color-fg-strong);
   font-weight: 600;
 }
-
-.github-field-label.required::after {
-  content: ' *';
-  color: var(--color-neon-400);
+.publish-form {
+  gap: 32px;
 }
-
-.github-source-input {
-  min-height: 2.875rem;
+.publish-step {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 17px;
+  color: var(--color-fg-strong);
+  font-weight: 600;
+  margin-bottom: 24px;
 }
-
-.github-import-actions {
+.publish-step span {
+  color: var(--color-base-400);
+  font-size: 12px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.publish-two-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+.github-actions,
+.upload-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
 }
-
-.github-clear-action {
-  border: none;
-  background: transparent;
+.github-connection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  font-size: 12px;
   color: var(--color-base-400);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color 0.15s ease;
 }
-
-.github-clear-action:hover {
-  color: var(--color-fg-strong);
-}
-
-.github-preview-card {
-  margin-top: 1rem;
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.875rem;
-  padding: 0.875rem 1rem;
-  background: color-mix(in srgb, var(--color-base-950) 52%, transparent);
-}
-
-.github-preview-kicker {
-  color: var(--color-neon-400);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.github-preview-repo {
-  margin-top: 0.375rem;
-  color: var(--color-base-400);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+.github-connection p {
+  width: 100%;
   overflow-wrap: anywhere;
 }
-
-.github-conflict-message {
-  margin-top: 0.75rem;
-  color: #fcd34d;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
-  line-height: 1.65;
-}
-.github-connect-idle {
-  border-color: var(--color-base-800);
-  background: color-mix(in srgb, var(--color-base-950) 60%, transparent);
-  color: var(--color-base-400);
-}
-.github-connect-checking {
-  border-color: var(--color-base-700);
-  background: color-mix(in srgb, var(--color-base-800) 35%, transparent);
-  color: var(--color-base-400);
-}
-.github-connect-ok {
-  border-color: rgba(var(--color-neon-rgb), 0.35);
-  background: rgba(var(--color-neon-rgb), 0.06);
-  color: #86efac;
-}
 .github-connect-fail {
-  border-color: rgba(251, 191, 36, 0.4);
-  background: rgba(251, 191, 36, 0.08);
-  color: #fcd34d;
+  color: var(--color-danger, #dc2626);
 }
-
-html[data-theme="light"] .github-import-panel {
-  border-color: #d4d4d8;
-  background:
-    radial-gradient(circle at top right, rgba(5, 150, 105, 0.08), transparent 34%),
-    #ffffff;
-  box-shadow: 0 14px 34px -24px rgba(15, 23, 42, 0.35);
+.drop-zone {
+  padding: 28px;
+  border: 1px dashed var(--color-base-400);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-base-900) 55%, transparent);
+  transition: background 150ms, border-color 150ms;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
 }
-
-html[data-theme="light"] .github-import-hint {
-  color: #52525b;
+.drop-zone > svg {
+  color: var(--color-base-400);
 }
-
-html[data-theme="light"] .github-connect-action {
-  border-color: #d4d4d8;
-  background: #fafafa;
-  color: #3f3f46;
+.drop-zone h3 {
+  color: var(--color-fg-strong);
+  font-size: 18px;
+  font-weight: 500;
 }
-
-html[data-theme="light"] .github-connect-action:hover:not(:disabled) {
-  border-color: #059669;
-  background: #ecfdf5;
-  color: #065f46;
+.drop-zone.drag-over {
+  background: var(--color-base-900);
+  outline: 2px dashed var(--color-neon-400);
+  outline-offset: -2px;
+  border-color: var(--color-neon-400);
 }
-
-html[data-theme="light"] .github-source-card {
-  border-color: #d4d4d8;
-  background: #ffffff;
-  box-shadow: 0 10px 28px -24px rgba(15, 23, 42, 0.45);
+.file-preview {
+  margin-top: 24px;
 }
-
-html[data-theme="light"] .github-field-label {
-  color: #3f3f46;
+.file-preview-list {
+  max-height: 180px;
+  overflow-y: auto;
+  margin: 16px 0;
+  font: 12px/1.8 var(--font-mono);
+  overflow-wrap: anywhere;
 }
-
-html[data-theme="light"] .github-preview-card {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
+.file-preview-list span {
+  color: var(--color-base-400);
+  margin-left: 8px;
 }
-
-html[data-theme="light"] .github-preview-kicker {
-  color: #047857;
+.write-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
-
-html[data-theme="light"] .github-preview-repo {
-  color: #52525b;
+.write-skill-editor {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  resize: vertical;
 }
-
-html[data-theme="light"] .github-connect-idle,
-html[data-theme="light"] .github-connect-checking {
-  border-color: #d4d4d8;
-  background: #fafafa;
-  color: #52525b;
+.confirmation-section {
+  border-top: 1px solid var(--color-base-800);
+  padding-top: 32px;
 }
-
-html[data-theme="light"] .github-connect-ok {
-  border-color: #34d399;
-  background: #ecfdf5;
-  color: #047857;
+.source-repo {
+  margin-bottom: 24px;
+  font-family: var(--font-mono);
 }
-
-html[data-theme="light"] .github-connect-fail {
-  border-color: #f59e0b;
-  background: #fffbeb;
-  color: #92400e;
+.skill-summary {
+  display: grid;
+  gap: 20px;
 }
-
+.skill-summary div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 16px;
+}
+.skill-summary dt {
+  font-size: 13px;
+  color: var(--color-base-400);
+}
+.skill-summary dd {
+  font-size: 14px;
+  color: var(--color-fg-strong);
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+.publish-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  border-top: 1px solid var(--color-base-800);
+  padding-top: 24px;
+}
+.publish-footer > div {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.progress-container progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--color-neon-400);
+}
 @media (max-width: 640px) {
-  .github-import-header {
-    display: grid;
+  .publish-mode-tabs {
+    gap: 24px;
   }
-
-  .github-connect-action {
-    width: 100%;
+  .publish-mode-tabs button {
+    font-size: 13px;
+  }
+  .publish-two-fields {
+    grid-template-columns: 1fr;
+  }
+  .publish-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .publish-footer > div {
+    justify-content: flex-end;
+  }
+  .skill-summary div {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
 </style>

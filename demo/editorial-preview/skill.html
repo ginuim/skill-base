@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>skill base — my-skill</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="preview.css?v=3">
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="index.html">
+      <h1>skill base</h1>
+      <span class="version">preview</span>
+    </a>
+    <div class="header-right">
+      <button class="btn" type="button" id="themeBtn">Light</button>
+      <a class="btn" href="http://localhost:8000/skills/my-skill">live instance</a>
+    </div>
+  </header>
+
+  <nav class="tab-bar">
+    <a href="index.html">Home</a>
+    <a href="#">Publish</a>
+    <a class="active" href="skill.html">Skill</a>
+  </nav>
+
+  <main class="view">
+    <div class="crumb">
+      <a href="index.html">Home</a>
+      <span> / </span>
+      <span>my-skill</span>
+    </div>
+
+    <section class="hero-card">
+      <p class="kicker">Skill · v20260916.150539</p>
+      <h1>my-skill</h1>
+      <div class="chip-row">
+        <span class="badge badge-green">public</span>
+        <span class="badge badge-muted">0 favorites</span>
+        <span class="badge badge-muted">0 downloads</span>
+        <span class="badge badge-blue">id my-skill</span>
+      </div>
+      <p class="hero-desc">One sentence on when to use this skill.</p>
+      <div class="hero-actions">
+        <select>
+          <option>v20260916.150539 (latest)</option>
+        </select>
+        <span class="cli">skb install my-skill</span>
+        <button class="btn" type="button">Compare</button>
+        <button class="btn btn-primary" type="button">Download</button>
+      </div>
+    </section>
+
+    <section class="split">
+      <aside class="tree">
+        <div class="panel-head">Files</div>
+        <div class="tree-body">
+          <button class="tree-item active" type="button" data-file="skill">SKILL.md</button>
+        </div>
+      </aside>
+      <div class="preview">
+        <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <span>SKILL.md</span>
+          <span>
+            <button class="type-chip active" type="button" id="modeHtml">HTML Preview</button>
+            <button class="type-chip" type="button" id="modeSrc">Markdown Source</button>
+          </span>
+        </div>
+        <div class="preview-body">
+          <article class="md" id="htmlView">
+            <p class="kicker">frontmatter</p>
+            <p><strong>name</strong> my-skill<br><strong>description</strong> One sentence on when to use this skill.</p>
+            <h1>my-skill</h1>
+            <p>Write instructions, steps, and constraints here.</p>
+          </article>
+          <pre class="hidden" id="srcView"><code>---
+name: my-skill
+description: One sentence on when to use this skill.
+---
+
+# my-skill
+
+Write instructions, steps, and constraints here.</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section class="card">
+        <div class="card-title">Collaborators</div>
+        <div class="person">
+          <div class="person-left">
+            <span class="avatar">A</span>
+            <div>
+              <div style="color:var(--ink);font-weight:600;font-family:var(--font-ui);font-size:13px;">admin</div>
+              <div style="font-size:11px;color:var(--ink-faint);font-family:var(--font-ui);">owner</div>
+            </div>
+          </div>
+          <span class="badge badge-green">owner</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">Version history</div>
+        <div class="version-row">
+          <div>
+            <div class="version-id">v20260916.150539</div>
+            <span class="badge badge-muted">HEAD</span>
+          </div>
+          <div class="muted" style="font-style:italic;color:var(--ink-muted);">No changelog</div>
+          <div class="muted" style="font-family:var(--font-ui);font-size:11px;color:var(--ink-faint);">by @admin</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="viewer-footer">
+    <span>skill base editorial preview</span>
+    <span>·</span>
+    <a href="index.html">directory</a>
+    <a href="skill.html">detail</a>
+    <a href="http://localhost:8000/skills/my-skill">localhost:8000</a>
+  </footer>
+
+  <script>
+    const themeBtn = document.getElementById("themeBtn");
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      themeBtn.textContent = theme === "dark" ? "Light" : "Dark";
+    }
+    themeBtn.addEventListener("click", () => {
+      applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+
+    const htmlView = document.getElementById("htmlView");
+    const srcView = document.getElementById("srcView");
+    const modeHtml = document.getElementById("modeHtml");
+    const modeSrc = document.getElementById("modeSrc");
+    modeHtml.addEventListener("click", () => {
+      htmlView.classList.remove("hidden");
+      srcView.classList.add("hidden");
+      modeHtml.classList.add("active");
+      modeSrc.classList.remove("active");
+    });
+    modeSrc.addEventListener("click", () => {
+      htmlView.classList.add("hidden");
+      srcView.classList.remove("hidden");
+      modeHtml.classList.remove("active");
+      modeSrc.classList.add("active");
+    });
+  </script>
+</body>
+</html>
