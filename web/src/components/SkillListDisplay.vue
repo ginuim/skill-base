@@ -221,7 +221,7 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 
 .skill-list-row, .skill-list-heading {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 330px;
+  grid-template-columns: 28px minmax(0, 1fr) max-content;
   align-items: center;
   gap: 16px;
   padding: 16px 12px;
@@ -288,12 +288,17 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 
 .skill-list-aside {
   display: grid;
-  grid-template-columns: 108px 60px 52px 80px;
+  grid-template-columns: auto 60px 52px 80px;
   align-items: center;
   gap: 10px;
+  justify-self: end;
   font-size: 0.75rem;
   color: var(--color-base-400);
   font-variant-numeric: tabular-nums;
+}
+.skill-list-aside > :first-child {
+  width: max-content;
+  justify-self: start;
 }
 .skill-list-aside > :not(:first-child) { justify-self: end; }
 
@@ -357,8 +362,8 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
 }
 
 @media (max-width: 900px) {
-  .skill-list-row, .skill-list-heading { grid-template-columns: 24px minmax(0, 1fr) 248px; gap: 12px; }
-  .skill-list-aside { grid-template-columns: 104px 58px 62px; gap: 12px; }
+  .skill-list-row, .skill-list-heading { grid-template-columns: 24px minmax(0, 1fr) max-content; gap: 12px; }
+  .skill-list-aside { grid-template-columns: auto 58px 62px; gap: 12px; }
   .skill-list-aside > :last-child { display: none; }
   .skill-list-tag { display: none; }
 }
@@ -366,7 +371,7 @@ function truncateDescription(desc: string | null | undefined, maxLen: number): s
   .skill-list-heading { display: none; }
   .skill-list-row { grid-template-columns: 20px minmax(0, 1fr); gap: 8px 10px; padding: 14px 0; }
   .skill-list-index { align-self: start; padding-top: 2px; width: auto; }
-  .skill-list-aside { grid-column: 2; grid-template-columns: minmax(100px, 1fr) 55px 50px; width: 100%; }
+  .skill-list-aside { grid-column: 2; grid-template-columns: max-content 55px 50px; width: 100%; justify-self: stretch; justify-content: space-between; }
   .skill-list-name { font-size: 14px; }
   .skill-list-desc { font-size: 12px; }
 }

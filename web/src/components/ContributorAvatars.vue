@@ -5,7 +5,13 @@
       :aria-label="t('profile.visit', { name: person.name || person.username })">
       <UserAvatar :avatar="person.avatar" :name="person.name" :username="person.username" size-class="w-8 h-8 text-xs" />
     </router-link>
-    <details v-if="people.length > max" class="contributor-more" @keydown.esc="closeMore">
+    <details
+      v-if="people.length > max"
+      ref="moreEl"
+      class="contributor-more"
+      @toggle="onToggle"
+      @keydown.esc="closeMore"
+    >
       <summary :aria-label="t('profile.moreContributors', { count: people.length - max })" :title="t('profile.moreContributors', { count: people.length - max })">+{{ people.length - max }}</summary>
       <div class="contributor-menu">
         <p>{{ t('skill.contributors') }}</p>
@@ -20,16 +26,40 @@
 </template>
 
 <script setup lang="ts">
+import { onUnmounted, useTemplateRef } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useI18n } from '@/composables/useI18n'
 import type { SkillContributor } from '@/services/api'
 
 withDefaults(defineProps<{ people: SkillContributor[]; max?: number }>(), { max: 3 })
 const { t } = useI18n()
-function closeMore(event: Event) {
-  const details = (event.target as HTMLElement).closest('details')
-  if (details) details.open = false
+const moreEl = useTemplateRef<HTMLDetailsElement>('moreEl')
+
+function closeMore() {
+  if (moreEl.value) moreEl.value.open = false
 }
+
+function onDocumentPointerDown(event: PointerEvent) {
+  const details = moreEl.value
+  if (!details?.open) return
+  if (details.contains(event.target as Node)) return
+  details.open = false
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+function onToggle(event: Event) {
+  const details = event.currentTarget as HTMLDetailsElement
+  if (details.open) {
+    document.addEventListener('pointerdown', onDocumentPointerDown, true)
+  } else {
+    document.removeEventListener('pointerdown', onDocumentPointerDown, true)
+  }
+}
+
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
+})
 </script>
 
 <style scoped>
