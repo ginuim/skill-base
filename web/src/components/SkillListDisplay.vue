@@ -123,9 +123,25 @@ const { t, currentLang } = useI18n()
 
 function truncateDescription(desc: string | null | undefined, maxLen: number): string {
   if (!desc) return t('state.noDesc')
-  const text = desc.replace(/\s+/g, ' ').trim()
+  const text = markdownToPlainText(desc)
   const chars = Array.from(text)
   return chars.length > maxLen ? chars.slice(0, maxLen).join('') + '…' : text
+}
+
+function markdownToPlainText(markdown: string): string {
+  const text = markdown
+    // Images and links retain their readable label but never the URL.
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\[[^\]]*\]/g, '$1')
+    // Remove block-level Markdown before stripping inline punctuation.
+    .replace(/(^|\n)\s{0,3}(?:#{1,6}\s+|>\s?|[-+*]\s+|\d+[.)]\s+)/g, '$1')
+    .replace(/(^|\n)\s*(?:[-*_])(?:\s*[-*_]){2,}\s*(?=\n|$)/g, '$1')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/[\\`*_~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return text || t('state.noDesc')
 }
 </script>
 

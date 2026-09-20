@@ -8,6 +8,30 @@ Desktop builds use the separate [desktop-latest](https://github.com/ginuim/skill
 
 ## [Unreleased]
 
+### Changed
+
+- Web: allow selecting and uploading multiple skill screenshots; render YAML frontmatter values without input-like borders; refine global scrollbars to a thinner macOS-style treatment
+- Web: expand the Skill description editor with lightweight Markdown tools and display list descriptions as plain text
+
+## [2.0.50] - 2026-09-19
+
+### Added
+
+- Web: ZIP-first skill install (download + AI Agent prompt) without requiring CLI
+- Web: contributor avatars on skill lists, contributor profile pages (`/users/:id`)
+- Web: skill screenshots / effect preview tab; preset user avatars
+- Server: skill screenshots API; contributor profile API; preset avatars via `PATCH /auth/me`
+
+### Changed
+
+- Web: flattened home, navbar, collections, login, publish, settings, admin, and version-diff layouts
+- Web: skill detail layout (install sidebar, file reader, YAML frontmatter block)
+
+### Fixed
+
+- Web: extra avatars menu no longer follows the skill card; collection member modal labeled as skills
+- DB: close sqlite/wasm lock on process exit and nodemon restart
+
 ## [2.0.49] - 2026-07-24
 
 ### Added

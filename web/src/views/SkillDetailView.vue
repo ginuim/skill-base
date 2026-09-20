@@ -64,9 +64,16 @@
 
             <!-- Description -->
             <div class="skill-desc-wrap group">
-              <p class="skill-desc whitespace-pre-wrap" :class="{ 'skill-desc--collapsed': !descriptionExpanded && (skill.description || '').length > 180 }">
-                {{ skill.description || t('state.noDesc') }}
-              </p>
+              <div
+                class="skill-desc"
+                :class="{
+                  'skill-desc--collapsed': !descriptionExpanded && skillDescriptionIsLong,
+                  'markdown-body': !!skill.description,
+                }"
+              >
+                <div v-if="skill.description" class="markdown-body-content" v-html="renderedSkillDescription"></div>
+                <template v-else>{{ t('state.noDesc') }}</template>
+              </div>
               <button
                 v-if="canManageCollaborators"
                 @click="openEditSkillDescription"
@@ -77,7 +84,7 @@
               </button>
             </div>
 
-            <button v-if="(skill.description || '').length > 180" class="description-toggle" :aria-expanded="descriptionExpanded" @click="descriptionExpanded = !descriptionExpanded">{{ t(descriptionExpanded ? 'skill.lessDescription' : 'skill.moreDescription') }}</button>
+            <button v-if="skillDescriptionIsLong" class="description-toggle" :aria-expanded="descriptionExpanded" @click="descriptionExpanded = !descriptionExpanded">{{ t(descriptionExpanded ? 'skill.lessDescription' : 'skill.moreDescription') }}</button>
             <div class="skill-metadata flex flex-wrap items-center gap-2">
               <span v-if="skill.visibility === 'private'" class="skill-meta-chip skill-meta-chip-private">PRIVATE</span>
               <button
@@ -345,6 +352,7 @@
             ref="screenshotInputRef"
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
             class="hidden"
             @change="onScreenshotFileChange"
           />
@@ -642,7 +650,7 @@
     <!-- Edit Version Modal -->
     <div v-if="showEditVersionModal" class="modal" @click.self="showEditVersionModal = false">
       <div class="modal-overlay"></div>
-      <div class="modal-content">
+      <div class="modal-content" :class="{ 'modal-content--editor': editVersionMode === 'description' }">
         <div class="modal-header">
           <h3>
             {{ editVersionMode === 'description'
@@ -654,11 +662,26 @@
         <div class="modal-body">
           <div v-if="editVersionMode === 'description'" class="form-group">
             <label>{{ t('skill.editSkillDescriptionLabel') }}</label>
-            <textarea
-              v-model="editVersionForm.description"
-              :placeholder="t('skill.editSkillDescriptionPlaceholder')"
-              class="form-input min-h-[100px]"
-            ></textarea>
+            <div class="description-editor">
+              <div class="description-editor-toolbar" role="toolbar" aria-label="Markdown formatting">
+                <button type="button" title="Bold" aria-label="Bold" @click="wrapDescriptionSelection('**', '**', 'bold text')"><strong>B</strong></button>
+                <button type="button" title="Italic" aria-label="Italic" @click="wrapDescriptionSelection('*', '*', 'italic text')"><em>I</em></button>
+                <button type="button" title="Heading" aria-label="Heading" @click="prefixDescriptionLine('## ')">H</button>
+                <button type="button" title="Bulleted list" aria-label="Bulleted list" @click="prefixDescriptionLine('- ')">•</button>
+                <button type="button" title="Quote" aria-label="Quote" @click="prefixDescriptionLine('&gt; ')">❝</button>
+                <button type="button" title="Link" aria-label="Link" @click="wrapDescriptionSelection('[', '](https://)', 'link text')">↗</button>
+                <button type="button" title="Inline code" aria-label="Inline code" @click="wrapDescriptionSelection('`', '`', 'code')">&lt;/&gt;</button>
+                <span class="description-editor-hint">Markdown</span>
+              </div>
+              <textarea
+                ref="descriptionEditorRef"
+                v-model="editVersionForm.description"
+                :placeholder="t('skill.editSkillDescriptionPlaceholder')"
+                class="description-editor-input"
+                @keydown.tab.prevent="insertDescriptionText('  ')"
+              ></textarea>
+              <div class="description-editor-footer">{{ descriptionCharacterCount }} {{ currentLang === 'zh' ? '个字符' : 'characters' }}</div>
+            </div>
           </div>
           <div v-if="editVersionMode === 'changelog'" class="form-group">
             <label>{{ t('skill.editVersionLabelChangelog') }}</label>
@@ -748,7 +771,7 @@ import {
   Trash2,
   ArrowUpToLine,
 } from 'lucide-vue-next'
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSkillsStore } from '@/stores/skills'
@@ -790,6 +813,13 @@ const showAuthHint = computed(() => {
 })
 
 const descriptionExpanded = ref(false)
+const skillDescriptionIsLong = computed(() => (skill.value?.description || '').length > 180)
+const renderedSkillDescription = computed(() => {
+  const source = skill.value?.description
+  if (!source) return ''
+  const html = marked.parse(source, { async: false })
+  return typeof html === 'string' ? html : ''
+})
 const installMethod = ref<'download' | 'agent' | 'cli'>('download')
 const installSite = window.location.origin + appBasePath.replace(/\/$/, '')
 // Single-quoted arguments preserve literal values when pasted into a POSIX shell.
@@ -903,17 +933,30 @@ function stepLightbox(step: number) {
 
 async function onScreenshotFileChange(event: Event) {
   const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
+  const files = Array.from(input.files || [])
   input.value = ''
-  if (!file || !skill.value) return
+  if (!files.length || !skill.value) return
 
   isUploadingScreenshot.value = true
+  let uploadedCount = 0
+  let uploadError: unknown = null
   try {
-    const res = await screenshotsApi.upload(skillId.value, file)
-    skill.value.screenshots = res.screenshots
-    globalToast.success(t('skill.screenshotUploadSuccess'))
-  } catch (err: any) {
-    globalToast.error(err.message || t('skill.screenshotUploadFailed'))
+    // Keep the picked order and let the server apply its screenshot-count limit
+    // consistently, instead of racing several uploads at once.
+    for (const file of files) {
+      try {
+        const res = await screenshotsApi.upload(skillId.value, file)
+        skill.value.screenshots = res.screenshots
+        uploadedCount += 1
+      } catch (err) {
+        uploadError = err
+      }
+    }
+    if (uploadedCount) globalToast.success(t('skill.screenshotUploadSuccess'))
+    if (uploadError) {
+      const err = uploadError as { message?: string }
+      globalToast.error(err.message || t('skill.screenshotUploadFailed'))
+    }
   } finally {
     isUploadingScreenshot.value = false
   }
@@ -940,6 +983,8 @@ const showTagEditButton = true
 const editVersionMode = ref<'description' | 'changelog'>('description')
 const editVersionForm = ref({ version: '', description: '', changelog: '' })
 const isEditingVersion = ref(false)
+const descriptionEditorRef = ref<HTMLTextAreaElement | null>(null)
+const descriptionCharacterCount = computed(() => Array.from(editVersionForm.value.description).length)
 const isSavingTags = ref(false)
 const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
@@ -1551,7 +1596,7 @@ function handleEscKey(e: KeyboardEvent) {
   }
 }
 
-function openEditSkillDescription() {
+async function openEditSkillDescription() {
   editVersionMode.value = 'description'
   editVersionForm.value = {
     version: '',
@@ -1559,6 +1604,50 @@ function openEditSkillDescription() {
     changelog: ''
   }
   showEditVersionModal.value = true
+  await nextTick()
+  descriptionEditorRef.value?.focus()
+}
+
+async function replaceDescriptionSelection(value: string, selectionStart: number, selectionEnd: number) {
+  editVersionForm.value.description = value
+  await nextTick()
+  const editor = descriptionEditorRef.value
+  if (!editor) return
+  editor.focus()
+  editor.setSelectionRange(selectionStart, selectionEnd)
+}
+
+function wrapDescriptionSelection(prefix: string, suffix: string, placeholder: string) {
+  const editor = descriptionEditorRef.value
+  const value = editVersionForm.value.description
+  const start = editor?.selectionStart ?? value.length
+  const end = editor?.selectionEnd ?? start
+  const selected = value.slice(start, end) || placeholder
+  const nextValue = value.slice(0, start) + prefix + selected + suffix + value.slice(end)
+  void replaceDescriptionSelection(nextValue, start + prefix.length, start + prefix.length + selected.length)
+}
+
+function prefixDescriptionLine(prefix: string) {
+  const editor = descriptionEditorRef.value
+  const value = editVersionForm.value.description
+  const start = editor?.selectionStart ?? value.length
+  const end = editor?.selectionEnd ?? start
+  const lineStart = value.lastIndexOf('\n', start - 1) + 1
+  const lineEnd = value.indexOf('\n', end)
+  const selectedLines = value.slice(lineStart, lineEnd === -1 ? value.length : lineEnd)
+  const lineCount = selectedLines.split('\n').length
+  const nextLines = selectedLines.split('\n').map((line) => prefix + line).join('\n')
+  const nextValue = value.slice(0, lineStart) + nextLines + value.slice(lineEnd === -1 ? value.length : lineEnd)
+  void replaceDescriptionSelection(nextValue, start + prefix.length, end + prefix.length * lineCount)
+}
+
+function insertDescriptionText(text: string) {
+  const editor = descriptionEditorRef.value
+  const value = editVersionForm.value.description
+  const start = editor?.selectionStart ?? value.length
+  const end = editor?.selectionEnd ?? start
+  const nextValue = value.slice(0, start) + text + value.slice(end)
+  void replaceDescriptionSelection(nextValue, start + text.length, start + text.length)
 }
 
 function openEditVersionModal(v: SkillVersion, mode: 'changelog') {
@@ -1767,6 +1856,12 @@ html[data-theme="light"] .card {
   color: var(--color-fg);
   line-height: 1.7;
   overflow-wrap: break-word;
+}
+/* Frontmatter values are document content, not input-like controls. */
+.md-frontmatter-list > dd > * {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .md-frontmatter-items {
   margin: 0;
@@ -1977,6 +2072,11 @@ html[data-theme="light"] .card {
 .skill-title { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.25; overflow-wrap: anywhere; }
 .skill-desc-wrap { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 20px; }
 .skill-desc { min-width: 0; flex: 1; font-size: 14px; line-height: 1.8; color: var(--color-fg); overflow-wrap: anywhere; }
+.skill-desc.markdown-body :deep(h1):first-child,
+.skill-desc.markdown-body :deep(h2):first-child,
+.skill-desc.markdown-body :deep(h3):first-child,
+.skill-desc.markdown-body :deep(p):first-child { margin-top: 0; }
+.skill-desc.markdown-body :deep(p:last-child) { margin-bottom: 0; }
 .skill-desc-edit { margin-top: 2px; }
 .skill-install-panel { grid-column: 2; grid-row: 1 / 3; min-width: 0; padding: 0; }
 .skill-panel-title { margin-bottom: 16px; font-size: 15px; font-weight: 600; color: var(--color-fg-strong); }
@@ -2309,6 +2409,9 @@ html[data-theme="light"] .card {
   color: var(--color-fg);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
 }
+.modal-content--editor {
+  max-width: 760px;
+}
 
 .modal-header {
   display: flex;
@@ -2338,6 +2441,70 @@ html[data-theme="light"] .card {
 
 .modal-body {
   margin-bottom: 1.5rem;
+}
+
+.description-editor {
+  border: 1px solid var(--color-base-700);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-base-950);
+}
+.description-editor:focus-within {
+  border-color: var(--color-neon-400);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.description-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 38px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-base-800);
+  background: var(--color-base-900);
+}
+.description-editor-toolbar button {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-base-300);
+  font-size: 13px;
+  cursor: pointer;
+}
+.description-editor-toolbar button:hover,
+.description-editor-toolbar button:focus-visible {
+  background: var(--color-base-800);
+  color: var(--color-fg-strong);
+  outline: none;
+}
+.description-editor-hint {
+  margin-left: auto;
+  color: var(--color-base-500);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.description-editor-input {
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  resize: vertical;
+  border: 0;
+  border-radius: 0;
+  padding: 14px 16px;
+  background: transparent;
+  color: var(--color-fg);
+  font: 14px/1.75 var(--font-sans);
+  outline: none;
+}
+.description-editor-footer {
+  padding: 6px 12px;
+  border-top: 1px solid var(--color-base-800);
+  color: var(--color-base-500);
+  font-size: 11px;
+  text-align: right;
 }
 
 .form-group {

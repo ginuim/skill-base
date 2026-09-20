@@ -344,17 +344,25 @@ html[data-theme="light"] ::selection {
 
 /* Scrollbar styles — variables flip with the theme, no per-theme overrides needed */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-base-900);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-base-800);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-base-700) 72%, transparent);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-base-700);
+  background: var(--color-base-600);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-base-700) transparent;
 }
 
 /* No scrollbar */
