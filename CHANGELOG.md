@@ -8,6 +8,8 @@ Desktop builds use the separate [desktop-latest](https://github.com/ginuim/skill
 
 ## [Unreleased]
 
+## [2.0.51] - 2026-09-20
+
 ### Changed
 
 - Web: allow selecting and uploading multiple skill screenshots; render YAML frontmatter values without input-like borders; refine global scrollbars to a thinner macOS-style treatment
