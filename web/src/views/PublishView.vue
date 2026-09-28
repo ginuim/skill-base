@@ -170,6 +170,44 @@
             class="hidden"
             @change="handleZipSelect"
           />
+          <div v-if="sourceZip" class="publish-ignore flat-field">
+            <label>{{ t('publish.ignoreLabel') }}</label>
+            <p class="flat-hint">{{ t('publish.ignoreHint') }}</p>
+            <label class="ignore-choice">
+              <input v-model="useGitignore" type="checkbox" :disabled="isPublishing" />
+              {{ t('publish.useGitignore') }}
+              <span v-if="!hasGitignore">{{ t('publish.noGitignore') }}</span>
+            </label>
+            <details v-if="gitignoreText" class="ignore-source">
+              <summary>.gitignore</summary>
+              <pre>{{ gitignoreText }}</pre>
+            </details>
+            <details v-if="skillbaseignoreText" class="ignore-source">
+              <summary>.skillbaseignore</summary>
+              <pre>{{ skillbaseignoreText }}</pre>
+            </details>
+            <div class="ignore-presets">
+              <label v-for="preset in agentPresets" :key="preset" class="ignore-choice">
+                <input v-model="selectedPresets" type="checkbox" :value="preset" :disabled="isPublishing" />
+                {{ preset }}/
+              </label>
+            </div>
+            <label for="publish-custom-ignore">{{ t('publish.customIgnore') }}</label>
+            <textarea
+              id="publish-custom-ignore"
+              v-model="customIgnoreText"
+              rows="3"
+              :disabled="isPublishing"
+              :placeholder="t('publish.customIgnorePlaceholder')"
+            ></textarea>
+            <p class="flat-hint">{{ t('publish.ignoreCounts', { included: selectedFiles.length, excluded: excludedFiles.length }) }}</p>
+            <details v-if="excludedFiles.length" class="file-preview">
+              <summary>{{ t('publish.excludedFiles') }}</summary>
+              <div class="file-preview-list">
+                <div v-for="name in excludedFiles" :key="name">{{ name }}</div>
+              </div>
+            </details>
+          </div>
           <details v-if="selectedFiles.length" class="file-preview">
             <summary>
               {{ t('publish.totalFiles', { count: selectedFiles.length }) }}
@@ -353,6 +391,7 @@ import {
 } from 'vue'
 import { useRouter } from 'vue-router'
 import JSZip from 'jszip'
+import { createPublishIgnore } from '@/utils/publish-ignore'
 import { skillsApi } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
@@ -373,6 +412,55 @@ const mySkills = ref<Skill[]>([])
 const selectedFiles = ref<{ name: string; size: number }[]>([])
 const selectedZipBlob = ref<Blob | null>(null)
 const selectedFileName = ref('')
+const sourceZip = ref(false)
+let rawZip: JSZip | null = null
+let rawPaths: string[] = []
+let rawSizes = new Map<string, number>()
+let sourceRoot = ''
+let sourceSlug = ''
+const gitignoreText = ref('')
+const skillbaseignoreText = ref('')
+let rebuildSequence = 0
+const hasGitignore = ref(false)
+const useGitignore = ref(true)
+const agentPresets = ['.cursor', '.codebuddy', '.claude'] as const
+const selectedPresets = ref<string[]>([])
+const customIgnoreText = ref('')
+const excludedFiles = ref<string[]>([])
+const isRebuilding = ref(false)
+let restoringIgnorePreferences = false
+
+function ignoreStorageKey(slug: string) {
+  return `skill-base.publish-ignore.v1.${slug}`
+}
+
+function restoreIgnorePreferences(slug: string) {
+  useGitignore.value = true
+  selectedPresets.value = []
+  customIgnoreText.value = ''
+  try {
+    const saved = JSON.parse(localStorage.getItem(ignoreStorageKey(slug)) || 'null')
+    if (saved && typeof saved === 'object') {
+      useGitignore.value = saved.useGitignore !== false
+      selectedPresets.value = Array.isArray(saved.selectedPresets)
+        ? saved.selectedPresets.filter((v: unknown) => agentPresets.includes(v as typeof agentPresets[number]))
+        : []
+      customIgnoreText.value = typeof saved.customIgnoreText === 'string' ? saved.customIgnoreText : ''
+    }
+  } catch { /* Browser storage may be unavailable. */ }
+}
+
+watch([useGitignore, selectedPresets, customIgnoreText], () => {
+  if (!rawZip || restoringIgnorePreferences) return
+  try {
+    localStorage.setItem(ignoreStorageKey(sourceSlug), JSON.stringify({
+      useGitignore: useGitignore.value,
+      selectedPresets: selectedPresets.value,
+      customIgnoreText: customIgnoreText.value,
+    }))
+  } catch { /* Browser storage may be unavailable. */ }
+  void rebuildUploadZip()
+}, { deep: true })
 
 const isDragging = ref(false)
 const isPublishing = ref(false)
@@ -505,6 +593,7 @@ const githubConflictMessage = computed(() => {
 })
 
 const canPublish = computed(() => {
+  if (isRebuilding.value) return false
   if (publishMode.value === 'github') {
     if (!githubPreview.value) return false
     const tId = githubTargetId.value.trim()
@@ -891,6 +980,92 @@ async function addFileToZip(zip: JSZip, path: string, file: File) {
   zip.file(path, buf)
 }
 
+async function prepareUploadSource(zip: JSZip, paths: string[], sizes: Map<string, number>, slug: string) {
+  const skillPath = pickSkillMdPath(paths)
+  if (!skillPath) throw new Error(t('publish.missingSkillMd'))
+  rawZip = zip
+  rawPaths = paths
+  rawSizes = sizes
+  sourceRoot = skillPath.slice(0, -'SKILL.md'.length)
+  sourceSlug = slug
+  gitignoreText.value = await zip.file(`${sourceRoot}.gitignore`)?.async('string') || ''
+  skillbaseignoreText.value = await zip.file(`${sourceRoot}.skillbaseignore`)?.async('string') || ''
+  hasGitignore.value = !!gitignoreText.value
+  restoringIgnorePreferences = true
+  restoreIgnorePreferences(slug)
+  await nextTick()
+  restoringIgnorePreferences = false
+  sourceZip.value = true
+  await rebuildUploadZip()
+}
+
+async function rebuildUploadZip() {
+  if (!rawZip) return
+  const sequence = ++rebuildSequence
+  isRebuilding.value = true
+  try {
+    const custom = [
+      ...selectedPresets.value.map((preset) => `${preset}/`),
+      ...customIgnoreText.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean),
+    ]
+    const isIgnored = createPublishIgnore({
+      gitignore: gitignoreText.value,
+      useGitignore: useGitignore.value,
+      skillbaseignore: skillbaseignoreText.value,
+      custom,
+    })
+    const included: string[] = []
+    const excluded: string[] = []
+    for (const fullPath of rawPaths) {
+      if (!fullPath.startsWith(sourceRoot)) {
+        excluded.push(fullPath)
+        continue
+      }
+      const relative = fullPath.slice(sourceRoot.length)
+      if (isIgnored(relative)) excluded.push(fullPath)
+      else included.push(fullPath)
+    }
+    if (!included.includes(`${sourceRoot}SKILL.md`)) {
+      selectedZipBlob.value = null
+      selectedFiles.value = []
+      excludedFiles.value = excluded
+      error.value = t('publish.ignoredSkillMd')
+      isRebuilding.value = false
+      return
+    }
+    const output = new JSZip()
+    for (const path of included) {
+      const file = rawZip.file(path)
+      if (file) {
+        const data = await file.async('arraybuffer')
+        if (!rawSizes.has(path)) rawSizes.set(path, data.byteLength)
+        output.file(path, data)
+      }
+    }
+    const blob = await output.generateAsync({ type: 'blob' })
+    if (sequence !== rebuildSequence) return
+    selectedFiles.value = included.map((name) => ({ name, size: rawSizes.get(name) || 0 }))
+    excludedFiles.value = excluded
+    selectedZipBlob.value = blob
+    selectedFileName.value = 'skill-package.zip'
+    if (form.value.skillId) {
+      parseNotice.value = t('publish.parseSuccessDetail', {
+        count: included.length,
+        skillId: form.value.skillId,
+        name: form.value.name || '-',
+      })
+    }
+    error.value = ''
+    isRebuilding.value = false
+  } catch (err: any) {
+    if (sequence === rebuildSequence) {
+      selectedZipBlob.value = null
+      error.value = `${t('publish.ignoreInvalid')}: ${err.message}`
+      isRebuilding.value = false
+    }
+  }
+}
+
 // === 文件操作事件 ===
 
 function triggerFileInput() {
@@ -900,9 +1075,10 @@ function triggerFileInput() {
 // input directory select
 async function handleFileSelect(event: Event) {
   const target = event.target as HTMLInputElement
-  const files = target.files
-  if (!files || files.length === 0) return
+  const files = Array.from(target.files || [])
+  if (files.length === 0) return
 
+  clearFiles()
   error.value = ''
   clearParseNotice()
   githubPreview.value = null
@@ -912,6 +1088,7 @@ async function handleFileSelect(event: Event) {
 
   const zip = new JSZip()
   const paths: string[] = []
+  const sizes = new Map<string, number>()
 
   try {
     for (let i = 0; i < files.length; i++) {
@@ -920,7 +1097,7 @@ async function handleFileSelect(event: Event) {
       const path = file.webkitRelativePath
       await addFileToZip(zip, path, file)
       paths.push(path)
-      selectedFiles.value.push({ name: path, size: file.size })
+      sizes.set(path, file.size)
       totalSize += file.size
     }
 
@@ -939,8 +1116,8 @@ async function handleFileSelect(event: Event) {
       ? slugifySkillId(firstFile.webkitRelativePath.split('/')[0] || '')
       : ''
 
-    selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
-    selectedFileName.value = 'skill-package.zip'
+    await prepareUploadSource(zip, paths, sizes, rootSlug)
+    if (!selectedZipBlob.value) return
 
     applyAutofillFromSkill(rootSlug, parsed)
     showParseSuccessNotice()
@@ -955,6 +1132,7 @@ async function handleZipSelect(event: Event) {
   const file = target.files?.[0]
   if (!file) return
 
+  clearFiles()
   error.value = ''
   clearParseNotice()
   githubPreview.value = null
@@ -986,9 +1164,8 @@ async function processZipFile(file: File, slug: string) {
     const parsed =
       text != null ? parseSkillMdText(text) : { name: '', description: '' }
 
-    selectedZipBlob.value = file
-    selectedFileName.value = file.name
-    selectedFiles.value = paths.map((p) => ({ name: p, size: 0 }))
+    await prepareUploadSource(zip, paths, new Map(), slug)
+    if (!selectedZipBlob.value) return
     applyAutofillFromSkill(slug, parsed)
     showParseSuccessNotice()
   } catch (err: any) {
@@ -1005,6 +1182,7 @@ function handleDragLeave(event: DragEvent) {
 
 async function handleDrop(event: DragEvent) {
   if (isPublishing.value) return
+  clearFiles()
   isDragging.value = false
   error.value = ''
   clearParseNotice()
@@ -1042,6 +1220,7 @@ async function handleDrop(event: DragEvent) {
 
   const zip = new JSZip()
   const paths: string[] = []
+  const sizes = new Map<string, number>()
   selectedFiles.value = []
   let totalSize = 0
 
@@ -1052,7 +1231,7 @@ async function handleDrop(event: DragEvent) {
         const e = item.webkitGetAsEntry()
         if (e) {
           await traverseEntry(e, zip, '', paths, (size, fullPath) => {
-            selectedFiles.value.push({ name: fullPath, size })
+            sizes.set(fullPath, size)
             totalSize += size
           })
         }
@@ -1070,8 +1249,8 @@ async function handleDrop(event: DragEvent) {
         ? parseSkillMdText(skillText)
         : { name: '', description: '' }
 
-    selectedZipBlob.value = await zip.generateAsync({ type: 'blob' })
-    selectedFileName.value = 'skill-package.zip'
+    await prepareUploadSource(zip, paths, sizes, rootSlug)
+    if (!selectedZipBlob.value) return
     applyAutofillFromSkill(rootSlug, parsed)
     showParseSuccessNotice()
   } catch (err: any) {
@@ -1120,6 +1299,13 @@ async function traverseEntry(
 }
 
 function clearFiles() {
+  rebuildSequence += 1
+  isRebuilding.value = false
+  rawZip = null
+  rawPaths = []
+  rawSizes = new Map()
+  sourceZip.value = false
+  excludedFiles.value = []
   selectedFiles.value = []
   selectedZipBlob.value = null
   selectedFileName.value = ''
@@ -1404,6 +1590,37 @@ async function handlePublish() {
 }
 .file-preview {
   margin-top: 24px;
+}
+.publish-ignore {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-base-800);
+}
+.ignore-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.publish-ignore .ignore-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 13px;
+}
+.ignore-choice input {
+  accent-color: var(--color-neon-400);
+}
+.ignore-source pre {
+  margin-top: 8px;
+  padding: 8px 12px;
+  max-height: 140px;
+  overflow: auto;
+  background: var(--control-bg);
+  border-radius: 8px;
+  font: 12px/1.6 var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .file-preview-list {
   max-height: 180px;

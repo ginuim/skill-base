@@ -290,12 +290,17 @@ skb publish ./my-skill
 - `--name <name>`：显式指定 Skill 名称
 - `--description <desc>`：显式指定 Skill 描述
 - `--changelog <log>`：版本更新说明，默认是 `更新版本`
+- `--ignore <pattern>`：额外忽略规则，可重复，使用 `.gitignore` 语法
+- `--no-gitignore`：不读取 Skill 根目录的 `.gitignore`
+- `--dry-run`：列出将打包与被忽略的路径，不登录、不上传
 
 要求：
 
 - 必须先登录
 - 目录中必须包含 `SKILL.md`
 - 目录名会作为 `skill_id`
+
+默认读取 Skill 根目录的 `.gitignore` 和 `.skillbaseignore`；后者可记录发布专用规则。始终排除 `.git`、`__MACOSX`、`.DS_Store` 和根目录 `.gitignore`。`.cursor`、`.codebuddy` 等 Agent 配置默认保留，如需排除请明确加入规则。建议 AI Agent 发布前先运行 `--dry-run`，展示最终清单并请用户确认，再执行真实发布。
 
 示例：
 
@@ -308,6 +313,8 @@ skb publish ./my-skill --changelog "修复提示词冲突"
 
 # 显式覆盖名称和描述
 skb publish ./my-skill --name "My Skill" --description "A useful skill"
+skb publish ./my-skill --dry-run
+skb publish ./my-skill --ignore '.codebuddy/'
 ```
 
 ## 从 GitHub 导入 Skill

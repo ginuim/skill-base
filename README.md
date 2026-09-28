@@ -66,6 +66,8 @@ skb login    # required for publish
 skb publish ./my-skill --changelog "First release"
 ```
 
+Folder and ZIP uploads show the final file list before publishing. Web upload and `skb publish` use the Skill root's `.gitignore` by default; add project rules in `.skillbaseignore`, or use `skb publish --ignore 'pattern'`. Run `skb publish --dry-run` to inspect the CLI package without uploading. Agent configuration folders such as `.cursor` and `.codebuddy` are included unless explicitly ignored.
+
 Details: [Getting Started](docs/getting-started.md) · CLI: [docs/zh/cli.md](docs/zh/cli.md) (中文)
 
 ## Design philosophy

@@ -95,6 +95,11 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 任何涉及 Skill/Version/User 的写路径都应在数据库写入成功后显式失效相关缓存，不要尝试做“通用 SQL 缓存”。
 - `node-sqlite3-wasm` 用 `data/skills.db.lock` 空目录当互斥锁。`npm run dev` 只 watch `src/`（见 `nodemon.json`），并对 SIGUSR2 做 close；否则 nodemon 重启会留下锁目录，下次启动报 `database is locked`。残留空目录且确认无其它进程时，删掉即可。
 
+## Publishing and HOL Guard
+
+- `skb publish` 的发布行为或 CLI 参数发生变化时，同步检查并更新 `hashgraph-online/hol-guard` 中 Skill Base 的 opt-in extension 规则与 matcher tests；规则应继续要求用户审阅真实发布命令，并验证 `--help` 等非执行用法不误命中。该扩展位于外部 Guard 仓库，不属于本仓库 CI 或运行时依赖。
+- 发布文件过滤需按入口分别核对：Web 文件夹、拖拽和 ZIP 入口用 `web/src/utils/publish-ignore.ts` 生成最终文件清单，设置按 Skill 名称保存在浏览器；CLI 用 `.gitignore`、`.skillbaseignore`、`--ignore` 和 `--dry-run`。服务端仍仅剔除 `__MACOSX` 条目；GitHub 导入由服务端拉取，不使用本地发布过滤。Desktop 当前没有独立 publish IPC，发布页走 Web 流程。变更忽略策略时检查入口是否一致，并同步文档与测试。
+
 ## Code Style
 
 - 使用 CommonJS 模块系统
