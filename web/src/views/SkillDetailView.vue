@@ -146,7 +146,7 @@
             </div>
             <div class="skill-install-actions">
               <div class="install-methods" role="group" :aria-label="t('skill.installTitle')">
-                <button v-for="method in (['download', 'agent', 'cli'] as const)" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
+                <button v-for="method in installMethods" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
               </div>
               <p class="install-hint">{{ t(`skill.${installMethod}Hint`) }}</p>
               <ol v-if="installMethod === 'download'" class="install-steps">
@@ -157,7 +157,7 @@
               <div v-else class="install-content">
                 <pre>{{ installContent }}</pre>
                 <button type="button" class="install-copy" @click="copyTextToClipboard(installContent)">
-                  <Copy class="w-3.5 h-3.5" aria-hidden="true" />{{ t(installMethod === 'agent' ? 'skill.copyPrompt' : 'skill.copyCommands') }}
+                  <Copy class="w-3.5 h-3.5" aria-hidden="true" />{{ t(installMethod === 'agent' ? 'skill.copyPrompt' : installMethod === 'skills' ? 'skill.copyCommand' : 'skill.copyCommands') }}
                 </button>
               </div>
               <p class="install-hint">{{ t(skill.visibility === 'private' ? 'skill.privateDownloadHint' : 'skill.publicDownloadHint') }}</p>
@@ -820,7 +820,9 @@ const renderedSkillDescription = computed(() => {
   const html = marked.parse(source, { async: false })
   return typeof html === 'string' ? html : ''
 })
-const installMethod = ref<'download' | 'agent' | 'cli'>('download')
+const installMethod = ref<'download' | 'skills' | 'agent' | 'cli'>('download')
+const installMethods = computed<Array<typeof installMethod.value>>(() =>
+  skill.value?.visibility === 'public' ? ['download', 'skills', 'agent', 'cli'] : ['download', 'agent', 'cli'])
 const installSite = window.location.origin + appBasePath.replace(/\/$/, '')
 // Single-quoted arguments preserve literal values when pasted into a POSIX shell.
 const shellQuote = (value: string) => "'" + value.replace(/'/g, "'\"'\"'") + "'"
@@ -834,7 +836,8 @@ const installCommands = computed(() => [
   ...(skill.value?.visibility === 'private' ? ['skb login'] : []),
   installCliCommand.value,
 ].join('\n'))
-const installContent = computed(() => installMethod.value === 'cli' ? installCommands.value :
+const skillsInstallCommand = computed(() => `npx skills add ${shellQuote(new URL(versionsApi.downloadUrl(skillId.value, currentVersion.value), window.location.origin).href)}`)
+const installContent = computed(() => installMethod.value === 'skills' ? skillsInstallCommand.value : installMethod.value === 'cli' ? installCommands.value :
   `${t('skill.agentPrompt')}\n${window.location.origin}${withBasePath('/skills/' + encodeURIComponent(skillId.value))}\n\n${t('skill.promptVersion')}: ${currentVersion.value}\nZIP: ${new URL(versionsApi.downloadUrl(skillId.value, currentVersion.value), window.location.origin).href}\n${t(skill.value?.visibility === 'private' ? 'skill.privateDownloadHint' : 'skill.publicDownloadHint')}\n\n${t('skill.agentPromptEnd')}`)
 
 async function copyTextToClipboard(text: string) {

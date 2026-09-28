@@ -18,6 +18,8 @@ skb install team-vue-rules --ide cursor
 skb publish ./my-skill --changelog "补充接口鉴权规范"
 ```
 
+公开 Skill 也可在详情页选择版本后切换到 **npx skills**，复制命令并在项目目录运行。命令使用该版本的公开 ZIP 下载地址；`npx skills add` 会按所选 Agent 的技能目录安装。私有 Skill 请使用 `skb install`。
+
 ## Skill 长什么样
 
 Skill 是包含 `SKILL.md` 的目录。最小示例：

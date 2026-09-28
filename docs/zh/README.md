@@ -31,7 +31,7 @@ Skill Base 把 Skill 变成**可发布、可版本化、可安装**的团队资�
 | 能力 | 方式 |
 |------|------|
 | **发布** | 通过Web 上传、`skb publish`、公开 GitHub 仓库导入 Skill |
-| **安装 / 更新** | `skb install` / `skb update`，记住 IDE Skill 路径与本地安装记录 |
+| **安装 / 更新** | `skb install` / `skb update`，记住 IDE Skill 路径与本地安装记录；公开 Skill 详情页也提供所选版本的 `npx skills add <ZIP 地址>` 命令 |
 | **浏览** | Web 端搜索、切换版本、changelog、标签、收藏 |
 | **桌面端** | 原生桌面客户端 — [下载](desktop.md) |
 | **可见性** | `public` / `private`；owner / collaborator / user 权限 |
