@@ -2597,8 +2597,8 @@ html[data-theme="light"] .card {
 .danger-button { flex-shrink: 0; border: 1px solid #ef444450; border-radius: 6px; color: #ef4444; font-size: 12px; padding: 8px 14px; cursor: pointer; }
 @media (max-width: 600px) { .danger-setting { align-items: flex-start; flex-direction: column; } .skill-hero { gap: 20px; } }
 .skill-detail-content > div > .bg-base-900 { background: transparent; border: 0; border-radius: 0; }
-.install-methods { overflow-x: auto; scrollbar-width: thin; background: transparent; border: 0; border-bottom: 1px solid var(--color-base-800); border-radius: 0; padding: 0; }
-.install-methods button { flex: 1 0 auto; white-space: nowrap; padding-inline: 8px; border-radius: 0; }
+.install-methods { background: transparent; border: 0; border-bottom: 1px solid var(--color-base-800); border-radius: 0; padding: 0; }
+.install-methods button { flex: 1; min-width: 0; white-space: nowrap; padding-inline: 4px; border-radius: 0; }
 .skill-file-tree { background: transparent; }
 </style>
 
