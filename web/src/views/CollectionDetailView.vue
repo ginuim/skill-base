@@ -79,6 +79,12 @@
             <p class="collection-install-hint">{{ t('collections.installHint') }}</p>
             <div class="collection-install-actions">
               <CollectionInstallBar :collection-slug="collection.slug" />
+              <details class="collection-agent-install">
+                <summary>{{ t('skill.agentMethod') }}</summary>
+                <p class="collection-install-hint">{{ t('skill.agentHint') }}</p>
+                <pre>{{ agentInstallPrompt }}</pre>
+                <button type="button" class="collection-download-btn" @click="copyAgentPrompt">{{ t('skill.copyPrompt') }}</button>
+              </details>
               <button
                 type="button"
                 class="collection-download-btn"
@@ -124,6 +130,7 @@ import CollectionBookCover from '@/components/CollectionBookCover.vue'
 import CollectionInstallBar from '@/components/CollectionInstallBar.vue'
 import SkillListDisplay from '@/components/SkillListDisplay.vue'
 import SkillViewModeToggle from '@/components/SkillViewModeToggle.vue'
+import { withBasePath } from '@/utils/basePath'
 import { formatDate, formatDateFull } from '@/utils/date'
 import { globalToast } from '@/composables/useToast'
 import { collectionsApi, type ApiError, type Collection, type Skill } from '@/services/api'
@@ -140,6 +147,22 @@ const error = ref<string | null>(null)
 const errorStatus = ref<number | null>(null)
 const errorCode = ref<string | null>(null)
 const isDownloading = ref(false)
+
+const agentInstallPrompt = computed(() => {
+  if (!collection.value) return ''
+  const page = new URL(withBasePath(`/collections/${collection.value.id}`), window.location.origin).href
+  const zip = new URL(collectionsApi.downloadUrl(collection.value.slug), window.location.origin).href
+  return `${t('collections.agentPrompt')}\n${page}\n\nZIP: ${zip}\n\n${t('collections.agentArchiveHint')}\n\n${t('skill.agentPromptEnd')}`
+})
+
+async function copyAgentPrompt() {
+  try {
+    await navigator.clipboard.writeText(agentInstallPrompt.value)
+    globalToast.success(t('skill.copyInstallSuccess'))
+  } catch {
+    globalToast.error(t('collections.copyPromptError'))
+  }
+}
 
 const loginRedirect = computed(() => ({
   path: '/login',
@@ -228,6 +251,10 @@ watch(() => route.params.id, loadDetail)
 </script>
 
 <style scoped>
+.collection-agent-install { width: 100%; }
+.collection-agent-install summary { cursor: pointer; font-size: 13px; }
+.collection-agent-install pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; font-size: 12px; line-height: 1.7; margin: 12px 0; }
+
 .collection-back-link {
   display: inline-flex;
   align-items: center;

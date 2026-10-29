@@ -143,3 +143,5 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - [ ] **AGENTS.md** - 本文件，检查开发规范、注意事项是否需要补充
 
 > 💡 **文档优先原则**：代码改动完成后，应当立即更新相关文档，确保文档与代码保持同步。
+
+- Web 安装命令的常规参数不加引号，必要时使用 Windows CMD 可识别的双引号，避免把单引号写入服务器地址或 Skill ID；集合 AI Agent 提示词使用含部署子路径的集合 ZIP 链接，按独立技能目录安装，并保留鉴权及本地 ZIP 回退说明。

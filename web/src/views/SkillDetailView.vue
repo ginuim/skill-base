@@ -824,8 +824,11 @@ const installMethod = ref<'download' | 'skills' | 'agent' | 'cli'>('download')
 const installMethods = computed<Array<typeof installMethod.value>>(() =>
   skill.value?.visibility === 'public' ? ['download', 'skills', 'agent', 'cli'] : ['download', 'agent', 'cli'])
 const installSite = window.location.origin + appBasePath.replace(/\/$/, '')
-// Single-quoted arguments preserve literal values when pasted into a POSIX shell.
-const shellQuote = (value: string) => "'" + value.replace(/'/g, "'\"'\"'") + "'"
+// Ordinary URLs and skill IDs need no quotes; protect shell separators if present.
+// CMD treats single quotes as literal characters, so use double quotes if needed.
+const shellQuote = (value: string) => /^[a-zA-Z0-9_@/:.~-]+$/.test(value)
+  ? value
+  : '"' + value.replace(/"/g, '%22') + '"'
 const installCliCommand = computed(() => {
   const target = `${skill.value?.id || skillId.value}${currentVersion.value ? '@' + currentVersion.value : ''}`
   return `skb install ${shellQuote(target)}`

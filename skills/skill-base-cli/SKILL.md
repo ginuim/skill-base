@@ -129,3 +129,5 @@ skb delete <skill_id> -d <directory> -y
 - Check if it's a network issue, can use ping/telnet to confirm
 - Publish failure: First **`skb login`**; then verify **`SKB_BASE_URL`**, folder name and frontmatter **`name`** are consistent and match `[\w-]+`, check `SKILL.md` and network
 - Install failure: Use **`skb search`** to verify `skill_id`; when unsure of version, use `skb install <skill_id>` to install latest
+
+Web-generated commands leave ordinary URLs and skill IDs unquoted; arguments with spaces or shell separators use double quotes for Windows CMD compatibility. If a server URL was saved with literal single quotes, rerun `skb init --server "https://your-server"`. Collection detail pages also offer a direct-ZIP AI Agent prompt to install each skill separately.

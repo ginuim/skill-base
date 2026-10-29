@@ -1,18 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
 // import LandingView from '@/views/LandingView.vue'
 import HomeView from '@/views/HomeView.vue'
-import LoginView from '@/views/LoginView.vue'
-import SkillDetailView from '@/views/SkillDetailView.vue'
-import PublishView from '@/views/PublishView.vue'
-import SettingsView from '@/views/SettingsView.vue'
-import CliCodeView from '@/views/CliCodeView.vue'
-import SetupView from '@/views/SetupView.vue'
-import DiffView from '@/views/DiffView.vue'
-import UserManagementView from '@/views/UserManagementView.vue'
-import TagManagementView from '@/views/TagManagementView.vue'
-import CollectionManagementView from '@/views/CollectionManagementView.vue'
-import CollectionsListView from '@/views/CollectionsListView.vue'
-import CollectionDetailView from '@/views/CollectionDetailView.vue'
+
+// Keep the landing route small. Detail, publishing and admin views are loaded
+// only when the user navigates to them, instead of inflating the first-load
+// JavaScript bundle for every visitor.
+const CollectionsListView = () => import('@/views/CollectionsListView.vue')
+const CollectionDetailView = () => import('@/views/CollectionDetailView.vue')
+const LoginView = () => import('@/views/LoginView.vue')
+const SkillDetailView = () => import('@/views/SkillDetailView.vue')
+const PublishView = () => import('@/views/PublishView.vue')
+const SettingsView = () => import('@/views/SettingsView.vue')
+const CliCodeView = () => import('@/views/CliCodeView.vue')
+const SetupView = () => import('@/views/SetupView.vue')
+const DiffView = () => import('@/views/DiffView.vue')
+const UserManagementView = () => import('@/views/UserManagementView.vue')
+const TagManagementView = () => import('@/views/TagManagementView.vue')
+const CollectionManagementView = () => import('@/views/CollectionManagementView.vue')
 import { useAuthStore } from '@/stores/auth'
 import { appBasePath } from '@/utils/basePath'
 
