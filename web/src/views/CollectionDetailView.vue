@@ -261,8 +261,8 @@ watch(() => route.params.id, loadDetail)
 .collection-install-methods button { flex: 1; padding: 7px; font-size: 12px; color: var(--color-base-400); cursor: pointer; border-bottom: 2px solid transparent; }
 .collection-install-methods .is-selected { color: var(--color-fg-strong); border-bottom-color: var(--color-fg-strong); }
 .collection-agent-install { width: 100%; min-width: 0; overflow: hidden; }
-.collection-agent-install pre { margin: 0; padding: 12px; max-height: 125px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; }
-.collection-install-copy { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 8px; border-top: 1px solid var(--color-base-800); color: var(--color-fg-strong); font-size: 12px; cursor: pointer; }
+.collection-agent-install pre { margin: 0; padding: 4px 0; height: 54px; max-height: 54px; box-sizing: border-box; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; }
+.collection-install-copy { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 5px 0; border-top: 1px solid var(--color-base-800); color: var(--color-fg-strong); font-size: 12px; cursor: pointer; }
 
 .collection-back-link {
   display: inline-flex;
