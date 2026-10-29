@@ -76,17 +76,23 @@
 
           <div class="collection-install-section">
             <p class="collection-install-label">{{ t('collections.installCommand') }}</p>
-            <p class="collection-install-hint">{{ t('collections.installHint') }}</p>
+            <div class="collection-install-methods" role="group" :aria-label="t('skill.installTitle')">
+              <button v-for="method in installMethods" :key="method" type="button"
+                :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }"
+                @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
+            </div>
+            <p class="collection-install-hint">{{ t(installMethod === 'cli' ? 'collections.installHint' : `skill.${installMethod}Hint`) }}</p>
             <div class="collection-install-actions">
-              <CollectionInstallBar :collection-slug="collection.slug" />
-              <details class="collection-agent-install">
-                <summary>{{ t('skill.agentMethod') }}</summary>
-                <p class="collection-install-hint">{{ t('skill.agentHint') }}</p>
-                <pre>{{ agentInstallPrompt }}</pre>
-                <button type="button" class="collection-download-btn" @click="copyAgentPrompt">{{ t('skill.copyPrompt') }}</button>
-              </details>
+              <CollectionInstallBar v-if="installMethod === 'cli'" :collection-slug="collection.slug" />
+              <div v-else-if="installMethod === 'agent'" class="collection-agent-install">
+                <pre tabindex="0">{{ agentInstallPrompt }}</pre>
+                <button type="button" class="collection-install-copy" @click="copyAgentPrompt">
+                  <Copy :size="14" aria-hidden="true" />{{ t('skill.copyPrompt') }}
+                </button>
+              </div>
               <button
                 type="button"
+                v-if="installMethod === 'download'"
                 class="collection-download-btn"
                 :title="t('collections.downloadAll')"
                 :disabled="isDownloading"
@@ -122,7 +128,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ChevronLeft, Download, Frown } from 'lucide-vue-next'
+import { ChevronLeft, Copy, Download, Frown } from 'lucide-vue-next'
 import { useI18n } from '@/composables/useI18n'
 import { useSkillViewMode } from '@/composables/useSkillViewMode'
 import { useAuthStore } from '@/stores/auth'
@@ -147,6 +153,8 @@ const error = ref<string | null>(null)
 const errorStatus = ref<number | null>(null)
 const errorCode = ref<string | null>(null)
 const isDownloading = ref(false)
+const installMethods = ['download', 'agent', 'cli'] as const
+const installMethod = ref<typeof installMethods[number]>('download')
 
 const agentInstallPrompt = computed(() => {
   if (!collection.value) return ''
@@ -251,9 +259,12 @@ watch(() => route.params.id, loadDetail)
 </script>
 
 <style scoped>
-.collection-agent-install { width: 100%; }
-.collection-agent-install summary { cursor: pointer; font-size: 13px; }
-.collection-agent-install pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; font-size: 12px; line-height: 1.7; margin: 12px 0; }
+.collection-install-methods { display: flex; border-bottom: 1px solid var(--color-base-800); margin-bottom: 10px; }
+.collection-install-methods button { flex: 1; padding: 7px; font-size: 12px; color: var(--color-base-400); cursor: pointer; border-bottom: 2px solid transparent; }
+.collection-install-methods .is-selected { color: var(--color-fg-strong); border-bottom-color: var(--color-fg-strong); }
+.collection-agent-install { width: 100%; min-width: 0; overflow: hidden; }
+.collection-agent-install pre { margin: 0; padding: 12px; max-height: 125px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; }
+.collection-install-copy { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 8px; border-top: 1px solid var(--color-base-800); color: var(--color-fg-strong); font-size: 12px; cursor: pointer; }
 
 .collection-back-link {
   display: inline-flex;
@@ -415,6 +426,9 @@ watch(() => route.params.id, loadDetail)
 }
 
 .collection-install-section {
+  width: 100%;
+  max-width: 580px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
