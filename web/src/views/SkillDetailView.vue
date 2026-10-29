@@ -148,7 +148,7 @@
               <div class="install-methods" role="group" :aria-label="t('skill.installTitle')">
                 <button v-for="method in installMethods" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
               </div>
-              <p class="install-hint">{{ t(`skill.${installMethod}Hint`) }}</p>
+              <InstallHint class="install-hint" :text="t(`skill.${installMethod}Hint`)" />
               <ol v-if="installMethod === 'download'" class="install-steps">
                 <li>{{ t('skill.downloadStep1') }}</li>
                 <li>{{ t('skill.downloadStep2') }}</li>
@@ -775,6 +775,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSkillsStore } from '@/stores/skills'
+import InstallHint from '@/components/InstallHint.vue'
 import { useI18n } from '@/composables/useI18n'
 import { versionsApi, skillsApi, tagsApi, screenshotsApi, type SkillVersion, type Tag, type SkillScreenshot } from '@/services/api'
 import { globalToast } from '@/composables/useToast'
@@ -2596,8 +2597,8 @@ html[data-theme="light"] .card {
 .danger-button { flex-shrink: 0; border: 1px solid #ef444450; border-radius: 6px; color: #ef4444; font-size: 12px; padding: 8px 14px; cursor: pointer; }
 @media (max-width: 600px) { .danger-setting { align-items: flex-start; flex-direction: column; } .skill-hero { gap: 20px; } }
 .skill-detail-content > div > .bg-base-900 { background: transparent; border: 0; border-radius: 0; }
-.install-methods { background: transparent; border: 0; border-bottom: 1px solid var(--color-base-800); border-radius: 0; padding: 0; }
-.install-methods button { border-radius: 0; }
+.install-methods { overflow-x: auto; scrollbar-width: thin; background: transparent; border: 0; border-bottom: 1px solid var(--color-base-800); border-radius: 0; padding: 0; }
+.install-methods button { flex: 1 0 auto; white-space: nowrap; padding-inline: 8px; border-radius: 0; }
 .skill-file-tree { background: transparent; }
 </style>
 

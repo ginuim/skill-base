@@ -79,7 +79,7 @@
                 :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }"
                 @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
             </div>
-            <p class="collection-install-hint">{{ t(installMethod === 'cli' ? 'collections.installHint' : `skill.${installMethod}Hint`) }}</p>
+            <InstallHint class="collection-install-hint" :text="t(installMethod === 'cli' ? 'collections.installHint' : `skill.${installMethod}Hint`)" />
             <div class="collection-install-actions">
               <CollectionInstallBar v-if="installMethod === 'cli'" :collection-slug="collection.slug" />
               <div v-else-if="installMethod === 'agent'" class="collection-agent-install">
@@ -127,6 +127,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ChevronLeft, Copy, Download, Frown } from 'lucide-vue-next'
+import InstallHint from '@/components/InstallHint.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useSkillViewMode } from '@/composables/useSkillViewMode'
 import { useAuthStore } from '@/stores/auth'
@@ -257,8 +258,8 @@ watch(() => route.params.id, loadDetail)
 </script>
 
 <style scoped>
-.collection-install-methods { display: flex; border-bottom: 1px solid var(--color-base-800); margin-bottom: 10px; }
-.collection-install-methods button { flex: 1; padding: 7px; font-size: 12px; color: var(--color-base-400); cursor: pointer; border-bottom: 2px solid transparent; }
+.collection-install-methods { display: flex; overflow-x: auto; scrollbar-width: thin; border-bottom: 1px solid var(--color-base-800); margin-bottom: 10px; }
+.collection-install-methods button { flex: 1 0 auto; white-space: nowrap; padding: 7px; font-size: 12px; color: var(--color-base-400); cursor: pointer; border-bottom: 2px solid transparent; }
 .collection-install-methods .is-selected { color: var(--color-fg-strong); border-bottom-color: var(--color-fg-strong); }
 .collection-agent-install { width: 100%; min-width: 0; overflow: hidden; }
 .collection-agent-install pre { margin: 0; padding: 4px 0; height: 54px; max-height: 54px; box-sizing: border-box; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; }

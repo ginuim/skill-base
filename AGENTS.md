@@ -149,3 +149,5 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 集合详情安装区与技能详情保持一致：ZIP / AI Agent / 命令行切换，AI 提示词预览固定 54px、内部滚动，提供完整内容复制。
 
 - 集合详情右侧不重复展示 COLLECTION 徽章或“批量安装”标题，使用紧凑的标题、描述、统计与安装页签，整体高度尽量接近 CD 封面。
+
+- 安装说明中的 skb 通过 InstallHint 链接到 npm skill-base-cli；安装方式页签保持单行，窄屏内部横向滚动，避免英文标签断行。
