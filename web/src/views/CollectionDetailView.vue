@@ -51,7 +51,6 @@
         </div>
 
         <div class="collection-hero-info">
-          <span class="collection-detail-badge">COLLECTION</span>
           <h1 class="collection-detail-title">{{ collection.name }}</h1>
           <p class="collection-detail-desc">{{ collection.description || t('state.noDesc') }}</p>
 
@@ -75,7 +74,6 @@
           </dl>
 
           <div class="collection-install-section">
-            <p class="collection-install-label">{{ t('collections.installCommand') }}</p>
             <div class="collection-install-methods" role="group" :aria-label="t('skill.installTitle')">
               <button v-for="method in installMethods" :key="method" type="button"
                 :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }"
@@ -363,29 +361,16 @@ watch(() => route.params.id, loadDetail)
   min-width: 0;
 }
 
-.collection-detail-badge {
-  display: inline-flex;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--color-neon-400);
-  background: rgba(var(--color-neon-rgb), 0.1);
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.25rem;
-  border: 1px solid rgba(var(--color-neon-rgb), 0.2);
-  letter-spacing: 0.05em;
-}
-
 .collection-detail-title {
-  margin: 0.75rem 0 0.5rem;
-  font-family: 'JetBrains Mono', monospace;
+  margin: 0 0 0.5rem;
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 650;
+  letter-spacing: -0.03em;
   color: var(--color-fg-strong);
 }
 
 .collection-detail-desc {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.75rem;
   font-size: 0.9375rem;
   color: var(--color-base-300);
   line-height: 1.6;
@@ -400,8 +385,7 @@ watch(() => route.params.id, loadDetail)
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.75rem;
-  margin: 0 0 1.5rem;
-  font-family: 'JetBrains Mono', monospace;
+  margin: 0 0 0.875rem;
   font-size: 0.8125rem;
 }
 
@@ -432,14 +416,6 @@ watch(() => route.params.id, loadDetail)
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-}
-
-.collection-install-label {
-  margin: 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-base-300);
 }
 
 .collection-install-hint {
