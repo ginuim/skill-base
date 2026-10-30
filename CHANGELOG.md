@@ -8,6 +8,22 @@ Desktop builds use the separate [desktop-latest](https://github.com/ginuim/skill
 
 ## [Unreleased]
 
+## [2.0.52] - 2026-10-30
+
+### Added
+
+- Web: install collections with a copyable AI Agent prompt and direct ZIP link
+- Web: offer a version-specific npx skills installation command
+
+### Changed
+
+- Web: load secondary pages on demand and refine collection installation layout
+- Web: link CLI installation guidance to npm and simplify installation tabs
+
+### Fixed
+
+- Web: avoid single-quoted installation arguments that break Windows CMD
+
 ## [2.0.51] - 2026-09-20
 
 ### Changed
