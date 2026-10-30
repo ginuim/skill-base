@@ -22,6 +22,7 @@ Desktop builds use the separate [desktop-latest](https://github.com/ginuim/skill
 
 ### Fixed
 
+- Web: preview MJS, CJS, MTS, CTS and other common source files as text
 - Web: avoid single-quoted installation arguments that break Windows CMD
 
 ## [2.0.51] - 2026-09-20

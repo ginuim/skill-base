@@ -151,3 +151,5 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 集合详情右侧不重复展示 COLLECTION 徽章或“批量安装”标题，使用紧凑的标题、描述、统计与安装页签，整体高度尽量接近 CD 封面。
 
 - 安装说明中的 skb 通过 InstallHint 链接到 npm skill-base-cli；安装方式使用 ZIP、npx skills、AI Agent、CLI 短标签，保持单行均分宽度，不使用横向滚动条。
+
+- 技能文件预览的文本扩展名与语法高亮映射应覆盖常见 JavaScript / TypeScript 模块（含 mjs、cjs、mts、cts、tsx），新增格式时同步检查两者。
