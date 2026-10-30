@@ -8,6 +8,14 @@ Desktop builds use the separate [desktop-latest](https://github.com/ginuim/skill
 
 ## [Unreleased]
 
+## [2.0.53] - 2026-10-30
+
+### Changed
+
+- Web: render version history notes as sanitized Markdown
+- Web: expand the complete file viewer, including the directory tree, to full screen
+- Web: make deep file paths scrollable and show full paths on hover
+
 ## [2.0.52] - 2026-10-30
 
 ### Added

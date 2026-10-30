@@ -123,3 +123,5 @@ Full note: [docs/author.md](docs/author.md).
 The Web UI uses shared neutral buttons and form controls, light/dark themes, and a responsive two-column sign-in page. See [the visual guidelines](docs/zh/design-system.md).
 
 Skills can be downloaded as ZIP files without Node.js or skb. Public skills need no sign-in; private skills require an authorized account. The detail page includes manual import instructions and a direct-download AI prompt for the selected version.
+
+技能详情：版本历史的更新说明支持 Markdown；文件查看支持目录树和内容区一起全屏（Esc 退出），深层目录可横向滚动，悬停显示完整路径。

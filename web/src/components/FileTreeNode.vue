@@ -4,6 +4,7 @@
     <div
       v-if="node.type === 'directory'"
       class="file-tree-item"
+      :title="node.path"
       role="button"
       tabindex="0"
       :aria-expanded="!!node.isOpen"
@@ -19,13 +20,14 @@
         aria-hidden="true"
       />
       <Folder class="w-4 h-4 opacity-70 flex-shrink-0 text-yellow-400" :size="16" :stroke-width="2" aria-hidden="true" />
-      <span class="name font-medium truncate">{{ node.name }}</span>
+      <span class="name font-medium">{{ node.name }}</span>
     </div>
 
     <!-- File -->
     <div
       v-else
       class="file-tree-item"
+      :title="node.path"
       :class="{ selected: selectedPath === node.path }"
       @click="selectFile"
     >
@@ -36,7 +38,7 @@
         :stroke-width="2"
         aria-hidden="true"
       />
-      <span class="name truncate">{{ node.name }}</span>
+      <span class="name">{{ node.name }}</span>
     </div>
 
     <!-- Recursive children -->
@@ -89,6 +91,8 @@ function selectFile() {
 <style scoped>
 .file-tree-item {
   display: flex;
+  width: max-content;
+  min-width: 100%;
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.5rem;
@@ -106,6 +110,7 @@ function selectFile() {
 
 .file-tree-item .name {
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .file-tree-item.selected {

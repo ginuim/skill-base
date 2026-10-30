@@ -200,11 +200,11 @@
         </div>
 
         <!-- Files tab: file navigation and reading pane -->
-        <section v-show="activeTab === 'files'" class="skill-file-workspace">
+        <section v-show="activeTab === 'files'" :class="['skill-file-workspace', { fullscreen: isFullscreen }]">
           <!-- Left: File Tree -->
           <div class="skill-file-tree">
             <div class="skill-file-toolbar">{{ t('skill.tabFiles') }}</div>
-            <div id="file-tree" class="p-3 flex-1 overflow-y-auto no-scrollbar font-mono text-sm">
+            <div id="file-tree" class="p-3 flex-1 overflow-auto font-mono text-sm">
               <div v-if="isLoadingZip" class="flex justify-center py-8">
                 <div class="spinner spinner-sm"></div>
               </div>
@@ -225,10 +225,10 @@
           </div>
 
           <!-- Right: File Preview -->
-          <div id="file-preview-panel" :class="['skill-file-preview', { 'fullscreen': isFullscreen }]">
+          <div id="file-preview-panel" class="skill-file-preview">
             <div class="skill-file-toolbar skill-preview-toolbar">
               <div>
-                <span class="skill-file-path">{{ selectedFilePath || t('skill.selectFile') }}</span>
+                <span class="skill-file-path" :title="selectedFilePath">{{ selectedFilePath || t('skill.selectFile') }}</span>
               </div>
               <div class="flex items-center gap-3">
                 <div v-if="isMarkdownFile" class="flex gap-2">
@@ -535,9 +535,8 @@
                         </span>
                         <span v-if="v.version === skill.latest_version" class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>
                       </div>
-                      <p class="text-sm font-medium mt-2" :class="v.version === skill.latest_version ? 'text-fg-strong' : 'text-base-200'">
-                        {{ v.changelog || t('skill.noChangelog') }}
-                      </p>
+                      <div v-if="v.changelog" class="markdown-body version-changelog mt-2" v-html="renderedChangelogs[v.version]"></div>
+                      <p v-else class="text-sm mt-2 text-base-400">{{ t('skill.noChangelog') }}</p>
                       <p class="text-xs text-base-400 mt-1 flex items-center gap-1.5 font-mono">
                         by @{{ v.uploader?.name || v.uploader?.username || t('state.unknown') }}
                       </p>
@@ -780,6 +779,7 @@ import { useI18n } from '@/composables/useI18n'
 import { versionsApi, skillsApi, tagsApi, screenshotsApi, type SkillVersion, type Tag, type SkillScreenshot } from '@/services/api'
 import { globalToast } from '@/composables/useToast'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import hljs from 'highlight.js'
 import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
 import CollaboratorUserPicker from '@/components/CollaboratorUserPicker.vue'
@@ -821,6 +821,11 @@ const renderedSkillDescription = computed(() => {
   const html = marked.parse(source, { async: false })
   return typeof html === 'string' ? html : ''
 })
+const renderedChangelogs = computed(() => Object.fromEntries(
+  versions.value.map(version => [version.version,
+    DOMPurify.sanitize(marked.parse(version.changelog || '', { async: false })),
+  ]),
+))
 const installMethod = ref<'download' | 'skills' | 'agent' | 'cli'>('download')
 const installMethods = computed<Array<typeof installMethod.value>>(() =>
   skill.value?.visibility === 'public' ? ['download', 'skills', 'agent', 'cli'] : ['download', 'agent', 'cli'])
@@ -1285,6 +1290,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscKey)
+  if (isFullscreen.value) document.body.style.overflow = previousBodyOverflow
 })
 
 async function loadVersions() {
@@ -1593,10 +1599,12 @@ async function submitDeleteSkill() {
   }
 }
 
+let previousBodyOverflow = ''
 function toggleFullscreen() {
+  if (!isFullscreen.value) previousBodyOverflow = document.body.style.overflow
   isFullscreen.value = !isFullscreen.value
   // 全屏时禁止页面滚动
-  document.body.style.overflow = isFullscreen.value ? 'hidden' : ''
+  document.body.style.overflow = isFullscreen.value ? 'hidden' : previousBodyOverflow
 }
 
 function handleEscKey(e: KeyboardEvent) {
@@ -2101,7 +2109,7 @@ html[data-theme="light"] .card {
 .skill-download-button:hover { background: var(--color-fg); }
 .skill-compare-button { order: 2; color: var(--color-base-400); }
 .skill-compare-button:hover { color: var(--color-fg-strong); background: var(--color-base-900); }
-.skill-file-workspace { display: grid; grid-template-columns: 180px minmax(0, 1fr); border: 0; border-radius: 0; overflow: hidden; margin-bottom: 24px; background: var(--color-base-950); }
+.skill-file-workspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); border: 0; border-radius: 0; overflow: hidden; margin-bottom: 24px; background: var(--color-base-950); }
 .skill-file-tree, .skill-file-preview { display: flex; flex-direction: column; min-width: 0; height: 600px; }
 .skill-file-tree { border-right: 1px solid var(--color-base-800); background: var(--color-base-900); }
 .skill-file-toolbar { display: flex; align-items: center; min-height: 52px; padding: 10px 16px; border-bottom: 1px solid var(--color-base-800); color: var(--color-base-400); font-size: 13px; gap: 12px; }
@@ -2236,62 +2244,24 @@ html[data-theme="light"] .card {
   font-size: 0.875rem;
 }
 
-/* Fullscreen mode：整列阅读宽度上限 800px，水平居中 */
-#file-preview-panel.fullscreen {
+/* Keep navigation and preview together when expanded. */
+.skill-file-workspace.fullscreen {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 100;
-  max-height: none;
-  min-height: 100vh;
+  inset: 0;
+  z-index: 1000;
   height: 100dvh;
-  background: var(--color-base-950);
-  border-radius: 0;
-  border: none;
+  margin: 0;
+  grid-template-columns: clamp(260px, 28vw, 420px) minmax(0, 1fr);
 }
-
-/* 不用 align-items:center，否则 flex-1 的 #file-content 竖向撑不满 */
-#file-preview-panel.fullscreen > div:first-of-type,
-#file-preview-panel.fullscreen > #file-content {
-  max-width: 800px;
-  width: 100%;
-  box-sizing: border-box;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#file-preview-panel.fullscreen > div:first-of-type {
-  flex-shrink: 0;
-}
-
-#file-preview-panel.fullscreen > #file-content {
-  flex: 1 1 0;
-  min-height: 0;
-}
-
-#file-preview-panel.fullscreen :deep(#file-content) {
-  max-height: calc(100vh - 52px);
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Prevent double scrollbar in markdown preview */
-#file-preview-panel.fullscreen :deep(#file-content) > .markdown-body {
-  overflow: visible;
-  max-height: none;
-}
-
-/* Ensure only file-content has scrollbar in fullscreen */
-#file-preview-panel.fullscreen :deep(.markdown-body pre) {
-  overflow: visible;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-#file-preview-panel.fullscreen .rounded-t-xl {
-  border-radius: 0;
+.skill-file-workspace.fullscreen > div { height: 100%; min-height: 0; }
+.skill-file-toolbar { flex-shrink: 0; }
+#file-content, #file-tree { min-height: 0; }
+.version-changelog { font-size: 14px; overflow-wrap: anywhere; overflow-x: auto; }
+@media (max-width: 600px) {
+  .skill-file-workspace.fullscreen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(100px, 25dvh) minmax(0, 1fr);
+  }
 }
 
 /* Cube Loader */
