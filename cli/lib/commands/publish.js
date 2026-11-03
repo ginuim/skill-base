@@ -9,6 +9,7 @@ import { loadCredentials } from '../auth.js';
 import { createClient } from '../api.js';
 import { pickMessage } from '../i18n.js';
 import { resolveSkillIdCore, parseSkillMd, displayNameAndDescriptionFromParsed } from '../skill-md.js';
+import { listPublishFiles } from '../publish-ignore.js';
 
 export function resolveSkillId(folderBasename, frontmatterName) {
   const r = resolveSkillIdCore(folderBasename, frontmatterName);
@@ -29,7 +30,7 @@ export function resolveSkillId(folderBasename, frontmatterName) {
   );
 }
 
-function zipDirectory(dirPath, outputPath, dirName) {
+function zipDirectory(dirPath, outputPath, dirName, files) {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(outputPath);
     const archive = archiver('zip', { zlib: { level: 9 } });
@@ -38,14 +39,14 @@ function zipDirectory(dirPath, outputPath, dirName) {
     archive.on('error', reject);
 
     archive.pipe(output);
-    archive.directory(dirPath, dirName);
+    for (const file of files) archive.file(path.join(dirPath, file), { name: `${dirName}/${file}` });
     archive.finalize();
   });
 }
 
 export default async function publish(directory, options) {
   const credentials = loadCredentials();
-  if (!credentials?.token) {
+  if (!options.dryRun && !credentials?.token) {
     console.log(chalk.red(pickMessage({ zh: '❌ 请先登录: skb login', en: '❌ Please login first: skb login' })));
     process.exit(1);
   }
@@ -89,6 +90,26 @@ export default async function publish(directory, options) {
     process.exit(1);
   }
 
+  let manifest;
+  try {
+    manifest = listPublishFiles(resolvedDir, {
+      useGitignore: options.gitignore,
+      extra: options.ignore || []
+    });
+  } catch (err) {
+    console.log(chalk.red(`❌ ${err.message}`));
+    process.exit(1);
+  }
+  if (!manifest.included.includes('SKILL.md')) {
+    console.log(chalk.red('❌ SKILL.md 被忽略规则排除，无法发布'));
+    process.exit(1);
+  }
+  if (options.dryRun) {
+    console.log(`Include (${manifest.included.length}):\n${manifest.included.join('\n')}`);
+    console.log(`Exclude (${manifest.excluded.length}):\n${manifest.excluded.join('\n')}`);
+    return;
+  }
+
   const folderBasename = path.basename(resolvedDir);
   const skillMdContent = fs.readFileSync(skillMdPath, 'utf-8');
   const parsed = parseSkillMd(skillMdContent);
@@ -124,7 +145,7 @@ export default async function publish(directory, options) {
   const tmpZipPath = path.join(os.tmpdir(), `skb-${randomBytes(8).toString('hex')}.zip`);
 
   try {
-    const size = await zipDirectory(resolvedDir, tmpZipPath, skillId);
+    const size = await zipDirectory(resolvedDir, tmpZipPath, skillId, manifest.included);
     spinner.text = pickMessage({
       zh: `打包完成（${(size / 1024).toFixed(1)} KB），正在上传...`,
       en: `Pack complete (${(size / 1024).toFixed(1)} KB), uploading...`

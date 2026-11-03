@@ -20,6 +20,9 @@ importers:
       diff2html:
         specifier: ^3.4.56
         version: 3.4.56
+      dompurify:
+        specifier: ^3.4.17
+        version: 3.4.17
       highlight.js:
         specifier: ^11.11.1
         version: 11.11.1
@@ -1408,6 +1411,12 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
+  dompurify@3.4.17:
+    resolution: {integrity: sha512-B/pSlYVHQ58kqISD/yDjuJ1yfzI34m1gF4lAod2bwSRhiN4K5Cl3H8Af7hqB2PmTL911tdEudnnXn5FnhRoz0w==}
+
+  '@types/trusted-types@2.0.7':
+    resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
+
 snapshots:
 
   '@babel/code-frame@7.29.0':
@@ -2637,3 +2646,10 @@ snapshots:
   yallist@3.1.1: {}
 
   yaml@2.8.3: {}
+
+  dompurify@3.4.17:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
+
+  '@types/trusted-types@2.0.7':
+    optional: true

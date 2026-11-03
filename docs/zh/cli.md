@@ -290,12 +290,17 @@ skb publish ./my-skill
 - `--name <name>`：显式指定 Skill 名称
 - `--description <desc>`：显式指定 Skill 描述
 - `--changelog <log>`：版本更新说明，默认是 `更新版本`
+- `--ignore <pattern>`：额外忽略规则，可重复，使用 `.gitignore` 语法
+- `--no-gitignore`：不读取 Skill 根目录的 `.gitignore`
+- `--dry-run`：列出将打包与被忽略的路径，不登录、不上传
 
 要求：
 
 - 必须先登录
 - 目录中必须包含 `SKILL.md`
 - 目录名会作为 `skill_id`
+
+默认读取 Skill 根目录的 `.gitignore` 和 `.skillbaseignore`；后者可记录发布专用规则。始终排除 `.git`、`__MACOSX`、`.DS_Store` 和根目录 `.gitignore`。`.cursor`、`.codebuddy` 等 Agent 配置默认保留，如需排除请明确加入规则。建议 AI Agent 发布前先运行 `--dry-run`，展示最终清单并请用户确认，再执行真实发布。
 
 示例：
 
@@ -308,6 +313,8 @@ skb publish ./my-skill --changelog "修复提示词冲突"
 
 # 显式覆盖名称和描述
 skb publish ./my-skill --name "My Skill" --description "A useful skill"
+skb publish ./my-skill --dry-run
+skb publish ./my-skill --ignore '.codebuddy/'
 ```
 
 ## 从 GitHub 导入 Skill
@@ -417,3 +424,5 @@ Web 发布页按“准备内容 → 确认并发布”展示，GitHub 分支和�
 ## Web 贡献主页
 
 通过 `skb publish` 或 GitHub 导入产生的版本会计入发布者贡献。在 Web 技能列表点击贡献者头像可进入 `/users/:id`，查看其贡献的技能、发布版本数及贡献技能累计下载量；列表和统计遵循当前访问者的技能权限。CLI 命令和参数无需变更。
+
+Web 安装命令的常规 URL 和 Skill ID 不加引号；含空格或 shell 分隔符时使用双引号，兼容 Windows CMD。若之前复制单引号命令导致服务器地址带上字面单引号，请重新运行 `skb init --server "http://服务器地址"`。集合详情页也提供 AI Agent 安装提示词，包含本站集合 ZIP 直链、逐技能安装说明及登录/本地 ZIP 回退方式。

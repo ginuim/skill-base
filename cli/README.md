@@ -123,9 +123,13 @@ skb update vue-best-practices -d ./.cursor/skills
 ```bash
 skb publish ./my-skill --changelog "Initial release"
 skb publish --name "My Skill" --description "A useful skill"
+skb publish ./my-skill --dry-run
+skb publish ./my-skill --ignore '.cursor/'
 ```
 
 Requirements: logged in; directory must contain `SKILL.md`; folder name becomes `skill_id`. Name and description can be parsed from frontmatter automatically.
+
+The package follows the Skill root's `.gitignore` and `.skillbaseignore` (gitignore pattern syntax). Add repeatable `--ignore <pattern>` rules for one publish, or pass `--no-gitignore` to omit `.gitignore`. `.git`, `__MACOSX`, `.DS_Store`, and the root `.gitignore` are always excluded. `.cursor` and `.codebuddy` remain included unless a rule excludes them. `--dry-run` prints included and excluded paths without requiring login or uploading. Review that list before an agent publishes; `--dry-run` itself does not publish.
 
 ## Import from GitHub
 

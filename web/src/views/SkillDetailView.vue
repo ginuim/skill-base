@@ -64,9 +64,16 @@
 
             <!-- Description -->
             <div class="skill-desc-wrap group">
-              <p class="skill-desc whitespace-pre-wrap" :class="{ 'skill-desc--collapsed': !descriptionExpanded && (skill.description || '').length > 180 }">
-                {{ skill.description || t('state.noDesc') }}
-              </p>
+              <div
+                class="skill-desc"
+                :class="{
+                  'skill-desc--collapsed': !descriptionExpanded && skillDescriptionIsLong,
+                  'markdown-body': !!skill.description,
+                }"
+              >
+                <div v-if="skill.description" class="markdown-body-content" v-html="renderedSkillDescription"></div>
+                <template v-else>{{ t('state.noDesc') }}</template>
+              </div>
               <button
                 v-if="canManageCollaborators"
                 @click="openEditSkillDescription"
@@ -77,7 +84,7 @@
               </button>
             </div>
 
-            <button v-if="(skill.description || '').length > 180" class="description-toggle" :aria-expanded="descriptionExpanded" @click="descriptionExpanded = !descriptionExpanded">{{ t(descriptionExpanded ? 'skill.lessDescription' : 'skill.moreDescription') }}</button>
+            <button v-if="skillDescriptionIsLong" class="description-toggle" :aria-expanded="descriptionExpanded" @click="descriptionExpanded = !descriptionExpanded">{{ t(descriptionExpanded ? 'skill.lessDescription' : 'skill.moreDescription') }}</button>
             <div class="skill-metadata flex flex-wrap items-center gap-2">
               <span v-if="skill.visibility === 'private'" class="skill-meta-chip skill-meta-chip-private">PRIVATE</span>
               <button
@@ -139,9 +146,9 @@
             </div>
             <div class="skill-install-actions">
               <div class="install-methods" role="group" :aria-label="t('skill.installTitle')">
-                <button v-for="method in (['download', 'agent', 'cli'] as const)" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
+                <button v-for="method in installMethods" :key="method" type="button" :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }" @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
               </div>
-              <p class="install-hint">{{ t(`skill.${installMethod}Hint`) }}</p>
+              <InstallHint class="install-hint" :text="t(`skill.${installMethod}Hint`)" />
               <ol v-if="installMethod === 'download'" class="install-steps">
                 <li>{{ t('skill.downloadStep1') }}</li>
                 <li>{{ t('skill.downloadStep2') }}</li>
@@ -150,7 +157,7 @@
               <div v-else class="install-content">
                 <pre>{{ installContent }}</pre>
                 <button type="button" class="install-copy" @click="copyTextToClipboard(installContent)">
-                  <Copy class="w-3.5 h-3.5" aria-hidden="true" />{{ t(installMethod === 'agent' ? 'skill.copyPrompt' : 'skill.copyCommands') }}
+                  <Copy class="w-3.5 h-3.5" aria-hidden="true" />{{ t(installMethod === 'agent' ? 'skill.copyPrompt' : installMethod === 'skills' ? 'skill.copyCommand' : 'skill.copyCommands') }}
                 </button>
               </div>
               <p class="install-hint">{{ t(skill.visibility === 'private' ? 'skill.privateDownloadHint' : 'skill.publicDownloadHint') }}</p>
@@ -193,11 +200,11 @@
         </div>
 
         <!-- Files tab: file navigation and reading pane -->
-        <section v-show="activeTab === 'files'" class="skill-file-workspace">
+        <section v-show="activeTab === 'files'" :class="['skill-file-workspace', { fullscreen: isFullscreen }]">
           <!-- Left: File Tree -->
           <div class="skill-file-tree">
             <div class="skill-file-toolbar">{{ t('skill.tabFiles') }}</div>
-            <div id="file-tree" class="p-3 flex-1 overflow-y-auto no-scrollbar font-mono text-sm">
+            <div id="file-tree" class="p-3 flex-1 overflow-auto font-mono text-sm">
               <div v-if="isLoadingZip" class="flex justify-center py-8">
                 <div class="spinner spinner-sm"></div>
               </div>
@@ -218,10 +225,10 @@
           </div>
 
           <!-- Right: File Preview -->
-          <div id="file-preview-panel" :class="['skill-file-preview', { 'fullscreen': isFullscreen }]">
+          <div id="file-preview-panel" class="skill-file-preview">
             <div class="skill-file-toolbar skill-preview-toolbar">
               <div>
-                <span class="skill-file-path">{{ selectedFilePath || t('skill.selectFile') }}</span>
+                <span class="skill-file-path" :title="selectedFilePath">{{ selectedFilePath || t('skill.selectFile') }}</span>
               </div>
               <div class="flex items-center gap-3">
                 <div v-if="isMarkdownFile" class="flex gap-2">
@@ -345,6 +352,7 @@
             ref="screenshotInputRef"
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
             class="hidden"
             @change="onScreenshotFileChange"
           />
@@ -527,9 +535,8 @@
                         </span>
                         <span v-if="v.version === skill.latest_version" class="bg-base-200 text-base-900 text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wide font-mono uppercase">Head</span>
                       </div>
-                      <p class="text-sm font-medium mt-2" :class="v.version === skill.latest_version ? 'text-fg-strong' : 'text-base-200'">
-                        {{ v.changelog || t('skill.noChangelog') }}
-                      </p>
+                      <div v-if="v.changelog" class="markdown-body version-changelog mt-2" v-html="renderedChangelogs[v.version]"></div>
+                      <p v-else class="text-sm mt-2 text-base-400">{{ t('skill.noChangelog') }}</p>
                       <p class="text-xs text-base-400 mt-1 flex items-center gap-1.5 font-mono">
                         by @{{ v.uploader?.name || v.uploader?.username || t('state.unknown') }}
                       </p>
@@ -642,7 +649,7 @@
     <!-- Edit Version Modal -->
     <div v-if="showEditVersionModal" class="modal" @click.self="showEditVersionModal = false">
       <div class="modal-overlay"></div>
-      <div class="modal-content">
+      <div class="modal-content" :class="{ 'modal-content--editor': editVersionMode === 'description' }">
         <div class="modal-header">
           <h3>
             {{ editVersionMode === 'description'
@@ -654,11 +661,26 @@
         <div class="modal-body">
           <div v-if="editVersionMode === 'description'" class="form-group">
             <label>{{ t('skill.editSkillDescriptionLabel') }}</label>
-            <textarea
-              v-model="editVersionForm.description"
-              :placeholder="t('skill.editSkillDescriptionPlaceholder')"
-              class="form-input min-h-[100px]"
-            ></textarea>
+            <div class="description-editor">
+              <div class="description-editor-toolbar" role="toolbar" aria-label="Markdown formatting">
+                <button type="button" title="Bold" aria-label="Bold" @click="wrapDescriptionSelection('**', '**', 'bold text')"><strong>B</strong></button>
+                <button type="button" title="Italic" aria-label="Italic" @click="wrapDescriptionSelection('*', '*', 'italic text')"><em>I</em></button>
+                <button type="button" title="Heading" aria-label="Heading" @click="prefixDescriptionLine('## ')">H</button>
+                <button type="button" title="Bulleted list" aria-label="Bulleted list" @click="prefixDescriptionLine('- ')">•</button>
+                <button type="button" title="Quote" aria-label="Quote" @click="prefixDescriptionLine('&gt; ')">❝</button>
+                <button type="button" title="Link" aria-label="Link" @click="wrapDescriptionSelection('[', '](https://)', 'link text')">↗</button>
+                <button type="button" title="Inline code" aria-label="Inline code" @click="wrapDescriptionSelection('`', '`', 'code')">&lt;/&gt;</button>
+                <span class="description-editor-hint">Markdown</span>
+              </div>
+              <textarea
+                ref="descriptionEditorRef"
+                v-model="editVersionForm.description"
+                :placeholder="t('skill.editSkillDescriptionPlaceholder')"
+                class="description-editor-input"
+                @keydown.tab.prevent="insertDescriptionText('  ')"
+              ></textarea>
+              <div class="description-editor-footer">{{ descriptionCharacterCount }} {{ currentLang === 'zh' ? '个字符' : 'characters' }}</div>
+            </div>
           </div>
           <div v-if="editVersionMode === 'changelog'" class="form-group">
             <label>{{ t('skill.editVersionLabelChangelog') }}</label>
@@ -748,14 +770,16 @@ import {
   Trash2,
   ArrowUpToLine,
 } from 'lucide-vue-next'
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSkillsStore } from '@/stores/skills'
+import InstallHint from '@/components/InstallHint.vue'
 import { useI18n } from '@/composables/useI18n'
 import { versionsApi, skillsApi, tagsApi, screenshotsApi, type SkillVersion, type Tag, type SkillScreenshot } from '@/services/api'
 import { globalToast } from '@/composables/useToast'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import hljs from 'highlight.js'
 import FileTreeNode, { type TreeNode } from '@/components/FileTreeNode.vue'
 import CollaboratorUserPicker from '@/components/CollaboratorUserPicker.vue'
@@ -790,10 +814,27 @@ const showAuthHint = computed(() => {
 })
 
 const descriptionExpanded = ref(false)
-const installMethod = ref<'download' | 'agent' | 'cli'>('download')
+const skillDescriptionIsLong = computed(() => (skill.value?.description || '').length > 180)
+const renderedSkillDescription = computed(() => {
+  const source = skill.value?.description
+  if (!source) return ''
+  const html = marked.parse(source, { async: false })
+  return typeof html === 'string' ? html : ''
+})
+const renderedChangelogs = computed(() => Object.fromEntries(
+  versions.value.map(version => [version.version,
+    DOMPurify.sanitize(marked.parse(version.changelog || '', { async: false })),
+  ]),
+))
+const installMethod = ref<'download' | 'skills' | 'agent' | 'cli'>('download')
+const installMethods = computed<Array<typeof installMethod.value>>(() =>
+  skill.value?.visibility === 'public' ? ['download', 'skills', 'agent', 'cli'] : ['download', 'agent', 'cli'])
 const installSite = window.location.origin + appBasePath.replace(/\/$/, '')
-// Single-quoted arguments preserve literal values when pasted into a POSIX shell.
-const shellQuote = (value: string) => "'" + value.replace(/'/g, "'\"'\"'") + "'"
+// Ordinary URLs and skill IDs need no quotes; protect shell separators if present.
+// CMD treats single quotes as literal characters, so use double quotes if needed.
+const shellQuote = (value: string) => /^[a-zA-Z0-9_@/:.~-]+$/.test(value)
+  ? value
+  : '"' + value.replace(/"/g, '%22') + '"'
 const installCliCommand = computed(() => {
   const target = `${skill.value?.id || skillId.value}${currentVersion.value ? '@' + currentVersion.value : ''}`
   return `skb install ${shellQuote(target)}`
@@ -804,7 +845,8 @@ const installCommands = computed(() => [
   ...(skill.value?.visibility === 'private' ? ['skb login'] : []),
   installCliCommand.value,
 ].join('\n'))
-const installContent = computed(() => installMethod.value === 'cli' ? installCommands.value :
+const skillsInstallCommand = computed(() => `npx skills add ${shellQuote(new URL(versionsApi.downloadUrl(skillId.value, currentVersion.value), window.location.origin).href)}`)
+const installContent = computed(() => installMethod.value === 'skills' ? skillsInstallCommand.value : installMethod.value === 'cli' ? installCommands.value :
   `${t('skill.agentPrompt')}\n${window.location.origin}${withBasePath('/skills/' + encodeURIComponent(skillId.value))}\n\n${t('skill.promptVersion')}: ${currentVersion.value}\nZIP: ${new URL(versionsApi.downloadUrl(skillId.value, currentVersion.value), window.location.origin).href}\n${t(skill.value?.visibility === 'private' ? 'skill.privateDownloadHint' : 'skill.publicDownloadHint')}\n\n${t('skill.agentPromptEnd')}`)
 
 async function copyTextToClipboard(text: string) {
@@ -903,17 +945,30 @@ function stepLightbox(step: number) {
 
 async function onScreenshotFileChange(event: Event) {
   const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
+  const files = Array.from(input.files || [])
   input.value = ''
-  if (!file || !skill.value) return
+  if (!files.length || !skill.value) return
 
   isUploadingScreenshot.value = true
+  let uploadedCount = 0
+  let uploadError: unknown = null
   try {
-    const res = await screenshotsApi.upload(skillId.value, file)
-    skill.value.screenshots = res.screenshots
-    globalToast.success(t('skill.screenshotUploadSuccess'))
-  } catch (err: any) {
-    globalToast.error(err.message || t('skill.screenshotUploadFailed'))
+    // Keep the picked order and let the server apply its screenshot-count limit
+    // consistently, instead of racing several uploads at once.
+    for (const file of files) {
+      try {
+        const res = await screenshotsApi.upload(skillId.value, file)
+        skill.value.screenshots = res.screenshots
+        uploadedCount += 1
+      } catch (err) {
+        uploadError = err
+      }
+    }
+    if (uploadedCount) globalToast.success(t('skill.screenshotUploadSuccess'))
+    if (uploadError) {
+      const err = uploadError as { message?: string }
+      globalToast.error(err.message || t('skill.screenshotUploadFailed'))
+    }
   } finally {
     isUploadingScreenshot.value = false
   }
@@ -940,6 +995,8 @@ const showTagEditButton = true
 const editVersionMode = ref<'description' | 'changelog'>('description')
 const editVersionForm = ref({ version: '', description: '', changelog: '' })
 const isEditingVersion = ref(false)
+const descriptionEditorRef = ref<HTMLTextAreaElement | null>(null)
+const descriptionCharacterCount = computed(() => Array.from(editVersionForm.value.description).length)
 const isSavingTags = ref(false)
 const newCollaboratorUsername = ref('')
 const isAddingCollaborator = ref(false)
@@ -1025,8 +1082,8 @@ function normalizeLineEndings(content: string) {
 // Text file extensions
 const TEXT_EXTS = new Set([
   '.md', '.py', '.sh', '.bash', '.zsh',
-  '.js', '.jsx', '.ts', '.tsx', '.vue',
-  '.json', '.yaml', '.yml', '.toml', '.ini', '.cfg',
+  '.js', '.mjs', '.cjs', '.jsx', '.ts', '.mts', '.cts', '.tsx', '.vue', '.svelte',
+  '.json', '.jsonc', '.jsonl', '.yaml', '.yml', '.toml', '.ini', '.cfg',
   '.txt', '.text', '.log', '.csv',
   '.html', '.htm', '.css', '.scss', '.sass', '.less',
   '.xml', '.sql', '.go', '.rs', '.java', '.c', '.cpp',
@@ -1053,14 +1110,20 @@ function getLanguage(path: string) {
   const ext = path.split('.').pop()?.toLowerCase() || ''
   const langMap: Record<string, string> = {
     'js': 'javascript',
+    'mjs': 'javascript',
+    'cjs': 'javascript',
     'jsx': 'javascript',
     'ts': 'typescript',
+    'mts': 'typescript',
+    'cts': 'typescript',
     'tsx': 'typescript',
     'py': 'python',
     'sh': 'bash',
     'bash': 'bash',
     'zsh': 'bash',
     'json': 'json',
+    'jsonc': 'json',
+    'jsonl': 'json',
     'yaml': 'yaml',
     'yml': 'yaml',
     'html': 'html',
@@ -1080,6 +1143,7 @@ function getLanguage(path: string) {
     'swift': 'swift',
     'kt': 'kotlin',
     'vue': 'xml',
+    'svelte': 'xml',
     'xml': 'xml',
     'md': 'markdown',
     'toml': 'ini',
@@ -1226,6 +1290,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscKey)
+  if (isFullscreen.value) document.body.style.overflow = previousBodyOverflow
 })
 
 async function loadVersions() {
@@ -1534,10 +1599,12 @@ async function submitDeleteSkill() {
   }
 }
 
+let previousBodyOverflow = ''
 function toggleFullscreen() {
+  if (!isFullscreen.value) previousBodyOverflow = document.body.style.overflow
   isFullscreen.value = !isFullscreen.value
   // 全屏时禁止页面滚动
-  document.body.style.overflow = isFullscreen.value ? 'hidden' : ''
+  document.body.style.overflow = isFullscreen.value ? 'hidden' : previousBodyOverflow
 }
 
 function handleEscKey(e: KeyboardEvent) {
@@ -1551,7 +1618,7 @@ function handleEscKey(e: KeyboardEvent) {
   }
 }
 
-function openEditSkillDescription() {
+async function openEditSkillDescription() {
   editVersionMode.value = 'description'
   editVersionForm.value = {
     version: '',
@@ -1559,6 +1626,50 @@ function openEditSkillDescription() {
     changelog: ''
   }
   showEditVersionModal.value = true
+  await nextTick()
+  descriptionEditorRef.value?.focus()
+}
+
+async function replaceDescriptionSelection(value: string, selectionStart: number, selectionEnd: number) {
+  editVersionForm.value.description = value
+  await nextTick()
+  const editor = descriptionEditorRef.value
+  if (!editor) return
+  editor.focus()
+  editor.setSelectionRange(selectionStart, selectionEnd)
+}
+
+function wrapDescriptionSelection(prefix: string, suffix: string, placeholder: string) {
+  const editor = descriptionEditorRef.value
+  const value = editVersionForm.value.description
+  const start = editor?.selectionStart ?? value.length
+  const end = editor?.selectionEnd ?? start
+  const selected = value.slice(start, end) || placeholder
+  const nextValue = value.slice(0, start) + prefix + selected + suffix + value.slice(end)
+  void replaceDescriptionSelection(nextValue, start + prefix.length, start + prefix.length + selected.length)
+}
+
+function prefixDescriptionLine(prefix: string) {
+  const editor = descriptionEditorRef.value
+  const value = editVersionForm.value.description
+  const start = editor?.selectionStart ?? value.length
+  const end = editor?.selectionEnd ?? start
+  const lineStart = value.lastIndexOf('\n', start - 1) + 1
+  const lineEnd = value.indexOf('\n', end)
+  const selectedLines = value.slice(lineStart, lineEnd === -1 ? value.length : lineEnd)
+  const lineCount = selectedLines.split('\n').length
+  const nextLines = selectedLines.split('\n').map((line) => prefix + line).join('\n')
+  const nextValue = value.slice(0, lineStart) + nextLines + value.slice(lineEnd === -1 ? value.length : lineEnd)
+  void replaceDescriptionSelection(nextValue, start + prefix.length, end + prefix.length * lineCount)
+}
+
+function insertDescriptionText(text: string) {
+  const editor = descriptionEditorRef.value
+  const value = editVersionForm.value.description
+  const start = editor?.selectionStart ?? value.length
+  const end = editor?.selectionEnd ?? start
+  const nextValue = value.slice(0, start) + text + value.slice(end)
+  void replaceDescriptionSelection(nextValue, start + text.length, start + text.length)
 }
 
 function openEditVersionModal(v: SkillVersion, mode: 'changelog') {
@@ -1767,6 +1878,12 @@ html[data-theme="light"] .card {
   color: var(--color-fg);
   line-height: 1.7;
   overflow-wrap: break-word;
+}
+/* Frontmatter values are document content, not input-like controls. */
+.md-frontmatter-list > dd > * {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .md-frontmatter-items {
   margin: 0;
@@ -1977,6 +2094,11 @@ html[data-theme="light"] .card {
 .skill-title { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.25; overflow-wrap: anywhere; }
 .skill-desc-wrap { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 20px; }
 .skill-desc { min-width: 0; flex: 1; font-size: 14px; line-height: 1.8; color: var(--color-fg); overflow-wrap: anywhere; }
+.skill-desc.markdown-body :deep(h1):first-child,
+.skill-desc.markdown-body :deep(h2):first-child,
+.skill-desc.markdown-body :deep(h3):first-child,
+.skill-desc.markdown-body :deep(p):first-child { margin-top: 0; }
+.skill-desc.markdown-body :deep(p:last-child) { margin-bottom: 0; }
 .skill-desc-edit { margin-top: 2px; }
 .skill-install-panel { grid-column: 2; grid-row: 1 / 3; min-width: 0; padding: 0; }
 .skill-panel-title { margin-bottom: 16px; font-size: 15px; font-weight: 600; color: var(--color-fg-strong); }
@@ -1987,7 +2109,7 @@ html[data-theme="light"] .card {
 .skill-download-button:hover { background: var(--color-fg); }
 .skill-compare-button { order: 2; color: var(--color-base-400); }
 .skill-compare-button:hover { color: var(--color-fg-strong); background: var(--color-base-900); }
-.skill-file-workspace { display: grid; grid-template-columns: 180px minmax(0, 1fr); border: 0; border-radius: 0; overflow: hidden; margin-bottom: 24px; background: var(--color-base-950); }
+.skill-file-workspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); border: 0; border-radius: 0; overflow: hidden; margin-bottom: 24px; background: var(--color-base-950); }
 .skill-file-tree, .skill-file-preview { display: flex; flex-direction: column; min-width: 0; height: 600px; }
 .skill-file-tree { border-right: 1px solid var(--color-base-800); background: var(--color-base-900); }
 .skill-file-toolbar { display: flex; align-items: center; min-height: 52px; padding: 10px 16px; border-bottom: 1px solid var(--color-base-800); color: var(--color-base-400); font-size: 13px; gap: 12px; }
@@ -2122,62 +2244,24 @@ html[data-theme="light"] .card {
   font-size: 0.875rem;
 }
 
-/* Fullscreen mode：整列阅读宽度上限 800px，水平居中 */
-#file-preview-panel.fullscreen {
+/* Keep navigation and preview together when expanded. */
+.skill-file-workspace.fullscreen {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 100;
-  max-height: none;
-  min-height: 100vh;
+  inset: 0;
+  z-index: 1000;
   height: 100dvh;
-  background: var(--color-base-950);
-  border-radius: 0;
-  border: none;
+  margin: 0;
+  grid-template-columns: clamp(260px, 28vw, 420px) minmax(0, 1fr);
 }
-
-/* 不用 align-items:center，否则 flex-1 的 #file-content 竖向撑不满 */
-#file-preview-panel.fullscreen > div:first-of-type,
-#file-preview-panel.fullscreen > #file-content {
-  max-width: 800px;
-  width: 100%;
-  box-sizing: border-box;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#file-preview-panel.fullscreen > div:first-of-type {
-  flex-shrink: 0;
-}
-
-#file-preview-panel.fullscreen > #file-content {
-  flex: 1 1 0;
-  min-height: 0;
-}
-
-#file-preview-panel.fullscreen :deep(#file-content) {
-  max-height: calc(100vh - 52px);
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Prevent double scrollbar in markdown preview */
-#file-preview-panel.fullscreen :deep(#file-content) > .markdown-body {
-  overflow: visible;
-  max-height: none;
-}
-
-/* Ensure only file-content has scrollbar in fullscreen */
-#file-preview-panel.fullscreen :deep(.markdown-body pre) {
-  overflow: visible;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-#file-preview-panel.fullscreen .rounded-t-xl {
-  border-radius: 0;
+.skill-file-workspace.fullscreen > div { height: 100%; min-height: 0; }
+.skill-file-toolbar { flex-shrink: 0; }
+#file-content, #file-tree { min-height: 0; }
+.version-changelog { font-size: 14px; overflow-wrap: anywhere; overflow-x: auto; }
+@media (max-width: 600px) {
+  .skill-file-workspace.fullscreen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(100px, 25dvh) minmax(0, 1fr);
+  }
 }
 
 /* Cube Loader */
@@ -2309,6 +2393,9 @@ html[data-theme="light"] .card {
   color: var(--color-fg);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
 }
+.modal-content--editor {
+  max-width: 760px;
+}
 
 .modal-header {
   display: flex;
@@ -2338,6 +2425,70 @@ html[data-theme="light"] .card {
 
 .modal-body {
   margin-bottom: 1.5rem;
+}
+
+.description-editor {
+  border: 1px solid var(--color-base-700);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-base-950);
+}
+.description-editor:focus-within {
+  border-color: var(--color-neon-400);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.description-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 38px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-base-800);
+  background: var(--color-base-900);
+}
+.description-editor-toolbar button {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-base-300);
+  font-size: 13px;
+  cursor: pointer;
+}
+.description-editor-toolbar button:hover,
+.description-editor-toolbar button:focus-visible {
+  background: var(--color-base-800);
+  color: var(--color-fg-strong);
+  outline: none;
+}
+.description-editor-hint {
+  margin-left: auto;
+  color: var(--color-base-500);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.description-editor-input {
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  resize: vertical;
+  border: 0;
+  border-radius: 0;
+  padding: 14px 16px;
+  background: transparent;
+  color: var(--color-fg);
+  font: 14px/1.75 var(--font-sans);
+  outline: none;
+}
+.description-editor-footer {
+  padding: 6px 12px;
+  border-top: 1px solid var(--color-base-800);
+  color: var(--color-base-500);
+  font-size: 11px;
+  text-align: right;
 }
 
 .form-group {
@@ -2424,7 +2575,7 @@ html[data-theme="light"] .card {
 @media (max-width: 600px) { .danger-setting { align-items: flex-start; flex-direction: column; } .skill-hero { gap: 20px; } }
 .skill-detail-content > div > .bg-base-900 { background: transparent; border: 0; border-radius: 0; }
 .install-methods { background: transparent; border: 0; border-bottom: 1px solid var(--color-base-800); border-radius: 0; padding: 0; }
-.install-methods button { border-radius: 0; }
+.install-methods button { flex: 1; min-width: 0; white-space: nowrap; padding-inline: 4px; border-radius: 0; }
 .skill-file-tree { background: transparent; }
 </style>
 

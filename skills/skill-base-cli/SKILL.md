@@ -34,7 +34,7 @@ Web detail pages offer AI Agent prompts and CLI commands bound to the selected v
 
 Web contributor profiles at `/users/:id` list skills the user published versions for. Publishing via `skb publish` or GitHub import contributes to the same history; no separate CLI profile command is required.
 
-The Web publish form now reveals confirmation after content is read. CLI publish and GitHub-import arguments are unchanged.
+The Web publish form shows the final included and excluded files before upload. CLI publishing supports preview and ignore rules; GitHub-import arguments are unchanged.
 
 ## Environment
 
@@ -110,6 +110,9 @@ skb delete <skill_id> -d <directory> -y
 - If **no frontmatter is used**: Use the folder name as the skill name; the first paragraph of non-`#` text under the title is the skill description (can be overridden with `--description`)
 - Execute in the skill directory: `skb publish`; or execute from any location: `skb publish <skill_folder_path>`
 - Common usage: `skb publish <path> --changelog "description"`
+- The Skill root's `.gitignore` and `.skillbaseignore` apply by default. Use repeatable `--ignore <pattern>` for one run, or `--no-gitignore` when the user intentionally wants files ignored by Git. `.cursor` and `.codebuddy` are included unless an ignore rule excludes them.
+- Run `skb publish <path> --dry-run` with the same ignore options first. It needs no login and lists included and excluded paths without uploading.
+- Before an agent-initiated real publish, show the final file list and target Skill ID to the user and ask for approval. An explicit user request that already identifies the target and contents supplies that approval; do not ask twice.
 - After publishing, describe the result to the user in 2 sentences, no need to be verbose
 
 ## Import from GitHub (public repos, skill-base login required)
@@ -126,3 +129,5 @@ skb delete <skill_id> -d <directory> -y
 - Check if it's a network issue, can use ping/telnet to confirm
 - Publish failure: First **`skb login`**; then verify **`SKB_BASE_URL`**, folder name and frontmatter **`name`** are consistent and match `[\w-]+`, check `SKILL.md` and network
 - Install failure: Use **`skb search`** to verify `skill_id`; when unsure of version, use `skb install <skill_id>` to install latest
+
+Web-generated commands leave ordinary URLs and skill IDs unquoted; arguments with spaces or shell separators use double quotes for Windows CMD compatibility. If a server URL was saved with literal single quotes, rerun `skb init --server "https://your-server"`. Collection detail pages also offer a direct-ZIP AI Agent prompt to install each skill separately.

@@ -95,6 +95,11 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 任何涉及 Skill/Version/User 的写路径都应在数据库写入成功后显式失效相关缓存，不要尝试做“通用 SQL 缓存”。
 - `node-sqlite3-wasm` 用 `data/skills.db.lock` 空目录当互斥锁。`npm run dev` 只 watch `src/`（见 `nodemon.json`），并对 SIGUSR2 做 close；否则 nodemon 重启会留下锁目录，下次启动报 `database is locked`。残留空目录且确认无其它进程时，删掉即可。
 
+## Publishing and HOL Guard
+
+- `skb publish` 的发布行为或 CLI 参数发生变化时，同步检查并更新 `hashgraph-online/hol-guard` 中 Skill Base 的 opt-in extension 规则与 matcher tests；规则应继续要求用户审阅真实发布命令，并验证 `--help` 等非执行用法不误命中。该扩展位于外部 Guard 仓库，不属于本仓库 CI 或运行时依赖。
+- 发布文件过滤需按入口分别核对：Web 文件夹、拖拽和 ZIP 入口用 `web/src/utils/publish-ignore.ts` 生成最终文件清单，设置按 Skill 名称保存在浏览器；CLI 用 `.gitignore`、`.skillbaseignore`、`--ignore` 和 `--dry-run`。服务端仍仅剔除 `__MACOSX` 条目；GitHub 导入由服务端拉取，不使用本地发布过滤。Desktop 当前没有独立 publish IPC，发布页走 Web 流程。变更忽略策略时检查入口是否一致，并同步文档与测试。
+
 ## Code Style
 
 - 使用 CommonJS 模块系统
@@ -138,3 +143,15 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - [ ] **AGENTS.md** - 本文件，检查开发规范、注意事项是否需要补充
 
 > 💡 **文档优先原则**：代码改动完成后，应当立即更新相关文档，确保文档与代码保持同步。
+
+- Web 安装命令的常规参数不加引号，必要时使用 Windows CMD 可识别的双引号，避免把单引号写入服务器地址或 Skill ID；集合 AI Agent 提示词使用含部署子路径的集合 ZIP 链接，按独立技能目录安装，并保留鉴权及本地 ZIP 回退说明。
+
+- 集合详情安装区与技能详情保持一致：ZIP / AI Agent / 命令行切换，AI 提示词预览固定 54px、内部滚动，提供完整内容复制。
+
+- 集合详情右侧不重复展示 COLLECTION 徽章或“批量安装”标题，使用紧凑的标题、描述、统计与安装页签，整体高度尽量接近 CD 封面。
+
+- 安装说明中的 skb 通过 InstallHint 链接到 npm skill-base-cli；安装方式使用 ZIP、npx skills、AI Agent、CLI 短标签，保持单行均分宽度，不使用横向滚动条。
+
+- 技能文件预览的文本扩展名与语法高亮映射应覆盖常见 JavaScript / TypeScript 模块（含 mjs、cjs、mts、cts、tsx），新增格式时同步检查两者。
+
+版本历史更新说明使用 Markdown 渲染并清理不安全 HTML。文件全屏应覆盖目录树和内容区，保留 Esc 退出；目录树支持横向滚动，文件及目录行提供完整路径 title。

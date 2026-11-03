@@ -123,9 +123,13 @@ skb update vue-best-practices -d ./.cursor/skills
 ```bash
 skb publish ./my-skill --changelog "初始版本"
 skb publish --name "My Skill" --description "A useful skill"
+skb publish ./my-skill --dry-run
+skb publish ./my-skill --ignore '.cursor/'
 ```
 
 要求：已登录；目录包含 `SKILL.md`；文件夹名作为 `skill_id`。名称和描述可从 frontmatter 自动解析。
+
+默认读取 Skill 根目录的 `.gitignore` 和 `.skillbaseignore`（后者可保存发布专用规则）。`--ignore <pattern>` 可重复传入单次规则，`--no-gitignore` 可关闭读取 `.gitignore`；`--dry-run` 无需登录，只列出打包与忽略路径。`.git`、`__MACOSX`、`.DS_Store` 和根目录 `.gitignore` 始终排除；`.cursor`、`.codebuddy` 默认保留。AI Agent 应先展示 `--dry-run` 清单，取得用户确认后再真实发布。
 
 ## 从 GitHub 导入
 

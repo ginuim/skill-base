@@ -123,6 +123,18 @@ const S = {
     zh: '版本更新说明',
     en: 'Version changelog'
   },
+  publishIgnore: {
+    zh: '额外忽略的路径规则（可重复，使用 .gitignore 语法）',
+    en: 'Additional ignore pattern (repeatable, .gitignore syntax)'
+  },
+  publishNoGitignore: {
+    zh: '不读取 Skill 根目录的 .gitignore',
+    en: 'Do not read the Skill root .gitignore'
+  },
+  publishDryRun: {
+    zh: '只列出实际打包和忽略的文件，不上传',
+    en: 'List included and excluded files without uploading'
+  },
   importGithub: {
     zh: '从公开 GitHub 仓库导入 Skill 到当前 Skill Base（服务端拉取 zipball）',
     en: 'Import a skill from a public GitHub repo into this Skill Base (server downloads zipball)'
@@ -238,6 +250,9 @@ program
   .option('--name <name>', pickMessage(S.publishName))
   .option('--description <desc>', pickMessage(S.publishDesc))
   .option('--changelog <log>', pickMessage(S.publishChangelog), pickMessage({ zh: '更新版本', en: 'Update version' }))
+  .option('--ignore <pattern>', pickMessage(S.publishIgnore), (value, previous) => [...previous, value], [])
+  .option('--no-gitignore', pickMessage(S.publishNoGitignore))
+  .option('--dry-run', pickMessage(S.publishDryRun))
   .action(publish);
 
 program

@@ -51,7 +51,6 @@
         </div>
 
         <div class="collection-hero-info">
-          <span class="collection-detail-badge">COLLECTION</span>
           <h1 class="collection-detail-title">{{ collection.name }}</h1>
           <p class="collection-detail-desc">{{ collection.description || t('state.noDesc') }}</p>
 
@@ -75,12 +74,23 @@
           </dl>
 
           <div class="collection-install-section">
-            <p class="collection-install-label">{{ t('collections.installCommand') }}</p>
-            <p class="collection-install-hint">{{ t('collections.installHint') }}</p>
+            <div class="collection-install-methods" role="group" :aria-label="t('skill.installTitle')">
+              <button v-for="method in installMethods" :key="method" type="button"
+                :aria-pressed="installMethod === method" :class="{ 'is-selected': installMethod === method }"
+                @click="installMethod = method">{{ t(`skill.${method}Method`) }}</button>
+            </div>
+            <InstallHint class="collection-install-hint" :text="t(installMethod === 'cli' ? 'collections.installHint' : `skill.${installMethod}Hint`)" />
             <div class="collection-install-actions">
-              <CollectionInstallBar :collection-slug="collection.slug" />
+              <CollectionInstallBar v-if="installMethod === 'cli'" :collection-slug="collection.slug" />
+              <div v-else-if="installMethod === 'agent'" class="collection-agent-install">
+                <pre tabindex="0">{{ agentInstallPrompt }}</pre>
+                <button type="button" class="collection-install-copy" @click="copyAgentPrompt">
+                  <Copy :size="14" aria-hidden="true" />{{ t('skill.copyPrompt') }}
+                </button>
+              </div>
               <button
                 type="button"
+                v-if="installMethod === 'download'"
                 class="collection-download-btn"
                 :title="t('collections.downloadAll')"
                 :disabled="isDownloading"
@@ -116,7 +126,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ChevronLeft, Download, Frown } from 'lucide-vue-next'
+import { ChevronLeft, Copy, Download, Frown } from 'lucide-vue-next'
+import InstallHint from '@/components/InstallHint.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useSkillViewMode } from '@/composables/useSkillViewMode'
 import { useAuthStore } from '@/stores/auth'
@@ -124,6 +135,7 @@ import CollectionBookCover from '@/components/CollectionBookCover.vue'
 import CollectionInstallBar from '@/components/CollectionInstallBar.vue'
 import SkillListDisplay from '@/components/SkillListDisplay.vue'
 import SkillViewModeToggle from '@/components/SkillViewModeToggle.vue'
+import { withBasePath } from '@/utils/basePath'
 import { formatDate, formatDateFull } from '@/utils/date'
 import { globalToast } from '@/composables/useToast'
 import { collectionsApi, type ApiError, type Collection, type Skill } from '@/services/api'
@@ -140,6 +152,24 @@ const error = ref<string | null>(null)
 const errorStatus = ref<number | null>(null)
 const errorCode = ref<string | null>(null)
 const isDownloading = ref(false)
+const installMethods = ['download', 'agent', 'cli'] as const
+const installMethod = ref<typeof installMethods[number]>('download')
+
+const agentInstallPrompt = computed(() => {
+  if (!collection.value) return ''
+  const page = new URL(withBasePath(`/collections/${collection.value.id}`), window.location.origin).href
+  const zip = new URL(collectionsApi.downloadUrl(collection.value.slug), window.location.origin).href
+  return `${t('collections.agentPrompt')}\n${page}\n\nZIP: ${zip}\n\n${t('collections.agentArchiveHint')}\n\n${t('skill.agentPromptEnd')}`
+})
+
+async function copyAgentPrompt() {
+  try {
+    await navigator.clipboard.writeText(agentInstallPrompt.value)
+    globalToast.success(t('skill.copyInstallSuccess'))
+  } catch {
+    globalToast.error(t('collections.copyPromptError'))
+  }
+}
 
 const loginRedirect = computed(() => ({
   path: '/login',
@@ -228,6 +258,13 @@ watch(() => route.params.id, loadDetail)
 </script>
 
 <style scoped>
+.collection-install-methods { display: flex; border-bottom: 1px solid var(--color-base-800); margin-bottom: 10px; }
+.collection-install-methods button { flex: 1; min-width: 0; white-space: nowrap; padding: 7px; font-size: 12px; color: var(--color-base-400); cursor: pointer; border-bottom: 2px solid transparent; }
+.collection-install-methods .is-selected { color: var(--color-fg-strong); border-bottom-color: var(--color-fg-strong); }
+.collection-agent-install { width: 100%; min-width: 0; overflow: hidden; }
+.collection-agent-install pre { margin: 0; padding: 4px 0; height: 54px; max-height: 54px; box-sizing: border-box; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; }
+.collection-install-copy { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 5px 0; border-top: 1px solid var(--color-base-800); color: var(--color-fg-strong); font-size: 12px; cursor: pointer; }
+
 .collection-back-link {
   display: inline-flex;
   align-items: center;
@@ -325,29 +362,16 @@ watch(() => route.params.id, loadDetail)
   min-width: 0;
 }
 
-.collection-detail-badge {
-  display: inline-flex;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--color-neon-400);
-  background: rgba(var(--color-neon-rgb), 0.1);
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.25rem;
-  border: 1px solid rgba(var(--color-neon-rgb), 0.2);
-  letter-spacing: 0.05em;
-}
-
 .collection-detail-title {
-  margin: 0.75rem 0 0.5rem;
-  font-family: 'JetBrains Mono', monospace;
+  margin: 0 0 0.5rem;
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 650;
+  letter-spacing: -0.03em;
   color: var(--color-fg-strong);
 }
 
 .collection-detail-desc {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.75rem;
   font-size: 0.9375rem;
   color: var(--color-base-300);
   line-height: 1.6;
@@ -362,8 +386,7 @@ watch(() => route.params.id, loadDetail)
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.75rem;
-  margin: 0 0 1.5rem;
-  font-family: 'JetBrains Mono', monospace;
+  margin: 0 0 0.875rem;
   font-size: 0.8125rem;
 }
 
@@ -388,17 +411,12 @@ watch(() => route.params.id, loadDetail)
 }
 
 .collection-install-section {
+  width: 100%;
+  max-width: 580px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-}
-
-.collection-install-label {
-  margin: 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-base-300);
 }
 
 .collection-install-hint {
