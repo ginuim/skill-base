@@ -38,7 +38,7 @@ pnpm add -g skill-base-cli
 skb init -s http://your-team-server
 ```
 
-填写站点根 URL（不要带 `/api` 后缀），配置写入 `~/.skill-base/config.json`。
+填写站点根 URL（不要带 `/api` 后缀），配置写入 `~/.skill-base/config.json`。需要同时使用多个服务（如生产和 QA）时，可使用命名配置，见 [CLI › 多环境](cli.md#多环境profile)。
 
 **发布**需要登录；搜索和安装通常不需要：
 

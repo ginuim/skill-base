@@ -38,7 +38,7 @@ Or use `npx skill-base-cli` without a global install.
 skb init -s http://your-team-server
 ```
 
-Use the site root URL (no `/api` suffix). The config is saved to `~/.skill-base/config.json`.
+Use the site root URL (no `/api` suffix). The config is saved to `~/.skill-base/config.json`. Working with several servers (e.g. prod and qa)? Use named profiles — see [CLI › Multiple environments](cli.md#multiple-environments-profiles).
 
 Login is only required for **publish** (and other write operations that need auth). Search and install usually work without login:
 

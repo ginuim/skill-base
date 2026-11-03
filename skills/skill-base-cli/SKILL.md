@@ -1,11 +1,14 @@
 ---
 name: skill-base-cli
 description: >-
-  The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install (single skill or collection), update, delete, publish, and import-from-GitHub skills from Skill Base, as well as configure skb. Triggered when users say "publish skill to skill base", "install collection", "import skill from github", "download/update/delete skill from skill base", "configure skb", "am I logged in", "check skb login", or "configure skill-base-cli".
+  The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install (single skill or collection), update, delete, publish, and import-from-GitHub skills from Skill Base, as well as configure skb and manage multiple environment profiles (e.g. prod / qa servers, each with its own login). Triggered when users say "publish skill to skill base", "install collection", "import skill from github", "download/update/delete skill from skill base", "configure skb", "add/switch skb profile", "publish to qa / prod skill base", "am I logged in", "check skb login", or "configure skill-base-cli".
 keywords:
   - skill-base-cli
   - skb
   - whoami
+  - skb config
+  - profile
+  - switch environment
   - install skill
   - install collection
   - collection
@@ -23,7 +26,8 @@ Assistants should complete operations by **running terminal commands**. Package 
 ## When to Use This Skill
 - Users request to search, install, update, delete, or publish specific skills using the `skb` command.
 - Users want to install an admin-curated **collection** (recommended skill pack) in one shot.
-- Users need to configure the client connection address (`skb init`) or log in (`skb login`).
+- Users need to configure the client connection address (`skb init` / `skb config`) or log in (`skb login`).
+- Users work with **multiple Skill Base environments** (e.g. prod and qa) and want to add, view, switch, or target a specific one.
 - Users want to **search, install, update, or publish** Skills to a privately deployed Skill Base site.
 
 ## When NOT to Use This Skill
@@ -40,8 +44,30 @@ The Web publish form shows the final included and excluded files before upload. 
 
 - Node.js >= 18
 - Installation: `npm install -g skill-base-cli`, or `npx skill-base-cli <subcommand>`
-- Server address: Environment variable **`SKB_BASE_URL`** takes priority, otherwise reads **`~/.skill-base/config.json`**, default is `http://127.0.0.1:8000`
-- Set and save: `skb init --server <site root URL>` (do not include `/api`)
+- Server address resolution: **`SKB_BASE_URL`** env var > active profile in **`~/.skill-base/config.json`** > default `http://127.0.0.1:8000`
+- Active profile resolution: global flag **`--profile <name>`** > env var **`SKB_PROFILE`** > `currentProfile` saved by `skb config use`
+- Set and save the active profile's server: `skb init --server <site root URL>` (do not include `/api`)
+
+## Multiple Environments (Profiles)
+
+Each profile is a named server URL with **its own login token**, so logging in to qa does not overwrite prod. Tokens live in `~/.skill-base/credentials.json` keyed by profile name.
+
+```bash
+skb config list                          # or: skb config ls; "*" marks the active profile
+skb config show [name]                   # details of a profile (default: active); token is masked
+skb config add qa -s https://qa.example.com [--use]   # add; --use switches to it
+skb config set qa -s <new_url>           # change server URL
+skb config set qa --rename test          # rename (credentials move with it)
+skb config use qa                        # switch current profile (alias: switch)
+skb config remove qa [-y]                # delete profile and its saved token (alias: rm)
+```
+
+- `list` / `show` support `--json` for scripts.
+- Run any command against another profile **without switching**: `skb --profile qa <command>` (e.g. `skb --profile qa login`, `skb --profile qa publish ./my-skill`), or `SKB_PROFILE=qa skb <command>`.
+- An explicitly selected profile that does not exist makes the command fail and lists available profiles.
+- When the user names an environment ("publish to qa", "install from prod"), check `skb config list` first and pass `--profile <name>` rather than switching the user's current profile.
+- Profile names: letters, digits, `.`, `_`, `-`.
+- Legacy single-server configs are read as a profile named `default`.
 
 ## Login and Authentication Rules (Important)
 - **No login required**: `search`, `install`, `update`, `init` and other regular read operations usually do not require login. Assistants **should not** proactively ask users to log in before these operations.
@@ -51,8 +77,9 @@ The Web publish form shows the final included and excluded files before upload. 
   2. The console will output a login page URL containing `from=cli`, open the login page in a browser.
   3. After successful web login, a **verification code** (in the format `XXXX-XXXX`) will be provided.
   4. Enter the verification code in the terminal to exchange for a PAT.
-- Logout: `skb logout`.
-- Check login: `skb whoami` (calls `GET /api/v1/auth/me` with the saved PAT; exit `0` if valid). Use `skb whoami -q` for scripts (exit code only) or `skb whoami --json` for machine-readable output.
+- Login, logout and whoami act on the **active profile** only; use `skb --profile <name> login` to log in to another environment. The verification code prompt is interactive, so the user must run it themselves.
+- Logout: `skb logout` (clears only the active profile's token).
+- Check login: `skb whoami` (calls `GET /api/v1/auth/me` with the saved PAT; exit `0` if valid; output includes the profile). Use `skb whoami -q` for scripts (exit code only) or `skb whoami --json` for machine-readable output. `skb config list` shows login status of every profile.
 
 ## Local Web UI
 
@@ -124,10 +151,11 @@ skb delete <skill_id> -d <directory> -y
 
 ## Troubleshooting Failures
 
-- First confirm **`SKB_BASE_URL`** points to the instance the user wants to use, as skill-base can be deployed internally and ports can be changed, verify the address is correct
+- First confirm the **active profile** (`skb config show`) points to the instance the user wants to use, and that **`SKB_BASE_URL`** / **`SKB_PROFILE`** are not overriding it unexpectedly, as skill-base can be deployed internally and ports can be changed, verify the address is correct
 - If the user deployed skill-base on a server, most servers need inbound/outbound port configuration to be accessible, users need to check if the address is accessible in the browser
 - Check if it's a network issue, can use ping/telnet to confirm
-- Publish failure: First **`skb login`**; then verify **`SKB_BASE_URL`**, folder name and frontmatter **`name`** are consistent and match `[\w-]+`, check `SKILL.md` and network
+- `401` / "Authentication required": the token of that profile is missing or expired — re-run `skb login` (with `--profile <name>` for a non-active profile)
+- Publish failure: First **`skb login`** for the target profile; then verify the profile server URL, folder name and frontmatter **`name`** are consistent and match `[\w-]+`, check `SKILL.md` and network
 - Install failure: Use **`skb search`** to verify `skill_id`; when unsure of version, use `skb install <skill_id>` to install latest
 
 Web-generated commands leave ordinary URLs and skill IDs unquoted; arguments with spaces or shell separators use double quotes for Windows CMD compatibility. If a server URL was saved with literal single quotes, rerun `skb init --server "https://your-server"`. Collection detail pages also offer a direct-ZIP AI Agent prompt to install each skill separately.
