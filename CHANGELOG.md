@@ -8,6 +8,10 @@ Desktop builds use the separate [desktop-latest](https://github.com/ginuim/skill
 
 ## [Unreleased]
 
+### Added
+
+- Web: open relative links in the file Markdown preview inside the current version, resolving `./`, `../` and URL-encoded paths without leaving the archive root
+
 ## [2.0.53] - 2026-10-30
 
 ### Changed

@@ -155,3 +155,5 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 - 技能文件预览的文本扩展名与语法高亮映射应覆盖常见 JavaScript / TypeScript 模块（含 mjs、cjs、mts、cts、tsx），新增格式时同步检查两者。
 
 版本历史更新说明使用 Markdown 渲染并清理不安全 HTML。文件全屏应覆盖目录树和内容区，保留 Esc 退出；目录树支持横向滚动，文件及目录行提供完整路径 title。
+
+技能文件 Markdown 预览中的相对文档链接按当前文件目录解析，在当前版本文件预览内打开；支持 `./`、`../` 和 URL 编码路径，禁止越出压缩包根目录。

@@ -283,7 +283,7 @@
                     </template>
                   </dl>
                 </div>
-                <div class="markdown-body-content" v-html="renderedMarkdown"></div>
+                <div class="markdown-body-content" @click="onMarkdownLinkClick" v-html="renderedMarkdown"></div>
               </div>
               <div v-else-if="isMarkdownFile && markdownMode === 'source'" class="code-line-grid">
                 <div v-for="(line, i) in selectedFileLines" :key="i" class="code-line-row">
@@ -1451,6 +1451,31 @@ function expandAncestorsForFilePath(nodes: any[], filePath: string) {
     dir.isOpen = true
     level = dir.children || []
   }
+}
+
+/** Resolve archive links relative to the document, never the application route. */
+async function onMarkdownLinkClick(event: MouseEvent) {
+  const anchor = (event.target as Element).closest('a')
+  const href = anchor?.getAttribute('href')
+  if (!href || /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/)/i.test(href)) return
+  if (href.startsWith('#')) return
+  event.preventDefault()
+  let relativePath: string
+  try {
+    relativePath = decodeURIComponent(href.split(/[?#]/)[0]!)
+  } catch { return }
+  const parts = selectedFilePath.value.split('/').slice(0, -1)
+  for (const part of relativePath.split('/')) {
+    if (!part || part === '.') continue
+    if (part === '..') {
+      if (!parts.length) return
+      parts.pop()
+    } else parts.push(part)
+  }
+  const path = parts.join('/')
+  if (!currentZip.value?.file(path)) return
+  expandAncestorsForFilePath(fileTree.value, path)
+  await selectFileByPath(path)
 }
 
 async function selectFileByPath(path: string) {
