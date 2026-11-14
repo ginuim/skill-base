@@ -8,7 +8,11 @@ data
 .qoder/
 .cursor/
 .pnpm-store/
-static/
+# Build output lives in static/, but the generated entry point is tracked so
+# deploys and the npm package always carry it. Use `static/*` (not `static/`)
+# because git cannot re-include a file under an excluded directory.
+static/*
+!static/index.html
 /scripts/
 promo-video/
 .repo_memory/
