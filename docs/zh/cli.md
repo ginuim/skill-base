@@ -32,11 +32,37 @@ skb init -s https://skill.example.com
 export SKB_BASE_URL=https://skill.example.com
 ```
 
+### 多环境（profile）
+
+如果同时使用多个 Skill Base 实例（例如生产和 QA），可以把每个实例保存为一个命名配置。每个配置有独立的服务地址**和独立的登录凭证**，登录其中一个不会覆盖另一个。
+
+```bash
+skb config add prod -s https://skill.example.com --use
+skb config add qa -s https://qa-skill.example.com
+skb config list                      # * 为当前生效的配置，并显示登录状态
+skb config show [name]               # 查看详情（令牌脱敏），默认当前配置
+skb config use qa                    # 切换当前配置（别名 switch）
+skb config set qa -s <url>           # 修改服务地址
+skb config set qa --rename test      # 重命名，登录凭证随之迁移
+skb config remove qa                 # 删除配置及其凭证（别名 rm；-y 跳过确认）
+```
+
+不切换当前配置、只让单条命令使用另一个配置：
+
+```bash
+skb --profile qa login
+skb --profile qa publish ./my-skill
+SKB_PROFILE=qa skb search pdf
+```
+
+优先级 —— 配置：`--profile` > `SKB_PROFILE` > 当前配置；服务地址：`SKB_BASE_URL` > 当前生效配置 > 默认值。`skb init -s <url>` 修改的是当前生效配置的地址。`config list` / `config show` 支持 `--json`。已有的单服务器配置会自动识别为名为 `default` 的配置。
+
 ## 命令概览
 
 | 命令 | 说明 |
 |------|------|
 | `skb init` | 初始化 CLI 配置，设置服务地址 |
+| `skb config <子命令>` | 管理多环境配置：`list` / `show` / `add` / `set` / `use` / `remove` |
 | `skb login` | 登录并获取本地凭证 |
 | `skb logout` | 登出并清除本地凭证 |
 | `skb whoami` | 检查本地是否有令牌，并请求服务器校验登录是否仍有效 |
@@ -51,7 +77,7 @@ export SKB_BASE_URL=https://skill.example.com
 
 ## 本地 Web UI（`skb ui`）
 
-在**你执行命令时所在的工作目录**下，用浏览器完成搜索、安装与对已记录安装的更新；请求经本机进程代理到 `skb init` / `SKB_BASE_URL` 所配置的 Skill Base，并自动带上 `skb login` 保存的 PAT，避免浏览器直连远端时的 CORS 与凭据暴露问题。
+在**你执行命令时所在的工作目录**下，用浏览器完成搜索、安装与对已记录安装的更新；请求经本机进程代理到 `skb init` / `skb config` / `SKB_BASE_URL` 所配置的 Skill Base，并自动带上 `skb login` 保存的 PAT，避免浏览器直连远端时的 CORS 与凭据暴露问题。
 
 ```bash
 skb ui
@@ -94,7 +120,7 @@ skb login
 2. 登录后获取 8 位验证码
 3. 回到终端输入验证码完成登录
 
-本地凭证保存在 `~/.skill-base/credentials.json`。
+本地凭证按配置分别保存在 `~/.skill-base/credentials.json`。登录非当前配置：`skb --profile <name> login`。
 
 ### `skb logout`
 
@@ -102,11 +128,11 @@ skb login
 skb logout
 ```
 
-会清除本地登录凭证。
+会清除当前生效配置的本地登录凭证，其他配置不受影响。
 
 ### `skb whoami`
 
-用于确认「本机是否保存过 PAT」以及「该 PAT 在**当前配置的** Skill Base 上是否仍被接受」（例如令牌已从服务端撤销、用户被禁用、或 `SKB_BASE_URL` 指错实例）。
+用于确认「本机是否保存过 PAT」以及「该 PAT 在**当前配置的** Skill Base 上是否仍被接受」（例如令牌已从服务端撤销、用户被禁用、或当前配置 / `SKB_BASE_URL` 指错实例）。输出中会包含配置名。
 
 ```bash
 skb whoami
@@ -401,7 +427,7 @@ skb update my-awesome-skill
 
 - 确认验证码格式正确
 - 检查验证码是否已过期
-- 确认服务地址配置正确
+- 确认服务地址配置正确（`skb config show`）
 
 ### 安装或更新失败
 
@@ -411,7 +437,7 @@ skb update my-awesome-skill
 
 ### 发布失败
 
-- 确认已先执行 `skb login`
+- 确认已对目标配置执行过 `skb login`（`skb config list` 可查看登录状态）
 - 确认目录包含 `SKILL.md`
 - 检查目录名是否和预期的 `skill_id` 一致
 

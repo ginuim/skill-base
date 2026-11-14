@@ -26,12 +26,12 @@ function outJson(obj) {
 export default async function whoami(options) {
   const quiet = Boolean(options.quiet);
   const json = Boolean(options.json);
-  const { baseUrl } = getConfig();
+  const { baseUrl, profile } = getConfig();
   const cred = loadCredentials();
 
   if (!cred?.token) {
     if (json) {
-      outJson({ ok: false, reason: 'no_token', baseUrl, detail: pickMessage(M.noToken) });
+      outJson({ ok: false, reason: 'no_token', profile, baseUrl, detail: pickMessage(M.noToken) });
     } else if (!quiet) {
       console.error(chalk.red(pickMessage(M.noToken)));
     }
@@ -47,6 +47,7 @@ export default async function whoami(options) {
     if (json) {
       outJson({
         ok: true,
+        profile,
         baseUrl,
         user: {
           id: me.id,
@@ -63,8 +64,8 @@ export default async function whoami(options) {
       console.log(
         chalk.green(
           pickMessage({
-            zh: `已登录 · 用户 ${username} · 角色 ${role} · 服务 ${baseUrl}`,
-            en: `Logged in as ${username} · role ${role} · server ${baseUrl}`
+            zh: `已登录 · 用户 ${username} · 角色 ${role} · 配置 ${profile} · 服务 ${baseUrl}`,
+            en: `Logged in as ${username} · role ${role} · profile ${profile} · server ${baseUrl}`
           })
         )
       );
@@ -77,6 +78,7 @@ export default async function whoami(options) {
       outJson({
         ok: false,
         reason: isAuth ? 'invalid_token' : 'request_failed',
+        profile,
         baseUrl,
         detail: msg
       });

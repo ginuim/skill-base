@@ -34,11 +34,37 @@ Override with an environment variable:
 export SKB_BASE_URL=https://your-skill-base-server.com
 ```
 
+### Multiple environments (profiles)
+
+If you work with more than one Skill Base instance (e.g. prod and qa), save each as a named profile. Every profile has its own server URL **and its own login**, so logging in to one does not log you out of another.
+
+```bash
+skb config add prod -s https://skill.example.com --use
+skb config add qa -s https://qa-skill.example.com
+skb config list                      # "*" marks the active profile; shows login status
+skb config show [name]               # details (token masked); defaults to the active profile
+skb config use qa                    # switch the current profile (alias: switch)
+skb config set qa -s <url>           # change the server URL
+skb config set qa --rename test      # rename; credentials move with it
+skb config remove qa                 # delete the profile and its token (alias: rm; -y skips confirm)
+```
+
+Run a single command against another profile without switching:
+
+```bash
+skb --profile qa login
+skb --profile qa publish ./my-skill
+SKB_PROFILE=qa skb search pdf
+```
+
+Resolution order — profile: `--profile` > `SKB_PROFILE` > current profile; server URL: `SKB_BASE_URL` > active profile > default. `skb init -s <url>` sets the URL of the active profile. `config list` / `config show` accept `--json`. Existing single-server setups are picked up automatically as a profile named `default`.
+
 ## Command overview
 
 | Command | Description |
 |---------|-------------|
 | `skb init` | Initialize CLI config and set the server URL |
+| `skb config <subcommand>` | Manage environment profiles: `list` / `show` / `add` / `set` / `use` / `remove` |
 | `skb login` | Log in and store local credentials |
 | `skb logout` | Log out and clear local credentials |
 | `skb whoami` | Check whether a local token exists and verify login with the server |
@@ -58,6 +84,8 @@ skb login    # Browser login + verification code → PAT in ~/.skill-base/creden
 skb logout
 skb whoami   # -q for exit code only; --json for scripts
 ```
+
+`login`, `logout`, and `whoami` act on the active profile only; add `--profile <name>` to target another one.
 
 Login is required for `publish` and `import-github`. Search, install, update, and list usually do not require login.
 

@@ -118,7 +118,7 @@ Web 端支持：
 典型闭环：
 
 1. **服务端** — `npx skill-base -d <数据目录> -p <端口>` 或连已有部署（服务端任务用 `skill-base-web-deploy`）。
-2. **CLI 指向** — `skb init -s <站点根 URL>` → `~/.skill-base/config.json`（URL 不带 `/api`）。
+2. **CLI 指向** — `skb init -s <站点根 URL>` → `~/.skill-base/config.json`（URL 不带 `/api`）。多个服务（如生产 / QA）用 `skb config add <name> -s <url>` 配合 `--profile <name>`。
 3. **登录** — search/install 通常不需登录；**publish** 需要 `skb login`（浏览器或 `/cli-code` → 五分钟码 → 长期 PAT）。
 4. **日常** — `skb search` / `install` / `update` / `publish`，发布时带 `--changelog "..."`。
 

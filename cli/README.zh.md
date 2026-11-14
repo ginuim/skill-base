@@ -34,11 +34,37 @@ skb init -s https://your-skill-base-server.com
 export SKB_BASE_URL=https://your-skill-base-server.com
 ```
 
+### 多环境（profile）
+
+如果同时使用多个 Skill Base 实例（例如生产和 QA），可以把每个实例保存为一个命名配置。每个配置有独立的服务地址**和独立的登录凭证**，登录其中一个不会覆盖另一个。
+
+```bash
+skb config add prod -s https://skill.example.com --use
+skb config add qa -s https://qa-skill.example.com
+skb config list                      # * 为当前生效的配置，并显示登录状态
+skb config show [name]               # 查看详情（令牌脱敏），默认当前配置
+skb config use qa                    # 切换当前配置（别名 switch）
+skb config set qa -s <url>           # 修改服务地址
+skb config set qa --rename test      # 重命名，登录凭证随之迁移
+skb config remove qa                 # 删除配置及其凭证（别名 rm；-y 跳过确认）
+```
+
+不切换当前配置、只让单条命令使用另一个配置：
+
+```bash
+skb --profile qa login
+skb --profile qa publish ./my-skill
+SKB_PROFILE=qa skb search pdf
+```
+
+优先级 —— 配置：`--profile` > `SKB_PROFILE` > 当前配置；服务地址：`SKB_BASE_URL` > 当前生效配置 > 默认值。`skb init -s <url>` 修改的是当前生效配置的地址。`config list` / `config show` 支持 `--json`。已有的单服务器配置会自动识别为名为 `default` 的配置。
+
 ## 命令概览
 
 | 命令 | 说明 |
 |------|------|
 | `skb init` | 初始化 CLI 配置，设置服务地址 |
+| `skb config <子命令>` | 管理多环境配置：`list` / `show` / `add` / `set` / `use` / `remove` |
 | `skb login` | 登录并获取本地凭证 |
 | `skb logout` | 登出并清除本地凭证 |
 | `skb whoami` | 检查本地是否有令牌，并请求服务器校验登录是否仍有效 |
@@ -58,6 +84,8 @@ skb login    # 浏览器登录 + 验证码 → PAT 保存在 ~/.skill-base/crede
 skb logout
 skb whoami   # -q 仅退出码；--json 供脚本使用
 ```
+
+`login`、`logout`、`whoami` 只作用于当前生效的配置；加 `--profile <name>` 可指定其他配置。
 
 `publish` 和 `import-github` 需要先登录。搜索、安装、更新、列表等读操作通常不需要登录。
 

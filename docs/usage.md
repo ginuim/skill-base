@@ -116,7 +116,7 @@ Repository Skills (also on ClawHub):
 Typical loop after ClawHub install:
 
 1. **Server** — `npx skill-base -d <data-dir> -p <port>` or connect to an existing deployment (`skill-base-web-deploy` for server tasks).
-2. **CLI target** — `skb init -s <site-root-url>` → `~/.skill-base/config.json` (no `/api` suffix).
+2. **CLI target** — `skb init -s <site-root-url>` → `~/.skill-base/config.json` (no `/api` suffix). For several servers (e.g. prod / qa) use `skb config add <name> -s <url>` and `--profile <name>`.
 3. **Login** — search/install usually need no login; **publish** needs `skb login` (browser flow or `/cli-code` → five-minute code → long-lived PAT).
 4. **Day-to-day** — `skb search`, `install`, `update`, `publish` with `--changelog "..."`.
 

@@ -13,6 +13,8 @@ import publish from '../lib/commands/publish.js';
 import importGithub from '../lib/commands/import-github.js';
 import ui from '../lib/commands/ui.js';
 import whoami from '../lib/commands/whoami.js';
+import * as configCmd from '../lib/commands/config.js';
+import { loadProfiles } from '../lib/config.js';
 import { pickMessage } from '../lib/i18n.js';
 import { getSupportedIdeIds } from '../lib/ide.js';
 
@@ -167,6 +169,23 @@ const S = {
     zh: '监听地址（默认 127.0.0.1；0.0.0.0 表示所有网卡，注意局域网暴露风险）',
     en: 'Bind address (default 127.0.0.1; 0.0.0.0 exposes on LAN — use with care)'
   },
+  profile: {
+    zh: '本次命令使用的配置名（也可用 SKB_PROFILE 环境变量）',
+    en: 'Profile to use for this command (or SKB_PROFILE env var)'
+  },
+  config: {
+    zh: '管理多环境配置（查看 / 添加 / 修改 / 切换 / 删除）',
+    en: 'Manage environment profiles (list / show / add / set / use / remove)'
+  },
+  configList: { zh: '列出所有配置（* 为当前生效）', en: 'List all profiles (* = active)' },
+  configShow: { zh: '查看配置详情（默认当前配置）', en: 'Show profile details (defaults to active)' },
+  configAdd: { zh: '添加配置', en: 'Add a profile' },
+  configAddUse: { zh: '添加后立即切换到该配置', en: 'Switch to the profile after adding' },
+  configSet: { zh: '修改配置', en: 'Update a profile' },
+  configSetRename: { zh: '重命名配置（登录凭据随之迁移）', en: 'Rename the profile (credentials move with it)' },
+  configUse: { zh: '切换当前配置', en: 'Switch the current profile' },
+  configRemove: { zh: '删除配置及其登录凭据', en: 'Remove a profile and its credentials' },
+  json: { zh: '输出 JSON', en: 'Print JSON' },
   uiNoOpen: {
     zh: '不自动打开系统浏览器',
     en: 'Do not open the system browser'
@@ -176,7 +195,71 @@ const S = {
 program
   .name('skb')
   .description(pickMessage(S.rootDesc))
-  .version('1.0.0');
+  .version('1.0.0')
+  .option('--profile <name>', pickMessage(S.profile))
+  .hook('preAction', (thisCommand, actionCommand) => {
+    const { profile } = thisCommand.opts();
+    if (profile) process.env.SKB_PROFILE = profile;
+    const selected = process.env.SKB_PROFILE;
+    if (!selected) return;
+    // Explicitly selected profile must exist, except when creating it via init/config
+    const cmdPath = [];
+    for (let c = actionCommand; c && c !== thisCommand; c = c.parent) cmdPath.unshift(c.name());
+    if (cmdPath[0] === 'init' || cmdPath[0] === 'config') return;
+    const { profiles } = loadProfiles();
+    if (!profiles[selected]) {
+      const names = Object.keys(profiles);
+      console.error(
+        pickMessage({ zh: '配置不存在: ', en: 'Profile not found: ' }) + selected +
+        (names.length ? ` (${names.join(', ')})` : '')
+      );
+      process.exit(1);
+    }
+  });
+
+const config = program
+  .command('config')
+  .description(pickMessage(S.config));
+
+config
+  .command('list')
+  .alias('ls')
+  .description(pickMessage(S.configList))
+  .option('--json', pickMessage(S.json), false)
+  .action((opts) => configCmd.list(opts));
+
+config
+  .command('show [name]')
+  .description(pickMessage(S.configShow))
+  .option('--json', pickMessage(S.json), false)
+  .action((name, opts) => configCmd.show(name, opts));
+
+config
+  .command('add <name>')
+  .description(pickMessage(S.configAdd))
+  .requiredOption('-s, --server <url>', pickMessage(S.initServer))
+  .option('--use', pickMessage(S.configAddUse), false)
+  .action((name, opts) => configCmd.add(name, opts));
+
+config
+  .command('set <name>')
+  .description(pickMessage(S.configSet))
+  .option('-s, --server <url>', pickMessage(S.initServer))
+  .option('--rename <new_name>', pickMessage(S.configSetRename))
+  .action((name, opts) => configCmd.set(name, opts));
+
+config
+  .command('use <name>')
+  .alias('switch')
+  .description(pickMessage(S.configUse))
+  .action((name) => configCmd.use(name));
+
+config
+  .command('remove <name>')
+  .alias('rm')
+  .description(pickMessage(S.configRemove))
+  .option('-y, --yes', pickMessage(S.deleteYes), false)
+  .action((name, opts) => configCmd.remove(name, opts));
 
 program
   .command('init')

@@ -32,11 +32,37 @@ You can also override with an environment variable:
 export SKB_BASE_URL=https://skill.example.com
 ```
 
+### Multiple environments (profiles)
+
+If you work with more than one Skill Base instance (e.g. prod and qa), save each as a named profile. Every profile has its own server URL **and its own login**, so logging in to one does not log you out of another.
+
+```bash
+skb config add prod -s https://skill.example.com --use
+skb config add qa -s https://qa-skill.example.com
+skb config list                      # "*" marks the active profile; shows login status
+skb config show [name]               # details (token masked); defaults to the active profile
+skb config use qa                    # switch the current profile (alias: switch)
+skb config set qa -s <url>           # change the server URL
+skb config set qa --rename test      # rename; credentials move with it
+skb config remove qa                 # delete the profile and its token (alias: rm; -y skips confirm)
+```
+
+Run a single command against another profile without switching:
+
+```bash
+skb --profile qa login
+skb --profile qa publish ./my-skill
+SKB_PROFILE=qa skb search pdf
+```
+
+Resolution order — profile: `--profile` > `SKB_PROFILE` > current profile; server URL: `SKB_BASE_URL` > active profile > default. `skb init -s <url>` sets the URL of the active profile. `config list` / `config show` accept `--json`. Existing single-server setups are picked up automatically as a profile named `default`.
+
 ## Command overview
 
 | Command | Description |
 |---------|-------------|
 | `skb init` | Initialize CLI config and set the server URL |
+| `skb config <subcommand>` | Manage environment profiles: `list` / `show` / `add` / `set` / `use` / `remove` |
 | `skb login` | Log in and store local credentials |
 | `skb logout` | Log out and clear local credentials |
 | `skb whoami` | Check whether a local token exists and ask the server if login is still valid |
@@ -50,7 +76,7 @@ export SKB_BASE_URL=https://skill.example.com
 
 ## Local Web UI (`skb ui`)
 
-From **the working directory where you run the command**, use the browser to search, install, and update recorded installs. Requests are proxied through the local process to the Skill Base configured by `skb init` / `SKB_BASE_URL`, with the PAT saved by `skb login` attached automatically—avoiding CORS and credential exposure when the browser talks to the remote server directly.
+From **the working directory where you run the command**, use the browser to search, install, and update recorded installs. Requests are proxied through the local process to the Skill Base configured by `skb init` / `skb config` / `SKB_BASE_URL`, with the PAT saved by `skb login` attached automatically—avoiding CORS and credential exposure when the browser talks to the remote server directly.
 
 ```bash
 skb ui
@@ -93,7 +119,7 @@ Flow:
 2. After login, obtain an 8-digit verification code
 3. Return to the terminal and enter the code to complete login
 
-Local credentials are stored in `~/.skill-base/credentials.json`.
+Local credentials are stored per profile in `~/.skill-base/credentials.json`. To log in to a non-active profile: `skb --profile <name> login`.
 
 ### `skb logout`
 
@@ -101,11 +127,11 @@ Local credentials are stored in `~/.skill-base/credentials.json`.
 skb logout
 ```
 
-Clears local login credentials.
+Clears the active profile's local login credentials; other profiles are untouched.
 
 ### `skb whoami`
 
-Confirms whether **this machine has a saved PAT** and whether **that PAT is still accepted on the currently configured Skill Base** (e.g. token revoked on the server, user disabled, or `SKB_BASE_URL` pointing at the wrong instance).
+Confirms whether **this machine has a saved PAT** and whether **that PAT is still accepted on the currently configured Skill Base** (e.g. token revoked on the server, user disabled, or the active profile / `SKB_BASE_URL` pointing at the wrong instance). The output includes the profile name.
 
 ```bash
 skb whoami
@@ -365,7 +391,7 @@ skb update my-awesome-skill
 
 - Confirm the verification code format is correct
 - Check whether the code has expired
-- Confirm the server URL is configured correctly
+- Confirm the server URL is configured correctly (`skb config show`)
 
 ### Install or update fails
 
@@ -375,7 +401,7 @@ skb update my-awesome-skill
 
 ### Publish fails
 
-- Confirm you ran `skb login` first
+- Confirm you ran `skb login` first for the target profile (`skb config list` shows login status)
 - Confirm the directory contains `SKILL.md`
 - Check that the directory name matches the expected `skill_id`
 

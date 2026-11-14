@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { removeCredentials } from '../auth.js';
+import { getConfig } from '../config.js';
 import { pickMessage } from '../i18n.js';
 
 const M = {
@@ -10,6 +11,7 @@ const M = {
 };
 
 export default async function logout() {
-  removeCredentials();
-  console.log(chalk.green(pickMessage(M.done)));
+  const { profile } = getConfig();
+  removeCredentials(profile);
+  console.log(chalk.green(`${pickMessage(M.done)} [${profile}]`));
 }

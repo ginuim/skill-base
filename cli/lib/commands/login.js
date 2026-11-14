@@ -27,10 +27,10 @@ const M = {
 };
 
 export default async function login() {
-  const { baseUrl } = getConfig();
+  const { baseUrl, profile } = getConfig();
   const client = createClient();
 
-  console.log(chalk.cyan(pickMessage(M.instructions)));
+  console.log(chalk.cyan(pickMessage(M.instructions)) + chalk.gray(` [${profile}] ${baseUrl}`));
   console.log(`${pickMessage(M.step1)}${chalk.underline(baseUrl + '/login?from=cli')}`);
   console.log(pickMessage(M.step2));
   console.log(pickMessage(M.step3));
@@ -62,7 +62,7 @@ export default async function login() {
         token: result.token,
         username: result.user.username
       });
-      spinner.succeed(chalk.green(`${pickMessage(M.success)}${result.user.username}`));
+      spinner.succeed(chalk.green(`${pickMessage(M.success)}${result.user.username} [${profile}]`));
     } else {
       spinner.fail(chalk.red(pickMessage(M.verifyFailed)));
       process.exit(1);
