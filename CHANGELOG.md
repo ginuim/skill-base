@@ -8,7 +8,7 @@ Desktop builds use the separate [desktop-latest](https://github.com/ginuim/skill
 
 ## [Unreleased]
 
-## [2.0.55] - 2026-11-14
+## [2.0.54] - 2026-11-02
 
 ### Added
 
