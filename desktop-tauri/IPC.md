@@ -1,14 +1,15 @@
-# Desktop IPC Channels (25)
+# Desktop IPC Channels (27)
 
 Skill Base Desktop 前端通过 `window.skb.invoke(channel, ...args)` 调用后端。
-前端通过 `window.skb.invoke(channel, ...args)` 调用后端；Tauri 走 Rust `skb_invoke` → Node bridge HTTP。
+Tauri 走 Rust `skb_invoke` → Node bridge HTTP。
 
 ## Channels
 
 | Channel | Args | Returns | Notes |
 |---------|------|---------|-------|
-| `config:get` | — | `{ baseUrl, username, hasToken, projectRoot }` | |
-| `config:setServer` | `url: string` | `{ baseUrl }` | |
+| `config:get` | — | `{ baseUrl, profile, profiles, profileLocked, username, hasToken, homeDir, projectRoot }` | |
+| `config:setServer` | `url: string, registry?: Registry` | `{ baseUrl }` | Updates the active profile URL |
+| `config:setProfile` | `{ name, baseUrl? }` | `{ profile }` | Switch an existing profile or create and select a profile with the given URL |
 | `config:getGlobalTargets` | — | `Target[]` | |
 | `config:getProjectTargets` | `cwd?: string` | `Target[]` | |
 | `config:getProjectTargetTemplates` | — | `Target[]` | |
@@ -24,11 +25,17 @@ Skill Base Desktop 前端通过 `window.skb.invoke(channel, ...args)` 调用后�
 | `skills:search` | `q?: string` | `Skill[]` | |
 | `skills:getVersions` | `skillId: string` | `Version[]` | |
 | `skills:getRemote` | `skillId: string` | `Skill` | |
-| `skills:getInstalled` | — | `InstalledSkill[]` | |
+| `skills:getInstalled` | — | `InstalledSkill[]` | Includes the subset of paths associated with the active registry |
+| `skills:readInstalled` | `{ skillId, installPath }` | `{ content, truncated }` | Plain-text SKILL.md preview, up to 64 KB, from a recorded install |
 | `skills:install` | `InstallPayload` | `{ ok, ... }` | may return `NESTED_IDE_PATH` / `EXISTS` |
-| `skills:update` | `{ skillId, version, installPaths?, all? }` | `{ ok, updated }` | `all: true` updates every recorded install; otherwise may return `PICK_PATHS` |
+| `skills:update` | `{ skillId, version, installPaths?, all? }` | `{ ok, updated }` | `all: true` updates every recorded install from the active registry; otherwise may return `PICK_PATHS` |
 | `skills:delete` | `{ skillId, installPaths?, all? }` | `{ ok, deleted, skipped }` | deletes local install dirs and records |
 | `skills:openWebPage` | `{ skillId, version?, page?, version_a?, version_b? }` | `{ url }` | opens browser |
+| `collections:list` | — | `Collection[]` | Active registry |
+| `collections:get` | `collectionRef: string` | `{ collection, skills }` | |
+| `collections:install` | Collection ref and install targets | `{ ok, ... }` | |
+
+`Registry` is `{ profile, baseUrl }`. The UI sends it for server changes, authentication writes, and remote installation or update actions so the bridge can reject stale operations.
 
 ## Shared implementation
 

@@ -72,7 +72,7 @@ After the server is running, the Web UI and CLI share the same backend:
 | Tags & favorites | Yes (admin tag library; owner assigns tags) | — |
 | **Collections** (admin-curated packs, max 10 skills) | Browse on home | `skb install --collection <id_or_slug>` |
 | GitHub import (public repos only) | Publish page | `skb import-github` |
-| Desktop client | [docs/desktop.md](../../docs/desktop.md) | Same install/update logic as CLI |
+| Desktop client | [docs/desktop.md](../../docs/desktop.md) | Uses the deployed server through shared CLI profiles; follow the desktop guide for local registry selection |
 
 Collections are flat recommendation packs maintained by admins — they link to skills via `collection_skills`, not a folder hierarchy. Clients install the whole pack in one zip download.
 

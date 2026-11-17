@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadSavedConfig, saveConfig } from './config.js';
+import { getConfig, loadSavedConfig, saveConfig } from './config.js';
 
 function loadRegistry() {
   const saved = loadSavedConfig();
@@ -24,6 +24,7 @@ function normalizeEntry(entry) {
     version: entry.version || '',
     installedAt: entry.installedAt || '',
     ide: entry.ide || '',
+    ...(entry.baseUrl ? { baseUrl: entry.baseUrl } : {}),
     isGlobal: Boolean(entry.isGlobal),
   };
 }
@@ -72,7 +73,7 @@ export function listInstalledSkills() {
   });
 }
 
-export function rememberSkillInstall({ skillId, installPath, version, ide, isGlobal }) {
+export function rememberSkillInstall({ skillId, installPath, version, ide, isGlobal, baseUrl = getConfig().baseUrl }) {
   const installs = loadRegistry();
   const records = Array.isArray(installs[skillId]) ? installs[skillId] : [];
   const normalizedPath = path.resolve(installPath);
@@ -80,6 +81,7 @@ export function rememberSkillInstall({ skillId, installPath, version, ide, isGlo
     installPath: normalizedPath,
     version: version || '',
     installedAt: new Date().toISOString(),
+    baseUrl,
     ide: ide || '',
     isGlobal: Boolean(isGlobal),
   };

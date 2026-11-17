@@ -1,4 +1,28 @@
 export default {
+  workspace: {
+    library: "技能库",
+    agents: "Agent",
+    source: "当前源",
+    latestVersion: "源端最新版本",
+    author: "作者",
+    description: "技能说明",
+    installLocations: "本地安装位置",
+    previewFile: "查看 SKILL.md",
+    previewFailed: "无法读取此安装位置下的 SKILL.md。",
+    previewTruncated: "预览仅显示文件的前 64 KB。",
+    manageVersions: "管理版本",
+    remove: "卸载",
+    openOnline: "在线详情",
+    refresh: "刷新",
+    noMatches: "没有匹配的本地技能。",
+    addProfile: "新增配置",
+    profileName: "配置名称",
+    createProfile: "创建并切换",
+    profileSwitched: "已切换配置",
+    profileCreated: "已创建并切换配置",
+    profileOverride: "启动环境中的 SKB_PROFILE 或 SKB_BASE_URL 正在覆盖配置。",
+    syncComplete: "当前筛选范围内的更新已完成。"
+  },
   nav: {
     installed: '本地资产管理',
     market: '技能市场',

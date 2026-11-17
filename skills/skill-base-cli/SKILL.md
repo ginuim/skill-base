@@ -70,7 +70,7 @@ skb config remove qa [-y]                # delete profile and its saved token (a
 - An explicitly selected profile that does not exist makes the command fail and lists available profiles.
 - When the user names an environment ("publish to qa", "install from prod"), check `skb config list` first and pass `--profile <name>` rather than switching the user's current profile.
 - Profile names: letters, digits, `.`, `_`, `-`.
-- Legacy single-server configs are read as a profile named `default`.
+- Legacy single-server configs are read as a profile named `default`. The native desktop app shares these profiles and credentials. Switching its registry also changes the saved CLI default profile.
 
 ## Login and Authentication Rules (Important)
 - **No login required**: `search`, `install`, `update`, `init` and other regular read operations usually do not require login. Assistants **should not** proactively ask users to log in before these operations.

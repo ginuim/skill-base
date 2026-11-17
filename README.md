@@ -4,86 +4,45 @@
 
 [![npm version](https://img.shields.io/npm/v/skill-base.svg)](https://www.npmjs.com/package/skill-base)
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
-> Private distribution for Agent Skills. Publish once; install, update, and roll back across Cursor, Claude Code, Codex, OpenClaw, and similar assistants — one small server, one CLI (`skb`).
+**A self-hosted Agent Skills registry for teams.** Publish a Skill once so teammates using Cursor, Claude Code, Codex, or OpenClaw can find and install the same version.
 
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base demo" />
-</p>
+You fix a Skill, share the new ZIP in chat, and someone still runs last week's copy. With Skill Base, the team has one place to find the current release, see what changed, and download a specific version when a project needs it.
 
-## Why
+[Browse the hosted instance](https://skillbase.reaidea.com) · [Run your own](#quick-start) · [Connect over MCP](#remote-mcp) · [Download the desktop app](docs/desktop.md)
 
-Many teams already have dozens or hundreds of Skills, but they are not team assets yet — just Markdown scattered across chat logs, personal machines, and project folders. People download from group chats, copy a colleague's old copy, or edit their local file directly. Over time, no one can say which copy is current, who changed what, or which projects still run an old version.
+![Skill Base web catalog](docs/images/skill-base-home.png)
 
-Some teams move Skills into Git, which helps: you get commits and a single repo. But Git answers "where do files live?", not "how does the team use them?" It does not fix fragmented Skill paths across Cursor, Claude Code, Qoder, and other agents. The real pain is distribution, install, updates, and access:
+## How teams use it
 
-- **Distribution by hand** — zip files, pasted Markdown, new hires asking "where is the latest?"
-- **Versions by guesswork** — `final`, `final2`, `latest` everywhere; local edits untracked
-- **Paths by memory** — Cursor, Claude Code, Qoder, etc. use different Skill folders; install and update depend on tribal knowledge
-- **Access blocks PM/QA** — they need the same standards but should not need repo access or Git workflows for one Skill
-- **Updates stop at one machine or project** — one person fixes a Skill; other projects and teammates keep the old copy
-
-Skill Base turns Skills into **publishable, versioned, and installable** team assets.
-
-## What it does
-
-| Capability | How |
-|------------|-----|
-| **Publish** | Web upload, `skb publish`, or GitHub import from public repos |
-| **Install / update / delete** | `skb install` / `skb update` / `skb delete` with IDE Skill paths and local install tracking; `skb install --collection <id-or-slug>` for curated packs. Public skill pages also provide a version-specific `npx skills add <ZIP URL>` command. |
-| **Browse** | Web UI for search, version switching, changelogs, tags, collections (max 10 skills), favorites, and skill detail pages with copyable AI Agent prompts and CLI commands for the selected version (without unnecessary quotes), collection-level AI Agent installation prompts, avatars of actual version contributors, a file reader directly below the introduction, an independent installation sidebar, and a dedicated effect preview tab without decorative cards or shadows |
-| **Contributions** | Compact skill lists show up to three contributor avatars plus an overflow menu. Click an avatar to open `/users/:id`: contributed skills, published version count, and downloads of those skills, filtered by viewer access. Contributions come from version uploaders, not membership. |
-| **Desktop** | Native desktop client — [download](docs/desktop.md) |
-| **Visibility** | `public` / `private` skills; owner / collaborator / user permissions |
-
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-market.png" alt="Skill Base desktop — Skill Market" width="720" />
-</p>
-
-The version diff page follows the skill detail page’s open layout, with flat version controls, underline view tabs, and scrollable code differences. The publish and account settings pages use flat sections without decorative cards. GitHub import reveals review fields after preview; branch/subdirectory options, avatar choices, and password changes expand on demand.
+- **Publish a release.** Upload a Skill folder or ZIP in the browser, publish with `skb`, or import from a public GitHub repository. Each release gets its own archive and changelog.
+- **Share a Skill or a collection.** Give teammates one link for the Skill or a curated pack, such as frontend onboarding. They can download a ZIP, copy installation instructions for their agent, or install with `skb`.
+- **Manage updates and access.** Inspect files and compare versions before updating. Keep internal Skills private, grant collaborators publishing access, and select a previous release when you need to roll back.
 
 ## Quick start
 
-**Server** (Node.js >= 18):
+Start the server and open [localhost:8000](http://localhost:8000) to create the first admin account.
 
 ```bash
 npx skill-base -d ./skill-data -p 8000
 ```
 
-Open the URL, complete first-time setup, create an admin account.
-
-**CLI:**
+From a project folder, use the CLI to publish and install a Skill. This example uses a folder named `team-review` containing a `SKILL.md` with the same name in its frontmatter.
 
 ```bash
 npm install -g skill-base-cli
 skb init -s http://localhost:8000
-skb search vue
-skb install some-skill --ide cursor
-skb install --collection 1 --ide cursor
-skb install --collection frontend-team --ide cursor
-skb login    # required for publish
-skb publish ./my-skill --changelog "First release"
+skb login
+skb publish ./team-review --changelog "First release"
+skb install team-review --ide cursor
 ```
 
-Folder and ZIP uploads show the final file list before publishing. Web upload and `skb publish` use the Skill root's `.gitignore` by default; add project rules in `.skillbaseignore`, or use `skb publish --ignore 'pattern'`. Run `skb publish --dry-run` to inspect the CLI package without uploading. Agent configuration folders such as `.cursor` and `.codebuddy` are included unless explicitly ignored.
-
-Details: [Getting Started](docs/getting-started.md) · CLI: [docs/zh/cli.md](docs/zh/cli.md) (中文)
-
+You can also upload and download from the Web UI. The server stores its SQLite database and ZIP archives in the data directory. See [Getting Started](docs/getting-started.md) and [Deployment](docs/deployment.md) for setup and backups.
 
 ## Remote MCP
 
-Open **MCP & Skills** in the Web navigation for the instance URL, credential instructions, and a copyable agent setup prompt. The same page lets you download the official skills for using Skill Base with or without the CLI, or for deploying the server. Each includes a ZIP download and a copyable installation prompt.
-
-Connect an AI agent to `https://your-skill-base.example/mcp` using Streamable HTTP. Agents can search skills, browse collections, read files, compare an installed version with Head, manage favorites, and publish skills. For private skills, favorites, or publishing, configure a Skill Base personal access token in the client's `Authorization: Bearer <PAT>` header. See the [MCP setup guide](docs/zh/api.md#远程-mcp).
-
-## Design philosophy
-
-- **Skills are the unit** — not a generic file dump or agent orchestrator.
-- **SQLite + ZIP on disk** — `skills.db` indexes; each release is a versioned archive. Backup = copy one directory.
-- **One Node process** — no Redis, MySQL, queue, or microservice mesh for a problem this size.
-
-Longer write-up: [Architecture](docs/architecture.md).
+Open **MCP & Skills** in the Web navigation to copy your instance's Streamable HTTP endpoint and an agent setup prompt. Connected agents can search Skills, browse collections, read files, and compare an installed version with the current release. With a personal access token, they can also access private Skills or publish according to their permissions. See the [MCP setup guide](docs/zh/api.md#远程-mcp).
 
 ## Documentation
 
@@ -93,7 +52,7 @@ Longer write-up: [Architecture](docs/architecture.md).
 | [Usage](docs/usage.md) | Web UI, desktop app, GitHub import, OpenClaw prompts, Skill format |
 | [Deployment](docs/deployment.md) | Docker, PM2, flags, sessions, backup |
 | [Architecture](docs/architecture.md) | Data model and stack choices |
-| [Desktop](docs/desktop.md) | Download and features |
+| [Desktop](docs/desktop.md) | Download, local skill workspace and shared CLI profiles |
 | [CLI](docs/zh/cli.md) | `skb` command reference (中文) |
 | [API](docs/zh/api.md) | HTTP API (中文) |
 | [Changelog](CHANGELOG.md) | Server / npm release notes |
@@ -102,33 +61,6 @@ Longer write-up: [Architecture](docs/architecture.md).
 
 中文入口：[docs/zh/README.md](docs/zh/README.md)
 
-## Author's Lab
-
-Related projects from the author.
-
-| | |
-|--|--|
-| [skillbase.reaidea.com](https://skillbase.reaidea.com) | Hosted Skill Base |
-| [reaidea.com](https://reaidea.com) | Author homepage and future tools |
-
-More entries land in [docs/author.md](docs/author.md) when they ship.
-
-## Maintenance
-
-This repo is maintained by a **part-time independent developer** on evenings and weekends.
-
-Issues and PRs are welcome. There is no on-call SLA; clear, scoped PRs are easier to merge than open-ended feature asks.
-
-Full note: [docs/author.md](docs/author.md).
-
 ## License
 
-[MIT](LICENSE)
-
-### Web visual system
-
-The Web UI uses shared neutral buttons and form controls, light/dark themes, and a responsive two-column sign-in page. See [the visual guidelines](docs/zh/design-system.md).
-
-Skills can be downloaded as ZIP files without Node.js or skb. Public skills need no sign-in; private skills require an authorized account. The detail page includes manual import instructions and a direct-download AI prompt for the selected version.
-
-技能详情：版本历史的更新说明支持 Markdown；文件查看支持目录树和内容区一起全屏（Esc 退出），深层目录可横向滚动，悬停显示完整路径。技能文件的 Markdown 预览中，相对链接按当前文件目录解析，并在当前版本的文件预览内打开。
+[MIT](package.json) · [About the author and maintenance](docs/author.md)

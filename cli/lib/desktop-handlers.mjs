@@ -289,24 +289,94 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
     return targetPath ? `${message} (${targetPath})` : message;
   }
 
+  function matchesRegistry(install, config) {
+    if (install.baseUrl) return install.baseUrl === config.baseUrl;
+    return config.profile === cli.DEFAULT_PROFILE && !process.env.SKB_BASE_URL;
+  }
+
+  function assertProfileEditable() {
+    if (process.env.SKB_PROFILE?.trim() || process.env.SKB_BASE_URL) {
+      throw new Error('SKB_PROFILE / SKB_BASE_URL overrides the saved configuration');
+    }
+  }
+
+  function validateServer(value) {
+    const baseUrl = cli.normalizeBaseUrl(value);
+    let url;
+    try { url = new URL(baseUrl); } catch { /* Invalid URL */ }
+    if (!url || !['http:', 'https:'].includes(url.protocol) ||
+        url.username || url.password || url.search || url.hash) {
+      throw new Error('Enter an HTTP(S) server URL without credentials, query or fragment');
+    }
+    return baseUrl;
+  }
+
+  function assertRegistry(payload) {
+    const current = cli.getConfig();
+    if (payload?.profile != null &&
+        (payload.profile !== current.profile || payload.baseUrl !== current.baseUrl)) {
+      throw new Error('The active profile changed. Refresh and try again.');
+    }
+    return current;
+  }
+
   const handlers = {
     'config:get': async () => {
-      const { baseUrl } = cli.getConfig();
-      const cred = cli.loadCredentials();
+      const { baseUrl, profile } = cli.getConfig();
+      const { profiles } = cli.loadProfiles();
+      const cred = cli.loadCredentials(profile);
       return {
         baseUrl,
+        profile,
+        profiles: Object.entries(profiles).map(([name, value]) => ({ name, baseUrl: value.baseUrl })),
+        profileLocked: Boolean(process.env.SKB_PROFILE?.trim() || process.env.SKB_BASE_URL),
         username: cred?.username || null,
         hasToken: Boolean(cred?.token),
+        homeDir: os.homedir(),
         projectRoot: deps.getProjectRoot()
       };
     },
 
-    'config:setServer': async (url) => {
-      const normalized = String(url || '').replace(/\/+$/, '');
-      if (!normalized) throw new Error('Server URL required');
-      cli.saveConfig({ baseUrl: normalized });
-      appendDesktopLog(`config saved baseUrl=${normalized}`);
+    'config:setServer': async (url, expected) => {
+      assertProfileEditable();
+      const { profile, baseUrl } = assertRegistry(expected);
+      const normalized = validateServer(url);
+      const state = cli.loadProfiles();
+      // Keep older installations tied to the default registry before its URL changes.
+      if (profile === cli.DEFAULT_PROFILE && normalized !== baseUrl) {
+        const saved = cli.loadSavedConfig();
+        for (const installs of Object.values(saved.installs || {})) {
+          if (!Array.isArray(installs)) continue;
+          for (const install of installs) {
+            if (install?.installPath && !install.baseUrl) install.baseUrl = baseUrl;
+          }
+        }
+        if (saved.installs) cli.saveConfig({ installs: saved.installs });
+      }
+      if (normalized !== baseUrl) cli.removeCredentials(profile);
+      state.profiles[profile] = { ...state.profiles[profile], baseUrl: normalized };
+      state.currentProfile = profile;
+      cli.saveProfiles(state);
       return { baseUrl: normalized };
+    },
+
+    'config:setProfile': async ({ name, baseUrl } = {}) => {
+      assertProfileEditable();
+      const profile = String(name || '').trim();
+      if (!/^[A-Za-z0-9._-]+$/.test(profile) || Object.hasOwn(Object.prototype, profile)) {
+        throw new Error('Profile names use letters, digits, dots, underscores and hyphens');
+      }
+      const state = cli.loadProfiles();
+      const exists = Object.hasOwn(state.profiles, profile);
+      if (baseUrl !== undefined) {
+        if (exists) throw new Error('Profile already exists');
+        state.profiles[profile] = { baseUrl: validateServer(baseUrl) };
+      } else if (!exists) {
+        throw new Error('Profile not found');
+      }
+      state.currentProfile = profile;
+      cli.saveProfiles(state);
+      return { profile };
     },
 
     'config:getGlobalTargets': async () => buildGlobalTargets(),
@@ -398,7 +468,8 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       return { url };
     },
 
-    'auth:exchangePat': async (code) => {
+    'auth:exchangePat': async (code, expected) => {
+      const config = assertRegistry(expected);
       const pattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
       const normalized = String(code || '').trim().toUpperCase();
       if (!pattern.test(normalized)) {
@@ -409,7 +480,8 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       if (!result.ok || !result.token || !result.user) {
         throw new Error('验证失败，请检查验证码');
       }
-      cli.saveCredentials({ token: result.token, username: result.user.username });
+      assertRegistry(config);
+      cli.saveCredentials({ token: result.token, username: result.user.username }, config.profile);
       return { username: result.user.username };
     },
 
@@ -428,8 +500,8 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       }
     },
 
-    'auth:logout': async () => {
-      cli.removeCredentials();
+    'auth:logout': async (expected) => {
+      cli.removeCredentials(assertRegistry(expected).profile);
       return { ok: true };
     },
 
@@ -457,12 +529,14 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       const rows = cli.listInstalledSkills();
       appendDesktopLog(`installed records before=${beforePrune.length} after=${rows.length}`);
       const client = cli.createClient();
+      const config = cli.getConfig();
       const enriched = [];
 
       for (const row of rows) {
         let remote = null;
+        const registryInstalls = row.installs.filter((install) => matchesRegistry(install, config));
         try {
-          remote = await client.get(`/skills/${encodeURIComponent(row.skillId)}`);
+          if (registryInstalls.length) remote = await client.get(`/skills/${encodeURIComponent(row.skillId)}`);
         } catch {
           // offline or skill removed from server
         }
@@ -480,13 +554,38 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
           version: row.installs[0]?.version || '',
           latest: remote?.latest_version || row.installs[0]?.version || '',
           author: remote?.owner_username || '',
+          registryInstalls,
+          remoteAvailable: Boolean(remote?.latest_version),
+          hasUpdate: Boolean(remote?.latest_version && registryInstalls.some((item) => item.version !== remote.latest_version)),
           installs: row.installs
         });
       }
       return enriched;
     },
 
+    'skills:readInstalled': async ({ skillId, installPath } = {}) => {
+      const install = cli.listSkillInstalls(skillId).find((item) => item.installPath === installPath);
+      if (!install) throw new Error('Installation not found');
+      const file = path.join(install.installPath, 'SKILL.md');
+      const realDir = fs.realpathSync(install.installPath);
+      if (fs.realpathSync(file) !== path.join(realDir, 'SKILL.md') || !fs.statSync(file).isFile()) {
+        throw new Error('SKILL.md is not a regular file inside the installation');
+      }
+      const handle = fs.openSync(file, 'r');
+      try {
+        const buffer = Buffer.alloc(64 * 1024 + 1);
+        const length = fs.readSync(handle, buffer, 0, buffer.length, 0);
+        return {
+          content: buffer.toString('utf8', 0, Math.min(length, buffer.length - 1)),
+          truncated: length === buffer.length
+        };
+      } finally {
+        fs.closeSync(handle);
+      }
+    },
+
     'skills:install': async (payload) => {
+      const config = assertRegistry(payload);
       const skillId = String(payload?.skillId || '').trim();
       const version = payload?.version || 'latest';
       const installProjectRoot =
@@ -518,6 +617,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       let actualVersion = version;
 
       for (const spec of resolved) {
+        assertRegistry(config);
         const installPathCandidate = path.join(path.resolve(spec.targetDir), skillId);
 
         try {
@@ -532,6 +632,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
             skillId: result.skillId,
             installPath,
             version: result.version,
+            baseUrl: config.baseUrl,
             ide: spec.ide,
             isGlobal: spec.global
           });
@@ -563,6 +664,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
     },
 
     'collections:install': async (payload) => {
+      const config = assertRegistry(payload);
       const collectionRef = String(payload?.collectionRef || '').trim();
       const installProjectRoot =
         typeof payload?.projectRoot === 'string' ? payload.projectRoot.trim() : '';
@@ -601,6 +703,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
 
       const installed = [];
       for (const spec of resolved) {
+        assertRegistry(config);
         const targetDir = path.resolve(spec.targetDir);
 
         try {
@@ -627,6 +730,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
             skillId: skill.id,
             installPath,
             version: skill.latest_version,
+            baseUrl: config.baseUrl,
             ide: spec.ide,
             isGlobal: spec.global
           });
@@ -648,6 +752,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
     },
 
     'skills:update': async (payload) => {
+      const config = assertRegistry(payload);
       const skillId = String(payload?.skillId || '').trim();
       const version = String(payload?.version || '').trim();
       const updateAll = Boolean(payload?.all);
@@ -658,7 +763,8 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       if (!skillId || !version) throw new Error('skillId and version required');
 
       const options = {};
-      const installs = cli.buildTargetInstalls(skillId, options);
+      const installs = cli.buildTargetInstalls(skillId, options)
+        .filter((install) => matchesRegistry(install, config));
       if (installs.length === 0) {
         throw new Error(`本地没有记录到 ${skillId} 的安装目录`);
       }
@@ -679,10 +785,13 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       }
 
       const selected = installs.filter((i) => installPaths.includes(i.installPath));
-      if (selected.length === 0) throw new Error('no matching install paths');
+      if (selected.length !== new Set(installPaths).size || !selected.length) {
+        throw new Error('Selected install paths do not belong to the active registry');
+      }
 
       const updated = [];
       for (const install of selected) {
+        assertRegistry(config);
         const result = await cli.downloadAndExtract(
           skillId,
           version,
@@ -692,6 +801,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
           skillId: result.skillId,
           installPath: install.installPath,
           version: result.version,
+          baseUrl: config.baseUrl,
           ide: install.ide,
           isGlobal: install.isGlobal
         });

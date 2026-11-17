@@ -4,72 +4,45 @@
 
 [![npm version](https://img.shields.io/npm/v/skill-base.svg)](https://www.npmjs.com/package/skill-base)
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](#许可)
 
-> 面向团队的 Agent Skill 私有分发平台。一次发布，在 Cursor、Claude Code、Codex、OpenClaw 等助手上安装、更新、回滚 —— 一个小服务端 + `skb` CLI 就够。
+**给团队自托管的 Agent Skill 分发平台。** 一次发布，让使用 Cursor、Claude Code、Codex 或 OpenClaw 的同事都能找到并安装同一个版本。
 
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base 运行演示" />
-</p>
+你修好了一个 Skill，把新 ZIP 发到群里，过几天还是有人在用上周那份。用 Skill Base，团队可以从同一个入口找到当前版本、查看更新说明，也能为需要的项目下载指定版本。
 
-## 为什么需要
+[浏览在线站点](https://skillbase.reaidea.com) · [本地启动](#快速开始) · [连接远程 MCP](#远程-mcp) · [下载桌面端](desktop.md)
 
-很多团队已经攒了几十个、上百个 Skill，但它们还不是团队资产，只是散在聊天记录、个人电脑、项目目录里的 Markdown。有人从群里下载，有人复制同事的旧版本，有人直接改本地那份。时间一长，没人说得清哪份是最新、谁改过、哪些项目还在用旧版。
+![Skill Base 网页技能目录](../images/skill-base-home.png)
 
-有的团队改成用 Git 管，确实会好一些，至少有提交记录和集中仓库。但 Git 解决的是“文件放哪”，不是“团队怎么用”，很难解决不同Agent工具 skill 目录的碎片化问题。Skill 真正麻烦的地方在分发、安装、更新和权限：
+## 团队怎么用
 
-- **分发靠人** — 发 zip、转 Markdown、让新人去问“最新版在哪”。
-- **版本靠猜** — `final`、`final2`、`最新版` 到处都是，本地改动没有记录。
-- **路径靠记** — Cursor、Claude Code、Qoder 等 skill 路径不一致，安装和更新全凭经验。
-- **权限卡业务同学** — PM、QA 也要用规范，但不该为了拿一个 Skill 去开仓库权限、学 Git 流程。
-- **更新断在本地/本项目** — 一个人修了 Skill，其他项目、其他同事还在用旧版，项目A改了目录下的 Skill 但没有同步到项目B。
-
-Skill Base 把 Skill 变成**可发布、可版本化、可安装**的团队资产。
-
-## 能做什么
-
-| 能力 | 方式 |
-|------|------|
-| **发布** | 通过Web 上传、`skb publish`、公开 GitHub 仓库导入 Skill |
-| **安装 / 更新** | `skb install` / `skb update`，记住 IDE Skill 路径与本地安装记录；公开 Skill 详情页也提供所选版本的 `npx skills add <ZIP 地址>` 命令 |
-| **浏览** | Web 端搜索、切换版本、changelog、标签、收藏 |
-| **桌面端** | 原生桌面客户端 — [下载](desktop.md) |
-| **可见性** | `public` / `private`；owner / collaborator / user 权限 |
-
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-market.png" alt="Skill Base 桌面端 — 技能市场" width="720" />
-</p>
+- **发布一个版本。** 在网页上传 Skill 文件夹或 ZIP，用 `skb` 发布，或者从公开 GitHub 仓库导入。每个版本都有独立的归档和更新说明。
+- **发一个 Skill 或一组 Skill。** 把技能详情或集合链接发给同事，例如「前端新人入门」集合。同事可以下载 ZIP、复制给 Agent 的安装提示词，或用 `skb` 安装。
+- **管理更新与权限。** 更新前可以查看文件和比较版本。内部 Skill 可设为私有，协作者可以获得发布权限，需要回退时可选择之前的版本。
 
 ## 快速开始
 
-**服务端**（Node.js >= 18）：
+启动服务，打开 [localhost:8000](http://localhost:8000) 创建首个管理员。
 
 ```bash
 npx skill-base -d ./skill-data -p 8000
 ```
 
-浏览器打开地址，完成初始化并创建管理员。
-
-**CLI：**
+在项目目录中用 CLI 发布和安装。这个示例使用 `team-review` 文件夹，文件夹中有一份 `SKILL.md`，其 frontmatter 中的 `name` 同样是 `team-review`。
 
 ```bash
 npm install -g skill-base-cli
 skb init -s http://localhost:8000
-skb search vue
-skb install some-skill --ide cursor
-skb login    # 发布前需要
-skb publish ./my-skill --changelog "首次发布"
+skb login
+skb publish ./team-review --changelog "首次发布"
+skb install team-review --ide cursor
 ```
 
-详见 [快速开始](getting-started.md) · CLI 全文：[cli.md](cli.md)
+也可以直接在网页上传和下载。服务将 SQLite 数据库和各版本的 ZIP 归档存放在数据目录。部署和备份见[快速开始](getting-started.md)和[部署与备份](deployment.md)。
 
-## 设计原则
+## 远程 MCP
 
-- **Skill 是分发单元** — 不是通用网盘，也不是 Agent 编排平台。
-- **SQLite + ZIP** — `skills.db` 做索引，每个版本一个归档包；备份 = 复制目录。
-- **单 Node 进程** — 不为这种规模上 Redis、MySQL、消息队列或微服务。
-
-展开：[架构与设计](architecture.md)
+打开网页导航中的 **MCP 与 Skills**，复制当前实例的 Streamable HTTP 端点和 Agent 配置提示词。连接后的 Agent 可以搜索 Skill、浏览集合、读取文件，以及比较已安装版本与当前版本。配置个人访问令牌后，还可以按账号权限访问私有 Skill 或发布。详见 [MCP 配置说明](api.md#远程-mcp)。
 
 ## 文档
 
@@ -79,34 +52,15 @@ skb publish ./my-skill --changelog "首次发布"
 | [使用说明](usage.md) | Web 端、桌面端、GitHub 导入、OpenClaw、Skill 格式 |
 | [部署与备份](deployment.md) | Docker、PM2、参数、Session、备份 |
 | [架构与设计](architecture.md) | 数据模型与技术选型 |
-| [桌面客户端](desktop.md) | 下载与功能 |
+| [桌面客户端](desktop.md) | 下载、本地技能工作区与 CLI 配置切换 |
 | [CLI](cli.md) | `skb` 命令参考 |
 | [API](api.md) | HTTP API |
 | [Webhook 指南](webhook.md) | 配置、事件载荷、本地 Demo |
-| [更新日志](../CHANGELOG.md) | 服务端 / npm 版本说明 |
+| [更新日志](../../CHANGELOG.md) | 服务端 / npm 版本说明 |
 | [作者与维护](author.md) | 维护契约、Author's Lab |
 
 双语索引：[docs/README.md](../README.md)
 
-## Author's Lab
-
-作者的相关项目链接。
-
-| | |
-|--|--|
-| [skillbase.reaidea.com](https://skillbase.reaidea.com) | 在线 Skill Base |
-| [reaidea.com](https://reaidea.com) | 作者主页与后续工具 |
-
-更多见 [author.md](author.md)。
-
-## 维护说明
-
-本项目由**兼职独立开发者**在工作日晚间和周末维护。
-
-欢迎 Issue 和 PR，没有 on-call SLA；范围清晰的小 PR 比大而全的需求更容易合并。
-
-全文：[author.md](author.md)
-
 ## 许可
 
-[MIT](../LICENSE)
+[MIT](../../package.json) · [作者与维护说明](author.md)

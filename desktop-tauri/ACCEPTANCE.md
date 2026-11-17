@@ -1,6 +1,6 @@
 # Desktop Tauri — Acceptance Checklist
 
-Tauri 桌面客户端 UI 在 `src/`，业务逻辑在 `cli/lib/desktop-handlers.mjs`。共 **25** 个 IPC channel（见 [IPC.md](./IPC.md)）。
+Tauri 桌面客户端 UI 在 `src/`，业务逻辑在 `cli/lib/desktop-handlers.mjs`。共 **27** 个 IPC channel（见 [IPC.md](./IPC.md)）。
 
 ## 自动化
 
@@ -20,7 +20,8 @@ cd src-tauri && cargo check    # Rust 编译检查
 | Channel | 自动化 | 说明 |
 |---------|--------|------|
 | `config:get` | yes | 返回 baseUrl、登录态、projectRoot |
-| `config:setServer` | yes | 写入并返回 baseUrl |
+| `config:setServer` | yes | 更新当前 profile 的 baseUrl，并在地址变化后清除该 profile 的凭证 |
+| `config:setProfile` | yes | 创建、切换 profile；验证登录凭证和更新来源 |
 | `config:getGlobalTargets` | yes | 全局 Agent 目录列表 |
 | `config:getProjectTargets` | yes | 给定 cwd 的项目级目录 |
 | `config:getProjectTargetTemplates` | yes | 项目模板（无 exists） |
@@ -29,7 +30,8 @@ cd src-tauri && cargo check    # Rust 编译检查
 | `auth:whoami` | yes | 有/无 token 均返回结构化结果 |
 | `auth:logout` | yes | 清除凭证 |
 | `auth:exchangePat` | yes | 非法验证码格式报错 |
-| `skills:getInstalled` | yes | 本地安装列表（可空数组） |
+| `skills:getInstalled` | yes | 本地安装列表与当前源匹配的路径 |
+| `skills:readInstalled` | yes | 读已记录目录中的 SKILL.md，拒绝未记录路径 |
 | `skills:search` | yes* | 需 Skill Base 可达；离线时允许连接错误 |
 | `skills:getVersions` | yes* | 同上 |
 | `skills:getRemote` | yes* | 同上 |
@@ -47,7 +49,7 @@ cd src-tauri && cargo check    # Rust 编译检查
 
 | Channel | 手动步骤 | 预期 |
 |---------|----------|------|
-| `project:pickRoot` | 工具栏点击项目路径 → 选文件夹 | 路径更新，`config:get.projectRoot` 同步 |
+| `project:pickRoot` | 原生 IPC 兼容性检查 → 选文件夹 | 路径更新，`config:get.projectRoot` 同步 |
 | `project:pickInstallDir` | 安装弹窗 → 自定义目录 / 项目根 | 返回所选路径或 cancel → `null` |
 | `shell:revealPath` | 已安装 Skill → 在 Finder/资源管理器中显示 | 系统文件管理器定位到目录 |
 | `auth:openLogin` | 连接设置 → 浏览器登录 | 系统浏览器打开 `{baseUrl}/login?from=cli` |
@@ -59,7 +61,8 @@ cd src-tauri && cargo check    # Rust 编译检查
 
 ### 1. 连接与登录
 
-- [ ] 设置 Server URL → 保存成功
+- [ ] 切换 profile → 市场、集合与登录状态随之刷新
+- [ ] 新增 profile，或保存当前 profile 的新服务器地址
 - [ ] 「浏览器登录」打开登录页
 - [ ] 输入 CLI 验证码 → `auth:exchangePat` 成功，显示用户名
 - [ ] `whoami` 显示已登录；登出后 token 清除
@@ -82,8 +85,9 @@ cd src-tauri && cargo check    # Rust 编译检查
 
 - [ ] 已安装列表展示版本与远端 latest
 - [ ] 单路径 Skill 一键更新
-- [ ] 多路径 Skill → 一键“更新”和“同步更新所有”会更新全部已记录目录
-- [ ] 多路径 Skill → **PICK_PATHS** 选择后更新
+- [ ] 多路径 Skill → 同步当前筛选范围内属于当前源且有更新的目录
+- [ ] 多路径 Skill → 在管理版本弹窗选择目录后更新
+- [ ] 选择 Agent 后筛选列表，右侧可查看各目录版本和 SKILL.md
 - [ ] 多路径 Skill → 删除弹窗勾选多个目录后删除
 - [ ] 多路径 Skill → 删除弹窗选择全部目录后删除全部记录
 - [ ] 在 Finder/资源管理器中显示安装路径

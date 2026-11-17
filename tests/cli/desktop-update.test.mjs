@@ -3,10 +3,13 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { registerDesktopHandlers } from '../../cli/lib/desktop-handlers.mjs';
 
+const baseUrl = 'https://team.example';
+
 function createUpdateHandler({ installs, implicit = null } = {}) {
   const downloads = [];
   const remembered = [];
   const cli = {
+    getConfig: () => ({ profile: 'team', baseUrl }),
     buildTargetInstalls: () => installs,
     resolveImplicitSelectedInstalls: () => implicit,
     downloadAndExtract: async (skillId, version, targetDir) => {
@@ -30,8 +33,8 @@ function createUpdateHandler({ installs, implicit = null } = {}) {
 
 test('desktop skills:update still asks for paths when multiple installs are ambiguous', async () => {
   const installs = [
-    { installPath: '/tmp/one/demo-skill', version: 'v1', ide: 'cursor', isGlobal: false },
-    { installPath: '/tmp/two/demo-skill', version: 'v1', ide: 'codex', isGlobal: false }
+    { installPath: '/tmp/one/demo-skill', version: 'v1', baseUrl, ide: 'cursor', isGlobal: false },
+    { installPath: '/tmp/two/demo-skill', version: 'v1', baseUrl, ide: 'codex', isGlobal: false }
   ];
   const { update, downloads } = createUpdateHandler({ installs });
 
@@ -43,12 +46,19 @@ test('desktop skills:update still asks for paths when multiple installs are ambi
   assert.deepEqual(downloads, []);
 });
 
-test('desktop skills:update updates every recorded install when all is true', async () => {
+test('desktop skills:update updates every matching install when all is true', async () => {
   const installs = [
-    { installPath: '/tmp/one/demo-skill', version: 'v1', ide: 'cursor', isGlobal: false },
-    { installPath: '/tmp/two/demo-skill', version: 'v1', ide: 'codex', isGlobal: false }
+    { installPath: '/tmp/one/demo-skill', version: 'v1', baseUrl, ide: 'cursor', isGlobal: false },
+    { installPath: '/tmp/two/demo-skill', version: 'v1', baseUrl, ide: 'codex', isGlobal: false }
   ];
-  const { update, downloads, remembered } = createUpdateHandler({ installs });
+  const other = { ...installs[0], installPath: '/tmp/other/demo-skill', baseUrl: 'https://other.example' };
+  const { update, downloads, remembered } = createUpdateHandler({ installs: [...installs, other] });
+  await assert.rejects(() => update({
+    skillId: 'demo-skill',
+    version: 'v2',
+    installPaths: [installs[0].installPath, other.installPath]
+  }), /active registry/);
+  assert.equal(downloads.length, 0);
 
   const result = await update({ skillId: 'demo-skill', version: 'v2', all: true });
 
@@ -69,8 +79,8 @@ test('desktop skills:update updates every recorded install when all is true', as
 
 test('desktop skills:update updates only selected install paths when provided', async () => {
   const installs = [
-    { installPath: '/tmp/one/demo-skill', version: 'v1', ide: 'cursor', isGlobal: false },
-    { installPath: '/tmp/two/demo-skill', version: 'v1', ide: 'codex', isGlobal: false }
+    { installPath: '/tmp/one/demo-skill', version: 'v1', baseUrl, ide: 'cursor', isGlobal: false },
+    { installPath: '/tmp/two/demo-skill', version: 'v1', baseUrl, ide: 'codex', isGlobal: false }
   ];
   const { update, downloads, remembered } = createUpdateHandler({ installs });
 

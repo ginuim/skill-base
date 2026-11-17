@@ -7,6 +7,7 @@ import { registerDesktopHandlers } from '../../cli/lib/desktop-handlers.mjs';
 
 function createInstallHandler(cliOverrides = {}) {
   const cli = {
+    getConfig: () => ({ profile: 'default', baseUrl: 'https://team.example' }),
     detectInsideIdeDir: () => null,
     isSafeSkillInstallPath: (skillId, installPath) => path.basename(path.resolve(installPath)) === skillId,
     rememberSkillInstall: () => {},

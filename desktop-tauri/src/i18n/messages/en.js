@@ -1,4 +1,28 @@
 export default {
+  workspace: {
+    library: "Library",
+    agents: "Agents",
+    source: "Active registry",
+    latestVersion: "Latest on registry",
+    author: "Author",
+    description: "Description",
+    installLocations: "Installed locations",
+    previewFile: "View SKILL.md",
+    previewFailed: "Could not read SKILL.md from this location.",
+    previewTruncated: "Preview shows the first 64 KB.",
+    manageVersions: "Manage versions",
+    remove: "Uninstall",
+    openOnline: "Open online",
+    refresh: "Refresh",
+    noMatches: "No local skills match these filters.",
+    addProfile: "Add profile",
+    profileName: "Profile name",
+    createProfile: "Create and switch",
+    profileSwitched: "Profile switched",
+    profileCreated: "Profile created and selected",
+    profileOverride: "SKB_PROFILE or SKB_BASE_URL overrides the saved settings for this session.",
+    syncComplete: "Updates completed for the current filter."
+  },
   nav: {
     installed: 'Local Assets',
     market: 'Skill Market',

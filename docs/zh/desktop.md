@@ -14,19 +14,13 @@
 
 终端用户无需单独安装 Node.js。
 
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-market.png" alt="Skill Base 桌面端 — 技能市场" width="720" />
-</p>
-
 ## 功能
 
-**技能市场** — 与 Web 同一套目录：搜索、收藏、从卡片安装。
+**技能市场** — 搜索当前源，按标签或收藏筛选，在右侧详情发起安装。
 
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-local.png" alt="Skill Base 桌面端 — 本地资产" width="720" />
-</p>
+**本地资产** — 按 Agent 筛选技能，选中后在右侧查看说明、各安装目录的版本和源地址，并打开文本格式的 `SKILL.md` 预览。版本管理和批量更新仅处理属于当前源的目录。无来源的历史记录按 `default` 配置处理。
 
-**本地资产** — 汇总各 Agent 目录下的同名 Skill，默认最近安装/更新在前，显示是否已是最新；快捷“更新/同步更新所有”会更新该 Skill 的所有已记录安装目录，也可以进入目录选择弹窗只更新部分目录。
+**服务器配置** — 在侧栏切换当前源，在连接设置中新增配置或修改地址。桌面端与 CLI 共用当前配置，各配置分别保存登录凭证。通过桌面端修改地址后，需为新服务器重新登录。
 
 **安装** — 选全局 Agent、项目 Agent 或自定义目录；可覆盖同名文件夹。桌面端会标记不可写的安装目标，例如 `Universal (.agents)` 的全局目录对应 `~/.config/agents/skills`，若该目录或上级目录权限异常，请先修复权限，或改用“自定义目录”选择已授权的位置。
 

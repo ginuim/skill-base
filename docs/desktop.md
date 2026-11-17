@@ -14,19 +14,13 @@ Prefer a native app over the browser or terminal? The desktop client connects to
 
 End users do not need Node.js installed.
 
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-market.png" alt="Skill Base desktop — Skill Market" width="720" />
-</p>
-
 ## Features
 
-**Skill Market** — Search team skills, favorites, and install from the grid (same server as the web UI).
+**Skill Market** — Search the current registry, filter by tags or favorites, and install from the selected skill’s details.
 
-<p align="center">
-  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-local.png" alt="Skill Base desktop — Local Assets" width="720" />
-</p>
+**Local Assets** — Filter skills by Agent and select one to see its description, installed versions, paths, and a plain-text preview of each copy’s `SKILL.md`. Version management and batch updates use the matching directories from the active registry. Older records without a source use the `default` profile for updates.
 
-**Local Assets** — One view of every on-disk copy of a skill across agent directories, newest install/update first, with up-to-date / update-available status. Quick Update / Sync all updates every recorded directory for that skill; use the directory picker to update only selected directories.
+**Profiles** — Choose the active registry from the sidebar. Connection settings can add a profile or edit the current URL. The CLI and Desktop share the saved profile selection and store each profile’s credentials separately. Editing a profile URL in Desktop requires signing in again for the new server.
 
 **Install** — Choose global agents, project agents, or custom folders; optionally overwrite an existing folder with the same name. The desktop app marks unwritable targets before install; for example, the global `Universal (.agents)` target maps to `~/.config/agents/skills`, so fix ownership/permissions there or use a custom folder if macOS blocks that path.
 
@@ -45,4 +39,4 @@ CI: [`.github/workflows/desktop-release.yml`](../.github/workflows/desktop-relea
 Developer docs:
 
 - [desktop-tauri/README.md](../desktop-tauri/README.md) — dev, build, troubleshooting
-- [desktop-tauri/ACCEPTANCE.md](../desktop-tauri/ACCEPTANCE.md) — 21-channel IPC parity checklist
+- [desktop-tauri/ACCEPTANCE.md](../desktop-tauri/ACCEPTANCE.md) — 27-channel IPC parity checklist

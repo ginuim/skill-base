@@ -7,6 +7,7 @@
  *   node scripts/smoke-bridge.mjs --all        # all bridge-routable channels
  */
 import http from 'node:http';
+import fs from 'node:fs';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
@@ -29,9 +30,31 @@ const RUST_NATIVE_CHANNELS = new Set([
   'skills:openWebPage'
 ]);
 
+// The full suite changes profiles and logs out. Keep fixture state away from real CLI data.
+const fixtureHome = fs.mkdtempSync(path.join(os.tmpdir(), 'skb-desktop-smoke-'));
+const fixtureConfig = path.join(fixtureHome, '.skill-base');
+const fixtureInstall = path.join(fixtureHome, '.codex', 'skills', 'profile-fixture');
+const fixtureServer = 'http://127.0.0.1:1';
+fs.mkdirSync(fixtureConfig, { recursive: true });
+fs.mkdirSync(fixtureInstall, { recursive: true });
+fs.writeFileSync(path.join(fixtureInstall, 'SKILL.md'), '# Profile fixture\n');
+fs.writeFileSync(path.join(fixtureConfig, 'config.json'), JSON.stringify({
+  baseUrl: fixtureServer,
+  installs: { 'profile-fixture': [{ installPath: fixtureInstall, version: 'v20261101.000000' }] }
+}));
+fs.writeFileSync(path.join(fixtureConfig, 'credentials.json'), JSON.stringify({
+  token: 'fixture-token', username: 'fixture-user'
+}));
+process.on('exit', () => fs.rmSync(fixtureHome, { recursive: true, force: true }));
+
 const child = spawn(process.execPath, [script], {
   env: {
     ...process.env,
+    HOME: fixtureHome,
+    USERPROFILE: fixtureHome,
+    SKB_PROFILE: '',
+    SKB_BASE_URL: '',
+    SKB_DESKTOP_LOG: '',
     SKB_BRIDGE_NO_OPEN: '1',
     SKB_CLI_LIB_ROOT: cliLib
   },
@@ -108,23 +131,68 @@ async function runQuick() {
 }
 
 async function runAllChannels() {
-  const home = os.homedir();
-  let savedBaseUrl = '';
+  const home = fixtureHome;
 
   const cases = [
     {
       name: 'config:get',
       run: async () => {
         const r = await bridgeInvoke('config:get');
-        assertOk('config:get', r, (v) => typeof v.baseUrl === 'string');
-        savedBaseUrl = r.result.baseUrl;
+        assertOk('config:get', r, (v) => v.profile === 'default' && v.baseUrl === fixtureServer &&
+          v.profiles.length === 1 && v.username === 'fixture-user' && v.hasToken && !('token' in v));
       }
     },
     {
       name: 'config:setServer',
       run: async () => {
-        const r = await bridgeInvoke('config:setServer', ['http://localhost:8000']);
-        assertOk('config:setServer', r, (v) => v.baseUrl === 'http://localhost:8000');
+        const invalid = await bridgeInvoke('config:setServer', ['file:///invalid']);
+        assertError('config:setServer', invalid, 'HTTP(S)');
+        const r = await bridgeInvoke('config:setServer', [fixtureServer + '/']);
+        assertOk('config:setServer', r, (v) => v.baseUrl === fixtureServer);
+      }
+    },
+    {
+      name: 'config:setProfile (shared registry, separate credentials)',
+      run: async () => {
+        const name = 'personal';
+        const baseUrl = fixtureServer + '/personal';
+        const created = await bridgeInvoke('config:setProfile', [{ name, baseUrl }]);
+        assertOk('config:setProfile', created, (v) => v.profile === name);
+        const config = await bridgeInvoke('config:get');
+        assertOk('config:get', config, (v) => v.profile === name && v.baseUrl === baseUrl && !v.hasToken);
+
+        const installed = await bridgeInvoke('skills:getInstalled');
+        assertOk('skills:getInstalled', installed, ([skill]) =>
+          skill.installs.length === 1 && skill.registryInstalls.length === 0 && !skill.hasUpdate);
+        const attempted = await bridgeInvoke('skills:update', [{
+          skillId: 'profile-fixture', version: 'v20261102.000000', installPaths: [fixtureInstall]
+        }]);
+        assertError('skills:update', attempted, '没有记录');
+
+        const switched = await bridgeInvoke('config:setProfile', [{ name: 'default' }]);
+        assertOk('config:setProfile', switched, (v) => v.profile === 'default');
+        const restored = await bridgeInvoke('config:get');
+        assertOk('config:get', restored, (v) => v.hasToken && v.username === 'fixture-user');
+        const edited = await bridgeInvoke('config:setServer', [fixtureServer + '/other']);
+        assertOk('config:setServer', edited, (v) => v.baseUrl === fixtureServer + '/other');
+        const editedConfig = await bridgeInvoke('config:get');
+        assertOk('config:get', editedConfig, (v) => !v.hasToken);
+        const afterEdit = await bridgeInvoke('skills:getInstalled');
+        assertOk('skills:getInstalled', afterEdit, ([skill]) =>
+          skill.installs[0].baseUrl === fixtureServer && skill.registryInstalls.length === 0);
+      }
+    },
+    {
+      name: 'skills:readInstalled',
+      run: async () => {
+        const r = await bridgeInvoke('skills:readInstalled', [{
+          skillId: 'profile-fixture', installPath: fixtureInstall
+        }]);
+        assertOk('skills:readInstalled', r, (v) => v.content === '# Profile fixture\n' && !v.truncated);
+        const unknown = await bridgeInvoke('skills:readInstalled', [{
+          skillId: 'profile-fixture', installPath: fixtureConfig
+        }]);
+        assertError('skills:readInstalled', unknown, 'Installation not found');
       }
     },
     {
@@ -280,10 +348,6 @@ async function runAllChannels() {
   for (const tc of cases) {
     await tc.run();
     console.log(`  ok  ${tc.name}`);
-  }
-
-  if (savedBaseUrl) {
-    await bridgeInvoke('config:setServer', [savedBaseUrl]);
   }
 
   console.log('skipped (Rust native — see ACCEPTANCE.md):');

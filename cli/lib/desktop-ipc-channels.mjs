@@ -1,6 +1,7 @@
 export const DESKTOP_IPC_CHANNELS = [
   'config:get',
   'config:setServer',
+  'config:setProfile',
   'config:getGlobalTargets',
   'config:getProjectTargets',
   'config:getProjectTargetTemplates',
@@ -17,6 +18,7 @@ export const DESKTOP_IPC_CHANNELS = [
   'skills:getVersions',
   'skills:getRemote',
   'skills:getInstalled',
+  'skills:readInstalled',
   'skills:install',
   'skills:update',
   'skills:delete',

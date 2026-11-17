@@ -1,5 +1,7 @@
 # Skill Base Desktop (Tauri)
 
+左侧切换技能库、Agent 和 CLI profile，中栏搜索并选择技能，右侧查看说明、安装目录、版本与本地 `SKILL.md`。在连接设置中可新增配置或修改当前配置的服务器。
+
 Vue UI 位于 `src/`，业务逻辑复用 `../cli/lib`（Node bridge）。
 
 ## 开发
@@ -78,7 +80,7 @@ SKB_NODE_TARGET=darwin-arm64 pnpm prepare:resources   # darwin-arm64 | darwin-x6
 
 ## 验收
 
-完整清单见 [ACCEPTANCE.md](./ACCEPTANCE.md)（25 IPC channel、手动 UI 场景）。
+完整清单见 [ACCEPTANCE.md](./ACCEPTANCE.md)（27 IPC channel、手动 UI 场景）。
 
 发布前建议：
 

@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, inject, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, inject, nextTick, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from './i18n/index.js';
 import { useTheme } from './composables/useTheme.js';
+import SkillDetail from './components/SkillDetail.vue';
 import VersionSelect from './components/VersionSelect.vue';
 
 const { t, locale, setLocale } = useI18n();
@@ -13,17 +14,24 @@ const currentTab = ref('installed');
 const searchQuery = ref('');
 const marketQuery = ref('');
 const collectionQuery = ref('');
-const installedViewMode = ref(localStorage.getItem('skill-base-desktop-installed-view') || 'card');
+const selectedSkillId = ref('');
+const agentFilter = ref('');
+const workspaceSearch = ref(null);
 const marketOnlyFavorites = ref(false);
 const marketSelectedTagIds = ref([]);
 const showMarketTagDropdown = ref(false);
 const marketTagDropdownRef = ref(null);
 
-const config = ref({ baseUrl: '', username: null, hasToken: false, projectRoot: '' });
+const config = ref({ baseUrl: '', profile: '', profiles: [], username: null, hasToken: false, projectRoot: '' });
+const profileOptions = computed(() => {
+  const options = config.value.profiles;
+  if (!config.value.profile || options.some((item) => item.name === config.value.profile)) return options;
+  return [{ name: config.value.profile, baseUrl: config.value.baseUrl }, ...options];
+});
+const activeRegistry = computed(() => ({ profile: config.value.profile, baseUrl: config.value.baseUrl }));
 const installedSkills = ref([]);
 const marketSkills = ref([]);
 const collections = ref([]);
-const hasCollections = ref(false);
 const collectionsLoaded = ref(false);
 const selectedCollection = ref(null);
 const selectedCollectionSkills = ref([]);
@@ -32,7 +40,10 @@ const globalTargets = ref([]);
 const projectTargets = ref([]);
 
 const toastMessage = ref('');
-const loading = ref(false);
+const pendingLoads = ref({ installed: false, market: false, collections: false });
+const loading = computed(() => pendingLoads.value[currentTab.value]);
+const loadRequests = { installed: 0, market: 0, collections: 0 };
+let collectionRequest = 0;
 
 function errMessage(e) {
   if (e == null) return 'unknown';
@@ -52,7 +63,16 @@ const settingsTab = ref('general');
 const registryUrl = ref('');
 const verificationCode = ref('');
 const patReady = ref(false);
-const isSavingServer = ref(false);
+const profileBusy = ref(false);
+const newProfileOpen = ref(false);
+const newProfileName = ref('');
+const newProfileUrl = ref('');
+const batchUpdating = ref(false);
+const settingsBusy = computed(() => profileBusy.value || isExchangingPat.value || isTestingConnection.value);
+const profileControlsDisabled = computed(() => (
+  !config.value.profile || config.value.profileLocked || settingsBusy.value ||
+  batchUpdating.value || installing.value || updating.value || deleting.value
+));
 const isExchangingPat = ref(false);
 const isTestingConnection = ref(false);
 
@@ -94,18 +114,8 @@ const deleteInstallPaths = ref([]);
 const deleteSelectedPaths = ref([]);
 const deleting = ref(false);
 
-// Paths modal
-const pathsModalOpen = ref(false);
-const pathsModalSkill = ref(null);
-
-const DIR_PREVIEW_COUNT = 2;
 const PATH_DISPLAY_MAX = 52;
-
-if (!['card', 'list'].includes(installedViewMode.value)) installedViewMode.value = 'card';
-
-const updatesAvailable = computed(() =>
-  installedSkills.value.filter((s) => s.version && s.latest && s.version !== s.latest).length
-);
+const updatesAvailable = computed(() => filteredInstalled.value.filter(hasVisibleUpdate).length);
 
 const currentTabLabel = computed(() => {
   if (currentTab.value === 'installed') return t('tabs.installed');
@@ -113,8 +123,6 @@ const currentTabLabel = computed(() => {
   if (currentTab.value === 'collections') return t('tabs.collections');
   return currentTab.value;
 });
-
-const revealPathHint = computed(() => t('installed.revealHint'));
 
 const canOpenUpdateVersionDiff = computed(() => {
   const installed = updateSkill.value?.version;
@@ -176,7 +184,7 @@ const canConfirmDelete = computed(
 
 const canConfirmUpdate = computed(() => {
   if (updating.value || !updateSkill.value || !updateSelectedVersion.value) return false;
-  return updateInstallPaths.value.length <= 1 || updateSelectedPaths.value.length > 0;
+  return updateSelectedPaths.value.length > 0;
 });
 
 function toggleSelection(list, id) {
@@ -285,11 +293,6 @@ async function openUpdateVersionOnline(page = 'detail') {
   }
 }
 
-function openPathsModal(skill) {
-  pathsModalSkill.value = skill;
-  pathsModalOpen.value = true;
-}
-
 async function revealInstallPath(installPath) {
   try {
     await window.skb.invoke('shell:revealPath', installPath);
@@ -299,15 +302,11 @@ async function revealInstallPath(installPath) {
 }
 
 function isInstalled(skillId) {
-  return installedSkills.value.some((s) => s.skillId === skillId);
+  return installedSkills.value.some((skill) => skill.skillId === skillId && skill.registryInstalls?.length);
 }
 
-function setViewMode(kind, mode) {
-  if (mode !== 'card' && mode !== 'list') return;
-  if (kind === 'installed') {
-    installedViewMode.value = mode;
-    localStorage.setItem('skill-base-desktop-installed-view', mode);
-  }
+function readInstalled(payload) {
+  return window.skb.invoke('skills:readInstalled', payload);
 }
 
 async function loadGlobalTargets() {
@@ -341,48 +340,27 @@ async function loadConfig() {
   }
 }
 
-async function loadInstalled() {
-  loading.value = true;
+async function loadItems(tab, target, fetchItems) {
+  const request = ++loadRequests[tab];
+  pendingLoads.value[tab] = true;
   try {
-    installedSkills.value = await window.skb.invoke('skills:getInstalled');
+    const items = await fetchItems();
+    if (request === loadRequests[tab]) target.value = items;
   } catch (e) {
-    showToast(t('toast.loadFailed', { message: errMessage(e) }));
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function loadMarket() {
-  loading.value = true;
-  try {
-    marketSkills.value = await window.skb.invoke('skills:search', '');
-  } catch (e) {
-    showToast(t('toast.loadFailed', { message: errMessage(e) }));
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function loadCollections(options = {}) {
-  const silent = Boolean(options.silent);
-  if (!silent) loading.value = true;
-  try {
-    collections.value = await window.skb.invoke('collections:list');
-    hasCollections.value = collections.value.length > 0;
-    collectionsLoaded.value = true;
-    if (!hasCollections.value && currentTab.value === 'collections') {
-      selectedCollection.value = null;
-      selectedCollectionSkills.value = [];
-      currentTab.value = 'market';
+    if (request === loadRequests[tab]) {
+      showToast(t('toast.loadFailed', { message: errMessage(e) }));
     }
-  } catch (e) {
-    collections.value = [];
-    hasCollections.value = false;
-    collectionsLoaded.value = true;
-    if (!silent) showToast(t('toast.loadFailed', { message: errMessage(e) }));
   } finally {
-    if (!silent) loading.value = false;
+    if (request === loadRequests[tab]) pendingLoads.value[tab] = false;
   }
+  return request === loadRequests[tab];
+}
+
+const loadInstalled = () => loadItems('installed', installedSkills, () => window.skb.invoke('skills:getInstalled'));
+const loadMarket = () => loadItems('market', marketSkills, () => window.skb.invoke('skills:search', ''));
+
+async function loadCollections() {
+  if (await loadItems('collections', collections, () => window.skb.invoke('collections:list'))) collectionsLoaded.value = true;
 }
 
 const filteredCollections = computed(() => {
@@ -397,22 +375,26 @@ const filteredCollections = computed(() => {
 });
 
 async function openCollection(collection) {
+  const request = ++collectionRequest;
   selectedCollection.value = collection;
   selectedCollectionSkills.value = [];
   collectionDetailLoading.value = true;
   try {
     const ref = collection.slug || collection.id;
     const detail = await window.skb.invoke('collections:get', ref);
+    if (request !== collectionRequest) return;
     selectedCollection.value = detail.collection || collection;
     selectedCollectionSkills.value = detail.skills || [];
   } catch (e) {
     showToast(t('toast.loadFailed', { message: errMessage(e) }));
   } finally {
-    collectionDetailLoading.value = false;
+    if (request === collectionRequest) collectionDetailLoading.value = false;
   }
 }
 
 function closeCollectionDetail() {
+  collectionRequest++;
+  collectionDetailLoading.value = false;
   selectedCollection.value = null;
   selectedCollectionSkills.value = [];
 }
@@ -486,10 +468,6 @@ function onDocumentPointerDown(e) {
   closeMarketTagDropdown();
 }
 
-function marketOwnerLabel(skill) {
-  return skill.owner?.name || skill.owner?.username || skill.id;
-}
-
 async function openMarketSkillDetail(skill) {
   if (!skill?.id) return;
   if (!config.value.baseUrl) {
@@ -514,14 +492,6 @@ async function openCollectionOnline(collection) {
     await window.skb.invoke('skills:openWebPage', { collectionRef: ref });
   } catch (e) {
     showToast(t('toast.openFailed', { message: errMessage(e) }));
-  }
-}
-
-async function pickProjectRoot() {
-  const root = await window.skb.invoke('project:pickRoot');
-  if (root) {
-    config.value.projectRoot = root;
-    showToast(t('project.picked', { path: root }));
   }
 }
 
@@ -629,6 +599,7 @@ async function confirmInstall() {
     if (installKind.value === 'collection') {
       const collectionRef = installCollection.value.slug || installCollection.value.id;
       const result = await window.skb.invoke('collections:install', {
+        ...activeRegistry.value,
         collectionRef,
         targets: buildInstallTargetsPayload(),
         projectRoot: installTargetTab.value === 'project' ? installProjectRoot.value : undefined,
@@ -660,6 +631,7 @@ async function confirmInstall() {
 
     const skillId = installSkill.value.id || installSkill.value.skillId;
     const result = await window.skb.invoke('skills:install', {
+      ...activeRegistry.value,
       skillId,
       version: installVersion.value,
       targets: buildInstallTargetsPayload(),
@@ -693,13 +665,21 @@ async function confirmInstall() {
 }
 
 async function openUpdateModal(skill) {
-  updateSkill.value = skill;
-  updateSelectedPaths.value = skill.installs.map((i) => i.installPath);
+  const registry = activeRegistry.value;
+  const paths = skill.registryInstalls;
+  updateSkill.value = { ...skill, version: paths[0]?.version || '' };
+  updateInstallPaths.value = [];
+  updateSelectedPaths.value = [];
+  updateVersions.value = [];
+  updateSelectedVersion.value = '';
   updateModalOpen.value = true;
   try {
-    updateVersions.value = await window.skb.invoke('skills:getVersions', skill.skillId);
-    updateSelectedVersion.value = updateVersions.value[0]?.version || skill.latest;
-    updateInstallPaths.value = skill.installs;
+    const versions = await window.skb.invoke('skills:getVersions', skill.skillId);
+    if (!updateModalOpen.value || activeRegistry.value !== registry || updateSkill.value.skillId !== skill.skillId) return;
+    updateVersions.value = versions;
+    updateSelectedVersion.value = versions[0]?.version || skill.latest;
+    updateInstallPaths.value = paths;
+    updateSelectedPaths.value = paths.map((item) => item.installPath);
   } catch (e) {
     showToast(t('toast.versionsLoadFailed', { message: errMessage(e) }));
     updateModalOpen.value = false;
@@ -710,11 +690,11 @@ async function confirmUpdate() {
   if (!canConfirmUpdate.value) return;
   updating.value = true;
   try {
-    const paths = updateInstallPaths.value.length > 1 ? updateSelectedPaths.value : null;
     const result = await window.skb.invoke('skills:update', {
       skillId: updateSkill.value.skillId,
       version: updateSelectedVersion.value,
-      installPaths: paths
+      ...activeRegistry.value,
+      installPaths: updateSelectedPaths.value
     });
 
     if (!result.ok && result.code === 'PICK_PATHS') {
@@ -723,6 +703,7 @@ async function confirmUpdate() {
       return;
     }
 
+    if (!result.ok) throw new Error(result.detail);
     updateModalOpen.value = false;
     showToast(t('toast.updated', { skillId: updateSkill.value.skillId }));
     await loadInstalled();
@@ -781,43 +762,89 @@ async function confirmDelete() {
   }
 }
 
-async function updateOne(skill) {
-  skill._updating = true;
+async function updateAll() {
+  batchUpdating.value = true;
+  const registry = activeRegistry.value;
+  const agent = agentFilter.value;
   try {
-    const result = await window.skb.invoke('skills:update', {
-      skillId: skill.skillId,
-      version: skill.latest,
-      all: true
-    });
-    if (!result.ok) throw new Error(result.detail || t('toast.updateFailed', { message: '' }));
-    showToast(t('toast.updatedTo', { skillId: skill.skillId, version: skill.latest }));
-    await loadInstalled();
+    for (const skill of filteredInstalled.value.filter(hasVisibleUpdate)) {
+      const result = await window.skb.invoke('skills:update', {
+        ...registry,
+        skillId: skill.skillId,
+        version: skill.latest,
+        installPaths: skill.registryInstalls
+          .filter((item) => item.version !== skill.latest && (!agent || item.ide === agent))
+          .map((item) => item.installPath)
+      });
+      if (!result.ok) throw new Error(result.detail);
+    }
+    showToast(t('workspace.syncComplete'));
   } catch (e) {
     showToast(t('toast.updateFailed', { message: errMessage(e) }));
   } finally {
-    skill._updating = false;
+    await loadInstalled();
+    batchUpdating.value = false;
   }
 }
 
-async function updateAll() {
-  const pending = installedSkills.value.filter((s) => s.version !== s.latest);
-  for (const skill of pending) {
-    await updateOne(skill);
+async function refreshRegistry() {
+  for (const tab of Object.keys(loadRequests)) {
+    loadRequests[tab]++;
+    pendingLoads.value[tab] = false;
   }
+  installedSkills.value = installedSkills.value.map((skill) => ({
+    ...skill,
+    hasUpdate: false,
+    remoteAvailable: false,
+    registryInstalls: []
+  }));
+  marketSkills.value = [];
+  collections.value = [];
+  collectionsLoaded.value = false;
+  selectedSkillId.value = '';
+  marketSelectedTagIds.value = [];
+  closeMarketTagDropdown();
+  closeCollectionDetail();
+  await loadConfig();
+  loadInstalled();
+  if (currentTab.value === 'market') loadMarket();
+  if (currentTab.value === 'collections') loadCollections();
 }
 
-async function saveServer() {
-  isSavingServer.value = true;
+async function changeRegistry(save, success) {
+  if (profileControlsDisabled.value) return;
+  profileBusy.value = true;
   try {
-    await window.skb.invoke('config:setServer', registryUrl.value);
-    await loadConfig();
-    await loadCollections({ silent: true });
-    showToast(t('toast.serverSaved'));
+    await save();
+    verificationCode.value = '';
+    newProfileOpen.value = false;
+    newProfileName.value = '';
+    newProfileUrl.value = '';
+    await refreshRegistry();
+    showToast(t(success));
   } catch (e) {
     showToast(t('toast.saveFailed', { message: errMessage(e) }));
   } finally {
-    isSavingServer.value = false;
+    profileBusy.value = false;
   }
+}
+
+function saveServer() {
+  return changeRegistry(() => window.skb.invoke('config:setServer', registryUrl.value, activeRegistry.value), 'toast.serverSaved');
+}
+
+function switchProfile(event) {
+  const { value } = event.target;
+  event.target.value = config.value.profile;
+  if (value === config.value.profile) return;
+  return changeRegistry(() => window.skb.invoke('config:setProfile', { name: value }), 'workspace.profileSwitched');
+}
+
+function createProfile() {
+  return changeRegistry(() => window.skb.invoke('config:setProfile', {
+    name: newProfileName.value,
+    baseUrl: newProfileUrl.value
+  }), 'workspace.profileCreated');
 }
 
 async function exchangePat() {
@@ -827,11 +854,10 @@ async function exchangePat() {
   }
   isExchangingPat.value = true;
   try {
-    const result = await window.skb.invoke('auth:exchangePat', verificationCode.value);
+    const result = await window.skb.invoke('auth:exchangePat', verificationCode.value, activeRegistry.value);
     patReady.value = true;
     verificationCode.value = '';
-    await loadConfig();
-    await loadCollections({ silent: true });
+    await refreshRegistry();
     showToast(t('toast.loginSuccess', { username: result.username }));
   } catch (e) {
     showToast(t('toast.verifyFailed', { message: errMessage(e) }));
@@ -863,29 +889,36 @@ async function testConnection() {
 }
 
 async function openLoginPage() {
-  await window.skb.invoke('auth:openLogin');
-}
-
-async function logout() {
   try {
-    await window.skb.invoke('auth:logout');
-    patReady.value = false;
-    await loadConfig();
-    await loadCollections({ silent: true });
-    showToast(t('toast.loggedOut'));
+    await window.skb.invoke('auth:openLogin');
   } catch (e) {
-    showToast(t('toast.logoutFailed', { message: errMessage(e) }));
+    showToast(t('toast.openFailed', { message: errMessage(e) }));
   }
 }
 
-function openSettingsModal() {
-  settingsTab.value = 'general';
+async function logout() {
+  isExchangingPat.value = true;
+  try {
+    await window.skb.invoke('auth:logout', activeRegistry.value);
+    patReady.value = false;
+    await refreshRegistry();
+    showToast(t('toast.loggedOut'));
+  } catch (e) {
+    showToast(t('toast.logoutFailed', { message: errMessage(e) }));
+  } finally {
+    isExchangingPat.value = false;
+  }
+}
+
+function openSettingsModal(tab = 'general') {
+  settingsTab.value = tab;
   settingsModalOpen.value = true;
+  nextTick(() => document.querySelector('.settings-modal .modal-header button')?.focus());
 }
 
 function promptConfigureServer() {
   showToast(t('toast.configureServerFirst'));
-  openSettingsModal();
+  openSettingsModal('connection');
 }
 
 function onLocaleChange(event) {
@@ -902,15 +935,60 @@ function toggleUpdatePath(p) {
   else updateSelectedPaths.value.splice(idx, 1);
 }
 
-function filteredInstalled() {
+const agentCounts = computed(() => {
+  const counts = new Map();
+  for (const skill of installedSkills.value) {
+    for (const id of new Set(skill.installs.map((item) => item.ide).filter(Boolean))) {
+      counts.set(id, (counts.get(id) || 0) + 1);
+    }
+  }
+  return [...counts].map(([id, count]) => ({
+    id,
+    count,
+    name: globalTargets.value.find((target) => target.ide === id)?.name || id
+  })).sort((a, b) => a.name.localeCompare(b.name));
+});
+
+const filteredInstalled = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
-  if (!q) return installedSkills.value;
-  return installedSkills.value.filter(
-    (s) =>
-      s.skillId.toLowerCase().includes(q) ||
-      s.name.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q)
+  return installedSkills.value.filter((skill) =>
+    (!agentFilter.value || skill.installs.some((item) => item.ide === agentFilter.value)) &&
+    [skill.skillId, skill.name, skill.description].some((value) => value?.toLowerCase().includes(q))
   );
+});
+
+function hasVisibleUpdate(skill) {
+  return skill.hasUpdate && skill.registryInstalls.some((item) =>
+    item.version !== skill.latest && (!agentFilter.value || item.ide === agentFilter.value)
+  );
+}
+
+const visibleSkills = computed(() => currentTab.value === 'installed' ? filteredInstalled.value : filteredMarketSkills.value);
+const identifySkill = (skill) => skill.skillId || skill.id;
+const selectedSkill = computed(() =>
+  visibleSkills.value.find((skill) => identifySkill(skill) === selectedSkillId.value) || visibleSkills.value[0]
+);
+const workspaceEmpty = computed(() => {
+  if (loading.value) return t('installed.loading');
+  if (currentTab.value === 'market') {
+    return t(marketQuery.value || marketOnlyFavorites.value || marketSelectedTagIds.value.length ? 'market.emptyFiltered' : 'market.empty');
+  }
+  return t(searchQuery.value || agentFilter.value ? 'workspace.noMatches' : 'installed.empty');
+});
+
+function navigate(tab, agent = '') {
+  if (currentTab.value !== tab) selectedSkillId.value = '';
+  currentTab.value = tab;
+  agentFilter.value = agent;
+}
+
+function focusWorkspaceSearch(event) {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' &&
+      !settingsModalOpen.value && !installModalOpen.value && !updateModalOpen.value &&
+      !deleteModalOpen.value && workspaceSearch.value && !selectedCollection.value) {
+    event.preventDefault();
+    workspaceSearch.value.focus();
+  }
 }
 
 function matchAgentTarget(target, q) {
@@ -934,118 +1012,149 @@ const filteredProjectTargets = computed(() => {
 });
 
 watch(currentTab, (tab) => {
+  closeCollectionDetail();
   if (tab === 'installed') loadInstalled();
-  if (tab === 'market' && marketSkills.value.length === 0) loadMarket();
-  if (tab === 'collections' && !hasCollections.value) {
-    currentTab.value = 'market';
-    return;
-  }
+  if (tab === 'market' && !marketSkills.value.length) loadMarket();
   if (tab === 'collections' && !collectionsLoaded.value) loadCollections();
 });
 
 onMounted(async () => {
   document.addEventListener('mousedown', onDocumentPointerDown, true);
+  document.addEventListener('keydown', focusWorkspaceSearch);
   await loadConfig();
   await loadInstalled();
-  await loadCollections({ silent: true });
 });
 
 onUnmounted(() => {
   document.removeEventListener('mousedown', onDocumentPointerDown, true);
+  document.removeEventListener('keydown', focusWorkspaceSearch);
 });
 </script>
 
 <template>
   <div v-cloak class="app-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar glass-panel">
+    <aside class="sidebar" :inert="settingsModalOpen || installModalOpen || updateModalOpen || deleteModalOpen">
       <div class="sidebar-header">
         <div class="logo-icon" :class="{ 'logo-icon--image': appLogoSrc }">
           <img v-if="appLogoSrc" :src="appLogoSrc" alt="" class="logo-img" />
-          <i v-else class="fa-solid fa-bolt"></i>
+          <i v-else class="fa-solid fa-bolt" aria-hidden="true"></i>
         </div>
-        <h1>SkillBase</h1>
+        <span class="brand-name">Skill Base</span>
       </div>
 
-      <nav class="sidebar-nav">
-        <button
-          :class="['nav-btn', { active: currentTab === 'installed' }]"
-          @click="currentTab = 'installed'"
-        >
-          <i class="fa-solid fa-box-archive"></i>
-          {{ t('nav.installed') }}
+      <nav class="sidebar-nav" :aria-label="t('workspace.library')">
+        <p class="nav-heading">{{ t('workspace.library') }}</p>
+        <button type="button" class="nav-btn" :aria-current="currentTab === 'installed' && !agentFilter ? 'page' : undefined" @click="navigate('installed')">
+          <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+          <span>{{ t('tabs.installed') }}</span>
         </button>
-        <button
-          :class="['nav-btn', { active: currentTab === 'market' }]"
-          @click="currentTab = 'market'"
-        >
-          <i class="fa-solid fa-globe"></i>
-          {{ t('nav.market') }}
+        <button type="button" class="nav-btn" :aria-current="currentTab === 'market' ? 'page' : undefined" @click="navigate('market')">
+          <i class="fa-solid fa-globe" aria-hidden="true"></i>
+          <span>{{ t('tabs.market') }}</span>
         </button>
-        <button
-          v-if="hasCollections"
-          :class="['nav-btn', { active: currentTab === 'collections' }]"
-          @click="currentTab = 'collections'"
-        >
-          <i class="fa-solid fa-layer-group"></i>
-          {{ t('nav.collections') }}
+        <button type="button" class="nav-btn" :aria-current="currentTab === 'collections' ? 'page' : undefined" @click="navigate('collections')">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          <span>{{ t('tabs.collections') }}</span>
         </button>
+
+        <template v-if="agentCounts.length">
+          <p class="nav-heading agents-heading">{{ t('workspace.agents') }}</p>
+          <button
+            v-for="agent in agentCounts"
+            :key="agent.id"
+            type="button" class="nav-btn agent-nav-btn"
+            :aria-current="currentTab === 'installed' && agentFilter === agent.id ? 'page' : undefined"
+            @click="navigate('installed', agent.id)"
+          >
+            <i class="fa-solid fa-terminal" aria-hidden="true"></i>
+            <span>{{ agent.name }}</span>
+            <small>{{ agent.count }}</small>
+          </button>
+        </template>
       </nav>
 
       <div class="sidebar-bottom">
-        <button class="nav-btn" @click="openSettingsModal">
-          <i class="fa-solid fa-sliders"></i>
-          {{ t('nav.settings') }}
+        <label for="active-profile" class="nav-heading">{{ t('workspace.source') }}</label>
+        <select id="active-profile" :value="config.profile" :disabled="profileControlsDisabled" @change="switchProfile">
+          <option v-if="!profileOptions.length" value="">{{ t('status.notConfigured') }}</option>
+          <option v-for="item in profileOptions" :key="item.name" :value="item.name">{{ item.name }}</option>
+        </select>
+        <button
+          type="button"
+          class="source-status"
+          :title="[config.baseUrl, config.username].filter(Boolean).join(' · ')"
+          :disabled="settingsBusy || batchUpdating"
+          @click="openSettingsModal('connection')"
+        >
+          <span class="status-dot" :class="{ 'status-dot--inactive': !config.hasToken }"></span>
+          <span class="source-text">{{ config.baseUrl || t('status.notConfigured') }}</span>
         </button>
-      </div>
-
-      <div class="sidebar-status">
-        <span class="status-dot"></span>
-        <span class="status-text">{{ config.baseUrl || t('status.notConfigured') }}</span>
+        <button type="button" class="nav-btn" :disabled="settingsBusy || batchUpdating" @click="openSettingsModal()">
+          <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+          <span>{{ t('nav.settings') }}</span>
+        </button>
       </div>
     </aside>
 
-    <!-- Main -->
-    <main class="main-area">
-      <!-- <header class="top-bar glass-panel">
-        <div class="top-bar-left">
-          <i class="fa-solid fa-folder-open"></i>
-          <button
-            class="project-path"
-            :title="config.projectRoot || t('project.pickRoot')"
-            @click="pickProjectRoot"
-          >
-            {{ formatPath(config.projectRoot || '~', 40) }}
-          </button>
-          <span class="breadcrumb">/ {{ currentTabLabel }}</span>
+    <main class="main-area" :inert="profileBusy || settingsModalOpen || installModalOpen || updateModalOpen || deleteModalOpen" :aria-busy="profileBusy || loading">
+      <header class="workspace-header">
+        <div class="workspace-title">
+          <span>{{ agentFilter ? agentCounts.find((agent) => agent.id === agentFilter)?.name || agentFilter : currentTabLabel }}</span>
+          <span v-if="!selectedCollection" class="workspace-count">{{ currentTab === 'collections' ? filteredCollections.length : visibleSkills.length }}</span>
         </div>
-      </header> -->
+        <div class="workspace-actions">
+          <button
+            v-if="currentTab === 'installed' && updatesAvailable"
+            type="button"
+            class="btn-ghost"
+            :disabled="batchUpdating || loading"
+            @click="updateAll"
+          >
+            <i class="fa-solid fa-rotate" :class="{ 'fa-spin': batchUpdating }" aria-hidden="true"></i>
+            {{ t('installed.syncAll', { count: updatesAvailable }) }}
+          </button>
+          <button v-if="currentTab === 'installed'" type="button" class="btn-ghost" :disabled="loading || batchUpdating" @click="loadInstalled">
+            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+            {{ t('workspace.refresh') }}
+          </button>
+          <button v-if="currentTab === 'collections' && !selectedCollection" type="button" class="btn-ghost" :disabled="loading" @click="loadCollections">
+            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+            {{ t('workspace.refresh') }}
+          </button>
+        </div>
+      </header>
 
       <div
-        v-if="currentTab === 'installed' || currentTab === 'market' || currentTab === 'collections'"
+        v-if="!selectedCollection"
         class="content-toolbar"
         :class="{ 'content-toolbar--market': currentTab === 'market' }"
       >
         <div class="toolbar-row">
           <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
             <input
               v-if="currentTab === 'installed'"
               v-model="searchQuery"
+              ref="workspaceSearch"
               type="search"
               :placeholder="t('search.installed')"
+              :aria-label="t('search.installed')"
             />
             <input
               v-else-if="currentTab === 'market'"
               v-model="marketQuery"
+              ref="workspaceSearch"
               type="search"
               :placeholder="t('search.market')"
+              :aria-label="t('search.market')"
             />
             <input
               v-else
               v-model="collectionQuery"
+              ref="workspaceSearch"
               type="search"
               :placeholder="t('search.collections')"
+              :aria-label="t('search.collections')"
             />
             <button
               v-if="currentTab === 'market' && marketQuery"
@@ -1064,25 +1173,6 @@ onUnmounted(() => {
               @click="collectionQuery = ''"
             >
               <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-
-          <div v-if="currentTab === 'installed'" class="view-toggle" :aria-label="t('view.mode')">
-            <button
-              type="button"
-              :class="{ active: installedViewMode === 'card' }"
-              :title="t('view.card')"
-              @click="setViewMode('installed', 'card')"
-            >
-              <i class="fa-solid fa-grip"></i>
-            </button>
-            <button
-              type="button"
-              :class="{ active: installedViewMode === 'list' }"
-              :title="t('view.list')"
-              @click="setViewMode('installed', 'list')"
-            >
-              <i class="fa-solid fa-list"></i>
             </button>
           </div>
 
@@ -1163,350 +1253,175 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="content-area">
-        <Transition name="fade" mode="out-in">
-          <!-- Installed -->
-          <div v-if="currentTab === 'installed'" key="installed">
-            <div class="section-header">
-              <div>
-                <h2>
-                  {{ t('installed.title') }}
-                  <span class="accent">{{ t('installed.count', { count: installedSkills.length }) }}</span>
-                </h2>
-                <p class="subtitle">{{ t('installed.subtitle') }}</p>
-              </div>
-              <button
-                v-if="updatesAvailable > 0"
-                class="btn-primary"
-                @click="updateAll"
-              >
-                <i class="fa-solid fa-cloud-arrow-down"></i>
-                {{ t('installed.syncAll', { count: updatesAvailable }) }}
-              </button>
-            </div>
-
-            <div v-if="loading && !installedSkills.length" class="empty-state">
-              <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('installed.loading') }}
-            </div>
-            <div v-else-if="!filteredInstalled().length" class="empty-state">
-              {{ t('installed.empty') }}
-            </div>
-            <div v-else :class="installedViewMode === 'list' ? 'skill-list' : 'skill-grid-3'">
-              <div
-                v-for="skill in filteredInstalled()"
-                :key="skill.skillId"
-                :class="installedViewMode === 'list' ? 'skill-row glass-panel' : 'skill-card glass-panel'"
-              >
-                <div class="skill-card-glow"></div>
-                <div class="skill-card-header">
-                  <h3>{{ skill.name }}</h3>
-                  <div class="skill-card-header-actions">
-                    <span class="version-tag">v{{ skill.version || '?' }}</span>
-                    <span
-                      v-if="skill.version !== skill.latest"
-                      class="update-badge"
-                    >
-                      <i class="fa-solid fa-arrow-up"></i> v{{ skill.latest }}
-                    </span>
-                  </div>
-                </div>
-                <p class="skill-desc line-clamp-2">{{ skill.description || skill.skillId }}</p>
-                <div class="skill-dirs">
-                  <button
-                    v-for="inst in skill.installs.slice(0, DIR_PREVIEW_COUNT)"
-                    :key="inst.installPath"
-                    type="button"
-                    class="dir-tag dir-tag--reveal"
-                    :title="`${inst.installPath}\n${revealPathHint}`"
-                    @click="revealInstallPath(inst.installPath)"
-                  >
-                    <i class="fa-solid fa-folder-open"></i>
-                    <span class="dir-tag-text">{{ formatPath(inst.installPath) }}</span>
-                  </button>
-                  <button
-                    v-if="skill.installs.length > DIR_PREVIEW_COUNT"
-                    type="button"
-                    class="dir-tag dir-tag-more"
-                    @click="openPathsModal(skill)"
-                  >
-                    {{ t('installed.viewAll', { count: skill.installs.length - DIR_PREVIEW_COUNT }) }}
-                  </button>
-                  <span v-if="!skill.installs.length" class="dir-tag error">
-                    {{ t('installed.notMounted') }}
-                  </span>
-                </div>
-                <div class="skill-card-footer">
-                  <span class="skill-id-label">
-                    <i class="fa-solid fa-cube"></i>
-                    {{ skill.skillId }}
-                  </span>
-                  <div class="skill-footer-actions">
-                    <button
-                      type="button"
-                      class="btn-icon skill-delete-btn"
-                      :title="t('installed.delete')"
-                      @click="openDeleteModal(skill)"
-                    >
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-icon skill-manage-btn"
-                      :title="t('installed.selectUpdateDirs')"
-                      @click="openUpdateModal(skill)"
-                    >
-                      <i class="fa-solid fa-network-wired"></i>
-                    </button>
-                    <button
-                      v-if="skill.version !== skill.latest"
-                      type="button"
-                      class="skill-action-btn"
-                      :disabled="skill._updating"
-                      @click="updateOne(skill)"
-                    >
-                      <i
-                        class="fa-solid fa-rotate"
-                        :class="{ 'fa-spin': skill._updating }"
-                      ></i>
-                      {{ t('installed.update') }}
-                    </button>
-                    <button
-                      v-else
-                      type="button"
-                      class="skill-action-btn skill-action-btn--ok"
-                      disabled
-                      :title="t('installed.upToDate')"
-                    >
-                      <i class="fa-solid fa-check"></i>
-                      {{ t('installed.upToDate') }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Market -->
-          <div v-else-if="currentTab === 'market'" key="market">
-            <div class="section-header">
-              <div>
-                <h2>{{ t('market.title') }}</h2>
-                <p class="subtitle">{{ t('market.subtitle') }}</p>
-              </div>
-            </div>
-
-            <div v-if="loading && !marketSkills.length" class="empty-state">
-              <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('market.loading') }}
-            </div>
-            <div v-else-if="!filteredMarketSkills.length" class="empty-state">
-              <template v-if="marketQuery || marketOnlyFavorites || marketSelectedTagIds.length">
-                {{ t('market.emptyFiltered') }}
-              </template>
-              <template v-else>
-                {{ t('market.empty') }}
-              </template>
-            </div>
-            <div v-else class="skill-grid-3">
-              <div
-                v-for="skill in filteredMarketSkills"
-                :key="skill.id"
-                class="market-card glass-panel"
-              >
-                <div class="market-card-glow"></div>
-                <div class="market-card-header">
-                  <h3>{{ skill.name }}</h3>
-                  <div class="market-card-header-actions">
-                    <span class="version-tag">v{{ skill.latest_version || '-' }}</span>
-                    <button
-                      type="button"
-                      class="btn-icon market-detail-btn"
-                      :title="t('market.openDetail')"
-                      @click="openMarketSkillDetail(skill)"
-                    >
-                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </button>
-                  </div>
-                </div>
-                <p class="skill-desc line-clamp-2">{{ skill.description }}</p>
-                <div class="market-card-stats">
-                  <span class="market-stat" :title="t('market.downloads')">
-                    <i class="fa-solid fa-download"></i>
-                    {{ skill.download_count ?? 0 }}
-                  </span>
-                  <span
-                    class="market-stat"
-                    :class="{ 'market-stat--favorited': skill.is_favorited }"
-                    :title="skill.is_favorited ? t('market.favorited') : t('market.favoriteCount')"
-                  >
-                    <i class="fa-solid fa-heart"></i>
-                    {{ skill.favorite_count ?? 0 }}
-                  </span>
-                </div>
-                <div class="market-card-footer">
-                  <span class="author">
-                    <i class="fa-regular fa-user"></i>
-                    {{ marketOwnerLabel(skill) }}
-                  </span>
-                  <button
-                    class="install-btn"
-                    :class="{ installed: isInstalled(skill.id) }"
-                    :disabled="isInstalled(skill.id)"
-                    @click="openInstallModal(skill)"
-                  >
-                    <i v-if="isInstalled(skill.id)" class="fa-solid fa-check"></i>
-                    <i v-else class="fa-solid fa-download"></i>
-                    {{ isInstalled(skill.id) ? t('market.installed') : t('market.install') }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Collections -->
-          <div v-else-if="currentTab === 'collections'" key="collections">
-            <div v-if="!selectedCollection" class="section-header">
-              <div>
-                <h2>{{ t('collections.title') }}</h2>
-                <p class="subtitle">{{ t('collections.subtitle') }}</p>
-              </div>
+      <div v-if="currentTab !== 'collections'" class="skill-workspace" :inert="batchUpdating">
+        <section v-if="visibleSkills.length" class="skill-results" :aria-label="currentTabLabel">
+          <ul>
+            <li v-for="skill in visibleSkills" :key="identifySkill(skill)">
               <button
                 type="button"
-                class="btn-ghost toolbar-refresh-btn"
-                :disabled="loading"
-                :title="t('collections.refresh')"
-                @click="loadCollections"
+                class="result-button"
+                :aria-pressed="selectedSkill === skill"
+                @click="selectedSkillId = identifySkill(skill)"
               >
-                <i class="fa-solid fa-arrows-rotate" :class="{ 'fa-spin': loading }"></i>
+                <span class="result-icon" aria-hidden="true"><i class="fa-solid fa-cube"></i></span>
+                <span class="result-copy">
+                  <strong>{{ skill.name || identifySkill(skill) }}</strong>
+                  <small>{{ skill.description || identifySkill(skill) }}</small>
+                </span>
+                <i v-if="currentTab === 'installed' && skill.hasUpdate" class="fa-solid fa-circle-arrow-up result-update" :title="t('installed.update')" :aria-label="t('installed.update')"></i>
               </button>
-            </div>
-
-            <template v-if="selectedCollection">
-              <div class="collection-detail-header">
-                <button type="button" class="btn-ghost" @click="closeCollectionDetail">
-                  <i class="fa-solid fa-chevron-left"></i>
-                  {{ t('collections.back') }}
-                </button>
-                <div class="collection-detail-actions">
-                  <button
-                    type="button"
-                    class="btn-ghost"
-                    @click="openCollectionOnline(selectedCollection)"
-                  >
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    {{ t('collections.openOnline') }}
-                  </button>
-                  <button
-                    type="button"
-                    class="btn-primary"
-                    :disabled="collectionDetailLoading || !selectedCollectionSkills.length"
-                    @click="openCollectionInstallModal(selectedCollection, selectedCollectionSkills)"
-                  >
-                    <i class="fa-solid fa-download"></i>
-                    {{ t('collections.install') }}
-                  </button>
-                </div>
-              </div>
-
-              <div class="collection-hero glass-panel">
-                <div class="collection-cover">
-                  <span class="collection-cover-kicker">COLLECTION</span>
-                  <strong>{{ selectedCollection.name }}</strong>
-                  <span>{{ selectedCollection.slug }}</span>
-                </div>
-                <div class="collection-hero-main">
-                  <h2>{{ selectedCollection.name }}</h2>
-                  <p>{{ selectedCollection.description || t('collections.noDesc') }}</p>
-                  <div class="collection-meta">
-                    <span>
-                      <i class="fa-solid fa-cubes"></i>
-                      {{ t('collections.skillCount', { count: selectedCollectionSkills.length }) }}
-                    </span>
-                    <span>
-                      <i class="fa-solid fa-download"></i>
-                      {{ selectedCollection.download_count ?? 0 }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="collectionDetailLoading" class="empty-state">
-                <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('collections.loading') }}
-              </div>
-              <div v-else-if="!selectedCollectionSkills.length" class="empty-state">
-                {{ t('collections.emptySkills') }}
-              </div>
-              <div v-else class="collection-skill-list">
-                <div
-                  v-for="(skill, index) in selectedCollectionSkills"
-                  :key="skill.id"
-                  class="collection-skill-row glass-panel"
-                >
-                  <span class="skill-list-index">{{ index + 1 }}</span>
-                  <div class="skill-list-main">
-                    <div class="skill-list-title-row">
-                      <h3>{{ skill.name }}</h3>
-                      <span class="version-tag">v{{ skill.latest_version || '-' }}</span>
-                    </div>
-                    <p>{{ skill.description || skill.id }}</p>
-                  </div>
-                  <button
-                    type="button"
-                    class="btn-icon market-detail-btn"
-                    :title="t('market.openDetail')"
-                    @click="openMarketSkillDetail(skill)"
-                  >
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                  </button>
-                </div>
-              </div>
-            </template>
-
-            <template v-else>
-              <div v-if="loading && !collections.length" class="empty-state">
-                <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('collections.loading') }}
-              </div>
-              <div v-else-if="!filteredCollections.length" class="empty-state">
-                {{ collectionQuery ? t('collections.emptyFiltered') : t('collections.empty') }}
-              </div>
-              <div v-else class="collection-grid">
-                <button
-                  v-for="collection in filteredCollections"
-                  :key="collection.id"
-                  type="button"
-                  class="collection-card glass-panel"
-                  @click="openCollection(collection)"
-                >
-                  <div class="collection-cover collection-cover--small">
-                    <span class="collection-cover-kicker">COLLECTION</span>
-                    <strong>{{ collection.name }}</strong>
-                    <span>{{ collection.slug }}</span>
-                  </div>
-                  <div class="collection-card-body">
-                    <h3>{{ collection.name }}</h3>
-                    <p>{{ collection.description || t('collections.noDesc') }}</p>
-                    <div class="collection-meta">
-                      <span>
-                        <i class="fa-solid fa-cubes"></i>
-                        {{ collection.skill_count ?? 0 }}
-                      </span>
-                      <span>
-                        <i class="fa-solid fa-download"></i>
-                        {{ collection.download_count ?? 0 }}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </template>
-          </div>
-        </Transition>
+            </li>
+          </ul>
+        </section>
+        <SkillDetail
+          v-if="selectedSkill"
+          :key="currentTab + ':' + identifySkill(selectedSkill)"
+          :skill="selectedSkill"
+          :profile="config.profile"
+          :home-dir="config.homeDir"
+          :local="currentTab === 'installed'"
+          :installed="isInstalled(identifySkill(selectedSkill))"
+          :read-installed="readInstalled"
+          @install="openInstallModal"
+          @versions="openUpdateModal"
+          @delete="openDeleteModal"
+          @reveal="revealInstallPath"
+          @online="openMarketSkillDetail"
+        />
+        <div v-else class="workspace-empty">
+          <i class="fa-solid fa-cube" aria-hidden="true"></i>
+          <p>{{ workspaceEmpty }}</p>
+          <button v-if="currentTab === 'installed' && !loading && !installedSkills.length" type="button" class="btn-ghost" @click="navigate('market')">
+            {{ t('tabs.market') }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+        </div>
       </div>
 
+      <div v-else class="content-area">
+      <template v-if="selectedCollection">
+        <div class="collection-detail-header">
+          <button type="button" class="btn-ghost" @click="closeCollectionDetail">
+            <i class="fa-solid fa-chevron-left"></i>
+            {{ t('collections.back') }}
+          </button>
+          <div class="collection-detail-actions">
+            <button
+              type="button"
+              class="btn-ghost"
+              @click="openCollectionOnline(selectedCollection)"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              {{ t('collections.openOnline') }}
+            </button>
+            <button
+              type="button"
+              class="btn-primary"
+              :disabled="collectionDetailLoading || !selectedCollectionSkills.length"
+              @click="openCollectionInstallModal(selectedCollection, selectedCollectionSkills)"
+            >
+              <i class="fa-solid fa-download"></i>
+              {{ t('collections.install') }}
+            </button>
+          </div>
+        </div>
+
+        <div class="collection-hero glass-panel">
+          <div class="collection-cover">
+            <span class="collection-cover-kicker">COLLECTION</span>
+            <strong>{{ selectedCollection.name }}</strong>
+            <span>{{ selectedCollection.slug }}</span>
+          </div>
+          <div class="collection-hero-main">
+            <h2>{{ selectedCollection.name }}</h2>
+            <p>{{ selectedCollection.description || t('collections.noDesc') }}</p>
+            <div class="collection-meta">
+              <span>
+                <i class="fa-solid fa-cubes"></i>
+                {{ t('collections.skillCount', { count: selectedCollectionSkills.length }) }}
+              </span>
+              <span>
+                <i class="fa-solid fa-download"></i>
+                {{ selectedCollection.download_count ?? 0 }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="collectionDetailLoading" class="empty-state">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('collections.loading') }}
+        </div>
+        <div v-else-if="!selectedCollectionSkills.length" class="empty-state">
+          {{ t('collections.emptySkills') }}
+        </div>
+        <div v-else class="collection-skill-list">
+          <div
+            v-for="(skill, index) in selectedCollectionSkills"
+            :key="skill.id"
+            class="collection-skill-row glass-panel"
+          >
+            <span class="skill-list-index">{{ index + 1 }}</span>
+            <div class="skill-list-main">
+              <div class="skill-list-title-row">
+                <h3>{{ skill.name }}</h3>
+                <span class="version-tag">v{{ skill.latest_version || '-' }}</span>
+              </div>
+              <p>{{ skill.description || skill.id }}</p>
+            </div>
+            <button
+              type="button"
+              class="btn-icon market-detail-btn"
+              :title="t('market.openDetail')"
+              @click="openMarketSkillDetail(skill)"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <template v-else>
+        <div v-if="loading && !collections.length" class="empty-state">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('collections.loading') }}
+        </div>
+        <div v-else-if="!filteredCollections.length" class="empty-state">
+          {{ collectionQuery ? t('collections.emptyFiltered') : t('collections.empty') }}
+        </div>
+        <div v-else class="collection-grid">
+          <button
+            v-for="collection in filteredCollections"
+            :key="collection.id"
+            type="button"
+            class="collection-card glass-panel"
+            @click="openCollection(collection)"
+          >
+            <div class="collection-cover collection-cover--small">
+              <span class="collection-cover-kicker">COLLECTION</span>
+              <strong>{{ collection.name }}</strong>
+              <span>{{ collection.slug }}</span>
+            </div>
+            <div class="collection-card-body">
+              <h3>{{ collection.name }}</h3>
+              <p>{{ collection.description || t('collections.noDesc') }}</p>
+              <div class="collection-meta">
+                <span>
+                  <i class="fa-solid fa-cubes"></i>
+                  {{ collection.skill_count ?? 0 }}
+                </span>
+                <span>
+                  <i class="fa-solid fa-download"></i>
+                  {{ collection.download_count ?? 0 }}
+                </span>
+              </div>
+            </div>
+          </button>
+        </div>
+      </template>
+      </div>
     </main>
 
     <!-- Toast (above modal overlays) -->
     <Transition name="fade">
-      <div v-if="toastMessage" class="toast glass-panel">
+      <div v-if="toastMessage" class="toast glass-panel" role="status">
         <i class="fa-solid fa-terminal"></i>
         <span>{{ toastMessage }}</span>
       </div>
@@ -1818,7 +1733,7 @@ onUnmounted(() => {
             </template>
           </VersionSelect>
 
-          <div v-if="updateInstallPaths.length > 1" style="margin-top: 1rem">
+          <div v-if="updateInstallPaths.length" style="margin-top: 1rem">
             <label class="field-label">{{ t('update.pickDirs') }}</label>
             <label
               v-for="inst in updateInstallPaths"
@@ -1911,14 +1826,14 @@ onUnmounted(() => {
     </div>
 
     <!-- Settings Modal -->
-    <div v-if="settingsModalOpen" class="modal-overlay" @click.self="settingsModalOpen = false">
-      <div class="modal-panel glass-panel settings-modal">
+    <div v-if="settingsModalOpen" class="modal-overlay" @click.self="!settingsBusy && (settingsModalOpen = false)" @keydown.esc="!settingsBusy && (settingsModalOpen = false)">
+      <div class="modal-panel glass-panel settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <div class="modal-header">
-          <h3>
+          <h3 id="settings-title">
             <i class="fa-solid fa-sliders text-indigo"></i>
             {{ t('settings.title') }}
           </h3>
-          <button class="btn-icon" @click="settingsModalOpen = false">
+          <button class="btn-icon" :aria-label="t('settings.close')" :disabled="settingsBusy" @click="settingsModalOpen = false">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -1965,23 +1880,46 @@ onUnmounted(() => {
           </div>
 
           <div v-else class="settings-tab-panel">
-            <label class="field-label">{{ t('settings.serverUrl') }}</label>
+            <div class="profile-settings-heading">
+              <strong>{{ config.profile }}</strong>
+              <button
+                v-if="!config.profileLocked"
+                type="button"
+                class="btn-ghost"
+                :disabled="settingsBusy"
+                :aria-expanded="newProfileOpen"
+                @click="newProfileOpen = !newProfileOpen"
+              >
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                {{ t('workspace.addProfile') }}
+              </button>
+            </div>
+            <p v-if="config.profileLocked" class="settings-hint">{{ t('workspace.profileOverride') }}</p>
+            <form v-if="newProfileOpen && !config.profileLocked" class="new-profile-form" @submit.prevent="createProfile">
+              <label for="new-profile-name" class="field-label">{{ t('workspace.profileName') }}</label>
+              <input id="new-profile-name" v-model.trim="newProfileName" type="text" pattern="[A-Za-z0-9._\-]+" required :disabled="settingsBusy" />
+              <label for="new-profile-url" class="field-label">{{ t('settings.serverUrl') }}</label>
+              <input id="new-profile-url" v-model.trim="newProfileUrl" type="url" placeholder="https://…" required :disabled="settingsBusy" />
+              <button class="btn-primary" type="submit" :disabled="settingsBusy">{{ t('workspace.createProfile') }}</button>
+            </form>
+            <label for="registry-url" class="field-label">{{ t('settings.serverUrl') }}</label>
             <div class="field-row">
-              <input v-model="registryUrl" type="text" class="font-mono" />
-              <button class="btn-ghost" :disabled="isSavingServer" @click="saveServer">
-                <i v-if="isSavingServer" class="fa-solid fa-circle-notch fa-spin"></i>
-                {{ isSavingServer ? t('settings.saving') : t('settings.save') }}
+              <input id="registry-url" v-model.trim="registryUrl" type="url" class="font-mono" :disabled="profileControlsDisabled" />
+              <button class="btn-ghost" :disabled="profileControlsDisabled || !registryUrl || registryUrl === config.baseUrl" @click="saveServer">
+                <i v-if="profileBusy" class="fa-solid fa-circle-notch fa-spin"></i>
+                {{ profileBusy ? t('settings.saving') : t('settings.save') }}
               </button>
             </div>
 
-            <a href="#" class="login-link" @click.prevent="openLoginPage">
+            <button type="button" class="btn-ghost login-link" :disabled="settingsBusy" @click="openLoginPage">
               <i class="fa-solid fa-arrow-up-right-from-square"></i>
               {{ t('settings.openLogin') }}
-            </a>
+            </button>
 
-            <label class="field-label">{{ t('settings.verificationCode') }}</label>
+            <label for="verification-code" class="field-label">{{ t('settings.verificationCode') }}</label>
             <div class="field-row">
               <input
+                id="verification-code"
                 v-model="verificationCode"
                 type="text"
                 :placeholder="t('settings.codePlaceholder')"
@@ -1989,7 +1927,7 @@ onUnmounted(() => {
               />
               <button
                 class="btn-ghost"
-                :disabled="isExchangingPat"
+                :disabled="settingsBusy"
                 @click="exchangePat"
               >
                 <i
@@ -2011,7 +1949,7 @@ onUnmounted(() => {
             <div class="settings-actions">
               <button
                 class="btn-ghost"
-                :disabled="isTestingConnection"
+                :disabled="settingsBusy"
                 @click="testConnection"
               >
                 <i v-if="isTestingConnection" class="fa-solid fa-circle-notch fa-spin"></i>
@@ -2020,6 +1958,7 @@ onUnmounted(() => {
               <button
                 v-if="patReady"
                 class="btn-ghost"
+                :disabled="settingsBusy"
                 @click="logout"
               >
                 {{ t('settings.logout') }}
@@ -2028,55 +1967,20 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn-ghost" @click="settingsModalOpen = false">{{ t('settings.close') }}</button>
+          <button class="btn-ghost" :disabled="settingsBusy" @click="settingsModalOpen = false">{{ t('settings.close') }}</button>
         </div>
       </div>
     </div>
 
-    <!-- Paths Modal -->
-    <div v-if="pathsModalOpen" class="modal-overlay" @click.self="pathsModalOpen = false">
-      <div class="modal-panel glass-panel paths-modal">
-        <div class="modal-header">
-          <h3>
-            <i class="fa-solid fa-folder-tree text-indigo"></i>
-            {{ t('paths.title', { name: pathsModalSkill?.name || pathsModalSkill?.skillId }) }}
-          </h3>
-          <button class="btn-icon" @click="pathsModalOpen = false">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p class="settings-hint" style="margin-top: 0">
-            {{ t('paths.count', { count: pathsModalSkill?.installs?.length || 0 }) }}
-          </p>
-          <ul class="paths-list">
-            <li v-for="inst in pathsModalSkill?.installs || []" :key="inst.installPath">
-              <i class="fa-solid fa-folder"></i>
-              <code class="path-full font-mono">{{ inst.installPath }}</code>
-              <span v-if="inst.version" class="path-version">v{{ inst.version }}</span>
-              <button
-                type="button"
-                class="btn-icon path-reveal-btn"
-                :title="revealPathHint"
-                @click="revealInstallPath(inst.installPath)"
-              >
-                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              </button>
-            </li>
-          </ul>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-ghost" @click="pathsModalOpen = false">{{ t('paths.close') }}</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
+
+<style scoped src="./workspace.css"></style>
 
 <style scoped>
 .app-layout {
   display: flex;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   -webkit-app-region: drag;
 }
@@ -2087,10 +1991,6 @@ onUnmounted(() => {
 .app-layout textarea,
 .app-layout a,
 .app-layout .nav-btn,
-.app-layout .project-path,
-.app-layout .skill-card,
-.app-layout .market-card,
-.app-layout .skill-row,
 .app-layout .collection-card,
 .app-layout .content-toolbar,
 .app-layout .content-area,
@@ -2102,206 +2002,7 @@ onUnmounted(() => {
   -webkit-app-region: no-drag;
 }
 
-.sidebar {
-  width: 16rem;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--color-base-900);
-  z-index: 10;
-}
-
-.sidebar-header {
-  height: 4rem;
-  display: flex;
-  align-items: center;
-  padding: 4rem 1.5rem 1rem 1.5rem;
-  flex-shrink: 0;
-}
-
-.logo-icon {
-  width: 2rem;
-  height: 2rem;
-  background: var(--logo-gradient);
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-heading);
-  margin-right: 0.75rem;
-  box-shadow: var(--shadow-logo);
-}
-
-.logo-icon--image {
-  background: transparent;
-  box-shadow: none;
-  overflow: hidden;
-}
-
-.logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.sidebar-header h1 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--color-heading);
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 1.5rem 0.75rem;
-}
-
-.sidebar-bottom {
-  padding: 0 0.75rem 0.75rem;
-  border-top: 1px solid rgba(var(--color-base-900-rgb), 0.5);
-  padding-top: 0.75rem;
-}
-
-.nav-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  font-size: 0.875rem;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--color-fg-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: 0.25rem;
-}
-
-.nav-btn i {
-  width: 1.25rem;
-  text-align: center;
-}
-
-.nav-btn:hover {
-  background: rgba(var(--color-base-900-rgb), 0.5);
-  color: var(--color-fg-strong);
-}
-
-.nav-btn.active {
-  background: var(--accent-bg-subtle);
-  color: var(--color-accent-soft);
-  border-color: var(--accent-border);
-  box-shadow: var(--shadow-accent-inset);
-}
-
-.sidebar-status {
-  padding: 1rem;
-  border-top: 1px solid var(--color-base-900);
-  background: rgba(var(--color-base-950-rgb), 0.5);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-dot {
-  position: relative;
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: 50%;
-  background: var(--color-success);
-  flex-shrink: 0;
-}
-
-.status-dot.small {
-  width: 0.5rem;
-  height: 0.5rem;
-}
-
-.status-text {
-  font-size: 0.6875rem;
-  font-family: ui-monospace, monospace;
-  color: var(--color-base-400);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.main-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: radial-gradient(ellipse at top right, rgba(var(--color-base-900-rgb), 0.4), var(--color-base-950));
-  position: relative;
-}
-
-.top-bar {
-  height: 4rem;
-  border-bottom: 1px solid var(--color-base-900);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  flex-shrink: 0;
-}
-
-.top-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--color-base-400);
-}
-
-.project-path {
-  background: none;
-  border: none;
-  color: var(--color-accent-soft);
-  font-family: ui-monospace, monospace;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  transition: background 0.2s;
-}
-
-.project-path:hover {
-  background: var(--accent-bg-subtle);
-}
-
-.breadcrumb {
-  font-family: ui-monospace, monospace;
-}
-
-.content-toolbar {
-  margin: 2rem 2rem 0;
-  padding: 0;
-  padding-bottom: 1rem;
-  background: transparent;
-  border: none;
-}
-
-.toolbar-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.content-toolbar .search-box {
-  position: relative;
-  width: min(26rem, 100%);
-  flex-shrink: 0;
-}
-
-.content-toolbar--market .search-box {
-  width: min(22rem, 55vw);
-}
-
+/* Workspace shell styles are defined in workspace.css. */
 .content-toolbar .search-box i {
   position: absolute;
   left: 0.875rem;
@@ -2320,7 +2021,7 @@ onUnmounted(() => {
   line-height: 2rem;
   background: transparent;
   border: 1px solid var(--color-base-800);
-  border-radius: 1.25rem;
+  border-radius: 0.5rem;
   box-shadow: none;
   color: var(--color-fg-strong);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -2392,37 +2093,6 @@ onUnmounted(() => {
   flex-wrap: nowrap;
   gap: 0.375rem;
   flex-shrink: 0;
-}
-
-.view-toggle {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem;
-  border: 1px solid var(--color-base-800);
-  border-radius: 9999px;
-  background: rgba(var(--color-base-950-rgb), 0.5);
-}
-
-.view-toggle button {
-  width: 1.75rem;
-  height: 1.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 9999px;
-  background: transparent;
-  color: var(--color-base-400);
-  cursor: pointer;
-}
-
-.view-toggle button:hover {
-  color: var(--color-fg-strong);
-}
-
-.view-toggle button.active {
-  background: var(--accent-bg-subtle);
-  color: var(--color-accent-light);
 }
 
 .content-toolbar--market .filter-chip {
@@ -2598,139 +2268,15 @@ onUnmounted(() => {
 .content-area {
   flex: 1;
   overflow-y: auto;
-  padding: 0 2rem 2rem;
+  padding: 1.25rem 2rem 2rem;
   container-type: inline-size;
   container-name: skill-content;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1.5rem;
-}
-
-.section-header h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-heading);
-  margin: 0;
-}
-
-.section-header h2 .accent {
-  color: var(--color-accent-soft);
-  font-size: 1.125rem;
-}
-
-.subtitle {
-  font-size: 0.875rem;
-  color: var(--color-base-400);
-  margin: 0.25rem 0 0;
-}
-
-.skill-grid-3 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
-}
-
-.skill-list,
 .collection-skill-list {
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
-}
-
-@container skill-content (min-width: 72rem) {
-  .skill-grid-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.skill-card,
-.market-card,
-.skill-row {
-  min-width: 0;
-}
-
-.skill-card,
-.skill-row {
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  border: 1px solid var(--color-base-800);
-  display: flex;
-  flex-direction: column;
-  min-height: 12.5rem;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s;
-}
-
-.skill-row {
-  min-height: 0;
-  padding: 1rem 1.125rem;
-}
-
-.skill-row .skill-card-header {
-  margin-bottom: 0.35rem;
-}
-
-.skill-row .skill-card-footer {
-  padding-top: 0.625rem;
-}
-
-.skill-row .skill-dirs {
-  margin-top: 0.45rem;
-}
-
-.skill-card:hover {
-  border-color: var(--accent-border-strong);
-}
-
-.skill-card-glow {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 6rem;
-  height: 6rem;
-  background: var(--market-glow-bg);
-  border-bottom-left-radius: 100%;
-  transition: background 0.2s;
-  pointer-events: none;
-}
-
-.skill-card:hover .skill-card-glow {
-  background: var(--market-glow-bg-hover);
-}
-
-.skill-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  position: relative;
-}
-
-.skill-card-header h3 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--color-fg-strong);
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.skill-card-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .version-tag {
@@ -2743,237 +2289,6 @@ onUnmounted(() => {
   font-family: ui-monospace, monospace;
 }
 
-.update-badge {
-  font-size: 0.625rem;
-  background: rgba(var(--color-warning-rgb), 0.1);
-  color: var(--color-warning);
-  border: 1px solid rgba(var(--color-warning-rgb), 0.2);
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-family: ui-monospace, monospace;
-  text-transform: uppercase;
-}
-
-.skill-desc {
-  font-size: 0.75rem;
-  color: var(--color-base-400);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.skill-dirs {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.375rem;
-  margin-top: 0.5rem;
-  position: relative;
-}
-
-.skill-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.75rem;
-  position: relative;
-}
-
-.skill-id-label {
-  font-size: 0.75rem;
-  color: var(--color-base-400);
-  font-family: ui-monospace, monospace;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.skill-id-label i {
-  margin-right: 0.35rem;
-  opacity: 0.7;
-}
-
-.skill-footer-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  flex-shrink: 0;
-}
-
-.skill-manage-btn {
-  color: var(--color-base-400) !important;
-}
-
-.skill-manage-btn:hover {
-  color: var(--color-accent-light) !important;
-  background: var(--accent-bg-subtle) !important;
-}
-
-.skill-delete-btn {
-  color: var(--color-base-400) !important;
-}
-
-.skill-delete-btn:hover {
-  color: var(--color-danger) !important;
-  background: rgba(var(--color-danger-rgb), 0.1) !important;
-}
-
-.skill-action-btn {
-  padding: 0.375rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  background: var(--color-base-800);
-  color: var(--color-heading);
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-
-.skill-action-btn:hover:not(:disabled) {
-  background: var(--color-accent-deep);
-}
-
-.skill-action-btn:disabled {
-  cursor: not-allowed;
-}
-
-.skill-action-btn--ok {
-  background: rgba(var(--color-success-rgb), 0.1);
-  color: var(--color-success-light);
-  border: 1px solid rgba(var(--color-success-rgb), 0.2);
-}
-
-.dir-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  background: rgba(var(--color-base-900-rgb), 0.5);
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.25rem;
-  font-size: 0.6875rem;
-  font-family: ui-monospace, monospace;
-  color: var(--color-fg-muted);
-  width: fit-content;
-  max-width: min(100%, 22rem);
-}
-
-button.dir-tag {
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.dir-tag--reveal:hover {
-  background: var(--accent-bg-subtle);
-  border-color: var(--accent-border-mid);
-  color: var(--color-accent-lighter);
-}
-
-.dir-tag--reveal:hover i {
-  color: var(--color-accent-light);
-}
-
-.dir-tag-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 18rem;
-}
-
-.dir-tag-more {
-  cursor: pointer;
-  border-style: dashed;
-  color: var(--color-accent-soft);
-  background: var(--accent-bg-muted);
-  border-color: var(--accent-border-mid);
-  font-size: 0.6875rem;
-  width: fit-content;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.dir-tag-more:hover {
-  background: var(--accent-bg-subtle);
-  border-color: var(--accent-border-strong);
-  color: var(--color-accent-light);
-}
-
-.dir-tag i {
-  color: rgba(var(--color-accent-soft-rgb), 0.7);
-}
-
-.dir-tag.error {
-  background: rgba(var(--color-danger-rgb), 0.1);
-  border-color: rgba(var(--color-danger-rgb), 0.2);
-  color: var(--color-danger);
-}
-
-.market-card {
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  border: 1px solid var(--color-base-800);
-  display: flex;
-  flex-direction: column;
-  min-height: 12.5rem;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s;
-}
-
-.market-card:hover {
-  border-color: var(--accent-border-strong);
-}
-
-.market-card-glow {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 6rem;
-  height: 6rem;
-  background: var(--market-glow-bg);
-  border-bottom-left-radius: 100%;
-  transition: background 0.2s;
-  pointer-events: none;
-}
-
-.market-card:hover .market-card-glow {
-  background: var(--market-glow-bg-hover);
-}
-
-.market-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.75rem;
-  position: relative;
-}
-
-.market-card-header h3 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--color-fg-strong);
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.market-card-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  flex-shrink: 0;
-}
-
 .market-detail-btn {
   color: var(--color-base-400) !important;
 }
@@ -2981,67 +2296,6 @@ button.dir-tag {
 .market-detail-btn:hover {
   color: var(--color-accent-light) !important;
   background: var(--accent-bg-subtle) !important;
-}
-
-.market-card-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-  position: relative;
-}
-
-.market-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.6875rem;
-  color: var(--color-base-400);
-  font-family: ui-monospace, monospace;
-}
-
-.market-stat--favorited {
-  color: var(--color-danger-pink);
-}
-
-.market-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-  position: relative;
-}
-
-.author {
-  font-size: 0.75rem;
-  color: var(--color-base-400);
-  font-family: ui-monospace, monospace;
-}
-
-.install-btn {
-  padding: 0.375rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  background: var(--color-base-800);
-  color: var(--color-heading);
-  transition: background 0.2s;
-}
-
-.install-btn:hover:not(:disabled) {
-  background: var(--color-accent-deep);
-}
-
-.install-btn.installed {
-  background: rgba(var(--color-success-rgb), 0.1);
-  color: var(--color-success-light);
-  border: 1px solid rgba(var(--color-success-rgb), 0.2);
-  cursor: not-allowed;
 }
 
 .collection-grid {
@@ -3709,65 +2963,4 @@ code {
   color: var(--color-accent-soft);
 }
 
-.paths-modal {
-  width: min(640px, 94vw);
-}
-
-.paths-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 20rem;
-  overflow-y: auto;
-}
-
-.paths-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid var(--color-base-800);
-  border-radius: 0.5rem;
-  margin-bottom: 0.5rem;
-  background: rgba(var(--color-base-950-rgb), 0.5);
-}
-
-.path-reveal-btn {
-  flex-shrink: 0;
-  margin-left: auto;
-  align-self: center;
-  color: var(--color-fg-muted);
-}
-
-.path-reveal-btn:hover {
-  color: var(--color-accent-light);
-}
-
-.paths-list li i {
-  color: rgba(var(--color-accent-soft-rgb), 0.8);
-  margin-top: 0.125rem;
-  flex-shrink: 0;
-}
-
-.path-full {
-  flex: 1;
-  min-width: 0;
-  word-break: break-all;
-  white-space: pre-wrap;
-  line-height: 1.5;
-  background: transparent;
-  border: none;
-  padding: 0;
-  color: var(--color-fg);
-}
-
-.path-version {
-  flex-shrink: 0;
-  font-size: 0.6875rem;
-  font-family: ui-monospace, monospace;
-  color: var(--color-base-400);
-  padding: 0.125rem 0.375rem;
-  background: var(--color-base-900);
-  border-radius: 0.25rem;
-}
 </style>

@@ -20,8 +20,8 @@ async function handleResponse(response) {
   return response.json();
 }
 
-function getAuthHeaders() {
-  const credentials = loadCredentials();
+function getAuthHeaders(profile) {
+  const credentials = loadCredentials(profile);
   const headers = {};
   if (credentials?.token) {
     headers['Authorization'] = `Bearer ${credentials.token}`;
@@ -30,14 +30,15 @@ function getAuthHeaders() {
 }
 
 export function createClient() {
-  const { apiUrl } = getConfig();
+  const { apiUrl, profile } = getConfig();
+  const headers = getAuthHeaders(profile);
 
   return {
     async get(path) {
       const response = await fetch(`${apiUrl}${path}`, {
         method: 'GET',
         headers: {
-          ...getAuthHeaders()
+          ...headers
         }
       });
       return handleResponse(response);
@@ -48,7 +49,7 @@ export function createClient() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders()
+          ...headers
         },
         body: JSON.stringify(body)
       });
@@ -60,7 +61,7 @@ export function createClient() {
       const response = await fetch(`${apiUrl}${path}`, {
         method: 'POST',
         headers: {
-          ...getAuthHeaders()
+          ...headers
         },
         body: formData
       });
@@ -71,7 +72,7 @@ export function createClient() {
       const response = await fetch(`${apiUrl}${path}`, {
         method: 'GET',
         headers: {
-          ...getAuthHeaders()
+          ...headers
         }
       });
       if (!response.ok) {
