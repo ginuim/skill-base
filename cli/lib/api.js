@@ -29,6 +29,8 @@ function getAuthHeaders() {
   return headers;
 }
 
+const warnedHttpDownloads = new Set();
+
 export function createClient() {
   const { apiUrl } = getConfig();
 
@@ -68,6 +70,12 @@ export function createClient() {
     },
 
     async download(path) {
+      const { protocol, hostname, origin } = new URL(apiUrl);
+      if (protocol === 'http:' && !['localhost', '127.0.0.1', '[::1]'].includes(hostname)
+        && !warnedHttpDownloads.has(origin)) {
+        warnedHttpDownloads.add(origin);
+        console.error(`Warning: downloading skills over unencrypted HTTP from ${origin}. Use HTTPS for remote servers.`);
+      }
       const response = await fetch(`${apiUrl}${path}`, {
         method: 'GET',
         headers: {

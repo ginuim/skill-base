@@ -252,17 +252,14 @@ async function collaboratorsRoutes(fastify, options) {
       request.user
     );
 
-    // Delete files from filesystem
     const fs = require('fs');
     const path = require('path');
     const { getDataDir } = require('../utils/zip');
-    // ZIP 存档与截图都在 data/skills/<skill_id>/；早期代码误删 data/<skill_id>，两者都兜底清理
-    for (const skillDir of [path.join(getDataDir(), 'skills', skill_id), path.join(getDataDir(), skill_id)]) {
-      if (fs.existsSync(skillDir)) {
-        fs.rmSync(skillDir, { recursive: true, force: true });
-      }
+    const { isValidSkillId } = require('../utils/publish-archive');
+    if (isValidSkillId(skill_id)) {
+      fs.rmSync(path.join(getDataDir(), 'skills', skill_id), { recursive: true, force: true });
     }
-    
+
     return reply.send({
       ok: true,
       message: 'Skill deleted',

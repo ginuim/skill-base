@@ -57,7 +57,23 @@
           {{ success }}
         </div>
 
-        <form @submit.prevent="handleSubmit" class="setup-form">
+        <form method="post" @submit.prevent="handleSubmit" class="setup-form">
+          <div class="setup-field">
+            <label for="setup-token" class="setup-label">{{ t('setup.token') }}</label>
+            <input
+              id="setup-token"
+              name="setup_token"
+              v-model.trim="setupToken"
+              type="password"
+              autocomplete="one-time-code"
+              aria-describedby="setup-token-hint"
+              required
+              maxlength="128"
+              :disabled="isLoading"
+              class="setup-input"
+            >
+            <p id="setup-token-hint" class="setup-hint">{{ t('setup.tokenHint') }}</p>
+          </div>
           <!-- Username -->
           <div class="setup-field">
             <label for="username" class="setup-label">
@@ -163,6 +179,7 @@ const currentLangLabel = computed(() => {
 })
 
 // 表单数据
+const setupToken = ref('')
 const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -230,7 +247,7 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    await apiPost('/init/setup', { username: user, password: pass })
+    await apiPost('/init/setup', { username: user, password: pass, setup_token: setupToken.value })
 
     // 成功
     success.value = t('setup.success')

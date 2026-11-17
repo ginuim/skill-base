@@ -473,6 +473,8 @@
 
 ## 发布模块 `/api/v1/skills`
 
+HTTP 发布 ZIP 压缩后最多 100 MiB，解压后最多 256 MiB。ZIP 根或唯一顶层技能目录须包含非空 `SKILL.md`。新发布版本的元数据包含 `sha256`，ZIP 下载与预览响应包含 `Content-Digest`。
+
 ### 1. 发布新版本
 
 **POST** `/api/v1/skills/publish`

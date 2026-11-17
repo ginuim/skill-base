@@ -6,6 +6,7 @@ const {
   suggestedImportSkillId,
   checkGithubConnectivity
 } = require('../utils/github-import');
+const { isValidSkillId } = require('../utils/publish-archive');
 const { publishSkillFromZip } = require('../utils/publish-skill');
 const SkillModel = require('../models/skill');
 const { canPublishSkill } = require('../utils/permission');
@@ -48,11 +49,11 @@ async function importGithubRoutes(fastify) {
     const { source, ref, subpath, target_skill_id, changelog, visibility } = request.body || {};
     const target = String(target_skill_id || '').trim();
 
-    if (!target || !/^[\w-]+$/.test(target)) {
+    if (!isValidSkillId(target)) {
       return reply.code(400).send({
         ok: false,
         error: 'invalid_target_id',
-        detail: 'target_skill_id is required and must match /^[\\w-]+$/'
+        detail: 'Invalid target_skill_id: use 1–200 letters, digits, hyphens or underscores, excluding reserved device names'
       });
     }
 

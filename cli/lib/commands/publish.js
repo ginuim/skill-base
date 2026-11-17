@@ -4,7 +4,8 @@ import os from 'node:os';
 import { randomBytes } from 'node:crypto';
 import chalk from 'chalk';
 import ora from 'ora';
-import archiver from 'archiver';
+import { pipeline } from 'node:stream/promises';
+import ZipStream from 'zip-stream';
 import { loadCredentials } from '../auth.js';
 import { createClient } from '../api.js';
 import { pickMessage } from '../i18n.js';
@@ -30,18 +31,33 @@ export function resolveSkillId(folderBasename, frontmatterName) {
   );
 }
 
-function zipDirectory(dirPath, outputPath, dirName, files) {
-  return new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(outputPath);
-    const archive = archiver('zip', { zlib: { level: 9 } });
+export async function zipDirectory(dirPath, outputPath, dirName, files) {
+  const archive = new ZipStream({ zlib: { level: 9 } });
+  const output = pipeline(archive, fs.createWriteStream(outputPath, { flags: 'wx' }));
 
-    output.on('close', () => resolve(archive.pointer()));
-    archive.on('error', reject);
+  const append = async () => {
+    try {
+      for (const file of files) {
+        const source = path.join(dirPath, file);
+        const stat = fs.statSync(source);
+        const input = fs.createReadStream(source);
+        await new Promise((resolve, reject) => {
+          input.once('error', reject);
+          archive.entry(input, { name: `${dirName}/${file}`, date: stat.mtime, mode: stat.mode }, (error) => {
+            if (error) reject(error);
+            else resolve();
+          });
+        });
+      }
+      archive.finalize();
+    } catch (error) {
+      archive.destroy(error);
+      throw error;
+    }
+  };
 
-    archive.pipe(output);
-    for (const file of files) archive.file(path.join(dirPath, file), { name: `${dirName}/${file}` });
-    archive.finalize();
-  });
+  await Promise.all([output, append()]);
+  return fs.statSync(outputPath).size;
 }
 
 export default async function publish(directory, options) {

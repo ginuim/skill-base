@@ -84,6 +84,12 @@ function withFixedDate(isoString, fn) {
   }
 }
 
+function makeZip(title) {
+  const zip = new AdmZip();
+  zip.addFile('SKILL.md', Buffer.from(`# ${title}\n`));
+  return zip.toBuffer();
+}
+
 test('publish rejects same-second duplicate without overwriting existing zip', () => {
   const { tempDir, dbPath, dataDir } = createFixture();
 
@@ -92,8 +98,8 @@ test('publish rejects same-second duplicate without overwriting existing zip', (
     const userId = seedUser(db);
     const user = { id: userId, role: 'developer', username: 'alice' };
 
-    const firstZip = Buffer.from('first-zip');
-    const secondZip = Buffer.from('second-zip');
+    const firstZip = makeZip('First');
+    const secondZip = makeZip('Second');
 
     let firstResult;
     let secondResult;
@@ -173,7 +179,7 @@ test('publish existing skill by non-collaborator returns conflict error', () => 
 
     const owner = { id: ownerId, role: 'developer', username: 'owner' };
     const outsider = { id: outsiderId, role: 'developer', username: 'outsider' };
-    const zipBuffer = Buffer.from('zip-content');
+    const zipBuffer = makeZip('Shared skill');
 
     const created = publishSkillFromZip({
       user: owner,

@@ -3,12 +3,24 @@ const UserModel = require('../models/user');
 const { verifyPassword, hashPassword, generateCliCode, generatePAT } = require('../utils/crypto');
 const { normalizeAvatarInput } = require('../utils/avatars');
 
+function setSessionCookie(request, reply, sessionId, maxAge) {
+  reply.setCookie('session_id', sessionId, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.SESSION_COOKIE_SECURE === 'true' || request.protocol === 'https'
+      || request.headers.origin?.startsWith('https://')
+      || request.headers.referer?.startsWith('https://') || false,
+    maxAge
+  });
+}
+
 async function authRoutes(fastify, options) {
   // POST /login - User login
-  fastify.post('/login', async (request, reply) => {
+  fastify.post('/login', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (request, reply) => {
     const { username, password } = request.body || {};
 
-    if (!username || !password) {
+    if (typeof username !== 'string' || !username || typeof password !== 'string' || !password) {
       return reply.code(400).send({ detail: 'Username and password are required' });
     }
 
@@ -34,7 +46,7 @@ async function authRoutes(fastify, options) {
 
     // Create session and set cookie
     const sessionId = fastify.createSession(user.id);
-    reply.setCookie('session_id', sessionId, { path: '/', httpOnly: true });
+    setSessionCookie(request, reply, sessionId, fastify.sessionMaxAge);
 
     return {
       ok: true,
@@ -61,6 +73,7 @@ async function authRoutes(fastify, options) {
 
   // POST /cli-code/generate - Generate CLI verification code
   fastify.post('/cli-code/generate', {
+    config: { rateLimit: { max: 20, timeWindow: '1 minute' } },
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     const code = generateCliCode();
@@ -76,32 +89,34 @@ async function authRoutes(fastify, options) {
   });
 
   // POST /cli-code/verify - Verify CLI verification code
-  fastify.post('/cli-code/verify', async (request, reply) => {
+  fastify.post('/cli-code/verify', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (request, reply) => {
     const { code } = request.body || {};
 
-    if (!code) {
+    if (typeof code !== 'string' || !/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(code)) {
       return reply.code(400).send({ detail: 'Code is required' });
     }
 
-    // Find verification code: unused and not expired
-    const codeRecord = db.prepare(`
-      SELECT * FROM cli_auth_codes
-      WHERE code = ? AND used = FALSE AND expires_at > datetime('now')
-    `).get(code);
-
+    const token = generatePAT();
+    const codeRecord = db.transaction(() => {
+      const record = db.prepare(`
+        SELECT c.user_id FROM cli_auth_codes c JOIN users u ON u.id = c.user_id
+        WHERE c.code = ? AND c.used = FALSE AND julianday(c.expires_at) > julianday('now')
+          AND u.status = 'active'
+      `).get(code);
+      if (!record) return null;
+      const result = db.prepare(
+        'UPDATE cli_auth_codes SET used = TRUE WHERE code = ? AND used = FALSE'
+      ).run(code);
+      if (result.changes !== 1) return null;
+      db.prepare(`
+        INSERT INTO personal_access_tokens (token, user_id, description)
+        VALUES (?, ?, ?)
+      `).run(token, record.user_id, 'CLI generated token');
+      return record;
+    })();
     if (!codeRecord) {
       return reply.code(401).send({ detail: 'Invalid or expired code' });
     }
-
-    // Mark as used
-    db.prepare('UPDATE cli_auth_codes SET used = TRUE WHERE code = ?').run(code);
-
-    // Generate PAT
-    const token = generatePAT();
-    db.prepare(`
-      INSERT INTO personal_access_tokens (token, user_id, description)
-      VALUES (?, ?, ?)
-    `).run(token, codeRecord.user_id, 'CLI generated token');
 
     // Get user info
     const user = UserModel.findById(codeRecord.user_id);
@@ -165,7 +180,7 @@ async function authRoutes(fastify, options) {
   }, async (request, reply) => {
     const { old_password, new_password } = request.body || {};
 
-    if (!old_password || !new_password) {
+    if (typeof old_password !== 'string' || !old_password || typeof new_password !== 'string' || !new_password) {
       return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Old password and new password are required' });
     }
 
@@ -182,6 +197,11 @@ async function authRoutes(fastify, options) {
 
     const newHash = hashPassword(new_password);
     UserModel.updatePassword(request.user.id, newHash);
+    fastify.revokeMemorySessions(request.user.id);
+    if (request.authenticatedSessionId) {
+      const sessionId = fastify.createSession(request.user.id);
+      setSessionCookie(request, reply, sessionId, fastify.sessionMaxAge);
+    }
 
     return reply.send({ ok: true, message: 'Password changed successfully' });
   });

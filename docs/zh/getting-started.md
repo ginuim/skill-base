@@ -2,7 +2,7 @@
 
 [English](../getting-started.md) | **中文**
 
-需要 Node.js >= 18。服务端使用 `node-sqlite3-wasm` 访问 SQLite，日常启动不依赖本地编译 `better-sqlite3`。
+需要 Node.js 20.19+ 或 22.12+（LTS）。服务端使用 `node-sqlite3-wasm` 访问 SQLite，日常启动不依赖本地编译 `better-sqlite3`。
 
 ## 1. 启动服务端
 
@@ -10,7 +10,7 @@
 npx skill-base -d ./skill-data -p 8000
 ```
 
-首次访问 Web 会进入初始化流程，按提示创建管理员账号。
+服务默认监听 `127.0.0.1`。首次访问 Web 时，输入启动日志中的一次性初始化口令，再创建首个管理员。
 
 其他常用启动方式：
 
@@ -27,7 +27,7 @@ npx skill-base --session-store sqlite
 ## 2. 安装 CLI
 
 ```bash
-pnpm add -g skill-base-cli
+npm install -g skill-base-cli
 ```
 
 也可直接用 `npx skill-base-cli`，不必全局安装。

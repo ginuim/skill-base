@@ -2,26 +2,11 @@
 name: skill-base-cli
 description: >-
   The official Skill Base CLI client. Use the `skb` (Skill Base CLI) command to search, install (single skill or collection), update, delete, publish, and import-from-GitHub skills from Skill Base, as well as configure skb and manage multiple environment profiles (e.g. prod / qa servers, each with its own login). Triggered when users say "publish skill to skill base", "install collection", "import skill from github", "download/update/delete skill from skill base", "configure skb", "add/switch skb profile", "publish to qa / prod skill base", "am I logged in", "check skb login", or "configure skill-base-cli".
-keywords:
-  - skill-base-cli
-  - skb
-  - whoami
-  - skb config
-  - profile
-  - switch environment
-  - install skill
-  - install collection
-  - collection
-  - publish skill
-  - update skill
-  - delete skill
-  - search skill
-  - query skill
 ---
 
 # Pull and Publish Skills with skb
 
-The Skill Base Web navigation includes **MCP & Skills**. From there, users can copy the remote MCP connection details or download this skill as a ZIP containing the skill folder. When an agent already has the remote MCP connection, it can use `publish_skill` with a PAT and user confirmation. Use the CLI for local installs, updates, and file filtering before a CLI publish.
+The Skill Base Web navigation includes **MCP & Skills**. From there, users can copy the remote MCP connection details or download this skill as a ZIP containing the skill folder. When an agent already has the remote MCP connection, it can use `publish_skill` with a PAT and user confirmation. Use the CLI for local installs, updates, and file filtering before a CLI publish. Use an HTTPS URL for remote registries. Install and update validate the ZIP before replacing local skill files. Sign in again after a password change or reset.
 
 
 Assistants should complete operations by **running terminal commands**. Package name **`skill-base-cli`**, command **`skb`** after installation.

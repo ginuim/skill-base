@@ -193,6 +193,8 @@ const zh: Record<string, string> = {
   // Setup page (initial admin setup)
   'setup.title': '初始化 - Skill Base',
   'setup.subtitle': '// 首次启动 · 请设置管理员账号',
+  'setup.token': '一次性初始化口令',
+  'setup.tokenHint': '请从服务端启动日志获取口令，或向部署人员索取。',
   'setup.usernameHint': '3-50 个字符',
   'setup.passwordHint': '至少 6 个字符',
   'setup.submit': '创建管理员账号',
@@ -954,6 +956,8 @@ const en: Record<string, string> = {
   // Setup page (initial admin setup)
   'setup.title': 'Initial Setup - Skill Base',
   'setup.subtitle': '// First Launch · Create Admin Account',
+  'setup.token': 'One-time setup token',
+  'setup.tokenHint': 'Find the token in the server startup log or ask your server operator.',
   'setup.usernameHint': '3-50 characters',
   'setup.passwordHint': 'At least 6 characters',
   'setup.submit': 'Create Admin Account',

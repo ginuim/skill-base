@@ -18,7 +18,7 @@ data/
 | 参数 | 简写 | 说明 | 默认值 |
 |------|------|------|--------|
 | `--port` | `-p` | 监听端口 | `8000` |
-| `--host` | `-h` | 绑定地址 | `0.0.0.0` |
+| `--host` | `-h` | 绑定地址 | `127.0.0.1` |
 | `--data-dir` | `-d` | 数据目录 | 包内 `data/` |
 | `--base-path` | - | URL 前缀 | `/` |
 | `--cache-max-mb` | - | 进程内 LRU 缓存（MB） | `50` |
@@ -66,12 +66,20 @@ npx skill-base -d ./team-b-data --stop
 | `DEBUG` | 详细日志（同 `--verbose`） | 关闭 |
 | `APP_BASE_PATH` | URL 前缀（Docker；同 `--base-path`） | `/` |
 | `GITHUB_TOKEN` / `SKILL_BASE_GITHUB_TOKEN` | GitHub 导入 API 限额 | - |
-| `SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB` | GitHub zipball 体积上限 | `50` |
+| `SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB` | GitHub zipball 体积上限 | `100` |
 | `SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS` | GitHub 连通性探测超时 | `8000` |
 | `SKILL_BASE_SQLITE3_PATH` | WAL 迁移用本机 `sqlite3` | - |
 | `SKILL_BASE_WEBHOOK_TIMEOUT_MS` | 出站 webhook 超时 | 服务端默认 |
 
 `GET /api/v1/health` 返回简化缓存统计。
+
+
+### 网络与初始化
+
+- 裸机默认绑定 `127.0.0.1`。容器内显式监听 `0.0.0.0`，宿主机可用 `-p 127.0.0.1:8000:8000` 限制暴露，再通过 HTTPS 反向代理对外提供服务。
+- 新数据目录会在启动日志显示一次性初始化口令。也可通过 `SKILL_BASE_SETUP_TOKEN` 注入随机口令（32–128 位字母、数字、连字符或下划线），初始化成功后移除。限制启动日志的访问范围。自动生成的口令在重启后会更换。无法读取日志时，请通过部署环境的密钥配置注入初始化口令。
+- 浏览器默认同源访问。反向代理请保留原始 `Host`。如需信任不同的前端来源，使用 `CORS_ORIGINS` 列出完整的来源（逗号分隔）。HTTPS 部署可显式设置 `SESSION_COOKIE_SECURE=true`。
+- 自行改密会换发当前浏览器会话，吊销其他会话和 CLI 凭据。管理员重置会吊销目标账号的全部会话和凭据。认证接口按连接 IP 限速，反向代理后的客户端可能共享同一个限额。
 
 ## Session 存储
 

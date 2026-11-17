@@ -11,7 +11,7 @@ keywords:
 
 # Skill Base Web Server Deployment
 
-This skill guides you through setting up and operating the Skill Base platform server. Requires Node.js >= 18.
+This skill guides you through setting up and operating the Skill Base platform server. Requires Node.js 20.19+ or 22.12+ (LTS).
 
 ## When to Use This Skill
 - When users request private deployment, hosting, or running the Skill Base server (`npx skill-base` or Docker).
@@ -41,7 +41,7 @@ Default port is **8000**; if `-d` is not specified, data will be stored in npm c
 | Option | Description |
 |--------|-------------|
 | `-p`, `--port` | Listening port, default 8000 |
-| `-h`, `--host` | Listening address, default `0.0.0.0` (listens on all local network cards/IPv4 addresses, accessible from both internal and external networks; set to `127.0.0.1` for local-only access) |
+| `-h`, `--host` | Listening address, default `127.0.0.1`. Set an explicit address when other machines need to connect. The Docker image binds to `0.0.0.0` inside the container. |
 | `-d`, `--data-dir` | Data root directory; sets `DATA_DIR` and `DATABASE_PATH=<dir>/skills.db` |
 | `--base-path` | Deployment base path prefix, default `/` (e.g., `/skills/` for subpath deployment) |
 | `--no-cappy` | Disable Cappy the capybara mascot |
@@ -52,6 +52,8 @@ Default port is **8000**; if `-d` is not specified, data will be stored in npm c
 Intranet or local hardening example: `npx skill-base --host 127.0.0.1 -p 8000 -d ./data`
 
 Subpath deployment example: `npx skill-base --base-path /skills/ -p 8000`
+
+On a new data directory, get the one-time setup token from the private server startup log or supply a random `SKILL_BASE_SETUP_TOKEN`. Enter it on the Web setup page to create the first administrator. Preserve the original `Host` at the HTTPS reverse proxy. Use `CORS_ORIGINS` only for explicitly trusted browser origins.
 
 Remote MCP uses Streamable HTTP at `/mcp` (or `/skills/mcp` in the subpath example). Forward POST and the Authorization header through the HTTPS reverse proxy for MCP clients. If the proxy sets a request body limit, allow at least 3 MiB for MCP publishing requests. The Web navigation includes the MCP setup guide and downloadable official skills.
 

@@ -1,3 +1,4 @@
+const { inflateRawSync } = require('node:zlib');
 const AdmZip = require('adm-zip');
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
 const { WebStandardStreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js');
@@ -11,7 +12,8 @@ const reference = z.string().min(1).max(200).refine(value =>
 const maxFileBytes = 256 * 1024;
 const maxPublishZipBytes = 2 * 1024 * 1024;
 const maxPublishBase64Length = 4 * Math.ceil(maxPublishZipBytes / 3);
-const publishId = reference.refine(value => /^[a-z0-9][a-z0-9_-]*$/i.test(value));
+const { isValidSkillId } = require('../utils/publish-archive');
+const publishId = reference.refine(isValidSkillId);
 
 function decodePublishZip(base64) {
   const zipBuffer = Buffer.from(base64, 'base64');
@@ -19,19 +21,6 @@ function decodePublishZip(base64) {
     throw new Error('Provide a base64-encoded ZIP up to 2 MiB.');
   }
 
-  let entries;
-  try {
-    entries = new AdmZip(zipBuffer).getEntries();
-  } catch {
-    throw new Error('Invalid ZIP archive.');
-  }
-  if (!entries.some(entry => entry.entryName === 'SKILL.md' && !entry.isDirectory && entry.header.size > 0)) {
-    throw new Error('The ZIP must contain a non-empty SKILL.md at its root.');
-  }
-  const unpackedBytes = entries.reduce((total, entry) => total + entry.header.size, 0);
-  if (unpackedBytes > 16 * 1024 * 1024) {
-    throw new Error('The ZIP contents must be up to 16 MiB uncompressed.');
-  }
   return zipBuffer;
 }
 
@@ -160,10 +149,20 @@ async function mcpRoutes(fastify, { apiPrefix, endpoint }) {
           throw new Error('Use a relative file path inside the skill archive.');
         }
         const zip = new AdmZip((await api(base + '/versions/' + encodeURIComponent(version) + '/view')).rawPayload);
-        const entry = zip.getEntry(path);
+        let entry = zip.getEntry(path);
+        if (!entry) {
+          const wrapped = zip.getEntries().filter((file) => !file.isDirectory);
+          const markdown = wrapped.find((file) => /^[^/]+\/SKILL\.md$/.test(file.entryName));
+          const folder = markdown?.entryName.slice(0, -'SKILL.md'.length);
+          if (folder && wrapped.filter((file) => !file.entryName.startsWith('__MACOSX/'))
+            .every((file) => file.entryName.startsWith(folder))) entry = zip.getEntry(folder + path);
+        }
         if (!entry || entry.isDirectory) throw new Error('File not found in the skill archive.');
         if (entry.header.size > maxFileBytes) throw new Error('File exceeds the 256 KiB limit.');
-        const data = entry.getData();
+        const data = entry.header.size === 0 && entry.header.method === 8
+          ? inflateRawSync(entry.getCompressedData(), { maxOutputLength: 1 })
+          : entry.getData();
+        if (data.length !== entry.header.size) throw new Error('Invalid ZIP entry size.');
         if (data.length > maxFileBytes || data.includes(0)) throw new Error('File must be UTF-8 text up to 256 KiB.');
         let text;
         try {
@@ -201,7 +200,8 @@ async function mcpRoutes(fastify, { apiPrefix, endpoint }) {
             description,
             changelog,
             visibility,
-            zipBuffer: decodePublishZip(zip_base64)
+            zipBuffer: decodePublishZip(zip_base64),
+            archiveOptions: { rootOnly: true, maxUnpackedBytes: 16 * 1024 * 1024 }
           });
           if (!result.ok) throw new Error(result.body.detail);
           return result;

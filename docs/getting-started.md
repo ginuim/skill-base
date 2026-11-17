@@ -2,7 +2,7 @@
 
 **English** | [中文](zh/getting-started.md)
 
-Node.js >= 18. The server uses `node-sqlite3-wasm` for SQLite, so normal startup does not require native `better-sqlite3` compilation.
+Node.js 20.19+ or 22.12+ (LTS). The server uses `node-sqlite3-wasm` for SQLite, so normal startup does not require native `better-sqlite3` compilation.
 
 ## 1. Start the server
 
@@ -10,7 +10,7 @@ Node.js >= 18. The server uses `node-sqlite3-wasm` for SQLite, so normal startup
 npx skill-base -d ./skill-data -p 8000
 ```
 
-On first visit, the web UI runs initialization; follow the prompts to create an admin account.
+The server listens on `127.0.0.1` by default. Open the Web UI and enter the one-time setup token from the startup log to create the first admin account.
 
 Other common invocations:
 
@@ -27,10 +27,10 @@ Server flags and environment variables are documented in [Deployment](deployment
 ## 2. Install the CLI
 
 ```bash
-pnpm add -g skill-base-cli
+npm install -g skill-base-cli
 ```
 
-Or use `npx skill-base-cli` without a global install.
+You can also install with `pnpm add -g skill-base-cli` or run `npx skill-base-cli` without a global install.
 
 ## 3. Point the CLI at your server
 

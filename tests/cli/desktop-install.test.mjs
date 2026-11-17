@@ -24,16 +24,15 @@ function createInstallHandler(cliOverrides = {}) {
   return handlers['skills:install'];
 }
 
-test('desktop skills:install removes partial skill directory after extract failure', async () => {
+test('desktop skills:install preserves an existing skill when download fails', async (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skb-desktop-install-'));
   const targetDir = path.join(root, 'skills');
   const installPath = path.join(targetDir, 'demo-skill');
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.mkdirSync(installPath, { recursive: true });
+  fs.writeFileSync(path.join(installPath, 'SKILL.md'), '# Previous version');
   const install = createInstallHandler({
-    downloadAndExtract: async () => {
-      fs.mkdirSync(installPath, { recursive: true });
-      fs.writeFileSync(path.join(installPath, 'partial.txt'), 'partial', 'utf8');
-      throw new Error('extract failed');
-    }
+    downloadAndExtract: async () => { throw new Error('extract failed'); }
   });
 
   await assert.rejects(
@@ -41,13 +40,12 @@ test('desktop skills:install removes partial skill directory after extract failu
       install({
         skillId: 'demo-skill',
         version: 'v1',
+        overwrite: true,
         targets: [{ customDir: targetDir }]
       }),
     /extract failed/
   );
-  assert.equal(fs.existsSync(installPath), false);
-
-  fs.rmSync(root, { recursive: true, force: true });
+  assert.equal(fs.readFileSync(path.join(installPath, 'SKILL.md'), 'utf8'), '# Previous version');
 });
 
 test('desktop skills:install rejects unwritable target before download', async (t) => {

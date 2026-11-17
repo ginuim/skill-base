@@ -5,7 +5,8 @@ const { generateSessionId } = require('../utils/crypto');
 // Session storage mode: 'memory' | 'sqlite', configured via environment variable
 const SESSION_STORE = process.env.SESSION_STORE || 'memory';
 // Session expiration time (default 7 days)
-const SESSION_EXPIRES_DAYS = parseInt(process.env.SESSION_EXPIRES_DAYS || '7', 10);
+const sessionDays = Number(process.env.SESSION_EXPIRES_DAYS);
+const SESSION_MAX_AGE = (Number.isFinite(sessionDays) && sessionDays > 0 ? sessionDays : 7) * 86400;
 
 // ============ Memory storage implementation ============
 const memorySessions = new Map();
@@ -13,7 +14,7 @@ const memorySessions = new Map();
 const memoryStore = {
   create(userId) {
     const sessionId = generateSessionId();
-    const expiresAt = Date.now() + SESSION_EXPIRES_DAYS * 24 * 60 * 60 * 1000;
+    const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
     memorySessions.set(sessionId, { userId, createdAt: Date.now(), expiresAt });
     return sessionId;
   },
@@ -45,7 +46,7 @@ const memoryStore = {
 const sqliteStore = {
   create(userId) {
     const sessionId = generateSessionId();
-    const expiresAt = new Date(Date.now() + SESSION_EXPIRES_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000).toISOString();
     db.prepare(`
       INSERT INTO sessions (session_id, user_id, expires_at) VALUES (?, ?, ?)
     `).run(sessionId, userId, expiresAt);
@@ -55,7 +56,7 @@ const sqliteStore = {
     const session = db.prepare(`
       SELECT session_id, user_id as userId, created_at as createdAt, expires_at as expiresAt
       FROM sessions 
-      WHERE session_id = ? AND expires_at > datetime('now')
+      WHERE session_id = ? AND julianday(expires_at) > julianday('now')
     `).get(sessionId);
     return session || null;
   },
@@ -64,7 +65,7 @@ const sqliteStore = {
   },
   // Clean up expired sessions
   cleanup() {
-    db.prepare("DELETE FROM sessions WHERE expires_at <= datetime('now')").run();
+    db.prepare("DELETE FROM sessions WHERE julianday(expires_at) <= julianday('now')").run();
   }
 };
 
@@ -83,7 +84,14 @@ async function authPlugin(fastify, options) {
   const authUserColumns = 'id, username, name, avatar, role, status, is_super_admin';
 
   // Expose sessionStore for routes to use
+  fastify.decorateRequest('authenticatedSessionId', null);
   fastify.decorate('sessionStore', sessionStore);
+  fastify.decorate('sessionMaxAge', SESSION_MAX_AGE);
+  fastify.decorate('revokeMemorySessions', (userId) => {
+    for (const [id, session] of memorySessions) {
+      if (session.userId === userId) memorySessions.delete(id);
+    }
+  });
   fastify.decorate('createSession', (userId) => sessionStore.create(userId));
   fastify.decorate('destroySession', (sessionId) => sessionStore.destroy(sessionId));
 
@@ -103,6 +111,7 @@ async function authPlugin(fastify, options) {
           });
         }
         request.user = user;
+        request.authenticatedSessionId = sessionId;
         return;
       }
     }

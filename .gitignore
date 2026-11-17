@@ -1,7 +1,12 @@
 node_modules/
-data
-**data**/
-!data/.gitkeep
+/data/*
+!/data/.gitkeep
+/data2/
+*.db
+*.db-wal
+*.db-shm
+*.db.lock/
+/website.zip
 .env
 *.log
 .DS_Store

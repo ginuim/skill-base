@@ -1,3 +1,4 @@
+const { createHash } = require('node:crypto');
 const CollectionModel = require('../models/collection');
 const {
   isDescriptionTooLong,
@@ -157,6 +158,7 @@ async function collectionsRoutes(fastify) {
 
     reply.header('Content-Type', 'application/zip');
     reply.header('Content-Disposition', `attachment; filename="${fileName}"`);
+    reply.header('Content-Digest', `sha-256=:${createHash('sha256').update(buffer).digest('base64')}:`);
     return reply.send(buffer);
   });
 

@@ -4,6 +4,10 @@
  */
 
 const net = require('node:net');
+const dns = require('node:dns');
+const http = require('node:http');
+const https = require('node:https');
+const { createHmac } = require('node:crypto');
 
 const WEBHOOK_MAX_URL_LENGTH = 2048;
 const DEFAULT_TIMEOUT_MS = 10000;
@@ -18,42 +22,55 @@ function isValidWebhookUrl(urlString) {
   if (urlString.length > WEBHOOK_MAX_URL_LENGTH) return false;
   try {
     const u = new URL(urlString);
-    return u.protocol === 'http:' || u.protocol === 'https:';
+    return (u.protocol === 'http:' || u.protocol === 'https:') && !u.username && !u.password;
   } catch {
     return false;
   }
 }
 
-function isLocalWebhookHostname(hostname) {
-  const normalized = String(hostname || '').toLowerCase();
-  return normalized === 'localhost' || normalized === '127.0.0.1' || normalized === '::1';
+const blocked = new net.BlockList();
+for (const [prefix, bits] of [
+  ['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8],
+  ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24],
+  ['192.168.0.0', 16], ['198.18.0.0', 15], ['198.51.100.0', 24],
+  ['203.0.113.0', 24], ['224.0.0.0', 3]
+]) blocked.addSubnet(prefix, bits);
+
+const globalV6 = new net.BlockList();
+globalV6.addSubnet('2000::', 3, 'ipv6');
+blocked.addSubnet('2001::', 23, 'ipv6');
+blocked.addSubnet('2001:db8::', 32, 'ipv6');
+blocked.addSubnet('2002::', 16, 'ipv6');
+blocked.addSubnet('3fff::', 20, 'ipv6');
+
+function isAllowedWebhookAddress(address) {
+  if (process.env.SKILL_BASE_WEBHOOK_ALLOW_LOOPBACK === 'true'
+    && (address === '127.0.0.1' || address === '::1')) return true;
+  const family = net.isIP(address);
+  if (family === 4) return !blocked.check(address);
+  return family === 6 && globalV6.check(address, 'ipv6') && !blocked.check(address, 'ipv6');
 }
 
-function isPrivateIpv4(hostname) {
-  if (net.isIP(hostname) !== 4) return false;
-  const [a, b] = hostname.split('.').map((part) => Number(part));
-  if (a === 127) return false;
-  if (a === 10) return true;
-  if (a === 192 && b === 168) return true;
-  if (a === 172 && b >= 16 && b <= 31) return true;
-  if (a === 169 && b === 254) return true;
-  if (a === 0) return true;
-  return false;
-}
-
-function isBlockedIpv6(hostname) {
-  if (net.isIP(hostname) !== 6) return false;
-  const normalized = hostname.toLowerCase();
-  if (normalized === '::1') return false;
-  return normalized === '::' || normalized.startsWith('fe8') || normalized.startsWith('fe9') || normalized.startsWith('fea') || normalized.startsWith('feb') || normalized.startsWith('fc') || normalized.startsWith('fd');
-}
 function isSafeWebhookTarget(urlString) {
   if (!isValidWebhookUrl(urlString)) return false;
-  const { hostname } = new URL(urlString);
-  if (isLocalWebhookHostname(hostname)) return true;
-  if (isPrivateIpv4(hostname)) return false;
-  if (isBlockedIpv6(hostname)) return false;
+  const hostname = new URL(urlString).hostname.replace(/^\[|\]$/g, '');
+  if (net.isIP(hostname)) return isAllowedWebhookAddress(hostname);
+  if (/^(?:localhost|.*\.localhost)\.?$/i.test(hostname)) {
+    return process.env.SKILL_BASE_WEBHOOK_ALLOW_LOOPBACK === 'true';
+  }
   return true;
+}
+
+function lookupWebhookTarget(hostname, options, callback) {
+  dns.lookup(hostname, { all: true, family: options.family }, (error, addresses) => {
+    if (error) return callback(error);
+    if (!addresses.length || addresses.some(({ address }) => !isAllowedWebhookAddress(address))) {
+      return callback(new Error('Webhook hostname resolves to a blocked address'));
+    }
+    if (options.all) return callback(null, addresses);
+    const { address, family } = addresses[0];
+    callback(null, address, family);
+  });
 }
 
 function canViewSkillWebhook(currentUser, permission) {
@@ -77,19 +94,23 @@ function parseWebhookUrlField(raw) {
   return { ok: true, value: s, omit: false };
 }
 
-async function postWebhook(url, payload) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), webhookTimeoutMs());
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
-  } finally {
-    clearTimeout(t);
+function postWebhook(url, payload) {
+  const body = JSON.stringify(payload);
+  const headers = { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) };
+  const secret = process.env.SKILL_BASE_WEBHOOK_SIGNING_SECRET;
+  if (secret) {
+    headers['X-SkillBase-Signature'] = 'sha256=' + createHmac('sha256', secret).update(body).digest('hex');
   }
+  const transport = new URL(url).protocol === 'https:' ? https : http;
+  const request = transport.request(url, {
+    method: 'POST',
+    headers,
+    lookup: lookupWebhookTarget,
+    agent: false,
+    signal: AbortSignal.timeout(webhookTimeoutMs())
+  }, (response) => response.destroy());
+  request.on('error', () => {});
+  request.end(body);
 }
 
 /**
@@ -113,7 +134,7 @@ function notifySkillWebhook(skillRow, event, data, actor) {
   };
 
   setImmediate(() => {
-    postWebhook(url, payload).catch(() => {});
+    try { postWebhook(url, payload); } catch { /* Ignore delivery failures. */ }
   });
 }
 

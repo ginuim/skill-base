@@ -5,6 +5,7 @@ import ora from 'ora';
 import prompts from 'prompts';
 import { detectInsideIdeDir, resolveInstallDir, getIdeChoices, getSupportedIdeIds, IDE_CONFIGS } from '../ide.js';
 import { rememberSkillInstall } from '../installs.js';
+import { assertSkillInstallId } from '../install-archive.mjs';
 import { downloadAndExtract } from '../download-and-extract.mjs';
 import {
   downloadCollectionZip,
@@ -146,7 +147,6 @@ async function confirmOverwriteSingle(installPathCandidate) {
     console.log(chalk.yellow(pickMessage(M.cancelled)));
     process.exit(0);
   }
-  fs.rmSync(installPathCandidate, { recursive: true, force: true });
 }
 
 async function confirmOverwriteAll(conflictPaths) {
@@ -163,9 +163,6 @@ async function confirmOverwriteAll(conflictPaths) {
     console.log(chalk.yellow(pickMessage(M.cancelled)));
     process.exit(0);
   }
-  for (const conflictPath of conflictPaths) {
-    fs.rmSync(conflictPath, { recursive: true, force: true });
-  }
 }
 
 async function installSingleSkill(target, options) {
@@ -180,11 +177,12 @@ async function installSingleSkill(target, options) {
     version = 'latest';
   }
 
+  assertSkillInstallId(skillId);
   const { targetDir, selectedIdeId } = await resolveInstallTarget(options, skillId);
   const resolvedTargetDir = path.resolve(targetDir);
   const installPathCandidate = path.join(resolvedTargetDir, skillId);
 
-  if (fs.existsSync(installPathCandidate)) {
+  if (fs.lstatSync(installPathCandidate, { throwIfNoEntry: false })) {
     await confirmOverwriteSingle(installPathCandidate);
   }
 
@@ -258,12 +256,13 @@ async function installCollection(collectionRefRaw, options) {
     process.exit(1);
   }
 
+  for (const skill of skills) assertSkillInstallId(skill.id);
   const { targetDir, selectedIdeId } = await resolveInstallTarget(options);
   const resolvedTargetDir = path.resolve(targetDir);
 
   const conflictPaths = skills
     .map((skill) => path.join(resolvedTargetDir, skill.id))
-    .filter((installPath) => fs.existsSync(installPath));
+    .filter((installPath) => fs.lstatSync(installPath, { throwIfNoEntry: false }));
 
   if (conflictPaths.length > 0) {
     await confirmOverwriteAll(conflictPaths);
@@ -273,7 +272,7 @@ async function installCollection(collectionRefRaw, options) {
 
   try {
     const buffer = await downloadCollectionZip(collectionRef);
-    await extractCollectionZip(buffer, resolvedTargetDir);
+    await extractCollectionZip(buffer, resolvedTargetDir, skills.map((skill) => skill.id));
 
     for (const skill of skills) {
       const installPath = path.join(resolvedTargetDir, skill.id);
@@ -303,6 +302,9 @@ async function installCollection(collectionRefRaw, options) {
 }
 
 export default async function install(target, options) {
+  if (options.collection && target) {
+    throw new Error('Specify either a skill or --collection, not both');
+  }
   if (options.collection) {
     return installCollection(options.collection, options);
   }

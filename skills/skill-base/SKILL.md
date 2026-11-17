@@ -1,6 +1,6 @@
 ---
 name: skill-base
-description: Find, install, update, and publish skills on a Skill Base instance using its Web UI, ZIP downloads, or HTTP API. Use when the user shares a Skill Base URL or wants to work without Node.js or the skb CLI.
+description: Find, install, update, and publish skills on a Skill Base instance using its Web UI, ZIP downloads, or HTTP API. Use when the user shares a Skill Base URL or wants to work without Node.js or the skb CLI. For running or deploying the server, use skill-base-web-deploy.
 ---
 
 # Use Skill Base
