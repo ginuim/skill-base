@@ -21,6 +21,9 @@ keywords:
 
 # Pull and Publish Skills with skb
 
+The Skill Base Web navigation includes **MCP & Skills**. From there, users can copy the remote MCP connection details or download this skill as a ZIP containing the skill folder. When an agent already has the remote MCP connection, it can use `publish_skill` with a PAT and user confirmation. Use the CLI for local installs, updates, and file filtering before a CLI publish.
+
+
 Assistants should complete operations by **running terminal commands**. Package name **`skill-base-cli`**, command **`skb`** after installation.
 
 ## When to Use This Skill

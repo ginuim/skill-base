@@ -51,6 +51,8 @@ Collection 是管理员维护的扁平推荐包（如“前端组必装”），
 
 所有 API 路由前缀: `/api/v1/`
 
+远程 MCP 在部署基础路径下提供 `/mcp`，使用无状态 Streamable HTTP 和可选 Bearer PAT。工具复用现有 API 的可见性与写权限。版本比较使用技能当前 Head。MCP 发布复用 Web ZIP 发布逻辑、权限和版本语义。Web 导航中的 `/mcp-guide` 公开提供连接说明及三个官方 Skill，按部署基础路径生成端点地址。
+
 认证方式: Cookie-based session (`session_token`)；CLI 使用 `Authorization: Bearer` PAT。
 
 公开 GitHub 仓库导入（登录后）：`GET /skills/import/github/connectivity`、`POST /skills/import/github/preview`、`POST /skills/import/github`（JSON）。可选环境变量 `GITHUB_TOKEN` / `SKILL_BASE_GITHUB_TOKEN`、`SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB`、`SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS`。

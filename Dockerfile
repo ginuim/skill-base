@@ -29,6 +29,9 @@ RUN npm install --production
 
 # 3. Copy backend source code
 COPY src/ ./src/
+COPY skills/skill-base-web-deploy/ ./skills/skill-base-web-deploy/
+COPY skills/skill-base-cli/ ./skills/skill-base-cli/
+COPY skills/skill-base/ ./skills/skill-base/
 
 # Runtime configuration
 RUN mkdir -p /data

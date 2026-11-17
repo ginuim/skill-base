@@ -1,8 +1,8 @@
 <template>
   <main class="collections-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-    <header class="collections-page-header">
-      <h1 class="collections-page-title">{{ t('collections.title') }}</h1>
-      <p class="collections-page-subtitle">{{ t('collections.subtitle') }}</p>
+    <header class="list-page-header">
+      <h1>{{ t('collections.title') }}</h1>
+      <p>{{ t('collections.subtitle') }}</p>
     </header>
 
     <div v-if="isLoading" class="collections-shelf" :class="shelfLayoutClass(1)">
@@ -75,23 +75,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.collections-page-header {
-  margin: 12px 0 36px;
-}
-
-.collections-page-title {
-  font-size: 28px;
-  font-weight: 650;
-  color: var(--color-fg-strong);
-  letter-spacing: -0.03em;
-}
-
-.collections-page-subtitle {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--color-base-400);
-}
-
 .collections-shelf {
   position: relative;
   display: grid;
@@ -144,10 +127,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 639px) {
-  .collections-page-title {
-    font-size: 24px;
-  }
-
   .collections-shelf {
     grid-template-columns: 1fr;
     justify-items: center;

@@ -44,6 +44,11 @@ const router = createRouter({
     //   component: LandingView,
     // },
     {
+      path: '/mcp-guide/:skill(skill-base-web-deploy|skill-base-cli|skill-base)?',
+      name: 'mcp-guide',
+      component: () => import('@/views/McpGuideView.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       component: LoginView,

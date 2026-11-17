@@ -479,7 +479,7 @@
 
 发布新的 Skill 版本（支持创建新 Skill）。
 
-**认证:** 需要 Session
+**认证:** 需要浏览器登录 Session 或 `Authorization: Bearer <PAT>`
 
 **请求格式:** `multipart/form-data`
 
@@ -844,3 +844,23 @@
 贡献仅从 `skill_versions.uploader_id` 统计：同一用户多次发布一个技能，只计一个贡献技能，但每个版本分别计数。仅为 owner/collaborator 而未发布版本的用户不计入。技能按该用户最近贡献时间排序；没有可见贡献时返回空列表和零统计。
 
 技能列表、详情、集合详情及用户主页的技能对象附带 `contributors` 数组，按最近贡献时间倒序、用户 ID 升序稳定排列。每项包含 `id`、`username`、`name`、`avatar`、`version_count`、`last_contributed_at`。用户主页每个技能另附 `contribution`（该用户对该技能的 `skill_id`、`version_count`、`last_contributed_at`）。不增加数据库表或部署配置。
+
+
+## 远程 MCP
+
+打开站点导航中的 **MCP 与 Skills**（`/mcp-guide`），可复制本实例的连接地址和 AI Agent 接入说明，也可下载三个官方技能 ZIP，或复制对应的 AI Agent 安装提示词。公开下载接口为 `GET /api/v1/official-skills/:skill_id/download`，支持 `skill-base`（非 CLI）、`skill-base-cli` 和 `skill-base-web-deploy`。ZIP 保留顶层技能目录及全部文件。
+
+在 AI 编程工具中新增一个 Streamable HTTP MCP 服务，URL 填 `https://skillbase.example.com/mcp`。如果部署时指定了 `APP_BASE_PATH=/skills/`，则使用 `https://skillbase.example.com/skills/mcp`。公开查询可以仅填 URL。访问私有技能、修改收藏或发布技能需要在客户端配置 `Authorization: Bearer <PAT>`，权限与对应用户在 Skill Base 中的权限一致。
+
+| 工具 | 用途 |
+| --- | --- |
+| `search_skills` | 搜索可见技能，省略关键词时浏览目录 |
+| `list_collections` | 浏览集合，或按集合 ID / slug 浏览其中可见的技能 |
+| `get_skill_versions` | 查询 Head 和版本变更说明，可传 `installed_version` 比较 |
+| `read_skill_file` | 读取指定版本的 UTF-8 文本文件，默认读取 Head 的 `SKILL.md`，单文件上限 256 KiB |
+| `set_skill_favorite` | 使用当前 PAT 对应的账号设置或取消收藏 |
+| `publish_skill` | 使用 PAT 发布新技能或为有权限的技能发布新版本 |
+
+发布时提供 `skill_id`、`visibility`（`public` 或 `private`）、`zip_base64` 和 `confirmed: true`。新技能还需提供 `name`，可附 `description` 和 `changelog`。Agent 应在调用前向用户展示目标站点、技能 ID、可见性和文件清单并获得确认。ZIP 根目录须包含非空的 `SKILL.md`，压缩后上限 2 MiB，解压后上限 16 MiB。已有技能沿用当前可见性，新版本成为 Head。
+
+列表每页返回最多 25 项，可传 `offset` 翻页。查询本地安装是否与 Head 一致时，由 Agent 提供已安装的版本。端点面向原生 MCP 客户端，使用无状态 POST 并返回 JSON，带浏览器 Origin 的 POST 会返回 403。

@@ -70,6 +70,13 @@ Folder and ZIP uploads show the final file list before publishing. Web upload an
 
 Details: [Getting Started](docs/getting-started.md) · CLI: [docs/zh/cli.md](docs/zh/cli.md) (中文)
 
+
+## Remote MCP
+
+Open **MCP & Skills** in the Web navigation for the instance URL, credential instructions, and a copyable agent setup prompt. The same page lets you download the official skills for using Skill Base with or without the CLI, or for deploying the server. Each includes a ZIP download and a copyable installation prompt.
+
+Connect an AI agent to `https://your-skill-base.example/mcp` using Streamable HTTP. Agents can search skills, browse collections, read files, compare an installed version with Head, manage favorites, and publish skills. For private skills, favorites, or publishing, configure a Skill Base personal access token in the client's `Authorization: Bearer <PAT>` header. See the [MCP setup guide](docs/zh/api.md#远程-mcp).
+
 ## Design philosophy
 
 - **Skills are the unit** — not a generic file dump or agent orchestrator.

@@ -35,6 +35,9 @@ async function buildTestApp() {
   clearModule('../../src/middleware/admin');
   clearModule('../../src/routes/auth');
   clearModule('../../src/routes/skills');
+  clearModule('../../src/routes/mcp');
+  clearModule('../../src/utils/publish-skill');
+  clearModule('../../src/utils/skill-webhook');
   clearModule('../../src/routes/users');
   clearModule('../../src/routes/tags');
   clearModule('../../src/routes/collections');
@@ -90,6 +93,7 @@ async function buildTestApp() {
     }
   }
 
+  await app.register(require('../../src/routes/mcp'), { apiPrefix, endpoint: '/mcp' });
   await app.ready();
 
   app.db = db;

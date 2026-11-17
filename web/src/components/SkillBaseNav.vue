@@ -141,15 +141,17 @@ import {
   Users,
   Tags,
   LogOut,
+  Plug,
 } from 'lucide-vue-next'
 
-type NavMenuIconName = 'home' | 'publish' | 'collections' | 'layout'
+type NavMenuIconName = 'home' | 'publish' | 'collections' | 'layout' | 'mcp'
 
 const navIconMap = {
   home: Home,
   publish: Upload,
   collections: LayoutGrid,
   layout: LayoutGrid,
+  mcp: Plug,
 } as const
 
 interface NavItem {
@@ -214,6 +216,9 @@ const navItems = computed(() => {
       })
     }
   }
+  if (!result.some(item => normalizePath(item.href) === '/mcp-guide')) {
+    result.push({ href: '/mcp-guide', label: t('nav.mcp'), icon: 'mcp' })
+  }
   return result
 })
 
@@ -230,6 +235,7 @@ function inferNavIcon(href: string): NavMenuIconName {
   const p = normalizePath(href)
   if (p === '/') return 'home'
   if (p === '/collections' || p.startsWith('/collections/')) return 'collections'
+  if (p === '/mcp-guide') return 'mcp'
   if (p === '/publish') return 'publish'
   return 'layout'
 }
@@ -237,6 +243,7 @@ function inferNavIcon(href: string): NavMenuIconName {
 function isActiveItem(href: string): boolean {
   const current = normalizePath(props.currentPath)
   const target = normalizePath(href)
+  if (target === '/mcp-guide') return current === target || current.startsWith(target + '/')
   if (target === '/collections') {
     return current === '/collections' || current.startsWith('/collections/')
   }

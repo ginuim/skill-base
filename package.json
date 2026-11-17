@@ -18,6 +18,9 @@
     "src",
     "static",
     "vendor/sqlite3",
+    "skills/skill-base-web-deploy",
+    "skills/skill-base-cli",
+    "skills/skill-base",
     "README.md",
     "CHANGELOG.md",
     "docs/README.md",
@@ -37,13 +40,15 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/multipart": "^9.4.0",
     "@fastify/static": "^9.0.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "adm-zip": "^0.5.17",
     "bcryptjs": "^2.4.3",
     "fastify": "^5.8.5",
     "fastify-plugin": "^5.0.1",
     "node-sqlite3-wasm": "^0.8.55",
     "uuid": "^14.0.0",
-    "yaml": "^2.8.3"
+    "yaml": "^2.8.3",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@remotion/bundler": "^4.0.446",

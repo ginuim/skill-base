@@ -165,6 +165,8 @@ async function start() {
     await fastify.register(require('./routes/tags'), { prefix: `${API_PREFIX}/tags` });
     await fastify.register(require('./routes/collections'), { prefix: `${API_PREFIX}/collections` });
     await fastify.register(require('./routes/users'), { prefix: `${API_PREFIX}/users` });
+    await fastify.register(require('./routes/official-skills'), { prefix: `${API_PREFIX}/official-skills` });
+    await fastify.register(require('./routes/mcp'), { apiPrefix: API_PREFIX, endpoint: APP_BASE_PATH + 'mcp' });
     debugLog({ zh: 'API 路由已注册。', en: 'API routes registered.' });
 
     // 4. SPA fallback for non-API routes

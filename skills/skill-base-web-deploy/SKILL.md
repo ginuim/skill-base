@@ -53,6 +53,8 @@ Intranet or local hardening example: `npx skill-base --host 127.0.0.1 -p 8000 -d
 
 Subpath deployment example: `npx skill-base --base-path /skills/ -p 8000`
 
+Remote MCP uses Streamable HTTP at `/mcp` (or `/skills/mcp` in the subpath example). Forward POST and the Authorization header through the HTTPS reverse proxy for MCP clients. If the proxy sets a request body limit, allow at least 3 MiB for MCP publishing requests. The Web navigation includes the MCP setup guide and downloadable official skills.
+
 Debug mode example: `npx skill-base -v -d ./data`
 
 ## First Access
