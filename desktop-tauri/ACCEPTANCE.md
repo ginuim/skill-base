@@ -1,6 +1,6 @@
 # Desktop Tauri — Acceptance Checklist
 
-Tauri 桌面客户端 UI 在 `src/`，业务逻辑在 `cli/lib/desktop-handlers.mjs`。共 **27** 个 IPC channel（见 [IPC.md](./IPC.md)）。
+Tauri 桌面客户端 UI 在 `src/`，业务逻辑在 `cli/lib/desktop-handlers.mjs`。共 **28** 个 IPC channel（见 [IPC.md](./IPC.md)）。
 
 ## 自动化
 
@@ -32,6 +32,7 @@ cd src-tauri && cargo check    # Rust 编译检查
 | `auth:exchangePat` | yes | 非法验证码格式报错 |
 | `skills:getInstalled` | yes | 本地安装列表与当前源匹配的路径 |
 | `skills:readInstalled` | yes | 读已记录目录中的 SKILL.md，拒绝未记录路径 |
+| `skills:readVersion` | yes* | 读已发布版本的 SKILL.md（`/view`，不计下载量）；需 Skill Base 可达 |
 | `skills:search` | yes* | 需 Skill Base 可达；离线时允许连接错误 |
 | `skills:getVersions` | yes* | 同上 |
 | `skills:getRemote` | yes* | 同上 |
@@ -91,6 +92,12 @@ cd src-tauri && cargo check    # Rust 编译检查
 - [ ] 多路径 Skill → 删除弹窗勾选多个目录后删除
 - [ ] 多路径 Skill → 删除弹窗选择全部目录后删除全部记录
 - [ ] 在 Finder/资源管理器中显示安装路径
+- [ ] 详情页 Agent 胶囊：点击未安装的 Agent → 安装到该 Agent 目录，侧栏 Agent 计数同步增加
+- [ ] 详情页 Agent 胶囊：点击已安装的 Agent → 仅移除该 Agent 的安装目录，其它 Agent 保留
+- [ ] 详情页「版本对比」：默认与上一版本比较，+/- 统计与 SKILL.md 差异行正确
+- [ ] 版本对比「回滚至 vX」→ 所有注册源目录写回所选版本，列表显示可更新标记
+- [ ] 侧栏 SERVERS 卡片切换 profile；「配置」打开连接设置
+- [ ] 侧栏 COLLECTIONS 点击合集 → 打开合集详情（从本地资产页切换时也可用）
 
 ### 5. Release 包
 

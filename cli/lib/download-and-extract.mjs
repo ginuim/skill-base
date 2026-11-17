@@ -58,3 +58,36 @@ export async function downloadAndExtract(skillId, version, targetDir) {
 
   return { skillId, version: actualVersion, targetDir };
 }
+
+const SKILL_MD_PREVIEW_BYTES = 64 * 1024;
+
+/**
+ * Read SKILL.md of one published version without extracting it into a target.
+ * Uses the /view endpoint, which does not increment download counters.
+ */
+export async function readSkillMdAtVersion(skillId, version) {
+  const client = createClient();
+  const response = await client.download(
+    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/view`
+  );
+  const buffer = Buffer.from(await response.arrayBuffer());
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skb-view-'));
+  try {
+    const tmpZip = path.join(tmpDir, 'skill.zip');
+    const outDir = path.join(tmpDir, 'out');
+    fs.writeFileSync(tmpZip, buffer);
+    await extract(tmpZip, { dir: outDir });
+    const candidates = [path.join(outDir, skillId, 'SKILL.md'), path.join(outDir, 'SKILL.md')];
+    const file = candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
+    if (!file) throw new Error(`SKILL.md not found in ${skillId}@${version}`);
+    const content = fs.readFileSync(file);
+    return {
+      version,
+      content: content.subarray(0, SKILL_MD_PREVIEW_BYTES).toString('utf8'),
+      truncated: content.length > SKILL_MD_PREVIEW_BYTES
+    };
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+}

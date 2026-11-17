@@ -19,6 +19,7 @@ export const DESKTOP_IPC_CHANNELS = [
   'skills:getRemote',
   'skills:getInstalled',
   'skills:readInstalled',
+  'skills:readVersion',
   'skills:install',
   'skills:update',
   'skills:delete',

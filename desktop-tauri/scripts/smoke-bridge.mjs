@@ -323,6 +323,17 @@ async function runAllChannels() {
       }
     },
     {
+      name: 'skills:readVersion (validation + network)',
+      run: async () => {
+        const missing = await bridgeInvoke('skills:readVersion', [{ skillId: 'profile-fixture' }]);
+        assertError('skills:readVersion', missing, 'skillId and version required');
+        const r = await bridgeInvoke('skills:readVersion', [{ skillId: '__smoke_nonexistent__', version: '1.0.0' }]);
+        if (!r.ok && !/404|not found|不存在|fetch|ECONNREFUSED|HTTP|连接/i.test(r.error || '')) {
+          throw new Error(`skills:readVersion: unexpected error: ${r.error}`);
+        }
+      }
+    },
+    {
       name: 'skills:getVersions (network)',
       run: async () => {
         const r = await bridgeInvoke('skills:getVersions', ['__smoke_nonexistent__']);

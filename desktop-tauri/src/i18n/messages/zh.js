@@ -21,7 +21,9 @@ export default {
     profileSwitched: "已切换配置",
     profileCreated: "已创建并切换配置",
     profileOverride: "启动环境中的 SKB_PROFILE 或 SKB_BASE_URL 正在覆盖配置。",
-    syncComplete: "当前筛选范围内的更新已完成。"
+    syncComplete: "当前筛选范围内的更新已完成。",
+    servers: 'SERVERS',
+    configure: '配置'
   },
   nav: {
     installed: '本地资产管理',
@@ -103,7 +105,8 @@ export default {
     openOnline: '在线查看',
     install: '安装集合',
     skillCount: '{count} 个 Skill',
-    emptySkills: '该集合暂无可见 Skill'
+    emptySkills: '该集合暂无可见 Skill',
+    viewAll: '查看全部集合'
   },
   version: {
     latest: '（最新）',
@@ -202,6 +205,27 @@ export default {
     cancel: '取消',
     close: '关闭',
     save: '保存'
+  },
+  detail: {
+    modeLabel: '详情视图',
+    view: '查看',
+    diff: '版本对比',
+    current: '当前',
+    diffBase: '对比基准',
+    agents: 'Agent 安装',
+    agentsHint: '点击胶囊即可同步安装到该 Agent，或从该 Agent 移除。',
+    agentOn: '已安装到 {agent}，点击移除',
+    agentOff: '点击安装到 {agent}',
+    agentInstalled: '已将 {skill} 安装到 {agent}',
+    agentRemoved: '已从 {agent} 移除 {skill}',
+    rollbackTo: '回滚至 v{version}',
+    switchTo: '切换至 v{version}',
+    rolledBack: '已将 {skill} 切换至 v{version}',
+    diffLoading: '正在读取版本内容…',
+    diffNoBase: '没有可供对比的其它版本。',
+    diffSame: 'SKILL.md 在两个版本间没有差异。',
+    diffTooLarge: '文件过大，无法在桌面端逐行对比。',
+    diffFailed: '无法读取版本内容：{message}'
   },
   toast: {
     openFailed: '打开失败: {message}',

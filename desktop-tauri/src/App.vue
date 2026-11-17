@@ -4,6 +4,7 @@ import { useI18n } from './i18n/index.js';
 import { useTheme } from './composables/useTheme.js';
 import SkillDetail from './components/SkillDetail.vue';
 import VersionSelect from './components/VersionSelect.vue';
+import { agentStyle, agentBadgeVars, normalizeAgentId } from './agents.js';
 
 const { t, locale, setLocale } = useI18n();
 const { preference: themePreference, setPreference: setThemePreference } = useTheme();
@@ -98,6 +99,10 @@ const installAcceptNested = ref(false);
 const installNestedWarn = ref(false);
 const installing = ref(false);
 const agentTargetFilter = ref('');
+
+// Agent capsule sync & version rollback (SkillDetail)
+const agentBusy = ref('');
+const rollingBack = ref(false);
 
 // Update modal
 const updateModalOpen = ref(false);
@@ -814,6 +819,7 @@ async function refreshRegistry() {
   loadInstalled();
   if (currentTab.value === 'market') loadMarket();
   if (currentTab.value === 'collections') loadCollections();
+  refreshSidebarCollections();
 }
 
 async function changeRegistry(save, success) {
@@ -836,13 +842,6 @@ async function changeRegistry(save, success) {
 
 function saveServer() {
   return changeRegistry(() => window.skb.invoke('config:setServer', registryUrl.value, activeRegistry.value), 'toast.serverSaved');
-}
-
-function switchProfile(event) {
-  const { value } = event.target;
-  event.target.value = config.value.profile;
-  if (value === config.value.profile) return;
-  return changeRegistry(() => window.skb.invoke('config:setProfile', { name: value }), 'workspace.profileSwitched');
 }
 
 function createProfile() {
@@ -940,20 +939,111 @@ function toggleUpdatePath(p) {
   else updateSelectedPaths.value.splice(idx, 1);
 }
 
-const agentAbbreviations = {
-  'claude-code': 'CC',
-  cursor: 'CU',
-  codex: 'CX',
-  qoder: 'QD',
-  opencode: 'OC',
-  openclaw: 'CL',
-  trae: 'TR',
-  universal: 'UA',
-  copilot: 'GH'
-};
+function getSkillVersions(skillId) {
+  return window.skb.invoke('skills:getVersions', skillId);
+}
 
-function normalizeAgentId(id) {
-  return (id || '').replaceAll('_', '-');
+function readSkillVersion(payload) {
+  return window.skb.invoke('skills:readVersion', payload);
+}
+
+// Agent capsule: install the installed version into an unlinked agent, or remove the skill from an agent
+async function toggleAgentInstall({ skill, capsule }) {
+  if (agentBusy.value || rollingBack.value || !skill || !capsule) return;
+  const skillId = skill.skillId || skill.id;
+  const removing = capsule.installs.length > 0;
+  agentBusy.value = `${skillId}:${capsule.key}`;
+  try {
+    if (removing) {
+      const result = await window.skb.invoke('skills:delete', {
+        skillId,
+        installPaths: capsule.installs.map((item) => item.installPath)
+      });
+      if (!result.ok) throw new Error(result.detail || t('toast.deleteFailed', { message: '' }));
+      showToast(t('detail.agentRemoved', { skill: skillId, agent: capsule.name }));
+    } else {
+      if (!capsule.target) return;
+      if (!targetIsWritable(capsule.target)) {
+        showTargetWriteError(capsule.target);
+        return;
+      }
+      const result = await window.skb.invoke('skills:install', {
+        ...activeRegistry.value,
+        skillId,
+        version: skill.registryInstalls?.[0]?.version || skill.version,
+        targets: [{ targetId: capsule.target.id }],
+        overwrite: false,
+        method: 'copy',
+        acceptNested: false
+      });
+      if (!result.ok) {
+        showToast(result.detail || t('toast.installFailed', { message: '' }));
+        return;
+      }
+      showToast(t('detail.agentInstalled', { skill: skillId, agent: capsule.name }));
+    }
+    await loadInstalled();
+  } catch (e) {
+    showToast(t(removing ? 'toast.deleteFailed' : 'toast.installFailed', { message: errMessage(e) }));
+  } finally {
+    agentBusy.value = '';
+  }
+}
+
+// Version rollback: write the chosen version into every install under the active registry via skills:update
+async function rollbackSkill({ skill, version }) {
+  if (rollingBack.value || agentBusy.value || !skill || !version) return;
+  const skillId = skill.skillId || skill.id;
+  const installPaths = (skill.registryInstalls || []).map((item) => item.installPath);
+  if (!installPaths.length) return;
+  rollingBack.value = true;
+  try {
+    const result = await window.skb.invoke('skills:update', {
+      ...activeRegistry.value,
+      skillId,
+      version,
+      installPaths
+    });
+    if (!result.ok) throw new Error(result.detail || t('toast.updateFailed', { message: '' }));
+    showToast(t('detail.rolledBack', { skill: skillId, version }));
+    await loadInstalled();
+  } catch (e) {
+    showToast(t('toast.updateFailed', { message: errMessage(e) }));
+  } finally {
+    rollingBack.value = false;
+  }
+}
+
+// Sidebar collections are a best-effort shortcut; failures stay silent (the collections tab reports errors)
+async function refreshSidebarCollections() {
+  if (!config.value.baseUrl) {
+    collections.value = [];
+    return;
+  }
+  try {
+    collections.value = await window.skb.invoke('collections:list');
+  } catch {
+    // keep the previous list
+  }
+}
+
+async function openSidebarCollection(collection) {
+  if (currentTab.value !== 'collections') {
+    navigate('collections');
+    // let the currentTab watcher run first, otherwise it closes the collection just opened
+    await nextTick();
+  }
+  openCollection(collection);
+}
+
+function serverHost(item) {
+  const url = (item.baseUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  return url || item.name;
+}
+
+function selectServerProfile(name) {
+  if (!name || name === config.value.profile) return;
+  return changeRegistry(() => window.skb.invoke('config:setProfile', { name }), 'workspace.profileSwitched');
 }
 
 const agentNames = computed(() => new Map(
@@ -965,7 +1055,7 @@ const installedAgents = computed(() => new Map(installedSkills.value.map((skill)
   const agents = [...ids].map((id) => ({
     id,
     name: agentNames.value.get(id) || id,
-    short: Object.hasOwn(agentAbbreviations, id) ? agentAbbreviations[id] : id.slice(0, 2).toUpperCase()
+    short: agentStyle(id, agentNames.value.get(id) || id).short
   }));
   return [skill.skillId, agents.sort((a, b) => a.name.localeCompare(b.name))];
 })));
@@ -1055,6 +1145,7 @@ onMounted(async () => {
   document.addEventListener('keydown', focusWorkspaceSearch);
   await loadConfig();
   await loadInstalled();
+  refreshSidebarCollections();
 });
 
 onUnmounted(() => {
@@ -1084,13 +1175,11 @@ onUnmounted(() => {
           <i class="fa-solid fa-globe" aria-hidden="true"></i>
           <span>{{ t('tabs.market') }}</span>
         </button>
-        <button type="button" class="nav-btn" :aria-current="currentTab === 'collections' ? 'page' : undefined" @click="navigate('collections')">
-          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
-          <span>{{ t('tabs.collections') }}</span>
-        </button>
 
         <template v-if="agentCounts.length">
-          <p class="nav-heading agents-heading">{{ t('workspace.agents') }}</p>
+          <div class="nav-heading-row">
+            <p class="nav-heading">{{ t('workspace.agents') }}</p>
+          </div>
           <button
             v-for="agent in agentCounts"
             :key="agent.id"
@@ -1098,30 +1187,72 @@ onUnmounted(() => {
             :aria-current="currentTab === 'installed' && agentFilter === agent.id ? 'page' : undefined"
             @click="navigate('installed', agent.id)"
           >
-            <i class="fa-solid fa-terminal" aria-hidden="true"></i>
+            <span class="agent-badge" :style="agentBadgeVars(agentStyle(agent.id, agent.name))" aria-hidden="true">{{ agentStyle(agent.id, agent.name).short }}</span>
             <span>{{ agent.name }}</span>
             <small>{{ agent.count }}</small>
           </button>
         </template>
+
+        <div class="nav-heading-row">
+          <p class="nav-heading">{{ t('tabs.collections') }}</p>
+          <button
+            type="button"
+            class="nav-heading-action"
+            :title="t('collections.viewAll')"
+            :aria-label="t('collections.viewAll')"
+            @click="navigate('collections')"
+          >
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          </button>
+        </div>
+        <button
+          v-for="item in collections"
+          :key="item.id"
+          type="button"
+          class="nav-btn collection-nav-btn"
+          :aria-current="currentTab === 'collections' && selectedCollection?.id === item.id ? 'page' : undefined"
+          :title="item.name"
+          @click="openSidebarCollection(item)"
+        >
+          <span class="collection-nav-name">{{ item.name }}</span>
+          <small>{{ item.skill_count ?? 0 }}</small>
+        </button>
+        <p v-if="!collections.length" class="nav-empty">
+          {{ config.baseUrl ? t('collections.empty') : t('status.notConfigured') }}
+        </p>
       </nav>
 
       <div class="sidebar-bottom">
-        <label for="active-profile" class="nav-heading">{{ t('workspace.source') }}</label>
-        <select id="active-profile" :value="config.profile" :disabled="profileControlsDisabled" @change="switchProfile">
-          <option v-if="!profileOptions.length" value="">{{ t('status.notConfigured') }}</option>
-          <option v-for="item in profileOptions" :key="item.name" :value="item.name">{{ item.name }}</option>
-        </select>
-        <button
-          type="button"
-          class="source-status"
-          :title="[config.baseUrl, config.username].filter(Boolean).join(' · ')"
-          :disabled="settingsBusy || batchUpdating"
-          @click="openSettingsModal('connection')"
-        >
-          <span class="status-dot" :class="{ 'status-dot--inactive': !config.hasToken }"></span>
-          <span class="source-text">{{ config.baseUrl || t('status.notConfigured') }}</span>
-        </button>
-        <button type="button" class="nav-btn" :disabled="settingsBusy || batchUpdating" @click="openSettingsModal()">
+        <div class="nav-heading-row servers-heading">
+          <p class="nav-heading">{{ t('workspace.servers') }}</p>
+          <button
+            type="button"
+            class="servers-config"
+            :disabled="settingsBusy || batchUpdating"
+            @click="openSettingsModal('connection')"
+          >{{ t('workspace.configure') }}</button>
+        </div>
+        <div class="server-list">
+          <button
+            v-for="item in profileOptions"
+            :key="item.name"
+            type="button"
+            class="server-card"
+            :class="{ 'server-card--active': item.name === config.profile }"
+            :disabled="profileControlsDisabled && item.name !== config.profile"
+            :title="item.baseUrl || item.name"
+            @click="selectServerProfile(item.name)"
+          >
+            <span class="server-card-row">
+              <span class="status-dot" :class="{ 'status-dot--inactive': item.name !== config.profile || !config.hasToken }"></span>
+              <span class="server-host">{{ serverHost(item) }}</span>
+              <span v-if="item.name === config.profile && config.hasToken" class="server-tag">JWT</span>
+            </span>
+            <span class="server-sub">{{ item.name === config.profile && config.username ? `@${config.username}` : item.name }}</span>
+          </button>
+          <p v-if="!profileOptions.length" class="server-empty">{{ t('status.notConfigured') }}</p>
+        </div>
+        <button type="button" class="nav-btn settings-nav-btn" :disabled="settingsBusy || batchUpdating" @click="openSettingsModal()">
           <i class="fa-solid fa-sliders" aria-hidden="true"></i>
           <span>{{ t('nav.settings') }}</span>
         </button>
@@ -1330,11 +1461,18 @@ onUnmounted(() => {
           :local="currentTab === 'installed'"
           :installed="isInstalled(identifySkill(selectedSkill))"
           :read-installed="readInstalled"
+          :targets="globalTargets"
+          :get-versions="getSkillVersions"
+          :read-version="readSkillVersion"
+          :agent-busy="agentBusy"
+          :rollback-busy="rollingBack"
           @install="openInstallModal"
           @versions="openUpdateModal"
           @delete="openDeleteModal"
           @reveal="revealInstallPath"
           @online="openMarketSkillDetail"
+          @toggle-agent="toggleAgentInstall"
+          @rollback="rollbackSkill"
         />
         <div v-else class="workspace-empty">
           <i class="fa-solid fa-cube" aria-hidden="true"></i>

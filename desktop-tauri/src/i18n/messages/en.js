@@ -21,7 +21,9 @@ export default {
     profileSwitched: "Profile switched",
     profileCreated: "Profile created and selected",
     profileOverride: "SKB_PROFILE or SKB_BASE_URL overrides the saved settings for this session.",
-    syncComplete: "Updates completed for the current filter."
+    syncComplete: "Updates completed for the current filter.",
+    servers: 'SERVERS',
+    configure: 'Configure'
   },
   nav: {
     installed: 'Local Assets',
@@ -103,7 +105,8 @@ export default {
     openOnline: 'View online',
     install: 'Install collection',
     skillCount: '{count} skills',
-    emptySkills: 'No visible skills in this collection'
+    emptySkills: 'No visible skills in this collection',
+    viewAll: 'View all collections'
   },
   version: {
     latest: ' (latest)',
@@ -204,6 +207,27 @@ export default {
     cancel: 'Cancel',
     close: 'Close',
     save: 'Save'
+  },
+  detail: {
+    modeLabel: 'Detail view',
+    view: 'View',
+    diff: 'Diff',
+    current: 'current',
+    diffBase: 'Compare with',
+    agents: 'Agent installs',
+    agentsHint: 'Click a capsule to sync the skill into that agent, or remove it from the agent.',
+    agentOn: 'Installed in {agent}, click to remove',
+    agentOff: 'Click to install into {agent}',
+    agentInstalled: 'Installed {skill} into {agent}',
+    agentRemoved: 'Removed {skill} from {agent}',
+    rollbackTo: 'Roll back to v{version}',
+    switchTo: 'Switch to v{version}',
+    rolledBack: 'Switched {skill} to v{version}',
+    diffLoading: 'Loading version contents…',
+    diffNoBase: 'No other version to compare with.',
+    diffSame: 'SKILL.md is identical in both versions.',
+    diffTooLarge: 'File is too large to compare line by line on desktop.',
+    diffFailed: 'Could not read version contents: {message}'
   },
   toast: {
     openFailed: 'Failed to open: {message}',

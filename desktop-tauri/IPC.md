@@ -1,4 +1,4 @@
-# Desktop IPC Channels (27)
+# Desktop IPC Channels (28)
 
 Skill Base Desktop 前端通过 `window.skb.invoke(channel, ...args)` 调用后端。
 Tauri 走 Rust `skb_invoke` → Node bridge HTTP。
@@ -27,6 +27,7 @@ Tauri 走 Rust `skb_invoke` → Node bridge HTTP。
 | `skills:getRemote` | `skillId: string` | `Skill` | |
 | `skills:getInstalled` | — | `InstalledSkill[]` | Includes the paths associated with the active registry and a `linked` flag on local installs |
 | `skills:readInstalled` | `{ skillId, installPath }` | `{ content, truncated }` | Plain-text SKILL.md preview, up to 64 KB, from a recorded install |
+| `skills:readVersion` | `{ skillId, version }` | `{ version, content, truncated }` | SKILL.md of a published version (up to 64 KB) for the version diff view. Uses the `/view` endpoint, so download counters are not incremented |
 | `skills:install` | `InstallPayload` with optional `method: copy \| link` | `{ ok, ... }` | may return `NESTED_IDE_PATH` / `EXISTS` |
 | `skills:update` | `{ skillId, version, installPaths?, all? }` | `{ ok, updated }` | `all: true` updates every recorded install from the active registry; otherwise may return `PICK_PATHS` |
 | `skills:delete` | `{ skillId, installPaths?, all? }` | `{ ok, deleted, skipped }` | deletes local install dirs and records |

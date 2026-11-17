@@ -36,8 +36,8 @@ function fail(msg) {
 
 console.log(`IPC channels declared: ${DESKTOP_IPC_CHANNELS.length}`);
 
-if (DESKTOP_IPC_CHANNELS.length !== 27) {
-  fail(`expected 27 channels, got ${DESKTOP_IPC_CHANNELS.length}`);
+if (DESKTOP_IPC_CHANNELS.length !== 28) {
+  fail(`expected 28 channels, got ${DESKTOP_IPC_CHANNELS.length}`);
 }
 
 if (!skbJs.includes('DESKTOP_IPC_CHANNELS')) {

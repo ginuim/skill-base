@@ -586,6 +586,13 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       }
     },
 
+    'skills:readVersion': async ({ skillId, version } = {}) => {
+      const id = String(skillId || '').trim();
+      const ver = String(version || '').trim();
+      if (!id || !ver) throw new Error('skillId and version required');
+      return cli.readSkillMdAtVersion(id, ver);
+    },
+
     'skills:install': async (payload) => {
       const config = assertRegistry(payload);
       const skillId = String(payload?.skillId || '').trim();

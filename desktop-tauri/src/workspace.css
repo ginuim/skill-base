@@ -40,7 +40,6 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.agents-heading { margin-top: 1.5rem; }
 .nav-btn {
   display: flex;
   align-items: center;
@@ -66,23 +65,108 @@
   font-weight: 650;
 }
 .nav-btn[aria-current='page'] i { color: var(--color-accent-light); }
-.sidebar-bottom { padding: 0.625rem 0.75rem; border-top: 1px solid var(--color-base-800); }
-.sidebar-bottom select { min-height: 2.125rem; padding: 0.375rem; background: var(--color-base-950); font-size: 0.8125rem; }
-.source-status {
+.nav-heading-row {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  width: 100%;
-  padding: 0.5rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+.nav-heading-row .nav-heading { min-inline-size: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-heading-action {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin-inline-end: 0.125rem;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: transparent;
+  color: var(--color-fg-muted);
+  font-size: 0.6875rem;
+  cursor: pointer;
+}
+.nav-heading-action:hover { color: var(--color-fg-strong); background: var(--row-hover); }
+.nav-empty { margin: 0.25rem 0 0; padding-inline: 0.5rem; color: var(--color-base-400); font-size: 0.75rem; }
+
+/* Agent list: colored badge + name + mono count */
+.agent-nav-btn { min-height: 2rem; padding-block: 0.3rem; }
+.agent-nav-btn small { font: 0.6875rem ui-monospace, monospace; color: var(--color-fg-muted); }
+.agent-badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  border-radius: 9999px;
+  color: var(--agent-color);
+  background: var(--agent-tint);
+  border: 1px solid var(--agent-line);
+  font: 600 0.5rem/1 ui-monospace, monospace;
+}
+
+/* Collections: flat list, click opens the collection detail */
+.collection-nav-btn { min-height: 2rem; padding-block: 0.3rem; }
+.collection-nav-btn small { font: 0.6875rem ui-monospace, monospace; color: var(--color-fg-muted); }
+.collection-nav-name { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* SERVERS footer: profile cards, active one highlighted */
+.sidebar-bottom {
+  padding: 0.625rem 0.75rem 0.75rem;
+  border-top: 1px solid var(--color-base-800);
+  background: rgba(var(--color-base-950-rgb), 0.5);
+}
+.sidebar-bottom .nav-heading-row { margin-top: 0; }
+.servers-heading { margin-bottom: 0.25rem; }
+.servers-config {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent-light);
+  font-size: 0.6875rem;
+  cursor: pointer;
+}
+.servers-config:hover:not(:disabled) { text-decoration: underline; }
+.servers-config:disabled { opacity: 0.5; cursor: default; }
+.server-list { display: grid; gap: 0.375rem; max-block-size: 9rem; overflow: auto; overscroll-behavior: contain; }
+.server-card {
+  display: grid;
+  gap: 0.125rem;
+  inline-size: 100%;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--color-base-800);
+  border-radius: 0.375rem;
+  background: var(--color-base-950);
   color: var(--color-fg-muted);
   text-align: start;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-.source-status:hover { background: var(--row-hover); }
-.source-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 0.6875rem ui-monospace, monospace; }
+.server-card:hover:not(:disabled) { background: var(--row-hover); }
+.server-card:disabled { cursor: progress; opacity: 0.6; }
+.server-card--active { border-color: var(--accent-border-strong); }
+.server-card-row { display: flex; align-items: center; gap: 0.4rem; min-inline-size: 0; }
+.server-host {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-fg-strong);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.server-tag { flex: none; color: var(--color-fg-muted); font: 0.625rem ui-monospace, monospace; }
+.server-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-fg-muted);
+  font: 0.625rem/1.4 ui-monospace, monospace;
+}
+.server-empty { margin: 0; padding-inline: 0.25rem; color: var(--color-fg-muted); font-size: 0.75rem; }
+.settings-nav-btn { margin-top: 0.375rem; }
 .status-dot { inline-size: 0.5rem; block-size: 0.5rem; flex: none; border-radius: 50%; background: var(--color-success); }
 .status-dot--inactive { background: var(--color-base-400); }
 

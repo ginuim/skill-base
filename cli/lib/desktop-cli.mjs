@@ -25,6 +25,7 @@ export async function loadDesktopCli(cliLibRoot) {
     ...ideMod,
     ...installsMod,
     downloadAndExtract: extractMod.downloadAndExtract,
+    readSkillMdAtVersion: extractMod.readSkillMdAtVersion,
     downloadCollectionZip: collectionMod.downloadCollectionZip,
     extractCollectionZip: collectionMod.extractCollectionZip,
     fetchCollectionDetail: collectionMod.fetchCollectionDetail,
