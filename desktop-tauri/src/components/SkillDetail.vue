@@ -128,6 +128,7 @@ watch([previewPath, () => props.skill], async ([installPath], _, onCleanup) => {
           <i class="fa-regular fa-folder" aria-hidden="true"></i>
           <div class="install-location">
             <button class="path-link" type="button" :title="item.installPath + '\n' + t('installed.revealHint')" @click="emit('reveal', item.installPath)">
+              <i v-if="item.linked" class="fa-solid fa-link" :title="t('install.methodLink')" :aria-label="t('install.methodLink')"></i>
               {{ displayPath(item.installPath) }}
             </button>
             <span v-if="item.baseUrl" class="install-source">{{ item.baseUrl }}</span>

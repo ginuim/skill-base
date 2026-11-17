@@ -329,6 +329,23 @@ input::placeholder {
   background: rgba(var(--color-base-900-rgb), 0.5);
 }
 
+.install-method {
+  min-inline-size: 0;
+  margin: 1rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.install-method-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+}
+
+.install-method-options .label-row {
+  margin: 0;
+}
+
 .install-modal-footer {
   align-items: center;
   justify-content: space-between;

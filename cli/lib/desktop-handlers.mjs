@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { DESKTOP_IPC_CHANNELS } from './desktop-ipc-channels.mjs';
+import { installSkillLinks, readManagedSkillLink } from './linked-skills.mjs';
 import { parseSkillMd, displayNameAndDescriptionFromParsed } from './skill-md.js';
 
 export { DESKTOP_IPC_CHANNELS };
@@ -332,6 +333,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
         profileLocked: Boolean(process.env.SKB_PROFILE?.trim() || process.env.SKB_BASE_URL),
         username: cred?.username || null,
         hasToken: Boolean(cred?.token),
+        agents: Object.values(cli.IDE_CONFIGS).map(({ id, name }) => ({ id, name })),
         homeDir: os.homedir(),
         projectRoot: deps.getProjectRoot()
       };
@@ -557,7 +559,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
           registryInstalls,
           remoteAvailable: Boolean(remote?.latest_version),
           hasUpdate: Boolean(remote?.latest_version && registryInstalls.some((item) => item.version !== remote.latest_version)),
-          installs: row.installs
+          installs: row.installs.map((item) => ({ ...item, linked: Boolean(readManagedSkillLink(item.installPath)) }))
         });
       }
       return enriched;
@@ -591,6 +593,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       const installProjectRoot =
         typeof payload?.projectRoot === 'string' ? payload.projectRoot.trim() : '';
       const overwrite = Boolean(payload?.overwrite);
+      const link = payload?.method === 'link';
       const acceptNested = Boolean(payload?.acceptNested);
       const rawTargets = Array.isArray(payload?.targets) ? payload.targets : [];
 
@@ -603,7 +606,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
 
       for (const spec of resolved) {
         const installPathCandidate = path.join(path.resolve(spec.targetDir), skillId);
-        if (fs.existsSync(installPathCandidate) && !overwrite) {
+        if (fs.lstatSync(installPathCandidate, { throwIfNoEntry: false }) && !overwrite) {
           return {
             ok: false,
             code: 'EXISTS',
@@ -611,6 +614,29 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
             path: installPathCandidate
           };
         }
+      }
+
+      if (link) {
+        if (skillId !== path.basename(skillId) || skillId === '.' || skillId === '..') {
+          throw new Error('Invalid skill directory name');
+        }
+        const targets = resolved.map((spec) => ({
+          installPath: path.join(path.resolve(spec.targetDir), skillId), overwrite
+        }));
+        const result = await installSkillLinks(targets, async (store) => {
+          const download = await cli.downloadAndExtract(skillId, version, store);
+          assertRegistry(config);
+          return download;
+        });
+        const installed = targets.map(({ installPath }, index) => {
+          const spec = resolved[index];
+          cli.rememberSkillInstall({
+            skillId, installPath, version: result.version, baseUrl: config.baseUrl,
+            ide: spec.ide, isGlobal: spec.global
+          });
+          return { installPath, version: result.version, label: spec.label };
+        });
+        return { ok: true, skillId, version: result.version, installed };
       }
 
       const installed = [];
@@ -622,7 +648,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
 
         try {
           ensureWritableTargetDir(spec.targetDir);
-          if (fs.existsSync(installPathCandidate)) {
+          if (fs.lstatSync(installPathCandidate, { throwIfNoEntry: false })) {
             fs.rmSync(installPathCandidate, { recursive: true, force: true });
           }
           const result = await cli.downloadAndExtract(skillId, version, spec.targetDir);
@@ -669,6 +695,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       const installProjectRoot =
         typeof payload?.projectRoot === 'string' ? payload.projectRoot.trim() : '';
       const overwrite = Boolean(payload?.overwrite);
+      const link = payload?.method === 'link';
       const acceptNested = Boolean(payload?.acceptNested);
       const rawTargets = Array.isArray(payload?.targets) ? payload.targets : [];
 
@@ -689,7 +716,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       for (const spec of resolved) {
         for (const skill of skills) {
           const installPathCandidate = path.join(path.resolve(spec.targetDir), skill.id);
-          if (fs.existsSync(installPathCandidate)) conflictPaths.push(installPathCandidate);
+          if (fs.lstatSync(installPathCandidate, { throwIfNoEntry: false })) conflictPaths.push(installPathCandidate);
         }
       }
       if (conflictPaths.length > 0 && !overwrite) {
@@ -701,6 +728,25 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
         };
       }
 
+      if (link) {
+        const targets = resolved.flatMap((spec) => skills.map((skill) => ({
+          installPath: path.join(path.resolve(spec.targetDir), skill.id), overwrite, skill, spec
+        })));
+        await installSkillLinks(targets, async (store) => {
+          const buffer = await cli.downloadCollectionZip(collectionRef);
+          await cli.extractCollectionZip(buffer, store);
+          assertRegistry(config);
+        });
+        const installed = targets.map(({ installPath, skill, spec }) => {
+          cli.rememberSkillInstall({
+            skillId: skill.id, installPath, version: skill.latest_version, baseUrl: config.baseUrl,
+            ide: spec.ide, isGlobal: spec.global
+          });
+          return { skillId: skill.id, installPath, version: skill.latest_version, label: spec.label };
+        });
+        return { ok: true, collection, installed, skillCount: skills.length };
+      }
+
       const installed = [];
       for (const spec of resolved) {
         assertRegistry(config);
@@ -710,7 +756,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
           ensureWritableTargetDir(spec.targetDir);
           for (const skill of skills) {
             const installPathCandidate = path.join(targetDir, skill.id);
-            if (fs.existsSync(installPathCandidate)) {
+            if (fs.lstatSync(installPathCandidate, { throwIfNoEntry: false })) {
               fs.rmSync(installPathCandidate, { recursive: true, force: true });
             }
           }
@@ -790,13 +836,15 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       }
 
       const updated = [];
+      const linked = [];
+      const copied = [];
       for (const install of selected) {
-        assertRegistry(config);
-        const result = await cli.downloadAndExtract(
-          skillId,
-          version,
-          path.dirname(install.installPath)
-        );
+        const expectedLink = readManagedSkillLink(install.installPath);
+        if (expectedLink) linked.push({ ...install, expectedLink, overwrite: true });
+        else copied.push(install);
+      }
+
+      function recordUpdate(install, result) {
         cli.rememberSkillInstall({
           skillId: result.skillId,
           installPath: install.installPath,
@@ -806,6 +854,20 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
           isGlobal: install.isGlobal
         });
         updated.push({ installPath: install.installPath, version: result.version });
+      }
+
+      if (linked.length) {
+        const result = await installSkillLinks(linked, async (store) => {
+          const download = await cli.downloadAndExtract(skillId, version, store);
+          assertRegistry(config);
+          return download;
+        });
+        for (const install of linked) recordUpdate(install, result);
+      }
+      for (const install of copied) {
+        assertRegistry(config);
+        const result = await cli.downloadAndExtract(skillId, version, path.dirname(install.installPath));
+        recordUpdate(install, result);
       }
       return { ok: true, updated };
     },

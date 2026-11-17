@@ -93,6 +93,7 @@ const selectedCustomDirs = ref([]);
 const installProjectRoot = ref('');
 const installProjectRootPicked = ref(false);
 const installOverwrite = ref(false);
+const installMethod = ref('copy');
 const installAcceptNested = ref(false);
 const installNestedWarn = ref(false);
 const installing = ref(false);
@@ -504,6 +505,7 @@ async function openInstallModal(skill) {
   installVersions.value = [];
   installVersionsLoading.value = true;
   installOverwrite.value = false;
+  installMethod.value = 'copy';
   installAcceptNested.value = false;
   installNestedWarn.value = false;
   customDirOptions.value = [];
@@ -539,6 +541,7 @@ async function openCollectionInstallModal(collection, skills = []) {
   installVersions.value = [];
   installVersionsLoading.value = false;
   installOverwrite.value = false;
+  installMethod.value = 'copy';
   installAcceptNested.value = false;
   installNestedWarn.value = false;
   customDirOptions.value = [];
@@ -604,6 +607,7 @@ async function confirmInstall() {
         targets: buildInstallTargetsPayload(),
         projectRoot: installTargetTab.value === 'project' ? installProjectRoot.value : undefined,
         overwrite: installOverwrite.value,
+        method: installMethod.value,
         acceptNested: installAcceptNested.value
       });
 
@@ -637,6 +641,7 @@ async function confirmInstall() {
       targets: buildInstallTargetsPayload(),
       projectRoot: installTargetTab.value === 'project' ? installProjectRoot.value : undefined,
       overwrite: installOverwrite.value,
+      method: installMethod.value,
       acceptNested: installAcceptNested.value
     });
 
@@ -773,7 +778,7 @@ async function updateAll() {
         skillId: skill.skillId,
         version: skill.latest,
         installPaths: skill.registryInstalls
-          .filter((item) => item.version !== skill.latest && (!agent || item.ide === agent))
+          .filter((item) => item.version !== skill.latest && (!agent || normalizeAgentId(item.ide) === agent))
           .map((item) => item.installPath)
       });
       if (!result.ok) throw new Error(result.detail);
@@ -935,31 +940,58 @@ function toggleUpdatePath(p) {
   else updateSelectedPaths.value.splice(idx, 1);
 }
 
+const agentAbbreviations = {
+  'claude-code': 'CC',
+  cursor: 'CU',
+  codex: 'CX',
+  qoder: 'QD',
+  opencode: 'OC',
+  openclaw: 'CL',
+  trae: 'TR',
+  universal: 'UA',
+  copilot: 'GH'
+};
+
+function normalizeAgentId(id) {
+  return (id || '').replaceAll('_', '-');
+}
+
+const agentNames = computed(() => new Map(
+  (config.value.agents || []).map(({ id, name }) => [normalizeAgentId(id), name])
+));
+
+const installedAgents = computed(() => new Map(installedSkills.value.map((skill) => {
+  const ids = new Set(skill.installs.map((item) => normalizeAgentId(item.ide)).filter(Boolean));
+  const agents = [...ids].map((id) => ({
+    id,
+    name: agentNames.value.get(id) || id,
+    short: Object.hasOwn(agentAbbreviations, id) ? agentAbbreviations[id] : id.slice(0, 2).toUpperCase()
+  }));
+  return [skill.skillId, agents.sort((a, b) => a.name.localeCompare(b.name))];
+})));
+
 const agentCounts = computed(() => {
   const counts = new Map();
-  for (const skill of installedSkills.value) {
-    for (const id of new Set(skill.installs.map((item) => item.ide).filter(Boolean))) {
-      counts.set(id, (counts.get(id) || 0) + 1);
+  for (const agents of installedAgents.value.values()) {
+    for (const { id, name } of agents) {
+      const count = (counts.get(id)?.count || 0) + 1;
+      counts.set(id, { id, name, count });
     }
   }
-  return [...counts].map(([id, count]) => ({
-    id,
-    count,
-    name: globalTargets.value.find((target) => target.ide === id)?.name || id
-  })).sort((a, b) => a.name.localeCompare(b.name));
+  return [...counts.values()].sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const filteredInstalled = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
   return installedSkills.value.filter((skill) =>
-    (!agentFilter.value || skill.installs.some((item) => item.ide === agentFilter.value)) &&
+    (!agentFilter.value || installedAgents.value.get(skill.skillId).some((agent) => agent.id === agentFilter.value)) &&
     [skill.skillId, skill.name, skill.description].some((value) => value?.toLowerCase().includes(q))
   );
 });
 
 function hasVisibleUpdate(skill) {
   return skill.hasUpdate && skill.registryInstalls.some((item) =>
-    item.version !== skill.latest && (!agentFilter.value || item.ide === agentFilter.value)
+    item.version !== skill.latest && (!agentFilter.value || normalizeAgentId(item.ide) === agentFilter.value)
   );
 }
 
@@ -1260,15 +1292,31 @@ onUnmounted(() => {
               <button
                 type="button"
                 class="result-button"
+                :class="{ 'result-button--local': currentTab === 'installed' }"
                 :aria-pressed="selectedSkill === skill"
                 @click="selectedSkillId = identifySkill(skill)"
               >
-                <span class="result-icon" aria-hidden="true"><i class="fa-solid fa-cube"></i></span>
-                <span class="result-copy">
-                  <strong>{{ skill.name || identifySkill(skill) }}</strong>
-                  <small>{{ skill.description || identifySkill(skill) }}</small>
+                <span v-if="currentTab === 'market'" class="result-icon" aria-hidden="true">
+                  <i class="fa-solid fa-cube"></i>
                 </span>
-                <i v-if="currentTab === 'installed' && skill.hasUpdate" class="fa-solid fa-circle-arrow-up result-update" :title="t('installed.update')" :aria-label="t('installed.update')"></i>
+                <span class="result-copy">
+                  <span class="result-title">
+                    <strong :title="skill.name || identifySkill(skill)">{{ skill.name || identifySkill(skill) }}</strong>
+                    <span v-if="currentTab === 'installed' && skill.hasUpdate" class="result-update" role="img" :title="t('installed.update')" :aria-label="t('installed.update')"></span>
+                  </span>
+                  <small v-if="currentTab === 'market'">{{ skill.description || identifySkill(skill) }}</small>
+                </span>
+                <span v-if="currentTab === 'installed' && installedAgents.get(skill.skillId)?.length" class="result-agents">
+                  <span
+                    v-for="agent in installedAgents.get(skill.skillId)"
+                    :key="agent.id"
+                    class="result-agent"
+                    :data-agent="agent.id"
+                    :title="agent.name"
+                    role="img"
+                    :aria-label="agent.name"
+                  >{{ agent.short }}</span>
+                </span>
               </button>
             </li>
           </ul>
@@ -1453,6 +1501,20 @@ onUnmounted(() => {
             <i class="fa-solid fa-layer-group"></i>
             {{ installSummary }}
           </div>
+
+          <fieldset class="install-method" :disabled="installing">
+            <legend class="field-label">{{ t('install.method') }}</legend>
+            <div class="install-method-options">
+              <label class="label-row">
+                <input v-model="installMethod" type="radio" name="install-method" value="copy" />
+                {{ t('install.methodCopy') }}
+              </label>
+              <label class="label-row">
+                <input v-model="installMethod" type="radio" name="install-method" value="link" />
+                {{ t('install.methodLink') }}
+              </label>
+            </div>
+          </fieldset>
 
           <label class="field-label" style="margin-top: 1rem">{{ t('install.targets') }}</label>
 

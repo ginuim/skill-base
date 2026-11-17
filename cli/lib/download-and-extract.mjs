@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import extract from 'extract-zip';
 import { createClient } from './api.js';
+import { installSkillLinks, readManagedSkillLink } from './linked-skills.mjs';
 import { lang } from './i18n.js';
 
 const M = {
@@ -18,6 +19,16 @@ function pickFn(obj, arg) {
 }
 
 export async function downloadAndExtract(skillId, version, targetDir) {
+  const installPath = path.join(targetDir, skillId);
+  if (fs.lstatSync(installPath, { throwIfNoEntry: false })?.isSymbolicLink()) {
+    const expectedLink = readManagedSkillLink(installPath);
+    if (!expectedLink) {
+      throw new Error(`Cannot update an unmanaged directory link: ${installPath}`);
+    }
+    const result = await installSkillLinks([{ installPath, overwrite: true, expectedLink }],
+      (store) => downloadAndExtract(skillId, version, store));
+    return { ...result, targetDir };
+  }
   const client = createClient();
 
   const skillInfo = await client.get(`/skills/${encodeURIComponent(skillId)}`);
@@ -35,17 +46,14 @@ export async function downloadAndExtract(skillId, version, targetDir) {
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const tmpZip = path.join(os.tmpdir(), `skb-${skillId}-${actualVersion}-${Date.now()}.zip`);
-  fs.writeFileSync(tmpZip, buffer);
-
-  fs.mkdirSync(targetDir, { recursive: true });
-
-  await extract(tmpZip, { dir: path.resolve(targetDir) });
-
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skb-download-'));
   try {
-    fs.unlinkSync(tmpZip);
-  } catch {
-    // ignore
+    const tmpZip = path.join(tmpDir, 'skill.zip');
+    fs.writeFileSync(tmpZip, buffer);
+    fs.mkdirSync(targetDir, { recursive: true });
+    await extract(tmpZip, { dir: path.resolve(targetDir) });
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 
   return { skillId, version: actualVersion, targetDir };

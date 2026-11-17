@@ -52,7 +52,7 @@ Open **MCP & Skills** in the Web navigation to copy your instance's Streamable H
 | [Usage](docs/usage.md) | Web UI, desktop app, GitHub import, OpenClaw prompts, Skill format |
 | [Deployment](docs/deployment.md) | Docker, PM2, flags, sessions, backup |
 | [Architecture](docs/architecture.md) | Data model and stack choices |
-| [Desktop](docs/desktop.md) | Download, local skill workspace and shared CLI profiles |
+| [Desktop](docs/desktop.md) | Download, copy or link skills, and use shared CLI profiles |
 | [CLI](docs/zh/cli.md) | `skb` command reference (中文) |
 | [API](docs/zh/api.md) | HTTP API (中文) |
 | [Changelog](CHANGELOG.md) | Server / npm release notes |

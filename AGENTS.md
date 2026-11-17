@@ -84,7 +84,8 @@ cd desktop-tauri && pnpm verify:ipc && pnpm smoke:channels  # IPC 验收
 ### Desktop IPC
 
 - 桌面端直接使用 CLI 的命名配置与按 profile 保存的凭证；切换写入共享的 `currentProfile`。环境变量覆盖时，界面提示并停用切换及编辑。
-- 本地技能列表独立于当前源。安装记录保存实际源地址，桌面端仅为匹配当前源的目录查询更新；旧的无来源记录按 `default` 兼容。右侧预览以纯文本显示已记录目录中的 `SKILL.md`。
+- 本地技能列表独立于当前源，每行按本地安装记录显示去重后的 Agent 徽标。安装记录保存实际源地址，桌面端仅为匹配当前源的目录查询更新；旧的无来源记录按 `default` 兼容。右侧预览以纯文本显示已记录目录中的 `SKILL.md`。
+- 单技能和集合默认复制安装，可选链接到 `~/.skill-base/linked-skills`。Windows 使用目录联接，更新只重设选中的链接，卸载只移除链接。
 
 - Channel 列表：`cli/lib/desktop-ipc-channels.mjs`（27 个）
 - 业务逻辑：`cli/lib/desktop-handlers.mjs`

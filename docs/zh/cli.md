@@ -104,7 +104,7 @@ skb ui --host 0.0.0.0
 cd desktop-tauri && pnpm install && pnpm dev
 ```
 
-桌面端与 CLI 共享配置、登录凭证及本地安装记录。桌面端选择源会更新 `currentProfile`，等同于 `skb config use <name>`。桌面端更新时会按安装记录中的源地址筛选目录。验收见 [desktop-tauri/ACCEPTANCE.md](../../desktop-tauri/ACCEPTANCE.md)。
+桌面端与 CLI 共享配置、登录凭证及本地安装记录。桌面端选择源会更新 `currentProfile`，等同于 `skb config use <name>`。桌面端更新时会按安装记录中的源地址筛选目录。桌面端安装时可选复制或链接，使用 CLI 更新已登记的桌面端链接时会保留链接形式。验收见 [desktop-tauri/ACCEPTANCE.md](../../desktop-tauri/ACCEPTANCE.md)。
 
 ## 登录与凭证
 

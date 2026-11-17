@@ -115,6 +115,10 @@ export default {
     pick: '选择版本'
   },
   install: {
+    method: '安装方式',
+    methodCopy: '复制',
+    methodLink: '链接（共享文件）',
+
     title: '安装 / {name}',
     collectionTitle: '安装集合 / {name}',
     collectionSummary: '将安装集合内 {count} 个可用 Skill',

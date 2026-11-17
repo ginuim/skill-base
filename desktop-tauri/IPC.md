@@ -7,7 +7,7 @@ Tauri 走 Rust `skb_invoke` → Node bridge HTTP。
 
 | Channel | Args | Returns | Notes |
 |---------|------|---------|-------|
-| `config:get` | — | `{ baseUrl, profile, profiles, profileLocked, username, hasToken, homeDir, projectRoot }` | |
+| `config:get` | — | `{ baseUrl, profile, profiles, profileLocked, username, hasToken, agents, homeDir, projectRoot }` | |
 | `config:setServer` | `url: string, registry?: Registry` | `{ baseUrl }` | Updates the active profile URL |
 | `config:setProfile` | `{ name, baseUrl? }` | `{ profile }` | Switch an existing profile or create and select a profile with the given URL |
 | `config:getGlobalTargets` | — | `Target[]` | |
@@ -25,15 +25,15 @@ Tauri 走 Rust `skb_invoke` → Node bridge HTTP。
 | `skills:search` | `q?: string` | `Skill[]` | |
 | `skills:getVersions` | `skillId: string` | `Version[]` | |
 | `skills:getRemote` | `skillId: string` | `Skill` | |
-| `skills:getInstalled` | — | `InstalledSkill[]` | Includes the subset of paths associated with the active registry |
+| `skills:getInstalled` | — | `InstalledSkill[]` | Includes the paths associated with the active registry and a `linked` flag on local installs |
 | `skills:readInstalled` | `{ skillId, installPath }` | `{ content, truncated }` | Plain-text SKILL.md preview, up to 64 KB, from a recorded install |
-| `skills:install` | `InstallPayload` | `{ ok, ... }` | may return `NESTED_IDE_PATH` / `EXISTS` |
+| `skills:install` | `InstallPayload` with optional `method: copy \| link` | `{ ok, ... }` | may return `NESTED_IDE_PATH` / `EXISTS` |
 | `skills:update` | `{ skillId, version, installPaths?, all? }` | `{ ok, updated }` | `all: true` updates every recorded install from the active registry; otherwise may return `PICK_PATHS` |
 | `skills:delete` | `{ skillId, installPaths?, all? }` | `{ ok, deleted, skipped }` | deletes local install dirs and records |
 | `skills:openWebPage` | `{ skillId, version?, page?, version_a?, version_b? }` | `{ url }` | opens browser |
 | `collections:list` | — | `Collection[]` | Active registry |
 | `collections:get` | `collectionRef: string` | `{ collection, skills }` | |
-| `collections:install` | Collection ref and install targets | `{ ok, ... }` | |
+| `collections:install` | Collection ref, install targets and optional `method: copy \| link` | `{ ok, ... }` | |
 
 `Registry` is `{ profile, baseUrl }`. The UI sends it for server changes, authentication writes, and remote installation or update actions so the bridge can reject stale operations.
 

@@ -12,18 +12,14 @@ export async function downloadCollectionZip(collectionId) {
 }
 
 export async function extractCollectionZip(buffer, targetDir) {
-  const tmpZip = path.join(os.tmpdir(), `skb-collection-${Date.now()}.zip`);
-  fs.writeFileSync(tmpZip, buffer);
-  fs.mkdirSync(targetDir, { recursive: true });
-
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skb-collection-'));
   try {
+    const tmpZip = path.join(tmpDir, 'collection.zip');
+    fs.writeFileSync(tmpZip, buffer);
+    fs.mkdirSync(targetDir, { recursive: true });
     await extract(tmpZip, { dir: path.resolve(targetDir) });
   } finally {
-    try {
-      fs.unlinkSync(tmpZip);
-    } catch {
-      // ignore
-    }
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 }
 

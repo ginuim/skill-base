@@ -115,6 +115,10 @@ export default {
     pick: 'Select version'
   },
   install: {
+    method: 'Install method',
+    methodCopy: 'Copy',
+    methodLink: 'Link (shared files)',
+
     title: 'Install / {name}',
     collectionTitle: 'Install collection / {name}',
     collectionSummary: 'This will install {count} available skills from the collection',

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { readManagedSkillLink } from './linked-skills.mjs';
 import { getConfig, loadSavedConfig, saveConfig } from './config.js';
 
 function loadRegistry() {
@@ -100,7 +101,7 @@ export function pruneMissingSkillInstalls(skillId) {
   const installs = loadRegistry();
   const records = Array.isArray(installs[skillId]) ? installs[skillId] : [];
   const normalizedRecords = records.map(normalizeEntry).filter(Boolean);
-  const existingRecords = normalizedRecords.filter((record) => fs.existsSync(record.installPath));
+  const existingRecords = normalizedRecords.filter((record) => fs.existsSync(record.installPath) || readManagedSkillLink(record.installPath));
 
   if (existingRecords.length !== normalizedRecords.length) {
     if (existingRecords.length > 0) {
@@ -122,7 +123,7 @@ export function pruneAllMissingInstalls() {
     const existingRecords = (Array.isArray(records) ? records : [])
       .map(normalizeEntry)
       .filter(Boolean)
-      .filter((record) => fs.existsSync(record.installPath))
+      .filter((record) => fs.existsSync(record.installPath) || readManagedSkillLink(record.installPath))
       .sort((a, b) => a.installPath.localeCompare(b.installPath));
 
     if (existingRecords.length > 0) {
@@ -188,10 +189,10 @@ export function deleteSkillInstallDirs(skillId, installPaths) {
     }
 
     try {
-      let existed = false;
-      if (fs.existsSync(record.installPath)) {
-        existed = true;
-        const stat = fs.lstatSync(record.installPath);
+      const stat = fs.lstatSync(record.installPath, { throwIfNoEntry: false });
+      if (stat?.isSymbolicLink()) {
+        fs.unlinkSync(record.installPath);
+      } else if (stat) {
         if (!stat.isDirectory()) {
           skipped.push({ ...record, reason: 'not_directory' });
           continue;
@@ -199,7 +200,7 @@ export function deleteSkillInstallDirs(skillId, installPaths) {
         fs.rmSync(record.installPath, { recursive: true, force: true });
       }
       removeSkillInstall(normalizedSkillId, record.installPath);
-      deleted.push({ ...record, existed });
+      deleted.push({ ...record, existed: Boolean(stat) });
     } catch (err) {
       skipped.push({ ...record, reason: err?.message || String(err) });
     }
