@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import AdmZip from 'adm-zip';
-import { readZipResponse, withExtractedZip } from '../../cli/lib/install-archive.mjs';
+import { isSafeArchivePath, readZipResponse, withExtractedZip } from '../../cli/lib/install-archive.mjs';
 
 test('download rejects a response above its Content-Length or streaming byte limit', async () => {
   await assert.rejects(readZipResponse(new Response('body', {
@@ -19,4 +19,11 @@ test('ZIP extraction rejects non-regular entries and unpacked data above the bud
   await assert.rejects(withExtractedZip(zip.toBuffer(), 1024, useFiles), /unsupported file type/);
   zip.deleteFile('link-to-markdown');
   await assert.rejects(withExtractedZip(zip.toBuffer(), 4, useFiles), /uncompressed size limit/);
+});
+
+test('archive entry names must use canonical relative paths', () => {
+  assert.equal(isSafeArchivePath('docs/guide.md'), true);
+  for (const name of ['docs/../guide.md', 'docs/./guide.md', 'docs//guide.md', '/guide.md']) {
+    assert.equal(isSafeArchivePath(name), false);
+  }
 });

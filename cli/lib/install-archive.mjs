@@ -47,6 +47,11 @@ export async function readZipResponse(response, limit) {
   return buffer;
 }
 
+export function isSafeArchivePath(name) {
+  return !name.split('/').some((part) => !part || /[. ]$|[\\:<>"|?*\x00-\x1f]/.test(part)
+    || /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(?:\.|$)/i.test(part));
+}
+
 export async function withExtractedZip(buffer, maxBytes, useFiles) {
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skb-zip-'));
   let zip;
@@ -61,9 +66,7 @@ export async function withExtractedZip(buffer, maxBytes, useFiles) {
       const mode = entry.externalFileAttributes >>> 16;
       const type = mode & 0o170000;
       const directory = entry.fileName.endsWith('/') || type === 0o040000;
-      if (name.split('/').some((part) => !part || /[. ]$|[\\:<>"|?*\x00-\x1f]/.test(part)
-        || /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(?:\.|$)/i.test(part))
-        || entries.has(key) || ![0, 0o040000, 0o100000].includes(type)) {
+      if (!isSafeArchivePath(name) || entries.has(key) || ![0, 0o040000, 0o100000].includes(type)) {
         throw new Error('ZIP contains an unsafe path, duplicate entry or unsupported file type');
       }
       entries.add(key);

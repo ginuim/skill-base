@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
 import fs from 'node:fs';
-import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { promisify } from 'node:util';
+import install from '../../cli/lib/commands/install.js';
 import { assertSkillInstallId } from '../../cli/lib/install-archive.mjs';
 import { registerDesktopHandlers } from '../../cli/lib/desktop-handlers.mjs';
 
@@ -32,18 +30,14 @@ test('CLI and desktop reject invalid collection metadata before touching disk or
     collectionRef: 'example', overwrite: true, targets: [{ customDir: target }]
   }), /Invalid skill ID/);
 
-  let downloads = 0;
-  const server = http.createServer((request, response) => {
-    if (request.url.endsWith('/download')) downloads++;
-    response.setHeader('content-type', 'application/json');
-    response.end(JSON.stringify(metadata));
+  t.mock.method(os, 'homedir', () => path.join(parent, 'mock-home'));
+  const fetch = t.mock.method(globalThis, 'fetch', async (url, options) => {
+    assert.match(url, /\/collections\/example$/);
+    assert.equal(options.headers.Authorization, undefined);
+    return Response.json(metadata);
   });
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-  t.after(() => new Promise((resolve) => server.close(resolve)));
-  await assert.rejects(promisify(execFile)(process.execPath, [
-    'cli/bin/skb.js', 'install', '--collection', 'example', '--dir', target
-  ], { env: { ...process.env, SKB_BASE_URL: `http://127.0.0.1:${server.address().port}` } }), /Invalid skill ID/);
-  assert.equal(downloads, 0);
+  await assert.rejects(install(undefined, { collection: 'example', dir: target }), /Invalid skill ID/);
+  assert.equal(fetch.mock.callCount(), 1);
   assert.deepEqual(fs.readdirSync(target), []);
   assert.equal(fs.readFileSync(sentinel, 'utf8'), 'keep');
 });
