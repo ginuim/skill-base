@@ -473,6 +473,8 @@ Deleting a Skill removes its screenshots together with `data/skills/<skill_id>/`
 
 ## Publish module `/api/v1/skills`
 
+HTTP publishing accepts ZIPs up to 100 MiB compressed and 256 MiB unpacked. Include a non-empty `SKILL.md` at the root or inside a single top-level skill folder. Newly published versions provide `sha256` in metadata and `Content-Digest` on download and preview responses.
+
 ### 1. Publish new version
 
 **POST** `/api/v1/skills/publish`

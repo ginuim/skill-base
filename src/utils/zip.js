@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const { isValidSkillId } = require('./publish-archive');
 
 // Get zip storage directory
 function getDataDir() {
@@ -8,6 +9,7 @@ function getDataDir() {
 
 // Ensure skill storage directory exists
 function ensureSkillDir(skillId) {
+  if (!isValidSkillId(skillId)) throw new Error('Invalid skill ID');
   const dir = path.join(getDataDir(), 'skills', skillId);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -29,13 +31,21 @@ function getZipPath(skillId, version) {
 
 // Resolve actual file path from zip_path in database, compatible with historical relative path format
 function resolveZipPath(zipPath, skillId, version) {
-  if (zipPath) {
-    if (path.isAbsolute(zipPath)) {
-      return zipPath;
+  if (!isValidSkillId(skillId) || !/^[a-z0-9][a-z0-9._-]{0,199}$/i.test(version)) return null;
+  const dataDir = path.resolve(getDataDir());
+  const candidates = [zipPath && path.resolve(dataDir, zipPath), getZipPath(skillId, version)];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const file = fs.realpathSync(candidate);
+      const relative = path.relative(fs.realpathSync(dataDir), file);
+      if (relative && relative !== '..' && !relative.startsWith(`..${path.sep}`)
+        && !path.isAbsolute(relative) && fs.statSync(file).isFile()) return file;
+    } catch (error) {
+      if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') throw error;
     }
-    return path.join(getDataDir(), zipPath);
   }
-  return getZipPath(skillId, version);
+  return null;
 }
 
 // Get relative path of zip file (stored in database)

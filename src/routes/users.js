@@ -1,3 +1,4 @@
+const { isSuperAdmin } = require('../utils/permission');
 const UserModel = require('../models/user');
 const { hashPassword } = require('../utils/crypto');
 const db = require('../database');
@@ -231,7 +232,7 @@ async function usersRoutes(fastify, options) {
     const userId = parseInt(request.params.user_id);
     const { new_password } = request.body || {};
     
-    if (!new_password || new_password.length < 6) {
+    if (typeof new_password !== 'string' || new_password.length < 6) {
       return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'New password must be at least 6 characters' });
     }
     
@@ -240,8 +241,12 @@ async function usersRoutes(fastify, options) {
       return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
     }
     
-    const passwordHash = await hashPassword(new_password);
-    UserModel.resetPassword(userId, passwordHash);
+    if (isSuperAdmin(user) && !isSuperAdmin(request.user)) {
+      return reply.code(403).send({ ok: false, error: 'forbidden', detail: 'Only a super admin can reset a super admin password' });
+    }
+    const passwordHash = hashPassword(new_password);
+    UserModel.updatePassword(userId, passwordHash);
+    fastify.revokeMemorySessions(userId);
     
     return reply.send({ ok: true, message: 'Password has been reset' });
   });

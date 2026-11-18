@@ -69,9 +69,17 @@ const UserModel = {
 
   // Update password
   updatePassword(id, passwordHash) {
-    const result = db.prepare(
-      "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
-    ).run(passwordHash, id);
+    const result = db.transaction(() => {
+      const updated = db.prepare(
+        "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(passwordHash, id);
+      if (updated.changes) {
+        db.prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
+        db.prepare('DELETE FROM personal_access_tokens WHERE user_id = ?').run(id);
+        db.prepare('DELETE FROM cli_auth_codes WHERE user_id = ?').run(id);
+      }
+      return updated;
+    })();
     if (result.changes > 0) {
       modelCache.invalidateUser(id);
     }
@@ -97,17 +105,6 @@ const UserModel = {
     params.push(id);
     
     const result = db.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).run(...params);
-    if (result.changes > 0) {
-      modelCache.invalidateUser(id);
-    }
-    return result.changes > 0;
-  },
-
-  // Reset password (for admin use)
-  resetPassword(id, passwordHash) {
-    const result = db.prepare(
-      "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
-    ).run(passwordHash, id);
     if (result.changes > 0) {
       modelCache.invalidateUser(id);
     }

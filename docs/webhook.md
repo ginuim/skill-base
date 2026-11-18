@@ -70,7 +70,8 @@ After DB delete: `data.name`, `data.versions_count`.
 ## Security
 
 - Write-time: `http`/`https` only, max 2048 chars.
-- Send-time SSRF filter: `localhost` / `127.0.0.1` / `::1` allowed; private ranges and metadata IPs blocked.
+- Delivery uses the checked DNS results for the connection and does not follow redirects. Non-public addresses are blocked. For local development only, `SKILL_BASE_WEBHOOK_ALLOW_LOOPBACK=true` permits loopback delivery.
+- Set `SKILL_BASE_WEBHOOK_SIGNING_SECRET` to add `X-SkillBase-Signature: sha256=<hex>`, an HMAC-SHA256 of the raw request body using the instance secret. Receivers should also verify the timestamp and expected skill ID.
 - Timeout: `SKILL_BASE_WEBHOOK_TIMEOUT_MS` (default `10000`, max `60000`). See [deployment](deployment.md).
 
 ## Local demo

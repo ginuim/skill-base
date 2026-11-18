@@ -1,3 +1,5 @@
+const { inflateRawSync } = require('node:zlib');
+const { isValidSkillId, MAX_UNPACKED_BYTES } = require('./publish-archive');
 const AdmZip = require('adm-zip');
 const { isJunkZipPath } = require('./zip-sanitize');
 const {
@@ -168,23 +170,37 @@ async function downloadZipball(owner, repo, ref) {
   if (!res.ok) {
     throw new GitHubImportError('github_fetch_failed', `Failed to download archive: ${res.status}`, 502);
   }
-  const cl = res.headers.get('content-length');
-  if (cl && Number(cl) > MAX_ZIP_BYTES) {
-    throw new GitHubImportError(
-      'archive_too_large',
-      `Archive exceeds size limit (${formatMb(Number(cl))} > ${formatMb(MAX_ZIP_BYTES)})`,
-      413
-    );
+  return readBoundedResponse(res, MAX_ZIP_BYTES, 'archive_too_large');
+}
+
+async function readBoundedResponse(response, maxBytes, errorCode, onChunk = () => {}) {
+  function sizeError() {
+    return new GitHubImportError(errorCode, `Download exceeds ${formatMb(maxBytes)} limit`, 413);
   }
-  const buf = Buffer.from(await res.arrayBuffer());
-  if (buf.length > MAX_ZIP_BYTES) {
-    throw new GitHubImportError(
-      'archive_too_large',
-      `Archive exceeds size limit (${formatMb(buf.length)} > ${formatMb(MAX_ZIP_BYTES)})`,
-      413
-    );
+  if (Number(response.headers.get('content-length')) > maxBytes) {
+    await response.body?.cancel();
+    throw sizeError();
   }
-  return buf;
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > maxBytes) throw sizeError();
+      onChunk(value.byteLength);
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks, bytes);
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 async function downloadSkillFilesViaTree(owner, repo, ref, subpathNormalized) {
@@ -213,13 +229,21 @@ async function downloadSkillFilesViaTree(owner, repo, ref, subpathNormalized) {
     throw new GitHubImportError('too_many_files', 'Too many files in skill directory', 413);
   }
 
+  const declaredBytes = blobs.reduce((total, blob) => total + (Number(blob.size) || 0), 0);
+  if (declaredBytes > MAX_UNPACKED_BYTES) {
+    throw new GitHubImportError('archive_too_large', 'Skill directory exceeds the uncompressed size limit', 413);
+  }
+  const controller = new AbortController();
+  let totalBytes = 0;
   const files = await mapPool(blobs, BLOB_FETCH_CONCURRENCY, async (blob) => {
+    if (blob.mode === '120000') throw new GitHubImportError('invalid_archive', 'Symbolic links are unsupported');
+    if (blob.size > MAX_ENTRY_BYTES) throw new GitHubImportError('entry_too_large', 'GitHub file exceeds the size limit', 413);
     const pathEnc = blob.path.split('/').map(encodeURIComponent).join('/');
     const url = `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(ref)}/${pathEnc}`;
     const res = await fetch(url, {
       headers: githubHeaders(),
       redirect: 'follow',
-      signal: AbortSignal.timeout(60_000)
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)])
     });
     if (!res.ok) {
       throw new GitHubImportError(
@@ -228,16 +252,17 @@ async function downloadSkillFilesViaTree(owner, repo, ref, subpathNormalized) {
         502
       );
     }
-    const content = Buffer.from(await res.arrayBuffer());
-    if (content.length > MAX_ENTRY_BYTES) {
-      throw new GitHubImportError(
-        'entry_too_large',
-        `File ${blob.path} exceeds size limit (${formatMb(content.length)} > ${formatMb(MAX_ENTRY_BYTES)})`,
-        413
-      );
-    }
+    const content = await readBoundedResponse(res, MAX_ENTRY_BYTES, 'entry_too_large', (bytes) => {
+      totalBytes += bytes;
+      if (totalBytes > MAX_UNPACKED_BYTES) {
+        throw new GitHubImportError('archive_too_large', 'Skill directory exceeds the uncompressed size limit', 413);
+      }
+    });
     const rel = prefix ? blob.path.slice(prefix.length) : blob.path;
     return { rel, content };
+  }).catch((error) => {
+    controller.abort(error);
+    throw error;
   });
 
   const skillEntry = files.find((f) => f.rel === 'SKILL.md');
@@ -285,6 +310,7 @@ function extractSkillFilesFromZipball(buffer, subpathNormalized) {
   const entries = zip.getEntries();
   const files = [];
   const prefixLen = skillPrefix.length;
+  let totalBytes = 0;
 
   for (const entry of entries) {
     if (entry.isDirectory) continue;
@@ -297,14 +323,21 @@ function extractSkillFilesFromZipball(buffer, subpathNormalized) {
       throw new GitHubImportError('invalid_archive', 'Unsafe path in archive');
     }
 
-    const data = entry.getData();
-    if (data.length > MAX_ENTRY_BYTES) {
-      throw new GitHubImportError(
-        'entry_too_large',
-        `File ${rel} exceeds size limit (${formatMb(data.length)} > ${formatMb(MAX_ENTRY_BYTES)})`,
-        413
-      );
+    if (entry.header.size > MAX_ENTRY_BYTES) {
+      throw new GitHubImportError('entry_too_large', `File ${rel} exceeds the size limit`, 413);
     }
+    totalBytes += entry.header.size;
+    if (totalBytes > MAX_UNPACKED_BYTES) {
+      throw new GitHubImportError('archive_too_large', 'Skill directory exceeds the uncompressed size limit', 413);
+    }
+    if (((entry.attr >>> 16) & 0o170000) === 0o120000) {
+      throw new GitHubImportError('invalid_archive', 'Symbolic links are unsupported');
+    }
+    if (entry.header.size === 0 && entry.header.method === 8
+      && inflateRawSync(entry.getCompressedData(), { maxOutputLength: 1 }).length > 0) {
+      throw new GitHubImportError('invalid_archive', 'Invalid ZIP entry size');
+    }
+    const data = entry.getData();
 
     files.push({ rel, content: Buffer.from(data) });
     if (files.length > MAX_FILES) {
@@ -325,7 +358,7 @@ function extractSkillFilesFromZipball(buffer, subpathNormalized) {
 
 function buildPublishZipBuffer(files, targetSkillId) {
   const id = String(targetSkillId || '').trim();
-  if (!/^[\w-]+$/.test(id)) {
+  if (!isValidSkillId(id)) {
     throw new GitHubImportError('invalid_target_id', 'target_skill_id must match /^[\\w-]+$/');
   }
   const out = new AdmZip();

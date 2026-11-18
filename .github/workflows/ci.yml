@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            cli/package-lock.json
+            web/package-lock.json
+      - run: npm ci --include=dev
+      - run: npm ci --prefix cli
+      - run: env -u NODE_OPTIONS npm test
+      - run: npm ci --prefix web
+      - run: env -u NODE_OPTIONS npm run build --prefix web

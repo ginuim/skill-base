@@ -146,10 +146,10 @@ test('downloadSkillFilesViaTree fetches files under subpath', async (t) => {
       };
     }
     if (u.includes('raw.githubusercontent.com') && u.includes('pkg/skill/SKILL.md')) {
-      return { ok: true, status: 200, arrayBuffer: async () => Buffer.from('# Tree Skill\n\ndesc') };
+      return new Response('# Tree Skill\n\ndesc');
     }
     if (u.includes('raw.githubusercontent.com') && u.includes('readme.txt')) {
-      return { ok: true, status: 200, arrayBuffer: async () => Buffer.from('hello') };
+      return new Response('hello');
     }
     return { ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) };
   };

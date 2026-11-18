@@ -45,13 +45,13 @@ The version diff page follows the skill detail page’s open layout, with flat v
 
 ## Quick start
 
-**Server** (Node.js >= 18):
+**Server** (Node.js 20.19+ or 22.12+ (LTS)):
 
 ```bash
 npx skill-base -d ./skill-data -p 8000
 ```
 
-Open the URL, complete first-time setup, create an admin account.
+Open [127.0.0.1:8000](http://127.0.0.1:8000) and enter the one-time token from the server startup log to create the first administrator.
 
 **CLI:**
 
@@ -132,3 +132,5 @@ The Web UI uses shared neutral buttons and form controls, light/dark themes, and
 Skills can be downloaded as ZIP files without Node.js or skb. Public skills need no sign-in; private skills require an authorized account. The detail page includes manual import instructions and a direct-download AI prompt for the selected version.
 
 技能详情：版本历史的更新说明支持 Markdown；文件查看支持目录树和内容区一起全屏（Esc 退出），深层目录可横向滚动，悬停显示完整路径。技能文件的 Markdown 预览中，相对链接按当前文件目录解析，并在当前版本的文件预览内打开。
+
+Please report vulnerabilities privately via the [security policy](SECURITY.md).

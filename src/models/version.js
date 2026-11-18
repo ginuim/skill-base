@@ -3,11 +3,11 @@ const modelCache = require('../utils/model-cache');
 
 const VersionModel = {
   // Create new version
-  create(skillId, version, changelog, zipPath, uploaderId, description) {
+  create(skillId, version, changelog, zipPath, uploaderId, description, sha256 = null) {
     const result = db.prepare(`
-      INSERT INTO skill_versions (skill_id, version, changelog, zip_path, uploader_id, description)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(skillId, version, changelog || '', zipPath, uploaderId, description || '');
+      INSERT INTO skill_versions (skill_id, version, changelog, zip_path, uploader_id, description, sha256)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(skillId, version, changelog || '', zipPath, uploaderId, description || '', sha256);
     modelCache.invalidateSkill(skillId);
     return this.findById(result.lastInsertRowid);
   },

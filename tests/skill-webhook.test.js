@@ -16,10 +16,11 @@ test('parseWebhookUrlField accepts http(s) and rejects invalid protocol', () => 
   assert.equal(parseWebhookUrlField('ftp://example.com').ok, false);
 });
 
-test('isSafeWebhookTarget allows localhost but rejects private and metadata addresses', () => {
-  assert.equal(isSafeWebhookTarget('http://localhost:8787/hook'), true);
-  assert.equal(isSafeWebhookTarget('http://127.0.0.1:8787/hook'), true);
-  assert.equal(isSafeWebhookTarget('http://[::1]:8787/hook'), true);
+test('webhook targets block non-public addresses by default', () => {
+  assert.equal(isSafeWebhookTarget('http://localhost:8787/hook'), false);
+  assert.equal(isSafeWebhookTarget('http://127.0.0.1:8787/hook'), false);
+  assert.equal(isSafeWebhookTarget('http://[::1]:8787/hook'), false);
+  assert.equal(isSafeWebhookTarget('https://example.com/hook'), true);
 
   assert.equal(isSafeWebhookTarget('http://192.168.1.8/hook'), false);
   assert.equal(isSafeWebhookTarget('http://10.0.0.8/hook'), false);

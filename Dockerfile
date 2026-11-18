@@ -2,7 +2,7 @@
 FROM node:20.20.2-alpine3.22 AS builder
 
 # Install pnpm (required for build scripts)
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.28.0
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY web/ ./web/
 
 # Build frontend (output will be in ../static)
 WORKDIR /app/web
-RUN pnpm install
+RUN pnpm install --frozen-lockfile --ignore-workspace
 RUN pnpm run build
 
 # Stage 2: Final runtime environment
@@ -24,8 +24,8 @@ WORKDIR /app
 COPY --from=builder /app/static ./static
 
 # 2. Install backend production dependencies
-COPY package.json ./
-RUN npm install --production
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
 # 3. Copy backend source code
 COPY src/ ./src/
@@ -38,6 +38,7 @@ RUN mkdir -p /data
 ENV DATA_DIR=/data
 ENV DATABASE_PATH=/data/skills.db
 ENV PORT=8000
+ENV HOST=0.0.0.0
 ENV APP_BASE_PATH=/
 ENV SESSION_STORE=memory
 

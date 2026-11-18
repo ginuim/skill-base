@@ -5,7 +5,7 @@ const SkillModel = require('../models/skill');
 const VersionModel = require('../models/version');
 const FavoriteModel = require('../models/favorite');
 const TagModel = require('../models/tag');
-const { getZipPath, resolveZipPath } = require('../utils/zip');
+const { resolveZipPath } = require('../utils/zip');
 const { canManageSkill, canViewSkill } = require('../utils/permission');
 const { parseWebhookUrlField, notifySkillWebhook } = require('../utils/skill-webhook');
 const { formatSkill } = require('../utils/format-skill');
@@ -38,6 +38,7 @@ function formatVersion(version) {
     description: version.description,
     download_count: version.download_count || 0,
     zip_path: version.zip_path,
+    sha256: version.sha256 ?? null,
     uploader: {
       id: version.uploader_id,
       username: version.uploader_username,
@@ -49,14 +50,7 @@ function formatVersion(version) {
 
 async function skillsRoutes(fastify, options) {
   function resolveExistingZipPath(skillId, versionRecord) {
-    const zipPath = resolveZipPath(versionRecord.zip_path, skillId, versionRecord.version);
-    const fallbackZipPath = getZipPath(skillId, versionRecord.version);
-
-    if (!fs.existsSync(zipPath) && !fs.existsSync(fallbackZipPath)) {
-      return null;
-    }
-
-    return fs.existsSync(zipPath) ? zipPath : fallbackZipPath;
+    return resolveZipPath(versionRecord.zip_path, skillId, versionRecord.version);
   }
 
   // GET / - Get skills list
@@ -148,6 +142,9 @@ async function skillsRoutes(fastify, options) {
     reply.header('Content-Type', 'application/zip');
     reply.header('Content-Disposition', `attachment; filename="${fileName}"`);
 
+    if (versionRecord.sha256) {
+      reply.header('Content-Digest', `sha-256=:${Buffer.from(versionRecord.sha256, 'hex').toString('base64')}:`);
+    }
     return fs.createReadStream(finalZipPath);
   });
 
@@ -175,6 +172,9 @@ async function skillsRoutes(fastify, options) {
     reply.header('Content-Type', 'application/zip');
     reply.header('Content-Disposition', `inline; filename="${fileName}"`);
 
+    if (versionRecord.sha256) {
+      reply.header('Content-Digest', `sha-256=:${Buffer.from(versionRecord.sha256, 'hex').toString('base64')}:`);
+    }
     return fs.createReadStream(finalZipPath);
   });
 

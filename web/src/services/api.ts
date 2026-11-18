@@ -409,6 +409,6 @@ export const usersApi = {
 
 export const initApi = {
   status: () => apiGet<{ initialized: boolean }>('/init/status'),
-  setup: (data: { admin_username: string; admin_password: string }) =>
+  setup: (data: { username: string; password: string; setup_token: string }) =>
     apiPost('/init/setup', data),
 }

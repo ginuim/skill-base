@@ -4,10 +4,10 @@ async function publishRoutes(fastify, options) {
   fastify.post('/publish', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
-    const fields = {};
+    const fields = Object.create(null);
     let zipBuffer = null;
 
-    const parts = request.parts();
+    const parts = request.parts({ limits: { files: 1, fields: 10 } });
     for await (const part of parts) {
       if (part.type === 'file') {
         if (part.fieldname === 'zip_file') {
@@ -16,6 +16,8 @@ async function publishRoutes(fastify, options) {
             chunks.push(chunk);
           }
           zipBuffer = Buffer.concat(chunks);
+        } else {
+          part.file.resume();
         }
       } else if (part.type === 'field') {
         fields[part.fieldname] = part.value;

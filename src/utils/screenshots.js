@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const db = require('../database');
 const modelCache = require('./model-cache');
+const { isValidSkillId } = require('./publish-archive');
 const { getDataDir, ensureSkillDir } = require('./zip');
 
 const ALLOWED_MIME_TYPES = {
@@ -57,6 +58,7 @@ function saveScreenshotsColumn(skillId, screenshots) {
 
 // Persist an uploaded image buffer; returns the screenshot record or {error}
 function addScreenshot(skillId, mimeType, buffer) {
+  if (!isValidSkillId(skillId)) return { error: 'invalid_skill_id', detail: 'Invalid skill ID' };
   const ext = ALLOWED_MIME_TYPES[mimeType];
   if (!ext) {
     return { error: 'invalid_type', detail: 'Only PNG/JPEG/WebP/GIF images are allowed' };
@@ -93,6 +95,7 @@ function findScreenshot(screenshots, shotId) {
 }
 
 function resolveScreenshotFile(skillId, shot) {
+  if (!isValidSkillId(skillId) || !/^[a-f0-9-]{36}\.(png|jpg|webp|gif)$/.test(shot.filename)) return null;
   // filename is generated server-side (uuid + whitelist ext); never trust user input here
   const filePath = path.join(getDataDir(), 'skills', skillId, 'screenshots', shot.filename);
   return fs.existsSync(filePath) ? filePath : null;

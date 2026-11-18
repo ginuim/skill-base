@@ -35,11 +35,23 @@
     "npm-run-all2": "^8.0.4",
     "tailwindcss": "^4.2.2",
     "typescript": "~5.9.3",
-    "vite": "^7.3.1",
+    "vite": "7.3.8",
     "vite-plugin-vue-devtools": "^8.0.7",
     "vue-tsc": "^3.2.5"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
+  },
+  "overrides": {
+    "postcss": "8.5.23",
+    "source-map-js": "1.2.2",
+    "shell-quote": "1.12.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.23",
+      "source-map-js": "1.2.2",
+      "shell-quote": "1.12.0"
+    }
   }
 }

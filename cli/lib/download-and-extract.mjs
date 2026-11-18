@@ -1,7 +1,8 @@
-import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import extract from 'extract-zip';
+import {
+  assertSkillInstallId, findSkillFolder, installArchiveDirectories,
+  readZipResponse, SKILL_ZIP_LIMIT, withExtractedZip
+} from './install-archive.mjs';
 import { createClient } from './api.js';
 import { lang } from './i18n.js';
 
@@ -18,6 +19,7 @@ function pickFn(obj, arg) {
 }
 
 export async function downloadAndExtract(skillId, version, targetDir) {
+  assertSkillInstallId(skillId);
   const client = createClient();
 
   const skillInfo = await client.get(`/skills/${encodeURIComponent(skillId)}`);
@@ -32,21 +34,9 @@ export async function downloadAndExtract(skillId, version, targetDir) {
     `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(actualVersion)}/download`
   );
 
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  const tmpZip = path.join(os.tmpdir(), `skb-${skillId}-${actualVersion}-${Date.now()}.zip`);
-  fs.writeFileSync(tmpZip, buffer);
-
-  fs.mkdirSync(targetDir, { recursive: true });
-
-  await extract(tmpZip, { dir: path.resolve(targetDir) });
-
-  try {
-    fs.unlinkSync(tmpZip);
-  } catch {
-    // ignore
-  }
+  const buffer = await readZipResponse(response, SKILL_ZIP_LIMIT);
+  await withExtractedZip(buffer, 256 * 1024 * 1024, (outDir) =>
+    installArchiveDirectories(path.resolve(targetDir), [[skillId, findSkillFolder(outDir)]]));
 
   return { skillId, version: actualVersion, targetDir };
 }

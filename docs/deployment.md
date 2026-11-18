@@ -18,7 +18,7 @@ data/
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--port` | `-p` | Listen port | `8000` |
-| `--host` | `-h` | Bind address | `0.0.0.0` |
+| `--host` | `-h` | Bind address | `127.0.0.1` |
 | `--data-dir` | `-d` | Data directory | package `data/` |
 | `--base-path` | - | URL prefix | `/` |
 | `--cache-max-mb` | - | In-process LRU cache size (MB) | `50` |
@@ -66,12 +66,20 @@ Notes:
 | `DEBUG` | Verbose logging (same as `--verbose`) | off |
 | `APP_BASE_PATH` | URL prefix (Docker; same as `--base-path`) | `/` |
 | `GITHUB_TOKEN` / `SKILL_BASE_GITHUB_TOKEN` | GitHub API rate limits for import | - |
-| `SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB` | Max zipball size for GitHub import | `50` |
+| `SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB` | Max zipball size for GitHub import | `100` |
 | `SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS` | GitHub connectivity probe timeout | `8000` |
 | `SKILL_BASE_SQLITE3_PATH` | `sqlite3` binary for WAL migration on unsupported platforms | - |
 | `SKILL_BASE_WEBHOOK_TIMEOUT_MS` | Outbound webhook timeout | server default |
 
 `GET /api/v1/health` returns simplified cache stats.
+
+
+### Network and first-run setup
+
+- Native startup binds to `127.0.0.1` by default. The container listens on `0.0.0.0` internally. To expose it only to a local HTTPS reverse proxy, publish the port with `-p 127.0.0.1:8000:8000`.
+- A fresh data directory requires the one-time setup token printed in the startup log. You can supply a random token via `SKILL_BASE_SETUP_TOKEN` (32–128 letters, digits, hyphens or underscores), then remove it after initialization. Restrict access to startup logs. Restarting generates a new token unless you supplied a configured token. Deployments without access to logs should supply the token through their secret configuration.
+- Serve the Web UI and API from the same origin by default. Preserve the original `Host` on the reverse proxy, or list trusted browser origins in `CORS_ORIGINS` as comma-separated complete origins. Set `SESSION_COOKIE_SECURE=true` to require HTTPS for the session cookie.
+- Changing your own password replaces your current browser session and revokes your other sessions and CLI tokens. An administrator reset revokes all sessions and tokens for the affected account. Authentication endpoints limit requests by connection IP. Clients behind a reverse proxy can share the same quota.
 
 ## Session storage
 

@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { assertSkillInstallId } from './install-archive.mjs';
+import { isSafeSkillInstallPath } from './installs.js';
 import { DESKTOP_IPC_CHANNELS } from './desktop-ipc-channels.mjs';
 import { parseSkillMd, displayNameAndDescriptionFromParsed } from './skill-md.js';
 
@@ -273,17 +275,6 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
     return null;
   }
 
-  function removeFailedInstallPath(skillId, installPath) {
-    if (!cli.isSafeSkillInstallPath(skillId, installPath)) return;
-    try {
-      if (fs.existsSync(installPath) && fs.lstatSync(installPath).isDirectory()) {
-        fs.rmSync(installPath, { recursive: true, force: true });
-      }
-    } catch {
-      // Best-effort cleanup only; keep the original install error visible.
-    }
-  }
-
   function installErrorMessage(err, targetPath) {
     const message = describeFsError(err, targetPath);
     return targetPath ? `${message} (${targetPath})` : message;
@@ -495,16 +486,14 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       const acceptNested = Boolean(payload?.acceptNested);
       const rawTargets = Array.isArray(payload?.targets) ? payload.targets : [];
 
-      if (!skillId) {
-        throw new Error('skillId required');
-      }
+      assertSkillInstallId(skillId);
       const resolved = resolveInstallTargets(rawTargets, installProjectRoot);
       const nestedProblem = checkNestedInstallTargets(resolved, acceptNested);
       if (nestedProblem) return nestedProblem;
 
       for (const spec of resolved) {
         const installPathCandidate = path.join(path.resolve(spec.targetDir), skillId);
-        if (fs.existsSync(installPathCandidate) && !overwrite) {
+        if (fs.lstatSync(installPathCandidate, { throwIfNoEntry: false }) && !overwrite) {
           return {
             ok: false,
             code: 'EXISTS',
@@ -522,9 +511,6 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
 
         try {
           ensureWritableTargetDir(spec.targetDir);
-          if (fs.existsSync(installPathCandidate)) {
-            fs.rmSync(installPathCandidate, { recursive: true, force: true });
-          }
           const result = await cli.downloadAndExtract(skillId, version, spec.targetDir);
           actualVersion = result.version;
           const installPath = path.join(result.targetDir, skillId);
@@ -537,7 +523,6 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
           });
           installed.push({ installPath, version: result.version, label: spec.label });
         } catch (err) {
-          removeFailedInstallPath(skillId, installPathCandidate);
           throw new Error(installErrorMessage(err, installPathCandidate));
         }
       }
@@ -579,6 +564,9 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
         throw new Error('集合内没有可安装的 Skill');
       }
 
+      const skillIds = skills.map((skill) => skill.id);
+      for (const id of skillIds) assertSkillInstallId(id);
+
       const resolved = resolveInstallTargets(rawTargets, installProjectRoot);
       const nestedProblem = checkNestedInstallTargets(resolved, acceptNested);
       if (nestedProblem) return nestedProblem;
@@ -587,7 +575,7 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       for (const spec of resolved) {
         for (const skill of skills) {
           const installPathCandidate = path.join(path.resolve(spec.targetDir), skill.id);
-          if (fs.existsSync(installPathCandidate)) conflictPaths.push(installPathCandidate);
+          if (fs.lstatSync(installPathCandidate, { throwIfNoEntry: false })) conflictPaths.push(installPathCandidate);
         }
       }
       if (conflictPaths.length > 0 && !overwrite) {
@@ -605,18 +593,9 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
 
         try {
           ensureWritableTargetDir(spec.targetDir);
-          for (const skill of skills) {
-            const installPathCandidate = path.join(targetDir, skill.id);
-            if (fs.existsSync(installPathCandidate)) {
-              fs.rmSync(installPathCandidate, { recursive: true, force: true });
-            }
-          }
           const buffer = await cli.downloadCollectionZip(collectionRef);
-          await cli.extractCollectionZip(buffer, spec.targetDir);
+          await cli.extractCollectionZip(buffer, spec.targetDir, skillIds);
         } catch (err) {
-          for (const skill of skills) {
-            removeFailedInstallPath(skill.id, path.join(targetDir, skill.id));
-          }
           throw new Error(installErrorMessage(err, spec.targetDir));
         }
 
@@ -681,6 +660,9 @@ export function registerDesktopHandlers(cli, cliLibRoot, deps) {
       const selected = installs.filter((i) => installPaths.includes(i.installPath));
       if (selected.length === 0) throw new Error('no matching install paths');
 
+      if (selected.some((install) => !isSafeSkillInstallPath(skillId, install.installPath))) {
+        throw new Error('Invalid recorded skill installation path');
+      }
       const updated = [];
       for (const install of selected) {
         const result = await cli.downloadAndExtract(

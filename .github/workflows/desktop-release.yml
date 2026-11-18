@@ -77,10 +77,10 @@ jobs:
 
       - name: Install CLI dependencies
         working-directory: cli
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Install desktop-tauri dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
