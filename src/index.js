@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { MAX_UPLOAD_BYTES } = require('./utils/publish-archive');
 const { getStats: getCacheStats } = require('./utils/model-cache');
 
 const isDebug = process.env.DEBUG === 'true';
@@ -10,7 +11,7 @@ if (!process.env.CACHE_MAX_MB) {
 const fastify = require('fastify')({
   logger: isDebug,
   // 100MB body limit for large zip uploads
-  bodyLimit: 100 * 1024 * 1024
+  bodyLimit: MAX_UPLOAD_BYTES
 });
 const CappyMascot = require('./cappy');
 const appLanguage = CappyMascot.detectSystemLanguage();
@@ -76,10 +77,8 @@ async function start() {
     });
     // 1. Plugins
     // @fastify/cors — CORS
-    await fastify.register(require('@fastify/cors'), {
-      origin: true,
-      credentials: true
-    });
+    await require('./utils/browser-security').configureBrowserSecurity(fastify);
+    await fastify.register(require('@fastify/rate-limit'), { global: false });
     debugLog({ zh: '已注册 @fastify/cors', en: 'Registered @fastify/cors' });
 
     // @fastify/cookie
@@ -89,7 +88,7 @@ async function start() {
     // @fastify/multipart — uploads
     await fastify.register(require('@fastify/multipart'), {
       limits: {
-        fileSize: 100 * 1024 * 1024  // 100MB
+        fileSize: MAX_UPLOAD_BYTES
       }
     });
     debugLog({ zh: '已注册 @fastify/multipart', en: 'Registered @fastify/multipart' });
@@ -195,7 +194,7 @@ async function start() {
 
     // 6. Listen
     const PORT = process.env.PORT || 8000;
-    const HOST = process.env.HOST || '0.0.0.0';
+    const HOST = process.env.HOST || '127.0.0.1';
     
     // Cappy on only when ENABLE_CAPPY=true AND stdout is a TTY
     // (avoids banner-animation spamming pm2/systemd logs at ~5MB/min)

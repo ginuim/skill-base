@@ -145,16 +145,18 @@ DELETE `/skills/:id` 在数据库删除成功后投递：
 
 ## 安全与网络限制
 
-写入时校验 URL 格式（仅 `http`/`https`，最长 2048 字符）。发送前做 SSRF 防护：
+写入时校验 URL 格式（仅 `http`/`https`，最长 2048 字符）。发送时使用已校验的 DNS 结果建立连接，且不跟随重定向：
 
 | 目标 | 是否允许 |
 |------|----------|
-| `localhost` / `127.0.0.1` / `::1` | 允许（本地调试） |
+| `localhost` / `127.0.0.1` / `::1` | 默认拒绝。本地调试可设置 `SKILL_BASE_WEBHOOK_ALLOW_LOOPBACK=true` |
 | 公网 `https://` | 允许 |
 | `10.x` / `192.168.x` / `172.16–31.x` | **拒绝** |
 | `169.254.169.254` 等元数据地址 | **拒绝** |
 
 生产环境建议用公网 HTTPS 端点；内网集成请通过反向代理或隧道暴露接收端。
+
+设置 `SKILL_BASE_WEBHOOK_SIGNING_SECRET` 后，投递附带 `X-SkillBase-Signature: sha256=<hex>`。签名使用实例密钥对原始请求体计算 HMAC-SHA256。接收端应校验时间戳和预期的技能 ID。
 
 环境变量 `SKILL_BASE_WEBHOOK_TIMEOUT_MS` 控制单次投递超时（默认 `10000`，上限 `60000`）。详见 [部署文档](deployment.md)。
 
@@ -169,7 +171,7 @@ DELETE `/skills/:id` 在数据库删除成功后投递：
 node examples/webhook-receiver/server.js
 
 # 终端 2：启动 Skill Base（若尚未运行）
-npx skill-base -p 8000
+SKILL_BASE_WEBHOOK_ALLOW_LOOPBACK=true npx skill-base -p 8000
 
 # 终端 3：配置 Webhook 并触发（替换 skill_id 与 PAT）
 curl -X PUT "http://localhost:8000/api/v1/skills/<skill_id>" \

@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import prompts from 'prompts';
 import { createClient } from '../api.js';
-import { rememberSkillInstall } from '../installs.js';
+import { isSafeSkillInstallPath, rememberSkillInstall } from '../installs.js';
 import { downloadAndExtract } from '../download-and-extract.mjs';
 import { buildTargetInstalls, resolveImplicitSelectedInstalls } from '../update-helpers.mjs';
 import { pickMessage, lang, formatDisplayTime } from '../i18n.js';
@@ -159,6 +159,9 @@ export default async function update(skillId, options) {
       process.exit(0);
     }
 
+    if (selectedInstalls.some((install) => !isSafeSkillInstallPath(skillId, install.installPath))) {
+      throw new Error('Invalid recorded skill installation path');
+    }
     updateSpinner = ora(
       pickMessage({
         zh: `正在更新 ${skillId}@${versionAnswer.version}...`,

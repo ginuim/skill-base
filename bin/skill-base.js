@@ -32,7 +32,7 @@ Skill Base - 内网轻量版 Skill 管理平台
 
 选项:
   -p, --port <port>       指定端口号 (默认: 8000)
-  -h, --host <host>       指定监听地址 (默认: 0.0.0.0)
+  -h, --host <host>       指定监听地址 (默认: 127.0.0.1)
   -d, --data-dir <path>   指定数据目录 (默认: 包内 data/)
   --base-path <path>      指定部署前缀 (默认: /，例如: /skills/)
   --cache-max-mb <mb>     指定进程内 LRU 缓存总容量，单位 MB (默认: 50)
@@ -67,7 +67,7 @@ Usage:
 
 Options:
   -p, --port <port>       Set the port number (default: 8000)
-  -h, --host <host>       Set the listen address (default: 0.0.0.0)
+  -h, --host <host>       Set the listen address (default: 127.0.0.1)
   -d, --data-dir <path>   Set the data directory (default: bundled data/)
   --base-path <path>      Set the deploy prefix (default: /, for example: /skills/)
   --cache-max-mb <mb>     Set total in-process LRU cache size in MB (default: 50)
@@ -101,7 +101,7 @@ const DAEMON_FLAGS = new Set(['--daemon', '--stop', '--status']);
 // 解析命令行参数
 const args = process.argv.slice(2);
 let port = 8000;
-let host = '0.0.0.0';
+let host = process.env.HOST || '127.0.0.1';
 let dataDir = null;
 let basePath = '/';
 let enableCappy = true;

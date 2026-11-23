@@ -14,15 +14,15 @@ function normalizeBasePath(value = '/'): string {
 function createProxy(basePath: string) {
   const proxy = {
     '/api': {
-      target: 'http://localhost:8000',
-      changeOrigin: true,
+      target: 'http://127.0.0.1:8000',
+      changeOrigin: false,
     },
   } as Record<string, { target: string; changeOrigin: boolean }>
 
   if (basePath !== '/') {
     proxy[`${basePath.slice(0, -1)}/api`] = {
-      target: 'http://localhost:8000',
-      changeOrigin: true,
+      target: 'http://127.0.0.1:8000',
+      changeOrigin: false,
     }
   }
 

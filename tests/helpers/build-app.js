@@ -20,7 +20,7 @@ function createFixture() {
   };
 }
 
-async function buildTestApp() {
+async function buildTestApp({ security = false } = {}) {
   const fixture = createFixture();
   fs.mkdirSync(fixture.dataDir, { recursive: true });
 
@@ -73,6 +73,18 @@ async function buildTestApp() {
   await app.register(require('../../src/middleware/admin'));
 
   const apiPrefix = '/api/v1';
+  if (security) {
+    clearModule('../../src/routes/init');
+    clearModule('../../src/routes/publish');
+    clearModule('../../src/routes/import-github');
+    clearModule('../../src/utils/github-import');
+    await require('../../src/utils/browser-security').configureBrowserSecurity(app, 'https://trusted.example');
+    await app.register(require('@fastify/rate-limit'), { global: false });
+    await app.register(require('@fastify/multipart'));
+    await app.register(require('../../src/routes/init'), { prefix: `${apiPrefix}/init` });
+    await app.register(require('../../src/routes/publish'), { prefix: `${apiPrefix}/skills` });
+    await app.register(require('../../src/routes/import-github'), { prefix: `${apiPrefix}/skills` });
+  }
   await app.register(require('../../src/routes/auth'), { prefix: `${apiPrefix}/auth` });
   await app.register(require('../../src/routes/skills'), { prefix: `${apiPrefix}/skills` });
   await app.register(require('../../src/routes/users'), { prefix: `${apiPrefix}/users` });

@@ -53,7 +53,9 @@ Collection 是管理员维护的扁平推荐包（如“前端组必装”），
 
 远程 MCP 在部署基础路径下提供 `/mcp`，使用无状态 Streamable HTTP 和可选 Bearer PAT。工具复用现有 API 的可见性与写权限。版本比较使用技能当前 Head。MCP 发布复用 Web ZIP 发布逻辑、权限和版本语义。Web 导航中的 `/mcp-guide` 公开提供连接说明及三个官方 Skill，按部署基础路径生成端点地址。
 
-认证方式: Cookie-based session (`session_token`)；CLI 使用 `Authorization: Bearer` PAT。
+认证方式: Cookie-based session (`session_id`)；CLI 使用 `Authorization: Bearer` PAT。
+
+首次初始化需要启动日志或 `SKILL_BASE_SETUP_TOKEN` 提供的口令，自动口令在初始化前重启时换发，默认仅监听 `127.0.0.1`（Docker 显式在容器内监听所有接口）。浏览器写请求校验来源。发布统一检查 Skill ID、ZIP 结构和大小。CLI/桌面端先验证下载包，再替换目标目录。
 
 公开 GitHub 仓库导入（登录后）：`GET /skills/import/github/connectivity`、`POST /skills/import/github/preview`、`POST /skills/import/github`（JSON）。可选环境变量 `GITHUB_TOKEN` / `SKILL_BASE_GITHUB_TOKEN`、`SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB`、`SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS`。
 

@@ -1,3 +1,4 @@
+import { assertSkillInstallId } from './install-archive.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadSavedConfig, saveConfig } from './config.js';
@@ -157,9 +158,13 @@ export function clearSkillInstalls(skillId) {
 }
 
 export function isSafeSkillInstallPath(skillId, installPath) {
-  const normalizedSkillId = String(skillId || '').trim();
-  if (!normalizedSkillId || !installPath) return false;
-  return path.basename(path.resolve(installPath)) === normalizedSkillId;
+  try {
+    assertSkillInstallId(skillId);
+    return typeof installPath === 'string' && path.isAbsolute(installPath)
+      && path.basename(path.resolve(installPath)) === skillId;
+  } catch {
+    return false;
+  }
 }
 
 export function deleteSkillInstallDirs(skillId, installPaths) {

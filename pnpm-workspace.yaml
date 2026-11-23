@@ -1,2 +1,13 @@
+packages:
+  - web
+
 allowBuilds:
   esbuild: true
+
+overrides:
+  '@fastify/busboy': 3.2.6
+  fast-uri@^3: 3.1.9
+  postcss: 8.5.23
+  source-map-js: 1.2.2
+  shell-quote: 1.12.0
+  nodemon>minimatch: 11.0.9
